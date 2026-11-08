@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T01:47:34.839523+00:00",
+  "updatedAt": "2026-11-08T01:51:25.064309+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -36039,5 +36039,5 @@
   "oddsCreditsRemaining": 490,
   "oddsCreditsUsed": 10,
   "oddsStatus": "ready",
-  "oddsNotice": "Коэффициенты найдены для 40 матчей. Обновление раз в сутки."
+  "oddsNotice": "Сохранены котировки для 40 матчей; обновление коэффициентов выполняется отдельным заданием."
 }
