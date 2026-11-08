@@ -128,6 +128,35 @@ def predict(c,home,away,st,base,names,matches,target_date):
     pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date))
     return pred,None
 
+def preserve_existing_odds(payload):
+    """Keep bookmaker quotes when the six-hour fixture/model refresh rewrites data.json."""
+    if not OUT.exists():
+        return
+    try:
+        previous = json.loads(OUT.read_text(encoding="utf-8"))
+    except Exception:
+        return
+    old_odds = {}
+    for competition in previous.get("competitions", []):
+        for match in competition.get("matches", []):
+            quote = match.get("odds")
+            match_id = match.get("id")
+            if quote and match_id is not None:
+                old_odds[str(match_id)] = quote
+    kept = 0
+    for competition in payload.get("competitions", []):
+        for match in competition.get("matches", []):
+            quote = old_odds.get(str(match.get("id")))
+            if quote and match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
+                match["odds"] = quote
+                kept += 1
+    for key in ("oddsUpdatedAt", "oddsCreditsRemaining", "oddsCreditsUsed", "oddsStatus", "oddsNotice", "oddsErrors"):
+        if key in previous:
+            payload[key] = previous[key]
+    if kept:
+        payload["oddsNotice"] = f"Сохранены котировки для {kept} матчей; обновление коэффициентов выполняется отдельным заданием."
+
+
 def main():
     p={"updatedAt":datetime.now(timezone.utc).isoformat(),"source":"Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
       "modelVersion":"Openplay v1.3 · frozen research baseline","modelConfig":{"window":WINDOW,"halfLife":HALF_LIFE,"shrinkage":SHRINKAGE},
@@ -185,6 +214,7 @@ def main():
             p["notice"]="Прогнозы рассчитаны по последней доступной истории Openplay. Свежесть xG указана отдельно."
     except Exception as e:
         p["status"]="model_data_error"; p["notice"]="Ошибка загрузки/обработки Openplay: "+str(e)[:300]
+    preserve_existing_odds(p)
     OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(p,ensure_ascii=False,indent=2),encoding="utf-8")
 
 if __name__=="__main__":main()
