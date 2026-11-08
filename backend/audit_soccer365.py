@@ -113,15 +113,6 @@ def parse_match(url, league):
     if vals:
         home_xg, away_xg = [float(x.replace(",", ".")) for x in vals[0]]
     home, away = title_teams(title)
-    # English Soccer365 pages expose the two match-header club links before
-    # lineup/related-match links; use them when available.
-    club_names = [
-        a.get_text(" ", strip=True)
-        for a in soup.select('a[href*="/clubs/"]')
-        if a.get_text(" ", strip=True)
-    ]
-    if len(club_names) >= 2:
-        home, away = club_names[0], club_names[1]
     return {
         "archiveLeague": league, "competitionId": actual_comp_id,
         "url": url, "title": title, "home": home, "away": away,
