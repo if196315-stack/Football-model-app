@@ -284,7 +284,7 @@ class MainActivity : Activity() {
     private fun renderStats(json: JSONObject) {
         addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
         addText(matchesContainer, "Качество прогнозов", 22, true)
-        addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, фора 0 на каждую команду и индивидуальным тоталам команд.", 11, false, muted)
+        addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, фора 0, индивидуальным тоталам команд и дополнительному рынку ТБ 2.5.", 11, false, muted)
         data class BandRow(val label: String, val n: Int, val hits: Int)
         data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
         val metrics = mutableListOf<MetricRow>()
@@ -333,6 +333,7 @@ class MainActivity : Activity() {
         collect("dnbAway", "Фора 0 · гости", { h,a -> a > h }, true)
         collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
+        collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h,a -> h + a >= 3 })
         if (metrics.isEmpty()) {
             val empty = card()
             addText(empty, "Пока нет завершённых матчей с сохранёнными прогнозами по основным рынкам.", 12, false, muted)
