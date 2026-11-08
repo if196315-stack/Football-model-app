@@ -18,7 +18,27 @@ def parquet(name):
     p=ROOT/"backend"/"cache"/name
     p.parent.mkdir(parents=True,exist_ok=True)
     if not p.exists():
-        r=requests.get(f"{BASE}/{name}",timeout=120); r.raise_for_status(); p.write_bytes(r.content)
+        url=f"{BASE}/{name}"
+        last_error=None
+        # Openplay release downloads can intermittently return 502/503/504.
+        # Retry transient failures and write atomically so a partial file is never cached.
+        for attempt in range(5):
+            try:
+                r=requests.get(url,timeout=(20,240))
+                if r.status_code in (429,500,502,503,504):
+                    r.raise_for_status()
+                r.raise_for_status()
+                if not r.content:
+                    raise RuntimeError(f"Empty Openplay download: {name}")
+                tmp=p.with_suffix(p.suffix+".tmp")
+                tmp.write_bytes(r.content)
+                tmp.replace(p)
+                break
+            except Exception as exc:
+                last_error=exc
+                if attempt == 4:
+                    raise RuntimeError(f"Openplay download failed after 5 attempts ({name}): {last_error}") from last_error
+                time.sleep(min(15 * (attempt + 1),60))
     return pd.read_parquet(p)
 
 def key(s):
