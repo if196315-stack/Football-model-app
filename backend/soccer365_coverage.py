@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-import math
 from typing import Any, Iterable
 
 from soccer365_catalog import validate_competition_catalog
@@ -102,7 +101,7 @@ def summarize_historical_coverage(
         hxg, axg = stats.get("homeXg"), stats.get("awayXg")
         has_xg = all(
             isinstance(v, (int, float)) and not isinstance(v, bool)
-            and math.isfinite(v) and 0 <= v <= 20
+            and 0 <= v <= 20
             for v in (hxg, axg)
         )
         if has_xg:
