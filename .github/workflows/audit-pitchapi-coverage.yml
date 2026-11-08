@@ -1,6 +1,13 @@
 name: Audit PitchAPI coverage and xG
 
 on:
+  workflow_dispatch:
+    inputs:
+      sample_limit:
+        description: "Finished matches to inspect per league-season (1-50)"
+        required: false
+        default: "20"
+        type: string
   push:
     branches:
       - feature/soccer365-source-migration
@@ -28,7 +35,7 @@ jobs:
       - name: Fetch league, season and sampled xG coverage
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-        run: python backend/probe_pitchapi_coverage.py --output pitchapi-coverage-audit.json
+        run: python backend/probe_pitchapi_coverage.py --sample-limit "${{ github.event.inputs.sample_limit || '5' }}" --output pitchapi-coverage-audit.json
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         with:
