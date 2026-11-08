@@ -54,6 +54,14 @@ class Soccer365CoverageTests(unittest.TestCase):
         self.assertFalse(item["sourceHistoryComplete"])
         self.assertTrue(item["teams"][0]["xgSampleReady"])
 
+    def test_more_finished_matches_than_verified_count_is_not_marked_complete(self):
+        report = summarize_historical_coverage(
+            [entry(expectedFinishedMatches=1)], [match("m-1"), match("m-2")]
+        )
+        item = report["competitions"][0]
+        self.assertFalse(item["sourceHistoryComplete"])
+        self.assertEqual(item["finishedCountDelta"], 1)
+
     def test_without_verified_expected_count_completeness_is_unknown(self):
         report = summarize_historical_coverage([entry()], [match("m-1")])
         item = report["competitions"][0]
