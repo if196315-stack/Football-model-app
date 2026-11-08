@@ -10,7 +10,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-BASE = "https://soccer365.ru"
+BASE = "https://soccer365.net"
 START = date(2026, 5, 25)
 END = date(2026, 11, 8)
 LEAGUES = {"eng": 12, "esp": 16, "ita": 15, "ger": 17, "fra": 18}
@@ -77,7 +77,7 @@ def similarity(a, b):
 def title_teams(title):
     head = title.split(":", 1)[0]
     head = re.sub(r"\s*[-–—]\s*смотреть онлайн.*$", "", head, flags=re.I)
-    parts = re.split(r"\s*[-–—]\s*", head, maxsplit=1)
+    parts = re.split(r"\s+(?:vs\.?|[-–—])\s+", head, maxsplit=1, flags=re.I)
     return (parts[0].strip(), parts[1].strip()) if len(parts) == 2 else (None, None)
 
 
@@ -113,6 +113,15 @@ def parse_match(url, league):
     if vals:
         home_xg, away_xg = [float(x.replace(",", ".")) for x in vals[0]]
     home, away = title_teams(title)
+    # English Soccer365 pages expose the two match-header club links before
+    # lineup/related-match links; use them when available.
+    club_names = [
+        a.get_text(" ", strip=True)
+        for a in soup.select('a[href*="/clubs/"]')
+        if a.get_text(" ", strip=True)
+    ]
+    if len(club_names) >= 2:
+        home, away = club_names[0], club_names[1]
     return {
         "archiveLeague": league, "competitionId": actual_comp_id,
         "url": url, "title": title, "home": home, "away": away,
