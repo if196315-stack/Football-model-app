@@ -15,6 +15,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 import requests
+from update_odds import similarity as team_similarity
 
 SPORTS = {
     "PL": "soccer_epl",
@@ -35,15 +36,6 @@ def normalize(value):
     return " ".join(part for part in value.split() if part not in ignored)
 
 
-def team_similarity(left, right):
-    a, b = normalize(left), normalize(right)
-    if not a or not b:
-        return 0.0
-    if a == b:
-        return 1.0
-    return SequenceMatcher(None, a, b).ratio()
-
-
 def parse_datetime(value):
     if not value:
         return None
@@ -53,7 +45,7 @@ def parse_datetime(value):
         return None
 
 
-def match_event(fixture, events, threshold=0.90, max_hours=12):
+def match_event(fixture, events, league="PL", threshold=0.86, max_hours=18):
     """Return a unique high-confidence event match; otherwise return None."""
     kickoff = parse_datetime(fixture.get("utcDate"))
     if kickoff is None:
@@ -63,8 +55,8 @@ def match_event(fixture, events, threshold=0.90, max_hours=12):
         event_time = parse_datetime(event.get("commence_time"))
         if event_time is None or abs((event_time - kickoff).total_seconds()) > max_hours * 3600:
             continue
-        home = team_similarity(fixture.get("home"), event.get("home_team"))
-        away = team_similarity(fixture.get("away"), event.get("away_team"))
+        home = team_similarity(fixture.get("home"), event.get("home_team"), league)
+        away = team_similarity(fixture.get("away"), event.get("away_team"), league)
         if home >= threshold and away >= threshold:
             ranked.append((home + away, event))
     ranked.sort(key=lambda pair: pair[0], reverse=True)
@@ -136,7 +128,7 @@ def collect(input_path, output_path, api_key, session=requests):
             matched = 0
             with_odds = 0
             for fixture in fixtures:
-                event = match_event(fixture, events)
+                event = match_event(fixture, events, code)
                 if event is None:
                     continue
                 matched += 1
