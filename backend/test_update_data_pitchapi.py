@@ -83,6 +83,37 @@ class PitchApiUpdaterTests(unittest.TestCase):
             finally:
                 updater.OUT = old_out
 
+    def test_odds_transfer_when_pitchapi_fixture_has_date_only(self):
+        import tempfile
+        import json
+        from pathlib import Path
+        import update_data_pitchapi as updater
+
+        with tempfile.TemporaryDirectory() as tmp:
+            old_out = updater.OUT
+            updater.OUT = Path(tmp) / "data.json"
+            try:
+                quote = {"best": {"h2h": {"home": 1.95}}}
+                updater.OUT.write_text(json.dumps({
+                    "competitions": [{"code": "PL", "matches": [{
+                        "id": "old-id", "home": "Manchester City", "away": "Fulham",
+                        "utcDate": "2026-11-21T15:00:00Z", "status": "SCHEDULED",
+                        "odds": quote
+                    }]}],
+                    "oddsUpdatedAt": "2026-11-08T05:30:00Z",
+                }), encoding="utf-8")
+                payload = {"competitions": [{"code": "PL", "matches": [{
+                    "id": "new-id", "home": "Manchester City", "away": "Fulham",
+                    "utcDate": "2026-11-21", "status": "SCHEDULED"
+                }]}]}
+                self.assertEqual(preserve_odds_by_identity(payload), 1)
+                match = payload["competitions"][0]["matches"][0]
+                self.assertEqual(match["odds"], quote)
+                self.assertEqual(payload["oddsCoverage"]["eligible"], 1)
+                self.assertEqual(payload["oddsCoverage"]["retained"], 1)
+                self.assertEqual(payload["oddsCoverage"]["notMatched"], 0)
+            finally:
+                updater.OUT = old_out
 
 if __name__ == "__main__":
     unittest.main()
