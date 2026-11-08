@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 import os
 import sys
 import time
@@ -69,7 +70,7 @@ def choose_samples(matches: list[dict], limit: int = SAMPLE_LIMIT) -> list[dict]
 
 
 
-def match_integrity(matches: list[dict]) -> dict:
+def match_integrity(matches: list[dict], season: str | None = None) -> dict:
     """Detect duplicate provider IDs and duplicate same-day team pairings."""
     rows = [m for m in matches if isinstance(m, dict)]
     ids = Counter(str(m.get("id")) for m in rows if m.get("id") is not None)
@@ -90,7 +91,8 @@ def match_integrity(matches: list[dict]) -> dict:
     home_appearances = Counter()
     away_appearances = Counter()
     team_names = {}
-    for match in rows:
+    countable_rows = [m for m in rows if norm(m.get("status")) not in {"canceled", "cancelled"}]
+    for match in countable_rows:
         home = match.get("home_team") or {}
         away = match.get("away_team") or {}
         home_id, away_id = home.get("id"), away.get("id")
@@ -102,19 +104,22 @@ def match_integrity(matches: list[dict]) -> dict:
             appearances[str(away_id)] += 1
             away_appearances[str(away_id)] += 1
             team_names[str(away_id)] = away.get("name")
-    expected_per_team = max(0, (len(appearances) - 1) * 2)
+    season_year = season_start(season)
+    active_season = season_year is not None and season_year >= datetime.now(timezone.utc).year
+    expected_per_team = None if active_season else max(0, (len(appearances) - 1) * 2)
     team_match_counts = [
         {"teamId": team_id, "team": team_names.get(team_id),
          "matches": appearances[team_id], "home": home_appearances[team_id],
          "away": away_appearances[team_id]}
         for team_id in sorted(appearances, key=lambda key: (team_names.get(key) or "", key))
     ]
-    team_count_outliers = [
-        row for row in team_match_counts if row["matches"] != expected_per_team
-    ]
+    team_count_outliers = (
+        [] if expected_per_team is None else
+        [row for row in team_match_counts if row["matches"] != expected_per_team]
+    )
     outlier_ids = {row["teamId"] for row in team_count_outliers}
     team_fixture_lists = {team_id: [] for team_id in sorted(outlier_ids)}
-    for match in sorted(rows, key=lambda item: str(item.get("date") or "")):
+    for match in sorted(countable_rows, key=lambda item: str(item.get("date") or "")):
         home = match.get("home_team") or {}
         away = match.get("away_team") or {}
         home_id, away_id = str(home.get("id")), str(away.get("id"))
@@ -137,6 +142,7 @@ def match_integrity(matches: list[dict]) -> dict:
         "duplicateFixtures": duplicate_fixtures,
         "teamCount": len(appearances),
         "expectedMatchesPerTeam": expected_per_team,
+        "teamCountsComparable": expected_per_team is not None,
         "teamMatchCounts": team_match_counts,
         "teamCountOutliers": team_count_outliers,
         "teamFixtureLists": team_fixture_lists,
@@ -222,7 +228,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                          {"season": season, "status": "played"})
             matches = data.get("matches", []) if isinstance(data, dict) else []
             status_counts = Counter(m.get("status", "missing") for m in matches if isinstance(m, dict))
-            integrity = match_integrity(matches)
+            integrity = match_integrity(matches, season)
             samples = choose_samples(matches)
             inspected = []
             for match in samples:
