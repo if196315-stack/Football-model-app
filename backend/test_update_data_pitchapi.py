@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pandas as pd
 
 from update_data_pitchapi import (
-    app_status, build_model_frames, fixture_identity, preserve_odds_by_identity,
+    app_status, build_model_frames, find_odds_event, fixture_identity, preserve_odds_by_identity,
 )
 
 
@@ -49,6 +49,26 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertEqual(set(history.team), {"Arsenal", "Chelsea"})
         self.assertAlmostEqual(base["eng", "home"], 1.4)
         self.assertAlmostEqual(base["eng", "away"], 0.4)
+
+    def test_odds_event_matches_date_only_pitchapi_fixture(self):
+        fixture = {"home": "Manchester City", "away": "Fulham", "utcDate": "2026-11-21"}
+        events = [
+            {"home_team": "Manchester City FC", "away_team": "Fulham FC",
+             "commence_time": "2026-11-21T12:30:00Z", "id": "matching"},
+            {"home_team": "Manchester City FC", "away_team": "Fulham FC",
+             "commence_time": "2026-11-22T12:30:00Z", "id": "wrong-date"},
+        ]
+        self.assertEqual(find_odds_event(fixture, events, "PL")["id"], "matching")
+
+    def test_odds_event_rejects_ambiguous_same_day_double_match(self):
+        fixture = {"home": "Manchester City", "away": "Fulham", "utcDate": "2026-11-21"}
+        events = [
+            {"home_team": "Manchester City FC", "away_team": "Fulham FC",
+             "commence_time": "2026-11-21T12:30:00Z", "id": "one"},
+            {"home_team": "Manchester City", "away_team": "Fulham",
+             "commence_time": "2026-11-21T17:30:00Z", "id": "two"},
+        ]
+        self.assertIsNone(find_odds_event(fixture, events, "PL"))
 
     def test_fixture_identity_uses_competition_teams_and_kickoff(self):
         fixture = {"home": "Manchester United", "away": "Chelsea",

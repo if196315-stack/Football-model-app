@@ -9,7 +9,10 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
+
+import requests
 from pathlib import Path
 
 import pandas as pd
@@ -18,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
 from pitchapi_data_source import CACHE_PATH, model_history_rows, refresh_history
+from update_odds import BASE_URL as ODDS_BASE_URL, LEAGUES as ODDS_LEAGUES, convert_event as convert_odds_event, similarity as odds_similarity
 from update_data import (
     COMPS, MAP, WINDOW, HALF_LIFE, SHRINKAGE, _similarity, key,
     match_name, strengths, predict, update_prediction_archive,
@@ -171,6 +175,124 @@ def preserve_odds_by_identity(payload: dict) -> int:
 
 
 
+
+def find_odds_event(match: dict, events: list[dict], league: str) -> dict | None:
+    """Match The Odds API events to PitchAPI fixtures, including date-only kickoffs."""
+    raw_date = str(match.get("utcDate") or "")
+    if not raw_date:
+        return None
+    try:
+        target = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+        if target.tzinfo is None:
+            target = target.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    date_only = "T" not in raw_date
+    ranked = []
+    for event in events:
+        try:
+            event_time = datetime.fromisoformat(str(event.get("commence_time") or "").replace("Z", "+00:00"))
+            if event_time.tzinfo is None:
+                event_time = event_time.replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        if date_only:
+            if event_time.date() != target.date():
+                continue
+        elif abs((event_time - target).total_seconds()) > 18 * 3600:
+            continue
+        home_score = odds_similarity(match.get("home"), event.get("home_team"), league)
+        away_score = odds_similarity(match.get("away"), event.get("away_team"), league)
+        if home_score >= 0.86 and away_score >= 0.86:
+            ranked.append((home_score + away_score, event))
+    ranked.sort(key=lambda item: item[0], reverse=True)
+    if not ranked:
+        return None
+    if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.10:
+        return None
+    return ranked[0][1]
+
+
+def refresh_odds_from_api(payload: dict, api_key: str) -> int:
+    """Refresh bookmaker odds from The Odds API without changing the fixture source."""
+    if not api_key:
+        return 0
+    competitions = {c.get("code"): c for c in payload.get("competitions", [])}
+    updated = retained = matched = eligible = 0
+    quota_remaining = quota_used = None
+    errors = []
+    coverage = {}
+    for code, sport in ODDS_LEAGUES.items():
+        competition = competitions.get(code)
+        if not competition:
+            continue
+        league_eligible = league_matched = league_updated = league_retained = 0
+        try:
+            response = requests.get(
+                f"{ODDS_BASE_URL}/{sport}/odds",
+                params={"apiKey": api_key, "regions": "eu", "markets": "h2h,totals",
+                        "oddsFormat": "decimal", "dateFormat": "iso"},
+                timeout=35,
+            )
+            quota_remaining = response.headers.get("x-requests-remaining", quota_remaining)
+            quota_used = response.headers.get("x-requests-used", quota_used)
+            if response.status_code == 429:
+                raise RuntimeError("The Odds API rate limit (429)")
+            response.raise_for_status()
+            events = response.json()
+            for match in competition.get("matches", []):
+                if match.get("status") not in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
+                    continue
+                eligible += 1
+                league_eligible += 1
+                event = find_odds_event(match, events, code)
+                if event:
+                    matched += 1
+                    league_matched += 1
+                    quote = convert_odds_event(event)
+                    if quote.get("best"):
+                        match["odds"] = quote
+                        updated += 1
+                        league_updated += 1
+                    elif match.get("odds"):
+                        retained += 1
+                        league_retained += 1
+                elif match.get("odds"):
+                    retained += 1
+                    league_retained += 1
+        except Exception as exc:
+            errors.append(f"{code}: {str(exc)[:180]}")
+            for match in competition.get("matches", []):
+                if match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED") and match.get("odds"):
+                    retained += 1
+                    league_retained += 1
+        coverage[code] = {
+            "eligible": league_eligible, "matched": league_matched,
+            "updated": league_updated, "retained": league_retained,
+            "notMatched": max(0, league_eligible - league_matched),
+        }
+        time.sleep(1)
+    payload["oddsUpdatedAt"] = datetime.now(timezone.utc).isoformat()
+    payload["oddsCoverage"] = {
+        "eligible": eligible, "matched": matched, "updated": updated,
+        "retained": retained, "notMatched": max(0, eligible - matched),
+        "byLeague": coverage,
+    }
+    payload["oddsCreditsRemaining"] = int(quota_remaining) if str(quota_remaining or "").isdigit() else None
+    payload["oddsCreditsUsed"] = int(quota_used) if str(quota_used or "").isdigit() else None
+    payload["oddsStatus"] = "ready" if (updated or retained) else ("partial_error" if errors else "no_quotes")
+    payload["oddsNotice"] = (
+        f"Новые котировки The Odds API: {updated}; сохранены прежние: {retained}; без совпадения: {max(0, eligible - matched)}."
+        if (updated or retained) else "The Odds API не вернул подходящих котировок для предстоящих матчей."
+    )
+    if errors:
+        payload["oddsErrors"] = errors
+    else:
+        payload.pop("oddsErrors", None)
+    return updated
+
+
+
 def app_status(raw: str, match_date: str | None = None,
                today=None) -> str:
     value = str(raw or "").casefold()
@@ -259,7 +381,10 @@ def run() -> dict:
     )
     update_prediction_archive(payload)
     retained = preserve_odds_by_identity(payload)
-    if retained:
+    odds_updated = refresh_odds_from_api(payload, os.environ.get("ODDS_API_KEY", "").strip())
+    if odds_updated:
+        payload["oddsNotice"] = f"Обновлены котировки The Odds API для {odds_updated} матчей."
+    if retained and not odds_updated:
         payload["oddsNotice"] = f"Сохранены ранее полученные котировки для {retained} матчей; новые коэффициенты обновляются отдельно через The Odds API."
     OUT.parent.mkdir(parents=True, exist_ok=True)
     tmp = OUT.with_suffix(".json.tmp")
@@ -267,7 +392,7 @@ def run() -> dict:
     tmp.replace(OUT)
     return {"competitions": len(payload["competitions"]), "matches": sum(len(c["matches"]) for c in payload["competitions"]),
             "pairedHistory": len(results), "predictions": len(upcoming),
-            "pendingXg": payload["xgHistoryPending"], "retainedOdds": retained}
+            "pendingXg": payload["xgHistoryPending"], "retainedOdds": retained, "updatedOdds": odds_updated}
 
 
 if __name__ == "__main__":
