@@ -147,6 +147,10 @@ def main():
     quota_remaining = None
     quota_used = None
     updated = 0
+    retained = 0
+    matched = 0
+    eligible = 0
+    coverage = {}
     errors = []
     competitions = {x.get("code"): x for x in data.get("competitions", [])}
 
@@ -154,6 +158,10 @@ def main():
         competition = competitions.get(code)
         if not competition:
             continue
+        league_eligible = 0
+        league_matched = 0
+        league_updated = 0
+        league_retained = 0
         try:
             response = requests.get(
                 f"{BASE_URL}/{sport}/odds",
@@ -173,26 +181,53 @@ def main():
             response.raise_for_status()
             events = response.json()
             for match in competition.get("matches", []):
-                match.pop("odds", None)
                 if match.get("status") not in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
                     continue
+                league_eligible += 1
+                eligible += 1
                 event = event_for_match(match, events)
                 if event:
+                    league_matched += 1
+                    matched += 1
                     quote = convert_event(event)
                     if quote.get("best"):
                         match["odds"] = quote
                         updated += 1
+                        league_updated += 1
+                    elif match.get("odds"):
+                        retained += 1
+                        league_retained += 1
+                elif match.get("odds"):
+                    # Keep the last known valid quote when the provider temporarily
+                    # omits the event or team-name matching is inconclusive.
+                    retained += 1
+                    league_retained += 1
         except Exception as exc:
             errors.append(f"{code}: {str(exc)[:180]}")
+        coverage[code] = {
+            "eligible": league_eligible,
+            "matched": league_matched,
+            "updated": league_updated,
+            "retained": league_retained,
+            "notMatched": max(0, league_eligible - league_matched),
+        }
         time.sleep(1)
 
     data["oddsUpdatedAt"] = datetime.now(timezone.utc).isoformat()
+    data["oddsCoverage"] = {
+        "eligible": eligible,
+        "matched": matched,
+        "updated": updated,
+        "retained": retained,
+        "notMatched": max(0, eligible - matched),
+        "byLeague": coverage,
+    }
     data["oddsCreditsRemaining"] = int(quota_remaining) if str(quota_remaining or "").isdigit() else None
     data["oddsCreditsUsed"] = int(quota_used) if str(quota_used or "").isdigit() else None
-    data["oddsStatus"] = "ready" if updated else ("partial_error" if errors else "no_quotes")
+    data["oddsStatus"] = "ready" if (updated or retained) else ("partial_error" if errors else "no_quotes")
     data["oddsNotice"] = (
-        f"Коэффициенты найдены для {updated} матчей. Обновление раз в сутки."
-        if updated else "На момент последнего обновления подходящих коэффициентов не найдено."
+        f"Новые коэффициенты: {updated}; сохранены прежние: {retained}; без совпадения: {max(0, eligible - matched)}."
+        if (updated or retained) else "На момент последнего обновления подходящих коэффициентов не найдено."
     )
     if errors:
         data["oddsErrors"] = errors
