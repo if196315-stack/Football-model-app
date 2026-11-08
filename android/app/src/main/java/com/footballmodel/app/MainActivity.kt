@@ -170,67 +170,53 @@ class MainActivity : Activity() {
     )
 
     private fun renderStats(json: JSONObject) {
-        addText(matchesContainer, "РЕЗУЛЬТАТЫ МОДЕЛИ", 10, true, accent)
-        addText(matchesContainer, "Насколько точны прогнозы 1X2", 19, true)
-        addText(matchesContainer, "Сравниваем самый вероятный исход с фактическим счётом.", 11, false, muted)
-        val rows = mutableListOf<EvaluatedMatch>()
+        addText(matchesContainer, "ОЦЕНКА ОСНОВНЫХ РЫНКОВ", 10, true, accent)
+        addText(matchesContainer, "Проверяем каждый рынок отдельно", 19, true)
+        addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, DNB и индивидуальным тоталам команд.", 11, false, muted)
+        data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double)
+        val metrics = mutableListOf<MetricRow>()
         val leagues = json.optJSONArray("competitions")
-        if (leagues != null) for (i in 0 until leagues.length()) {
-            val league = leagues.getJSONObject(i)
-            val matches = league.optJSONArray("matches") ?: continue
-            for (j in 0 until matches.length()) {
-                val m = matches.getJSONObject(j)
-                if (m.optString("status") != "FINISHED") continue
-                val p = m.optJSONObject("prediction") ?: continue
-                if (m.isNull("homeScore") || m.isNull("awayScore")) continue
-                val hs = m.optInt("homeScore")
-                val ascore = m.optInt("awayScore")
-                val actual = when { hs > ascore -> "1"; hs < ascore -> "2"; else -> "X" }
-                val options = listOf("1" to p.optDouble("1"), "X" to p.optDouble("x"), "2" to p.optDouble("2"))
-                val best = options.maxByOrNull { it.second } ?: continue
-                rows.add(EvaluatedMatch(league.optString("code"), m.optString("home"), m.optString("away"),
-                    "$hs:$ascore", best.first, actual, best.first == actual, m.optString("utcDate"), best.second))
+        fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
+            var n = 0; var hits = 0; var brier = 0.0; var logLoss = 0.0
+            if (leagues != null) for (i in 0 until leagues.length()) {
+                val matches = leagues.getJSONObject(i).optJSONArray("matches") ?: continue
+                for (j in 0 until matches.length()) {
+                    val m = matches.getJSONObject(j)
+                    if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                    val p = m.optJSONObject("prediction") ?: continue
+                    if (!p.has(key) || p.isNull(key)) continue
+                    val h = m.optInt("homeScore"); val aw = m.optInt("awayScore")
+                    if (excludeDraws && h == aw) continue
+                    val outcome = actual(h, aw)
+                    val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
+                    val y = if (outcome) 1.0 else 0.0
+                    n++; if (outcome == (probability >= 0.5)) hits++
+                    brier += (probability-y)*(probability-y)
+                    logLoss += -(y*kotlin.math.ln(probability)+(1.0-y)*kotlin.math.ln(1.0-probability))
+                }
             }
+            if (n > 0) metrics.add(MetricRow(title,n,hits,brier/n,logLoss/n))
         }
-        rows.sortByDescending { it.date }
-        val total = rows.size
-        val wins = rows.count { it.correct }
-        val misses = total - wins
-        val accuracy = if (total > 0) wins * 100.0 / total else 0.0
-
-        val hero = card(color = Color.rgb(16, 48, 42))
-        addText(hero, "ТОЧНОСТЬ УГАДЫВАНИЯ ИСХОДА", 10, true, accent)
-        addText(hero, if (total == 0) "—" else String.format(Locale.US, "%.1f%%", accuracy), 36, true)
-        addText(hero, "$wins из $total матчей", 13, true)
-        val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; background = rounded(Color.rgb(54, 67, 81), 8) }
-        if (wins > 0) bar.addView(View(this).apply { setBackground(rounded(accent, 8)) }, LinearLayout.LayoutParams(0, 9, wins.toFloat()))
-        if (misses > 0) bar.addView(View(this).apply { setBackground(rounded(Color.rgb(255, 99, 111), 8)) }, LinearLayout.LayoutParams(0, 9, misses.toFloat()))
-        hero.addView(bar, LinearLayout.LayoutParams(-1, 9).apply { topMargin = 12; bottomMargin = 8 })
-        addText(hero, "✓  Угадано: $wins       ✕  Ошибок: $misses", 12, true)
-
-        val explainer = card(color = panel)
-        addText(explainer, "КАК СЧИТАЕТСЯ", 10, true, accent)
-        addText(explainer, "Берётся максимальная вероятность из П1 / X / П2. Она сравнивается с итогом матча. Матчи без прогноза исключены. Это точность исходов, не доходность ставок.", 11, false, muted)
-
-        addText(matchesContainer, "ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ", 10, true, muted)
-        if (rows.isEmpty()) {
+        collect("1x", "1X · хозяева не проиграют") { h,a -> h >= a }
+        collect("x2", "X2 · гости не проиграют") { h,a -> a >= h }
+        collect("dnbHome", "DNB · победа хозяев без ничьей", { h,a -> h > a }, true)
+        collect("homeOver15", "ИТБ 1.5 · хозяева") { h,_ -> h >= 2 }
+        collect("awayOver15", "ИТБ 1.5 · гости") { _,a -> a >= 2 }
+        if (metrics.isEmpty()) {
             val empty = card()
-            addText(empty, "Пока нет завершённых матчей с готовым прогнозом", 13, true)
-        } else {
-            rows.take(40).forEach { item ->
-                val line = card()
-                val head = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-                head.addView(label(item.league, 10, true, muted), LinearLayout.LayoutParams(0, -2, 1f))
-                head.addView(label(if (item.correct) "✓ УГАДАНО" else "✕ ПРОМАХ", 10, true,
-                    if (item.correct) accent else Color.rgb(255, 99, 111)))
-                line.addView(head)
-                addText(line, item.home + " — " + item.away, 13, true)
-                addText(line, "Прогноз: " + item.predicted + "   ·   Итог: " + item.actual + "   ·   " + item.score, 11, false, muted)
-                addText(line, "Вероятность выбранного исхода: " + String.format(Locale.US, "%.0f%%", item.confidence * 100), 10, false, muted)
-            }
+            addText(empty, "Пока нет завершённых матчей с сохранёнными прогнозами по основным рынкам.", 12, false, muted)
+        } else metrics.forEach { metric ->
+            val box = card()
+            addText(box, metric.name, 14, true)
+            addText(box, "Попадания при пороге 50%: ${metric.hits}/${metric.n} (${String.format(Locale.US, "%.1f", metric.hits*100.0/metric.n)}%)", 11, true, accent)
+            addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
+            addText(box, if (metric.name.startsWith("DNB")) "Ничьи исключены; вероятность условная, без ничьей." else "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
         }
+        val explainer = card()
+        addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
+        addText(explainer, "Brier Score и Log Loss оценивают качество вероятностей: чем ниже, тем лучше. Попадания — вспомогательная доля прогнозов выше 50%, а не доходность. П1 / X / П2 не являются главной статистикой.", 11, false, muted)
         val footer = card(color = panel)
-        addText(footer, "Важно: в статистику попадают только завершённые матчи с сохранённым прогнозом. Точность на небольшой выборке может заметно меняться.", 10, false, muted)
+        addText(footer, "Выборка включает завершённые матчи с сохранённым прогнозом. Это мониторинг, а не независимый тест модели.", 10, false, muted)
     }
 
     private fun render() {
@@ -333,21 +319,14 @@ class MainActivity : Activity() {
                 if (pred == null) {
                     addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
                 } else {
-                    val line = LinearLayout(this).apply {
-                        orientation = LinearLayout.HORIZONTAL
-                        gravity = Gravity.CENTER_VERTICAL
-                        setPadding(0, 8, 0, 4)
-                    }
-                    listOf("1" to "1", "X" to "x", "2" to "2").forEach { pair ->
-                        val cell = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
-                        cell.addView(label(pair.first, 10, true, muted))
-                        cell.addView(label(pct(pred, pair.second), 20, true, if (pair.first == "1") accent else Color.WHITE))
-                        line.addView(cell, LinearLayout.LayoutParams(0, -2, 1f))
-                    }
-                    box.addView(line)
-                    addText(box, "1X ${pct(pred, "1x")}     X2 ${pct(pred, "x2")}     DNB 1 ${pct(pred, "dnbHome")}", 12, true, Color.rgb(180, 204, 232))
-                    addText(box, "ТБ 2.5 ${pct(pred, "over25")}   ·   Обе забьют ${pct(pred, "bttsYes")}", 12, false, muted)
-                    addText(box, "ИТБ 1.5: хозяева ${pct(pred, "homeOver15")}  /  гости ${pct(pred, "awayOver15")}", 12, false, muted)
+                    val mainMarkets = card(box)
+                    addText(mainMarkets, "ОСНОВНЫЕ РЫНКИ МОДЕЛИ", 10, true, accent)
+                    addText(mainMarkets, "1X  ${pct(pred, "1x")}     X2  ${pct(pred, "x2")}", 17, true, Color.WHITE)
+                    addText(mainMarkets, "DNB · победа хозяев без ничьей: ${pct(pred, "dnbHome")}", 13, true, Color.rgb(180, 220, 205))
+                    addText(mainMarkets, "ИТБ 1.5 хозяев: ${pct(pred, "homeOver15")}     ИТБ 1.5 гостей: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
+                    addText(box, "ВНУТРЕННИЕ ВЕРОЯТНОСТИ ИСХОДА", 10, true, muted)
+                    addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
+                    addText(box, "Дополнительные рынки: ТБ 2.5 ${pct(pred, "over25")} · Обе забьют ${pct(pred, "bttsYes")}", 11, false, muted)
                     addText(box, "Ожидаемые голы  ${String.format(Locale.US, "%.2f : %.2f", pred.optDouble("expectedHomeGoals"), pred.optDouble("expectedAwayGoals"))}", 12, true)
                 }
             }
