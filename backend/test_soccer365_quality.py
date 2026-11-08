@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from soccer365_quality import validate_match_records
+from soccer365_quality import summarize_model_coverage, validate_match_records
 
 
 def record(**overrides):
@@ -103,6 +103,42 @@ class Soccer365QualityTests(unittest.TestCase):
     def test_same_team_on_both_sides_is_error(self):
         result = validate_match_records([record(away="Alpha FC")])
         self.assertIn("same_home_away", [x["code"] for x in result["issues"]])
+
+
+    def test_model_coverage_keeps_competition_types_separate(self):
+        rows = []
+        for i in range(100):
+            rows.append(record(
+                id=f"league-{i}",
+                utcDate=f"2026-08-{(i % 28) + 1:02d}T15:00:00+00:00",
+                homeTeamId="team-a",
+                awayTeamId="team-b",
+                competitionType="league",
+                home="Alpha FC",
+                away="Beta FC",
+            ))
+        rows.append(record(
+            id="cup-1",
+            competitionId="eng-cup",
+            competitionType="cup",
+            homeTeamId="team-a",
+            awayTeamId="team-b",
+        ))
+        summary = summarize_model_coverage(rows, min_team_xg_matches=30,
+                                           min_competition_baseline_matches=100)
+        self.assertEqual(len(summary["competitions"]), 2)
+        league = next(x for x in summary["competitions"] if x["competitionType"] == "league")
+        cup = next(x for x in summary["competitions"] if x["competitionType"] == "cup")
+        self.assertTrue(league["baselineReady"])
+        self.assertFalse(cup["baselineReady"])
+        self.assertEqual(league["finishedWithPairedXg"], 100)
+
+    def test_model_coverage_does_not_count_duplicate_ids_twice(self):
+        rows = [record(), record()]
+        summary = summarize_model_coverage(rows, min_team_xg_matches=1,
+                                           min_competition_baseline_matches=1)
+        self.assertEqual(summary["competitions"][0]["finishedWithResult"], 1)
+        self.assertEqual(summary["competitions"][0]["finishedWithPairedXg"], 1)
 
     def test_xg_availability_flag_must_match_pair(self):
         result = validate_match_records([record(
