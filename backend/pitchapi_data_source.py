@@ -187,7 +187,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
         )
         for season in seasons:
             try:
-                payload = fetch(session, f"/leagues/{league['id']}/matches", api_key, {"season": season})
+                payload = fetch(session, f"/leagues/{league['id']}/matches", api_key, {"season": season, "status": "all"})
                 rows = payload.get("matches", []) if isinstance(payload, dict) else []
                 for raw in rows:
                     row = normalize_match(raw, code, league, season)
