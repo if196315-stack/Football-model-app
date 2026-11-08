@@ -199,7 +199,7 @@ def main():
                 page_found = set()
                 for a in soup.select("a[href]"):
                     href = a.get("href", "")
-                    if re.search(r"/games/\d+/?$", href) or re.search(r"/live/match-[^/?]+", href):
+                    if re.search(r"/games/\d+/?$", href) or re.search(r"/live/(?:match|game)-[^/?]+", href):
                         page_found.add(urljoin(BASE, href.split("?")[0]))
                 found.update(page_found)
                 archive_reports.append({
