@@ -119,3 +119,8 @@ The report does not infer missing fixtures, fill xG, or combine seasons/types. I
 An empty competition listing now makes the collector run incomplete instead of treating a zero-link page as a successful collection. This is deliberate: an empty result can mean a genuinely empty competition page, a changed page layout, or an unverified link extractor; it must be investigated.
 
 Season history is marked complete only when the finished-match count exactly equals the independently verified expected count **and** every counted source record has a stable match ID with no duplicate IDs in that competition-season. Missing/duplicate IDs are reported separately and block the completeness flag. Score coverage remains a separate metric; a finished record without a valid score can contribute to the finished-match count but not to finished-result coverage or baseline readiness.
+
+
+### Match identity qualification
+
+Until Soccer365's actual internal match identifier is confirmed on permitted real pages, the adapter uses the canonical Soccer365 hostname + path as a provisional stable locator. It no longer reduces identity to the final URL slug, which could collide across different route shapes. This is a URL-derived key, not a claim that the site exposes a particular internal ID. A later verified internal identifier may be added with an explicit migration/mapping plan; existing archive IDs must never be rewritten in place.
