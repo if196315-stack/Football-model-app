@@ -93,20 +93,25 @@ def _parse_datetime(value: str | None) -> str | None:
 
 
 def _jsonld_objects(raw_scripts: list[str]) -> list[dict[str, Any]]:
+    """Collect JSON-LD objects, including nested arrays and @graph containers."""
     objects: list[dict[str, Any]] = []
+
+    def visit(value: Any) -> None:
+        if isinstance(value, list):
+            for child in value:
+                visit(child)
+        elif isinstance(value, dict):
+            objects.append(value)
+            graph = value.get("@graph")
+            if graph is not None:
+                visit(graph)
+
     for raw in raw_scripts:
         try:
             payload = json.loads(raw)
         except (TypeError, ValueError):
             continue
-        candidates = payload if isinstance(payload, list) else [payload]
-        for item in candidates:
-            if isinstance(item, dict):
-                graph = item.get("@graph")
-                if isinstance(graph, list):
-                    objects.extend(x for x in graph if isinstance(x, dict))
-                else:
-                    objects.append(item)
+        visit(payload)
     return objects
 
 
