@@ -135,19 +135,45 @@ def extract_games(payload):
 
 def team_key(value):
     value = norm(value)
+    # Canonical aliases for common short names and provider-specific variants.
     aliases = {
         "man utd": "manchester united", "man united": "manchester united",
+        "manchester utd": "manchester united", "manchester united fc": "manchester united",
         "man city": "manchester city", "spurs": "tottenham hotspur",
+        "tottenham": "tottenham hotspur",
         "inter milan": "inter", "internazionale": "inter",
+        "fc internazionale milano": "inter", "internazionale milano": "inter",
         "ac milan": "milan", "atletico madrid": "atletico",
-        "atletico de madrid": "atletico", "athletic bilbao": "athletic club",
-        "paris saint germain": "psg", "paris sg": "psg",
+        "club atletico de madrid": "atletico", "atletico de madrid": "atletico",
+        "athletic bilbao": "athletic club", "athletic club bilbao": "athletic club",
+        "paris saint germain": "psg", "paris saint germain fc": "psg", "paris sg": "psg",
         "borussia monchengladbach": "monchengladbach",
-        "bayern munchen": "bayern munich", "koln": "cologne",
-        "1 fc koln": "cologne", "fc koln": "cologne",
+        "bayern munchen": "bayern munich", "fc bayern munchen": "bayern munich",
+        "koln": "cologne", "1 fc koln": "cologne", "fc koln": "cologne",
+        "real racing club de santander": "racing santander",
+        "racing club de santander": "racing santander",
+        "rayo vallecano de madrid": "rayo vallecano",
+        "real sociedad de futbol": "real sociedad",
+        "rc celta de vigo": "celta vigo",
+        "bayer 04 leverkusen": "bayer leverkusen",
+        "1 fsv mainz 05": "mainz 05", "1 fc union berlin": "union berlin",
+        "vfb stuttgart": "stuttgart", "sv werder bremen": "werder bremen",
+        "tsg 1899 hoffenheim": "hoffenheim",
+        "racing club de lens": "lens", "rc strasbourg alsace": "strasbourg",
+        "stade rennais fc 1901": "rennes", "stade rennais": "rennes",
+        "stade brestois 29": "brest", "olympique lyonnais": "lyon",
+        "olympique de marseille": "marseille",
+        "as monaco": "monaco", "le havre ac": "le havre",
+        "es troyes ac": "troyes", "aj auxerre": "auxerre",
+        "angers sco": "angers", "lille osc": "lille",
+        "rcd espanyol de barcelona": "espanyol",
+        "rc deportivo la coruna": "deportivo la coruna",
     }
-    value = aliases.get(value, value)
-    return value
+    if value in aliases:
+        return aliases[value]
+    # Drop common legal/team suffixes only after exact aliases are checked.
+    value = re.sub(r"\\b(football club|futbol club|fc|cf|afc|cfc|ssc|ud|sc|sv|vfb|tsg|bc)\\b", " ", value)
+    return " ".join(value.split())
 
 
 def compare_football_data(rows):
