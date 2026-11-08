@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T10:27:47.764243+00:00",
+  "updatedAt": "2026-11-08T13:07:36.950986+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -11381,11 +11381,11 @@
         {
           "id": 564738,
           "utcDate": "2026-11-08T13:00:00Z",
-          "status": "TIMED",
+          "status": "IN_PLAY",
           "home": "Elche CF",
           "away": "Real Betis Balompié",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 0,
           "prediction": {
             "1": 0.35727670922333254,
             "x": 0.2580238690297225,
