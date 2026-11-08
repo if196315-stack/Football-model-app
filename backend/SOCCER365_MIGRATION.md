@@ -85,3 +85,12 @@ The same module exposes `summarize_model_coverage()`: a read-only report that co
 - This prototype does not resolve possible duplicate fixtures with different IDs; those remain a separate quality-review task.
 
 The store is deliberately format-neutral at the application boundary: it stores normalized records as JSONL and does not alter `docs/data.json`, the Android contract, prediction archive, or production workflow.
+
+
+## Explicit competition catalogue (isolated prototype)
+
+`backend/soccer365_catalog.py` validates a manifest supplied from verified Soccer365 competition pages. Each entry must explicitly provide country, stable competition ID, competition name, competition type, season, and a verified HTTPS Soccer365 URL.
+
+Supported type labels are `league`, `domestic_cup`, `international_cup`, `friendly`, and `national_team`. The validator rejects duplicate competition-season identities, duplicate URLs, unknown types, non-Soccer365 hosts, non-HTTPS URLs, nonstandard ports, query strings and fragments.
+
+The validator deliberately does not generate URLs, infer seasons, resolve redirects, fetch pages, or populate a catalogue with guessed competition IDs. Different seasons for the same competition are separate manifest entries. A real catalogue must be populated only after the corresponding pages and permitted access method have been verified.
