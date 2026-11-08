@@ -93,6 +93,17 @@ class Soccer365CollectorTests(unittest.TestCase):
         self.assertEqual(result["records"], [])
         self.assertEqual(result["warnings"][0]["code"], "no_match_links_found")
 
+    def test_record_integrity_errors_make_collection_incomplete(self):
+        invalid_page = '<title>Same FC - Same FC</title>'
+        client = FakeClient({COMPETITION_URL: LISTING, MATCH_URL: invalid_page})
+        result = collect_catalog(client, [entry()])
+        self.assertFalse(result["complete"])
+        self.assertFalse(result["qualityReport"]["valid"])
+        self.assertIn(
+            "same_home_away",
+            [issue["code"] for issue in result["qualityReport"]["issues"]],
+        )
+
     def test_duplicate_match_link_across_entries_is_not_fetched_twice(self):
         second_url = "https://soccer365.net/verified/eng-prem-cup/"
         second = entry(
