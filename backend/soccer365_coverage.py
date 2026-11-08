@@ -57,6 +57,7 @@ def summarize_historical_coverage(
             "missingTeamIds": 0,
             "duplicateIds": 0,
             "missingMatchIds": 0,
+            "missingMatchIds": 0,
             "_ids": set(),
             "_teams": defaultdict(lambda: {"pairedXgMatches": 0, "finishedMatches": 0}),
         }
