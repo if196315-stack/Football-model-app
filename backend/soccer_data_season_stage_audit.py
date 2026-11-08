@@ -1,8 +1,7 @@
 """Read-only stage audit for anomalous Soccer Data league-season totals.
 
-Checks regular and playoff match counts separately for selected seasons.
-Makes 12 API calls, spaces them to respect the provider's per-minute limit,
-and never downloads full match histories or writes application data.
+Fetches each competition's season list once, then counts finished regular and
+playoff matches for selected seasons. Makes at most 14 API calls.
 """
 from __future__ import annotations
 
@@ -60,16 +59,29 @@ class SoccerDataClient:
         return body
 
 
-def _season_id(client: SoccerDataClient, competition_id: str, year: str) -> str:
+def _season_map(client: SoccerDataClient, competition_id: str) -> dict[str, str]:
     body = client.get(f"/competitions/{competition_id}/seasons")
     rows = body["data"]
     if not isinstance(rows, list):
         raise ValueError(f"Invalid seasons list for {competition_id}")
-    matches = [row for row in rows if isinstance(row, dict)
-               and str(row.get("year") or row.get("name") or "") == year]
-    if len(matches) != 1 or not isinstance(matches[0].get("id"), str):
+    result: dict[str, str] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        year = str(row.get("year") or row.get("name") or "")
+        season_id = row.get("id")
+        if year and isinstance(season_id, str):
+            if year in result:
+                raise ValueError(f"Ambiguous season {year} for {competition_id}")
+            result[year] = season_id
+    return result
+
+
+def _season_id(client: SoccerDataClient, competition_id: str, year: str) -> str:
+    matches = _season_map(client, competition_id)
+    if year not in matches:
         raise ValueError(f"Expected exactly one season {year} for {competition_id}")
-    return matches[0]["id"]
+    return matches[year]
 
 
 def _stage_total(client: SoccerDataClient, competition_id: str,
@@ -84,7 +96,7 @@ def _stage_total(client: SoccerDataClient, competition_id: str,
     })
     meta = body.get("meta")
     total = meta.get("total") if isinstance(meta, dict) else None
-    if not isinstance(total, int) or total < 0:
+    if not isinstance(total, int) or isinstance(total, bool) or total < 0:
         raise ValueError(f"Invalid finished match total for stage {stage}")
     return total
 
@@ -92,15 +104,21 @@ def _stage_total(client: SoccerDataClient, competition_id: str,
 def run_audit(api_key: str, session: Any = None, sleep=time.sleep) -> dict:
     client = SoccerDataClient(api_key, session=session, sleep=sleep)
     rows = []
+    season_cache: dict[str, dict[str, str]] = {}
     for target in TARGETS:
+        competition_id = target["competition_id"]
+        if competition_id not in season_cache:
+            season_cache[competition_id] = _season_map(client, competition_id)
         for year, expected_regular in target["seasons"].items():
-            season_id = _season_id(client, target["competition_id"], year)
-            regular = _stage_total(client, target["competition_id"], season_id, "regular")
-            playoff = _stage_total(client, target["competition_id"], season_id, "playoff")
+            season_id = season_cache[competition_id].get(year)
+            if not season_id:
+                raise ValueError(f"Expected exactly one season {year} for {competition_id}")
+            regular = _stage_total(client, competition_id, season_id, "regular")
+            playoff = _stage_total(client, competition_id, season_id, "playoff")
             rows.append({
                 "country": target["country"],
                 "competition": target["competition"],
-                "competitionId": target["competition_id"],
+                "competitionId": competition_id,
                 "season": year,
                 "seasonId": season_id,
                 "expectedRegularMatches": expected_regular,
@@ -108,13 +126,13 @@ def run_audit(api_key: str, session: Any = None, sleep=time.sleep) -> dict:
                 "finishedPlayoffMatches": playoff,
                 "finishedTotal": regular + playoff,
                 "regularCountMatchesExpected": regular == expected_regular,
-                "stageCountsReconcile": regular + playoff >= regular,
+                "regularCountDifference": regular - expected_regular,
             })
     return {
         "provider": "Soccer Data API",
         "audit": "anomalous_season_stage_counts",
         "readOnly": True,
-        "maxApiCalls": 12,
+        "maxApiCalls": 14,
         "results": rows,
         "summary": {
             "seasonsChecked": len(rows),
@@ -123,7 +141,7 @@ def run_audit(api_key: str, session: Any = None, sleep=time.sleep) -> dict:
         },
         "limitations": [
             "Counts only; does not download or validate individual match records",
-            "Does not establish whether provider coverage includes every league fixture",
+            "Expected counts are regular-season fixture baselines, not provider completeness proof",
             "Does not write application or production data",
         ],
     }
