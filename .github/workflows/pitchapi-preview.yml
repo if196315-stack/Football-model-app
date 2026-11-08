@@ -50,7 +50,7 @@ jobs:
       - name: Refresh PitchAPI preview
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '100' }}
+          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '250' }}
         run: python backend/update_data_pitchapi.py
       - name: Upload preview and refreshed cache
         uses: actions/upload-artifact@v4
