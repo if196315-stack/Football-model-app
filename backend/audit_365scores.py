@@ -301,12 +301,15 @@ def main():
         rows.append(row)
         time.sleep(0.25)
 
+    cross_check = compare_football_data(rows)
+
     report = {
         "source": "365Scores public web JSON endpoints; unofficial and subject to change",
         "period": {"from": str(START), "to": str(END)},
         "generatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "fixtureCount": len(matches),
         "summary": summary,
+        "footballDataCrossCheck": cross_check,
         "fixtureErrors": errors,
         "payloadDiagnostics": payload_diagnostics,
         "matches": rows,
