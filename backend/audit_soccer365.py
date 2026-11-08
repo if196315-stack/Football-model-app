@@ -89,6 +89,7 @@ def main():
                 soup = BeautifulSoup(get(page_url), "html.parser")
                 found = set()
                 href_samples = []
+                raw_match_samples = re.findall(r".{0,100}match.{0,160}", html, re.I)[:20]
                 for a in soup.select("a[href]"):
                     href = a.get("href", "")
                     if "match" in href.lower():
@@ -98,7 +99,7 @@ def main():
                             found.add(urljoin(BASE, href.split("?")[0]))
                 urls[code] = urls.get(code, set()) | found
                 report["leagues"].setdefault(code, {})[season] = {
-                    "archiveUrl": page_url, "matchLinks": len(found), "pageTitle": soup.title.get_text(" ", strip=True) if soup.title else "", "htmlBytes": len(str(soup)), "hrefSamples": href_samples
+                    "archiveUrl": page_url, "matchLinks": len(found), "pageTitle": soup.title.get_text(" ", strip=True) if soup.title else "", "htmlBytes": len(str(soup)), "hrefSamples": href_samples, "rawMatchSamples": raw_match_samples
                 }
             except Exception as e:
                 report["errors"].append({"league": code, "url": page_url, "error": str(e)[:250]})
