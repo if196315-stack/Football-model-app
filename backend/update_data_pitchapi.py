@@ -134,6 +134,20 @@ def preserve_odds_by_identity(payload: dict) -> int:
     return retained
 
 
+
+def app_status(raw: str) -> str:
+    value = str(raw or "").casefold()
+    return {
+        "finished": "FINISHED", "scheduled": "SCHEDULED",
+        "timed": "TIMED", "not_started": "SCHEDULED",
+        "in_play": "IN_PLAY", "in play": "IN_PLAY",
+        "paused": "PAUSED", "postponed": "POSTPONED",
+        "canceled": "CANCELED", "cancelled": "CANCELED",
+        "awarded": "AWARDED",
+    }.get(value, value.upper())
+
+
+
 def run() -> dict:
     api_key = os.environ.get("PITCHAPI_API_KEY", "").strip()
     if not api_key:
@@ -171,11 +185,7 @@ def run() -> dict:
                     if row.get("leagueCode") == provider_code]
         for row in sorted(fixtures, key=lambda x: str(x.get("date") or "")):
             date = str(row.get("date") or "")
-            status_raw = str(row.get("status") or "").casefold()
-            status = {"finished":"FINISHED", "scheduled":"SCHEDULED", "timed":"TIMED",
-                      "in_play":"IN_PLAY", "in play":"IN_PLAY", "paused":"PAUSED",
-                      "postponed":"POSTPONED", "canceled":"CANCELED", "cancelled":"CANCELED",
-                      "awarded":"AWARDED"}.get(status_raw, status_raw.upper())
+            status = app_status(row.get("status"))
             home, away = row.get("home") or "TBD", row.get("away") or "TBD"
             pred, warning = None, None
             if status in ("SCHEDULED", "TIMED"):
