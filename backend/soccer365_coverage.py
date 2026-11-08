@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import math
 from typing import Any, Iterable
 
 from soccer365_catalog import validate_competition_catalog
@@ -57,7 +58,6 @@ def summarize_historical_coverage(
             "missingTeamIds": 0,
             "duplicateIds": 0,
             "missingMatchIds": 0,
-            "missingMatchIds": 0,
             "_ids": set(),
             "_teams": defaultdict(lambda: {"pairedXgMatches": 0, "finishedMatches": 0}),
         }
@@ -102,7 +102,7 @@ def summarize_historical_coverage(
         hxg, axg = stats.get("homeXg"), stats.get("awayXg")
         has_xg = all(
             isinstance(v, (int, float)) and not isinstance(v, bool)
-            and 0 <= v <= 20
+            and math.isfinite(v) and 0 <= v <= 20
             for v in (hxg, axg)
         )
         if has_xg:
@@ -143,8 +143,14 @@ def summarize_historical_coverage(
             "expectedCountVerified": known_expected,
             "sourceHistoryComplete": source_complete if known_expected else None,
             "finishedCountDelta": group["finishedMatches"] - expected if known_expected else None,
+            # Coverage against the independently verified season total.
             "finishedResultCoverage": (
                 group["finishedWithScore"] / expected if known_expected and expected else None
+            ),
+            # Data quality among records already marked FINISHED.
+            "finishedScoreRate": (
+                group["finishedWithScore"] / group["finishedMatches"]
+                if group["finishedMatches"] else None
             ),
             "baselineReady": group["finishedWithScore"] >= min_finished_matches,
             "teams": teams,
