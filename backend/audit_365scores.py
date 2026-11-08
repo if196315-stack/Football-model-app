@@ -1,6 +1,9 @@
 import json
 import re
 import time
+from difflib import SequenceMatcher
+import os
+from datetime import datetime
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -130,6 +133,99 @@ def extract_games(payload):
     return candidates[0][1], [{"path": p, "count": len(items)} for p, items in candidates]
 
 
+def team_key(value):
+    value = norm(value)
+    aliases = {
+        "man utd": "manchester united", "man united": "manchester united",
+        "man city": "manchester city", "spurs": "tottenham hotspur",
+        "inter milan": "inter", "internazionale": "inter",
+        "ac milan": "milan", "atletico madrid": "atletico",
+        "atletico de madrid": "atletico", "athletic bilbao": "athletic club",
+        "paris saint germain": "psg", "paris sg": "psg",
+        "borussia monchengladbach": "monchengladbach",
+        "bayern munchen": "bayern munich", "koln": "cologne",
+        "1 fc koln": "cologne", "fc koln": "cologne",
+    }
+    value = aliases.get(value, value)
+    return value
+
+
+def compare_football_data(rows):
+    token = os.getenv("FOOTBALL_DATA_TOKEN", "").strip()
+    if not token:
+        return {"available": False, "error": "FOOTBALL_DATA_TOKEN is not configured"}
+    fd_codes = {"eng": "PL", "esp": "PD", "ita": "SA", "ger": "BL1", "fra": "FL1"}
+    result = {"available": True, "source": "Football-Data.org API v4", "leagues": {}, "missingMatches": []}
+    for league, comp in fd_codes.items():
+        try:
+            response = requests.get(
+                f"https://api.football-data.org/v4/competitions/{comp}/matches",
+                headers={"X-Auth-Token": token},
+                params={"dateFrom": str(START), "dateTo": str(END)},
+                timeout=(15, 45),
+            )
+            if response.status_code == 429:
+                time.sleep(float(response.headers.get("Retry-After", "65")))
+                response = requests.get(
+                    f"https://api.football-data.org/v4/competitions/{comp}/matches",
+                    headers={"X-Auth-Token": token},
+                    params={"dateFrom": str(START), "dateTo": str(END)},
+                    timeout=(15, 45),
+                )
+            response.raise_for_status()
+            fixtures = response.json().get("matches", [])
+            candidates = [r for r in rows if r["league"] == league]
+            used = set()
+            matched = 0
+            missing = []
+            for fixture in fixtures:
+                home = (fixture.get("homeTeam") or {}).get("name") or ""
+                away = (fixture.get("awayTeam") or {}).get("name") or ""
+                kickoff = fixture.get("utcDate") or ""
+                try:
+                    fd_day = datetime.fromisoformat(kickoff.replace("Z", "+00:00")).date()
+                except Exception:
+                    fd_day = None
+                best = None
+                for idx, candidate in enumerate(candidates):
+                    if idx in used:
+                        continue
+                    try:
+                        d365 = datetime.fromisoformat(str(candidate.get("date")).replace("Z", "+00:00")).date()
+                    except Exception:
+                        d365 = None
+                    if fd_day and d365 and abs((fd_day - d365).days) > 1:
+                        continue
+                    hs = SequenceMatcher(None, team_key(home), team_key(candidate.get("home"))).ratio()
+                    aws = SequenceMatcher(None, team_key(away), team_key(candidate.get("away"))).ratio()
+                    score = (hs + aws) / 2
+                    if hs >= 0.78 and aws >= 0.78 and (best is None or score > best[0]):
+                        best = (score, idx, candidate)
+                if best:
+                    _, idx, candidate = best
+                    used.add(idx)
+                    matched += 1
+                    candidate["footballDataMatch"] = True
+                    candidate["footballDataId"] = fixture.get("id")
+                else:
+                    item = {
+                        "league": league, "date": kickoff, "home": home, "away": away,
+                        "status": fixture.get("status"),
+                    }
+                    missing.append(item)
+                    result["missingMatches"].append(item)
+            result["leagues"][league] = {
+                "footballDataFixtures": len(fixtures),
+                "matched365Scores": matched,
+                "missingIn365Scores": len(missing),
+                "missingSample": missing[:30],
+            }
+        except Exception as exc:
+            result["leagues"][league] = {"error": str(exc)[:300]}
+        time.sleep(7)
+    return result
+
+
 def main():
     matches = {}
     errors = []
@@ -218,7 +314,7 @@ def main():
     Path("365scores-audit.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({
         "period": report["period"], "fixtureCount": len(matches),
-        "summary": summary, "fixtureErrors": errors,
+        "summary": summary, "footballDataCrossCheck": cross_check, "fixtureErrors": errors,
         "payloadDiagnostics": payload_diagnostics,
     }, ensure_ascii=False, indent=2))
 
