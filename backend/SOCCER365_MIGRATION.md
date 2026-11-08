@@ -124,3 +124,6 @@ Season history is marked complete only when the finished-match count exactly equ
 ### Match identity qualification
 
 Until Soccer365's actual internal match identifier is confirmed on permitted real pages, the adapter uses the canonical Soccer365 hostname + path as a provisional stable locator. It no longer reduces identity to the final URL slug, which could collide across different route shapes. This is a URL-derived key, not a claim that the site exposes a particular internal ID. A later verified internal identifier may be added with an explicit migration/mapping plan; existing archive IDs must never be rewritten in place.
+
+
+The collector also attaches the deterministic match-record quality report. Integrity errors (for example, missing team identity or the same team on both sides) make the run incomplete. Warnings such as missing xG or an unknown timezone remain visible without fabricating values; they do not by themselves turn a successful page fetch into a transport failure.
