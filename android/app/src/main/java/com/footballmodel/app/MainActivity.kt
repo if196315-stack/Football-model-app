@@ -163,7 +163,18 @@ class MainActivity : Activity() {
             ))
         }
         val names = (0 until books.length()).mapNotNull { books.optJSONObject(it)?.optString("title")?.takeIf { n -> n.isNotBlank() } }.distinct()
-        addText(panelOdds, names.joinToString(" · "), 10, false, muted)
+        addText(panelOdds, "Источники: " + names.joinToString(" · "), 10, false, muted)
+        val bestBooks = odds.optJSONObject("bestBookmakers")
+        val hBooks = bestBooks?.optJSONObject("h2h")
+        val tBooks = bestBooks?.optJSONObject("totals")
+        val providers = listOfNotNull(
+            hBooks?.optString("home")?.takeIf { it.isNotBlank() }?.let { "П1: $it" },
+            hBooks?.optString("draw")?.takeIf { it.isNotBlank() }?.let { "X: $it" },
+            hBooks?.optString("away")?.takeIf { it.isNotBlank() }?.let { "П2: $it" },
+            tBooks?.optString("over25")?.takeIf { it.isNotBlank() }?.let { "ТБ: $it" },
+            tBooks?.optString("under25")?.takeIf { it.isNotBlank() }?.let { "ТМ: $it" }
+        )
+        if (providers.isNotEmpty()) addText(panelOdds, "Лучший коэффициент у: " + providers.joinToString(" · "), 9, false, gold)
         addText(panelOdds, "Обновлено: " + odds.optString("updatedAt","—").replace("T"," ").take(16) + " UTC", 9, false, muted)
     }
 
@@ -479,6 +490,9 @@ class MainActivity : Activity() {
         addText(summary, "История xG до $through", 14, true, accent)
         addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
         addText(summary, "Обновлено: ${json.optString("updatedAt", "—").replace("T", " ").take(16)}", 10, false, muted)
+        val oddsRemaining = json.optInt("oddsCreditsRemaining", -1)
+        if (json.optString("oddsStatus") == "ready") addText(summary, "The Odds API · остаток: ${if (oddsRemaining >= 0) oddsRemaining.toString() + " кредитов" else "неизвестен"}", 10, true, gold)
+        else addText(summary, "Коэффициенты: ${json.optString("oddsNotice", "ожидают подключения ключа")}", 10, false, muted)
         val warning = json.optString("dataWarning", "")
         if (warning.isNotBlank()) addText(summary, "⚠  $warning", 11, false, Color.rgb(242, 190, 104))
 
