@@ -144,11 +144,12 @@ class Soccer365CoverageTests(unittest.TestCase):
             match("bool-xg", statistics={"homeXg": True, "awayXg": 0.8}),
             match("nan-xg", statistics={"homeXg": float("nan"), "awayXg": 0.8}),
             match("inf-xg", statistics={"homeXg": float("inf"), "awayXg": 0.8}),
+            match("huge-int-xg", statistics={"homeXg": 10 ** 1000, "awayXg": 0.8}),
         ]
         report = summarize_historical_coverage([entry()], rows)
         item = report["competitions"][0]
         self.assertEqual(item["finishedWithPairedXg"], 0)
-        self.assertEqual(item["finishedMissingXg"], 3)
+        self.assertEqual(item["finishedMissingXg"], 4)
 
     def test_finished_score_rate_is_distinct_from_season_result_coverage(self):
         rows = [
