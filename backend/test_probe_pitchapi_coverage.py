@@ -79,5 +79,28 @@ class PitchApiProbeTests(unittest.TestCase):
         self.assertEqual(result["teamFixtureLists"]["1"][0]["home"], "A")
 
 
+    def test_match_integrity_excludes_canceled_fixtures(self):
+        matches = [
+            {"id": "1", "date": "2023-08-01", "status": "finished",
+             "home_team": {"id": 1, "name": "A"}, "away_team": {"id": 2, "name": "B"}},
+            {"id": "2", "date": "2023-08-02", "status": "canceled",
+             "home_team": {"id": 1, "name": "A"}, "away_team": {"id": 2, "name": "B"}},
+        ]
+        result = match_integrity(matches, "2023/2024")
+        self.assertEqual(result["teamMatchCounts"][0]["matches"], 1)
+        self.assertEqual(result["teamMatchCounts"][1]["matches"], 1)
+        self.assertEqual(result["teamFixtureLists"], {})
+
+    def test_active_season_team_counts_are_not_flagged(self):
+        matches = [
+            {"id": "1", "date": "2026-08-01", "status": "finished",
+             "home_team": {"id": 1, "name": "A"}, "away_team": {"id": 2, "name": "B"}},
+        ]
+        result = match_integrity(matches, "2026/2027")
+        self.assertIsNone(result["expectedMatchesPerTeam"])
+        self.assertFalse(result["teamCountsComparable"])
+        self.assertEqual(result["teamCountOutliers"], [])
+
+
 if __name__ == "__main__":
     unittest.main()
