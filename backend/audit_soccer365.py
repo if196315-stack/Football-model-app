@@ -1,7 +1,7 @@
 import json
 import re
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -36,13 +36,13 @@ def get(url):
 
 
 def match_date(text):
-    iso = re.search(r'"startDate"\\s*:\\s*"([^"]+)"', text)
+    iso = re.search(r'"startDate"\s*:\s*"([^"]+)"', text)
     if iso:
         try:
             return datetime.fromisoformat(iso.group(1).replace("Z", "+00:00")).date()
         except ValueError:
             pass
-    m = re.search(r"(\\d{1,2})\\.(\\d{1,2})\\.(20\\d{2})", text)
+    m = re.search(r"(\d{1,2})\.(\d{1,2})\.(20\d{2})", text)
     if m:
         try:
             return date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
@@ -56,15 +56,14 @@ def parse_match(url, league):
     soup = BeautifulSoup(html, "html.parser")
     title = soup.title.get_text(" ", strip=True) if soup.title else ""
     text = soup.get_text(" ", strip=True)
-    d = match_date(title + " " + text[:5000])
+    d = match_date(html[:100000] + " " + title + " " + text[:5000])
     vals = re.findall(
-        r"(?<![\\w])([0-9]+(?:[.,][0-9]+)?)\\s*Ожидаемые\\s+голы\\s*\\(xG\\)\\s*([0-9]+(?:[.,][0-9]+)?)",
+        r"(?<![\w])([0-9]+(?:[.,][0-9]+)?)\s*Ожидаемые\s+голы\s*\(xG\)\s*([0-9]+(?:[.,][0-9]+)?)",
         text, re.I
     )
     home_xg = away_xg = None
     if vals:
         home_xg, away_xg = [float(x.replace(",", ".")) for x in vals[0]]
-    # Match header is usually "Home - Away: ..." and can be retained for manual mapping.
     return {
         "league": league, "url": url, "title": title,
         "date": d.isoformat() if d else None,
@@ -77,14 +76,12 @@ def main():
     report = {
         "source": "Soccer365.ru public competition archives and match pages",
         "period": {"from": str(START), "to": str(END)},
-        "generatedAt": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "leagues": {}, "matches": [], "errors": [],
     }
     for code, comp_id in LEAGUES.items():
         found = set()
         archive_reports = []
-        # The requested window straddles two seasons: final rounds of 2025/26
-        # and opening rounds of 2026/27.
         archive_urls = [
             f"{BASE}/competitions/{comp_id}/2025-2026/results/",
             f"{BASE}/competitions/{comp_id}/results/",
@@ -96,7 +93,7 @@ def main():
                 page_found = set()
                 for a in soup.select("a[href]"):
                     href = a.get("href", "")
-                    if re.search(r"/games/\\d+/?$", href) or re.search(r"/live/match-[^/?]+", href):
+                    if re.search(r"/games/\d+/?$", href) or re.search(r"/live/match-[^/?]+", href):
                         page_found.add(urljoin(BASE, href.split("?")[0]))
                 found.update(page_found)
                 archive_reports.append({
@@ -120,7 +117,7 @@ def main():
                     report["errors"].append({"league": code, "url": url, "error": "match date not parsed"})
             except Exception as e:
                 report["errors"].append({"league": code, "url": url, "error": str(e)[:250]})
-            time.sleep(0.25)
+            time.sleep(0.2)
 
         report["matches"].extend(rows)
         report["leagues"][code] = {
