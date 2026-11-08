@@ -28,6 +28,7 @@ class MainActivity : Activity() {
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
     private var selectedLeague = "ALL"
+    private val expandedLeagues = mutableMapOf<String, Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,7 +87,7 @@ class MainActivity : Activity() {
     private fun rounded(color: Int, radius: Int): GradientDrawable =
         GradientDrawable().apply { setColor(color); cornerRadius = radius.toFloat() }
 
-    private fun card(): LinearLayout {
+    private fun card(parent: LinearLayout = matchesContainer): LinearLayout {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(16, 14, 16, 14)
@@ -94,7 +95,7 @@ class MainActivity : Activity() {
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
         lp.setMargins(0, 7, 0, 7)
-        return box.also { matchesContainer.addView(it, lp) }
+        return box.also { parent.addView(it, lp) }
     }
 
     private fun addText(box: LinearLayout, value: String, size: Int = 13, bold: Boolean = false, color: Int = Color.WHITE) {
@@ -196,20 +197,35 @@ class MainActivity : Activity() {
                     totalPredicted++
                 }
             }
+            val leagueCode = league.optString("code")
+            val section = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            val expanded = expandedLeagues[leagueCode] ?: true
             val heading = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(2, 12, 2, 4)
+                setPadding(12, 13, 12, 13)
+                background = rounded(panel, 14)
+                isClickable = true
+                isFocusable = true
             }
-            heading.addView(label(league.optString("name"), 17, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+            heading.addView(label(league.optString("name"), 16, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
             heading.addView(label("${upcoming.size} матчей", 11, false, muted))
-            matchesContainer.addView(heading)
+            heading.addView(label(if (expanded) "  ▾" else "  ▸", 18, true, accent))
+            heading.setOnClickListener {
+                expandedLeagues[leagueCode] = !(expandedLeagues[leagueCode] ?: true)
+                render()
+            }
+            section.addView(heading)
+            content.visibility = if (expanded) View.VISIBLE else View.GONE
+            section.addView(content)
+            matchesContainer.addView(section)
             if (upcoming.isEmpty()) {
-                val empty = card()
+                val empty = card(content)
                 addText(empty, "Нет предстоящих матчей с готовым прогнозом", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
-                val box = card()
+                val box = card(content)
                 addText(box, date(m.optString("utcDate")), 11, true, accent)
                 addText(box, m.optString("home") + "   —   " + m.optString("away"), 15, true)
                 val pred = m.optJSONObject("prediction")
