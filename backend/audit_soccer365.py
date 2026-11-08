@@ -88,13 +88,17 @@ def main():
             try:
                 soup = BeautifulSoup(get(page_url), "html.parser")
                 found = set()
-                for a in soup.select('a[href*="/live/match-"]'):
+                href_samples = []
+                for a in soup.select("a[href]"):
                     href = a.get("href", "")
-                    if href:
-                        found.add(urljoin(BASE, href.split("?")[0]))
+                    if "match" in href.lower():
+                        if len(href_samples) < 30:
+                            href_samples.append(href)
+                        if re.search(r"/(?:live/)?match[-_/]", href, re.I):
+                            found.add(urljoin(BASE, href.split("?")[0]))
                 urls[code] = urls.get(code, set()) | found
                 report["leagues"].setdefault(code, {})[season] = {
-                    "archiveUrl": page_url, "matchLinks": len(found)
+                    "archiveUrl": page_url, "matchLinks": len(found), "pageTitle": soup.title.get_text(" ", strip=True) if soup.title else "", "htmlBytes": len(str(soup)), "hrefSamples": href_samples
                 }
             except Exception as e:
                 report["errors"].append({"league": code, "url": page_url, "error": str(e)[:250]})
