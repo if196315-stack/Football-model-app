@@ -1,6 +1,10 @@
 name: Update bookmaker odds
 
 on:
+  push:
+    paths:
+      - ".github/workflows/update-odds.yml"
+      - "backend/update_odds.py"
   workflow_dispatch:
   schedule:
     - cron: "43 4 * * *"
@@ -26,7 +30,7 @@ jobs:
         run: pip install requests
       - name: Fetch bookmaker odds
         env:
-          ODDS_API_KEY: \${{ secrets.ODDS_API_KEY }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python backend/update_odds.py
       - name: Commit updated odds
         run: |
