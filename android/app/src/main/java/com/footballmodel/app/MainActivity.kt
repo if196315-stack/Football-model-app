@@ -360,7 +360,7 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "ОСНОВНЫЕ РЫНКИ МОДЕЛИ", 10, true, accent)
                     addText(mainMarkets, "1X  ${pct(pred, "1x")}     X2  ${pct(pred, "x2")}", 17, true, Color.WHITE)
                     addText(mainMarkets, "DNB · победа хозяев без ничьей: ${pct(pred, "dnbHome")}", 13, true, Color.rgb(180, 220, 205))
-                    addText(mainMarkets, "ИТБ 1.5 хозяев: \${pct(pred, "homeOver15")}     ИТБ 1.5 гостей: \${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
+                    addText(mainMarkets, "ИТБ 1.5 хозяев: ${pct(pred, "homeOver15")}     ИТБ 1.5 гостей: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
                     val signal = pred.optJSONObject("strongestSignal")
                     val signalBox = card(box)
                     addText(signalBox, "САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, accent)
@@ -369,12 +369,12 @@ class MainActivity : Activity() {
                     } else {
                         val edge = signal.optDouble("edgePp")
                         if (signal.optBoolean("noPositiveSignal")) {
-                            addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: \${signal.optString("side")} · \${String.format(Locale.US, "%.1f", edge)} п.п.", 12, true, Color.rgb(242, 190, 104))
+                            addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: ${signal.optString("side")} · ${String.format(Locale.US, "%.1f", edge)} п.п.", 12, true, Color.rgb(242, 190, 104))
                         } else {
-                            addText(signalBox, "\${signal.optString("side")} · +\${String.format(Locale.US, "%.1f", edge)} п.п. к базе", 15, true, accent)
+                            addText(signalBox, "${signal.optString("side")} · +${String.format(Locale.US, "%.1f", edge)} п.п. к базе", 15, true, accent)
                         }
-                        addText(signalBox, "Вероятность модели: \${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: \${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
-                        addText(signalBox, "\${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
+                        addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
+                        addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
                     }
                     addText(box, "ВНУТРЕННИЕ ВЕРОЯТНОСТИ ИСХОДА", 10, true, muted)
                     addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
