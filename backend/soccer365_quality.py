@@ -145,3 +145,100 @@ def validate_match_records(records: Iterable[dict[str, Any]]) -> dict[str, Any]:
     warnings = sum(item["severity"] == "warning" for item in issues)
     return {"recordCount": len(rows), "errorCount": errors, "warningCount": warnings,
             "valid": errors == 0, "issues": issues}
+
+
+def summarize_model_coverage(
+    records: Iterable[dict[str, Any]],
+    *,
+    min_team_xg_matches: int = 30,
+    min_competition_baseline_matches: int = 100,
+) -> dict[str, Any]:
+    """Summarize Soccer365-only sample depth without pooling competitions or match types.
+
+    Counts finished matches with final scores for the competition baseline and
+    paired-xG finished matches for each team. Team IDs are preferred; exact
+    normalized names are a fallback, never fuzzy-merged.
+    """
+    if min_team_xg_matches < 1 or min_competition_baseline_matches < 1:
+        raise ValueError("Coverage thresholds must be positive integers")
+
+    groups: dict[tuple[str, str], dict[str, Any]] = {}
+    seen_ids: set[str] = set()
+    for row in records:
+        raw_id = row.get("id")
+        if raw_id is None or not str(raw_id).strip():
+            continue
+        match_id = str(raw_id).strip()
+        if match_id in seen_ids:
+            continue
+        seen_ids.add(match_id)
+
+        comp_id = _text(row.get("competitionId"))
+        comp_type = _text(row.get("competitionType"))
+        if not comp_id or not comp_type or row.get("status") != "FINISHED":
+            continue
+
+        group = groups.setdefault((comp_id, comp_type), {
+            "competitionId": str(row.get("competitionId")),
+            "competitionType": str(row.get("competitionType")),
+            "seasonValues": set(),
+            "finishedWithResult": 0,
+            "finishedWithPairedXg": 0,
+            "teams": {},
+        })
+        if row.get("season"):
+            group["seasonValues"].add(str(row["season"]))
+
+        hs, aws = row.get("homeScore"), row.get("awayScore")
+        if (isinstance(hs, int) and not isinstance(hs, bool) and hs >= 0
+                and isinstance(aws, int) and not isinstance(aws, bool) and aws >= 0):
+            group["finishedWithResult"] += 1
+
+        stats = row.get("statistics") or {}
+        hxg, axg = stats.get("homeXg"), stats.get("awayXg")
+        paired_xg = all(
+            isinstance(v, (int, float)) and not isinstance(v, bool)
+            and math.isfinite(v) and 0 <= v <= 20
+            for v in (hxg, axg)
+        )
+        if not paired_xg:
+            continue
+
+        group["finishedWithPairedXg"] += 1
+        for side in ("home", "away"):
+            team_key = _team_key(row, side)
+            if not team_key:
+                continue
+            team_id = row.get(f"{side}TeamId")
+            label = str(team_id if team_id is not None else row.get(side) or "")
+            team = group["teams"].setdefault(team_key, {"team": label, "pairedXgMatches": 0})
+            team["pairedXgMatches"] += 1
+
+    output = []
+    for key in sorted(groups):
+        group = groups[key]
+        teams = sorted(
+            [
+                {**team, "modelSampleReady": team["pairedXgMatches"] >= min_team_xg_matches}
+                for team in group["teams"].values()
+            ],
+            key=lambda team: team["team"].casefold(),
+        )
+        output.append({
+            "competitionId": group["competitionId"],
+            "competitionType": group["competitionType"],
+            "seasons": sorted(group["seasonValues"]),
+            "finishedWithResult": group["finishedWithResult"],
+            "finishedWithPairedXg": group["finishedWithPairedXg"],
+            "baselineReady": group["finishedWithResult"] >= min_competition_baseline_matches,
+            "teams": teams,
+        })
+
+    return {
+        "source": "Soccer365",
+        "thresholds": {
+            "teamPairedXgMatches": min_team_xg_matches,
+            "competitionFinishedResults": min_competition_baseline_matches,
+        },
+        "competitions": output,
+    }
