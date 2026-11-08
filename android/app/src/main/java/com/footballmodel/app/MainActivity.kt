@@ -134,6 +134,42 @@ class MainActivity : Activity() {
         box.addView(label(value, size, bold, color))
     }
 
+    private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
+        val best = odds?.optJSONObject("best")
+        val books = odds?.optJSONArray("bookmakers")
+        if (best == null || books == null || books.length() == 0) {
+            addText(parent, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, muted)
+            addText(parent, "Нет свежих котировок для этого матча", 11, false, muted)
+            return
+        }
+        val panelOdds = card(parent)
+        panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = 18f; setStroke(1, Color.rgb(105, 83, 52)) }
+        addText(panelOdds, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, gold)
+        val h2h = best.optJSONObject("h2h")
+        if (h2h != null) {
+            addText(panelOdds, "1X2 · лучшие цены", 10, true, muted)
+            addMarketRow(panelOdds, listOf(
+                Triple("П1", oddsText(h2h,"home"), gold),
+                Triple("НИЧЬЯ", oddsText(h2h,"draw"), gold),
+                Triple("П2", oddsText(h2h,"away"), gold)
+            ))
+        }
+        val totals = best.optJSONObject("totals")
+        if (totals != null) {
+            addText(panelOdds, "ТОТАЛ 2.5 · лучшие цены", 10, true, muted)
+            addMarketRow(panelOdds, listOf(
+                Triple("БОЛЬШЕ", oddsText(totals,"over25"), gold),
+                Triple("МЕНЬШЕ", oddsText(totals,"under25"), gold)
+            ))
+        }
+        val names = (0 until books.length()).mapNotNull { books.optJSONObject(it)?.optString("title")?.takeIf { n -> n.isNotBlank() } }.distinct()
+        addText(panelOdds, names.joinToString(" · "), 10, false, muted)
+        addText(panelOdds, "Обновлено: " + odds.optString("updatedAt","—").replace("T"," ").take(16) + " UTC", 9, false, muted)
+    }
+
+    private fun oddsText(obj: JSONObject, key: String): String =
+        if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
+
     private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>) {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         items.forEach { item ->
@@ -284,6 +320,28 @@ class MainActivity : Activity() {
         fun field(h: String) = EditText(this).apply { hint=h; setSingleLine(true); inputType=InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
         val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки")
         form.addView(odds); form.addView(stake)
+        fun suggestedOdds(marketKey: String): Double? {
+            val best = m.optJSONObject("odds")?.optJSONObject("best") ?: return null
+            val h = best.optJSONObject("h2h"); val t = best.optJSONObject("totals")
+            val value = when(marketKey) {
+                "1" -> h?.optDouble("home", Double.NaN)
+                "x" -> h?.optDouble("draw", Double.NaN)
+                "2" -> h?.optDouble("away", Double.NaN)
+                "over25" -> t?.optDouble("over25", Double.NaN)
+                "under25" -> t?.optDouble("under25", Double.NaN)
+                else -> null
+            }
+            return value?.takeIf { it.isFinite() && it > 1.0 }
+        }
+        fun fillSuggested() {
+            val value = suggestedOdds(markets[spin.selectedItemPosition].key)
+            odds.setText(value?.let { String.format(Locale.US, "%.2f", it) } ?: "")
+        }
+        spin.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { fillSuggested() }
+        }
+        fillSuggested()
         val dlg=AlertDialog.Builder(this).setTitle("Новая ставка").setView(form).setNegativeButton("Отмена",null).setPositiveButton("Сохранить",null).create()
         dlg.setOnShowListener {
             dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -546,6 +604,7 @@ class MainActivity : Activity() {
                     addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
                     addText(box, "Дополнительные рынки: ТБ 2.5 ${pct(pred, "over25")} · Обе забьют ${pct(pred, "bttsYes")}", 11, false, muted)
                     addText(box, "Ожидаемые голы  ${String.format(Locale.US, "%.2f : %.2f", pred.optDouble("expectedHomeGoals"), pred.optDouble("expectedAwayGoals"))}", 12, true)
+                    renderOdds(box, m.optJSONObject("odds"))
                     actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
                 }
             }
