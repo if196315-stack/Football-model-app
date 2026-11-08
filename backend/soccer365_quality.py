@@ -17,7 +17,7 @@ def _text(value: Any) -> str:
 
 def _team_key(value: Any) -> str:
     value = unicodedata.normalize("NFKC", _text(value))
-    return re.sub(r"[^\\w]", "", value, flags=re.UNICODE)
+    return re.sub(r"[^\w]", "", value, flags=re.UNICODE)
 
 
 def _issue(code: str, severity: str, match_id: str | None, message: str) -> dict[str, Any]:
