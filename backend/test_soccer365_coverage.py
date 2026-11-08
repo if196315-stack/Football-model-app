@@ -78,10 +78,22 @@ class Soccer365CoverageTests(unittest.TestCase):
 
     def test_duplicate_ids_not_counted_twice(self):
         row = match("m-1")
-        report = summarize_historical_coverage([entry()], [row, dict(row)])
+        report = summarize_historical_coverage(
+            [entry(expectedFinishedMatches=1)], [row, dict(row)]
+        )
         item = report["competitions"][0]
         self.assertEqual(item["totalRecords"], 1)
         self.assertEqual(item["duplicateIds"], 1)
+        self.assertFalse(item["sourceHistoryComplete"])
+
+    def test_missing_match_id_prevents_history_completeness(self):
+        row = match(None)
+        report = summarize_historical_coverage(
+            [entry(expectedFinishedMatches=1)], [row]
+        )
+        item = report["competitions"][0]
+        self.assertEqual(item["missingMatchIds"], 1)
+        self.assertFalse(item["sourceHistoryComplete"])
 
     def test_unmatched_competition_season_is_reported(self):
         report = summarize_historical_coverage([entry()], [
