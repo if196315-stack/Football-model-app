@@ -284,6 +284,17 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
             "model": calibration_metrics(holdout, "model"),
             "baseline": calibration_metrics(holdout, "baseline"),
         },
+    holdout_by_season = defaultdict(list)
+    for item in calibrated_holdout:
+        holdout_by_season[(item["league"], item["season"])].append(item)
+    calibrated_season_metrics = {
+        f"{league} {season}": {
+            "raw_model": score_metrics(items, "model"),
+            "temperature_scaled_model": score_metrics(items, "calibrated_model"),
+            "baseline": score_metrics(items, "baseline"),
+        }
+        for (league, season), items in sorted(holdout_by_season.items())
+    }
         "temperature_scaling": {
             "method": "scalar_temperature_fit_on_pre_holdout_predictions",
             "fit_period": f"dates_before_{holdout_from}",
@@ -295,6 +306,7 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
             "holdout_calibrated_calibration": calibration_metrics(calibrated_holdout, "calibrated_model"),
         },
         "by_league_season": season_metrics,
+        "holdout_by_league_season": calibrated_season_metrics,
         "model_config": {"window": WINDOW, "half_life": HALF_LIFE, "shrinkage": SHRINKAGE,
                          "distribution": "independent_poisson", "goal_grid": "0..12"},
         "xg_policy": "Only paired non-null PitchAPI shot-level xG updates team history; missing xG is never imputed.",
