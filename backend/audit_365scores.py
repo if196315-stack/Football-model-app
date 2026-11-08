@@ -98,9 +98,33 @@ def parse_xg(stats, home_id, away_id):
     return found
 
 
+def extract_games(payload):
+    """Find game collections across API response variants."""
+    candidates = []
+    def walk(obj, path="root", depth=0):
+        if depth > 5:
+            return
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if isinstance(value, list) and norm(key) in ("games", "events", "fixtures", "matches", "results"):
+                    candidates.append((path + "." + key, value))
+                if isinstance(value, (dict, list)):
+                    walk(value, path + "." + str(key), depth + 1)
+        elif isinstance(obj, list):
+            for i, value in enumerate(obj[:3]):
+                if isinstance(value, (dict, list)):
+                    walk(value, path + "[" + str(i) + "]", depth + 1)
+    walk(payload)
+    if not candidates:
+        return [], []
+    candidates.sort(key=lambda item: len(item[1]), reverse=True)
+    return candidates[0][1], [{"path": p, "count": len(items)} for p, items in candidates]
+
+
 def main():
     matches = {}
     errors = []
+    payload_diagnostics = []
     cursor = START
     while cursor <= END:
         chunk_end = min(cursor + timedelta(days=6), END)
@@ -109,7 +133,7 @@ def main():
             "startDate": cursor.strftime("%d/%m/%Y"),
             "endDate": chunk_end.strftime("%d/%m/%Y"),
             "showOdds": "false",
-            "onlyMajorGames": "true",
+            "onlyMajorGames": "false",
             "withTop": "false",
             "appTypeId": 5,
             "langId": 1,
@@ -118,7 +142,14 @@ def main():
         }
         try:
             payload = get_json("games/allscores", params)
-            games = payload.get("games") or payload.get("Games") or []
+            games, collections = extract_games(payload)
+            if len(payload_diagnostics) < 3:
+                payload_diagnostics.append({
+                    "from": str(cursor), "to": str(chunk_end),
+                    "topLevelKeys": list(payload.keys())[:40] if isinstance(payload, dict) else [],
+                    "collections": collections,
+                    "preview": json.dumps(payload, ensure_ascii=False)[:2500],
+                })
             for game in games:
                 code = league_code(game)
                 gid = game.get("id") or game.get("gameId")
@@ -168,10 +199,15 @@ def main():
         "fixtureCount": len(matches),
         "summary": summary,
         "fixtureErrors": errors,
+        "payloadDiagnostics": payload_diagnostics,
         "matches": rows,
     }
     Path("365scores-audit.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({"period": report["period"], "fixtureCount": len(matches), "summary": summary, "fixtureErrors": errors}, ensure_ascii=False, indent=2))
+    print(json.dumps({
+        "period": report["period"], "fixtureCount": len(matches),
+        "summary": summary, "fixtureErrors": errors,
+        "payloadDiagnostics": payload_diagnostics,
+    }, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
