@@ -40,6 +40,9 @@ class MainActivity : Activity() {
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
+    // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
+    private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
+    private var renderedKey: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -212,6 +215,8 @@ class MainActivity : Activity() {
                 val json = JSONObject(body)
                 runOnUiThread {
                     data = json
+                    tabViewCache.clear()
+                    renderedKey = null
                     refreshButton.isEnabled = true
                     render()
                 }
@@ -232,7 +237,12 @@ class MainActivity : Activity() {
                 gravity = Gravity.CENTER
                 background = if (active) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(13).toFloat() } else rounded(Color.TRANSPARENT, 13)
                 setPadding(3, 0, 3, 0)
-                setOnClickListener { currentTab = item.first; render() }
+                setOnClickListener {
+                    if (currentTab != item.first) {
+                        currentTab = item.first
+                        render()
+                    }
+                }
             }
             tabBar.addView(t, LinearLayout.LayoutParams(0, -1, 1f))
         }
@@ -296,7 +306,10 @@ class MainActivity : Activity() {
     }
 
 
-    private fun saveBets() { betPrefs.edit().putString("bets", bets.toString()).apply() }
+    private fun saveBets() {
+        betPrefs.edit().putString("bets", bets.toString()).apply()
+        tabViewCache.remove("history|ALL")
+    }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
         val b = Button(this).apply {
             text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = dp(48)
@@ -521,12 +534,42 @@ class MainActivity : Activity() {
 
     private fun render() {
         val json = data ?: return
+        val targetKey = currentTab + "|" + if (currentTab == "matches") selectedLeague else "ALL"
+
+        // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
+        if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
+            val oldContent = mutableListOf<View>()
+            while (matchesContainer.childCount > 0) {
+                val child = matchesContainer.getChildAt(0)
+                matchesContainer.removeViewAt(0)
+                oldContent.add(child)
+            }
+            val oldLeagueBar = mutableListOf<View>()
+            while (leagueBar.childCount > 0) {
+                val child = leagueBar.getChildAt(0)
+                leagueBar.removeViewAt(0)
+                oldLeagueBar.add(child)
+            }
+            tabViewCache[renderedKey!!] = oldContent to oldLeagueBar
+        }
+
         matchesContainer.removeAllViews()
         leagueBar.removeAllViews()
         val leagues = json.optJSONArray("competitions")
         val state = json.optString("status", "unknown")
         statusView.text = "●  " + json.optString("notice", "Статус: " + state)
         renderTabs()
+
+        // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
+        val cached = tabViewCache[targetKey]
+        if (cached != null) {
+            cached.first.forEach { matchesContainer.addView(it) }
+            cached.second.forEach { leagueBar.addView(it) }
+            leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+            renderedKey = targetKey
+            return
+        }
+        renderedKey = targetKey
 
         val summary = card()
         addText(summary, "●  LIVE MODEL DASHBOARD", 9, true, cyan)
@@ -614,6 +657,7 @@ class MainActivity : Activity() {
             heading.addView(label(if (expanded) "  ▾" else "  ▸", 18, true, accent))
             heading.setOnClickListener {
                 expandedLeagues[leagueCode] = !(expandedLeagues[leagueCode] ?: true)
+                tabViewCache.remove("matches|" + selectedLeague)
                 render()
             }
             section.addView(heading)
