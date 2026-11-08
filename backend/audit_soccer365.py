@@ -86,7 +86,8 @@ def main():
         for season in ("2026-2027",):
             page_url = f"{BASE}/competitions/{comp_id}/{season}/results/"
             try:
-                soup = BeautifulSoup(get(page_url), "html.parser")
+                html = get(page_url)
+                soup = BeautifulSoup(html, "html.parser")
                 found = set()
                 href_samples = []
                 raw_match_samples = re.findall(r".{0,100}match.{0,160}", html, re.I)[:20]
