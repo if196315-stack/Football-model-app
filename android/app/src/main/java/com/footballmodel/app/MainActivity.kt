@@ -272,7 +272,7 @@ class MainActivity : Activity() {
         addIllustration(matchesContainer, R.drawable.analytics_art)
         addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
         addText(matchesContainer, "Качество прогнозов", 22, true)
-        addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, П1 с возвратом при ничьей и индивидуальным тоталам команд.", 11, false, muted)
+        addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, фора 0 на каждую команду и индивидуальным тоталам команд.", 11, false, muted)
         data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double)
         val metrics = mutableListOf<MetricRow>()
         val leagues = json.optJSONArray("competitions")
@@ -299,8 +299,8 @@ class MainActivity : Activity() {
         }
         collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h,a -> h >= a })
         collect("x2", "X2 · гости победят ИЛИ будет ничья", { h,a -> a >= h })
-        collect("dnbHome", "П1 с возвратом при ничьей", { h,a -> h > a }, true)
-        collect("dnbAway", "П2 с возвратом при ничьей", { h,a -> a > h }, true)
+        collect("dnbHome", "Фора 0 · хозяева", { h,a -> h > a }, true)
+        collect("dnbAway", "Фора 0 · гости", { h,a -> a > h }, true)
         collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         if (metrics.isEmpty()) {
@@ -311,7 +311,7 @@ class MainActivity : Activity() {
             addText(box, metric.name, 14, true)
             addText(box, "Попадания при пороге 50%: ${metric.hits}/${metric.n} (${String.format(Locale.US, "%.1f", metric.hits*100.0/metric.n)}%)", 11, true, accent)
             addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
-            addText(box, if (metric.name.startsWith("П1 с возвратом при ничьей")) "Вероятность П1 с возвратом: ничьи исключены; при ничьей ставка возвращается." else "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
+            addText(box, if (metric.name.startsWith("Фора 0")) "Фора 0: победа — выигрыш, ничья — возврат, поражение — проигрыш. Вероятность считается без ничьих." else "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
         }
         val explainer = card()
         addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
@@ -335,7 +335,7 @@ class MainActivity : Activity() {
         val p = m.optJSONObject("prediction") ?: return
         val markets = listOf(
             BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"), BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
-            BetMarket("dnbHome","П1 с возвратом при ничьей"), BetMarket("dnbAway","П2 с возвратом при ничьей"), BetMarket("1","П1"),
+            BetMarket("dnbHome","Фора 0 · ${m.optString(\"home\")}"), BetMarket("dnbAway","Фора 0 · ${m.optString(\"away\")}"), BetMarket("1","П1"),
             BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
             BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
             BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
@@ -486,13 +486,13 @@ class MainActivity : Activity() {
         section("7. BRIER SCORE И LOG LOSS",
             "Brier Score — средний квадрат разницы между вероятностью p и фактом y (y = 1, если событие произошло, иначе 0): среднее (p − y)². Чем ближе к 0, тем лучше.\n\nLog Loss штрафует за уверенный прогноз, который оказался неверным: среднее −[y·ln(p) + (1−y)·ln(1−p)]. Чем ниже, тем лучше. Эти метрики оценивают качество вероятностей, а не прибыль.")
         section("8. КАК СРАВНИВАТЬ РЕЗУЛЬТАТЫ",
-            "Сравнивайте один и тот же рынок на достаточно большой выборке. Маленькая выборка сильно колеблется. У разных рынков разные базовые частоты, поэтому процент попаданий между ними напрямую сравнивать нельзя. Brier Score и Log Loss полезнее для оценки вероятностей. Для рынка «П1 с возвратом при ничьей» ничьи исключаются из расчёта вероятности.")
+            "Сравнивайте один и тот же рынок на достаточно большой выборке. Маленькая выборка сильно колеблется. У разных рынков разные базовые частоты, поэтому процент попаданий между ними напрямую сравнивать нельзя. Brier Score и Log Loss полезнее для оценки вероятностей. Для рынка «Фора 0» ничьи исключаются из расчёта вероятности.")
         section("9. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
             "Исторические xG берутся из Openplay (Noah Bair), лицензия CC BY 4.0. Параметры версии: последние 30 матчей, half-life 12, shrinkage 3, независимый Пуассон. Если данные Openplay устарели, модель использует последнюю доступную историю xG; новые результаты и расписание сами по себе не обновляют xG.\n\nСтатистика в приложении — мониторинг сохранённых прогнозов, а не независимый перспективный тест. Она не доказывает преимущество над букмекером, value или ROI: для этого нужны коэффициенты на момент прогноза и отдельная проверка.")
         section("10. САМЫЙ СИЛЬНЫЙ СИГНАЛ В КАРТОЧКЕ",
             "Для каждого матча приложение сравнивает пять основных рынков с исторической частотой соответствующего события в этой лиге: 1X, X2, П1 с возвратом при ничьей и ИТБ 1.5 каждой команды. Для каждой пары событий выбирается сторона с большей вероятностью модели. Затем считается разница между вероятностью модели и исторической базовой частотой в процентных пунктах. База использует только матчи лиги, сыгранные до даты рассматриваемой игры, с небольшим сглаживанием; минимум — 100 прошлых матчей. В карточке показывается рынок с наибольшим отклонением. Если все отклонения отрицательные, приложение прямо сообщает, что положительного сигнала нет. Это сравнение с простой исторической частотой, а не с коэффициентом букмекера: оно не означает value или прибыльность.")
         section("11. ЧТО СЧИТАТЬ ГЛАВНЫМ",
-            "В первую очередь смотрите 1X, X2, П1 с возвратом при ничьей, ИТБ 1.5 хозяев и ИТБ 1.5 гостей. П1/X/П2 — вспомогательные вероятности. ТБ 2.5 и «Обе забьют» — дополнительные рынки. Ни один прогноз не гарантирует результат.")
+            "В первую очередь смотрите 1X, X2, фора 0 на хозяев, ИТБ 1.5 хозяев и ИТБ 1.5 гостей. П1/X/П2 — вспомогательные вероятности. ТБ 2.5 и «Обе забьют» — дополнительные рынки. Ни один прогноз не гарантирует результат.")
     }
 
     private fun render() {
@@ -613,7 +613,7 @@ class MainActivity : Activity() {
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = 20f; setStroke(1, Color.rgb(45, 102, 91)) }
                     addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ", 10, true, accent)
                     addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
-                    addMarketRow(mainMarkets, listOf(Triple("П1 · при ничьей возврат", pct(pred, "dnbHome"), accent), Triple("П2 · при ничьей возврат", pct(pred, "dnbAway"), cyan)))
+                    addMarketRow(mainMarkets, listOf(Triple("Фора 0 · ${m.optString(\"home\")}", pct(pred, "dnbHome"), accent), Triple("Фора 0 · ${m.optString(\"away\")}", pct(pred, "dnbAway"), cyan)))
                     addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 12, true, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
