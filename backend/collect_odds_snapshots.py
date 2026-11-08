@@ -164,7 +164,7 @@ def collect(input_path, output_path, api_key, session=requests):
             }
         except Exception as exc:
             # Do not include request URLs or parameters, which may contain the key.
-            errors.append(f"{code}: {type(exc).__name__}: {str(exc)[:160]}")
+            errors.append(f"{code}: {type(exc).__name__}")
             stats[code] = {"eligible": len(fixtures), "matched": 0, "with_1x2": 0, "error": type(exc).__name__}
 
     output = Path(output_path)
