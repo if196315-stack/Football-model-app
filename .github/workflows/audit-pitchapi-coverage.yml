@@ -25,6 +25,8 @@ on:
       - "backend/recheck_pitchapi_exceptions.py"
       - "backend/export_pitchapi_results.py"
       - "backend/backtest_pitchapi.py"
+      - "backend/export_pitchapi_backtest.py"
+      - "backend/test_export_pitchapi_backtest.py"
       - "backend/test_backtest_pitchapi.py"
       - "backend/collect_odds_snapshots.py"
       - "backend/test_collect_odds_snapshots.py"
