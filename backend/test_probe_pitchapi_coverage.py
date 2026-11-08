@@ -116,6 +116,25 @@ class PitchApiProbeTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     run_audit("not-a-real-key", session=NoNetwork(), sample_limit=invalid)
 
+    def test_inspect_shots_records_request_failure_without_zero_xg(self):
+        import requests
+        from probe_pitchapi_coverage import inspect_shots
+
+        class BrokenSession:
+            def get(self, *args, **kwargs):
+                raise requests.ConnectionError("temporary outage")
+
+        match = {
+            "id": "m1", "status": "finished", "date": "2024-01-01",
+            "home_team": {"id": 1, "name": "A"},
+            "away_team": {"id": 2, "name": "B"},
+        }
+        result = inspect_shots(BrokenSession(), match, "unused")
+        self.assertFalse(result["pairedXgPresent"])
+        self.assertIsNone(result["homeXgFromShots"])
+        self.assertIsNone(result["awayXgFromShots"])
+        self.assertEqual(result["xgFetchError"], "ConnectionError")
+
     def test_active_season_team_counts_are_not_flagged(self):
         matches = [
             {"id": "1", "date": "2026-08-01", "status": "finished",
