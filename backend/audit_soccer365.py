@@ -44,6 +44,12 @@ def get(url):
 
 
 def match_date(text):
+    iso = re.search(r\'"startDate"\\s*:\\s*"([^"]+)"\', text)
+    if iso:
+        try:
+            return datetime.fromisoformat(iso.group(1).replace("Z", "+00:00")).date()
+        except ValueError:
+            pass
     # Match pages expose the kickoff date in the page title/header.
     for pat in (r"(\d{1,2})\.(\d{1,2})\.(20\d{2})", r"(\d{1,2})/(\d{1,2})/(20\d{2})"):
         m = re.search(pat, text)
@@ -83,8 +89,8 @@ def main():
     }
     urls = {}
     for code, comp_id in LEAGUES.items():
-        for season in ("2026-2027",):
-            page_url = f"{BASE}/competitions/{comp_id}/{season}/results/"
+        for season in ("current",):
+            page_url = f"{BASE}/competitions/{comp_id}/results/"
             try:
                 html = get(page_url)
                 soup = BeautifulSoup(html, "html.parser")
