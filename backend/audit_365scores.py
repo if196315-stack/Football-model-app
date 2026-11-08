@@ -63,21 +63,19 @@ def league_code(game, competitions=None, countries=None):
         country = norm(country_obj)
     if not country and countries:
         country = norm(countries.get(comp.get("countryId"), ""))
-    hay = name + " " + country
-    for code, aliases in LEAGUES.items():
-        if any(norm(alias) in hay for alias in aliases):
+
+    # Require BOTH the canonical competition and its country. Substring-only
+    # matching incorrectly classified unrelated leagues (e.g. Egypt as ENG).
+    rules = {
+        "eng": ({"premier league", "english premier league"}, {"england", "united kingdom"}),
+        "esp": ({"la liga", "laliga", "primera division"}, {"spain", "espana"}),
+        "ita": ({"serie a", "italy serie a"}, {"italy", "italia"}),
+        "ger": ({"bundesliga", "germany bundesliga"}, {"germany", "deutschland"}),
+        "fra": ({"ligue 1", "france ligue 1"}, {"france"}),
+    }
+    for code, (names, countries_allowed) in rules.items():
+        if name in names and country in countries_allowed:
             return code
-    # Some payloads only use the canonical league name.
-    if "premier league" in name and ("england" in hay or "english" in hay):
-        return "eng"
-    if "la liga" in name or "laliga" in name:
-        return "esp"
-    if "serie a" in name and ("italy" in hay or "italia" in hay):
-        return "ita"
-    if "bundesliga" in name and ("germany" in hay or "deutschland" in hay):
-        return "ger"
-    if "ligue 1" in name and ("france" in hay or "frankreich" in hay):
-        return "fra"
     return None
 
 
