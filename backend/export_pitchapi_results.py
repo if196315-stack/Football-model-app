@@ -59,9 +59,13 @@ def main() -> int:
                     "homeTeam": home.get("name"),
                     "awayTeamId": away.get("id"),
                     "awayTeam": away.get("name"),
-                    "score": match.get("score"),
-                    "homeScore": match.get("home_score"),
-                    "awayScore": match.get("away_score"),
+                    "score": (
+                        f"{match.get('score_home')}-{match.get('score_away')}"
+                        if match.get("score_home") is not None and match.get("score_away") is not None
+                        else None
+                    ),
+                    "homeScore": match.get("score_home"),
+                    "awayScore": match.get("score_away"),
                     "roundName": match.get("round_name"),
                     "hasPlayoff": match.get("has_playoff"),
                 })
