@@ -88,7 +88,7 @@ class MainActivity : Activity() {
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 68).apply { topMargin = 14; bottomMargin = 12 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 72).apply { topMargin = 14; bottomMargin = 12 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -230,13 +230,13 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "МАТЧИ", "day" to "СТАВКИ\nДНЯ", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
+        val items = listOf("matches" to "МАТЧИ", "day" to "TOP", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
             tabBar.removeAllViews()
             items.forEach { item ->
-                val t = label(item.second, 10, true, muted).apply {
+                val t = label(item.second, 11, true, muted).apply {
                     gravity = Gravity.CENTER
                     maxLines = 2
                     includeFontPadding = false
