@@ -89,7 +89,7 @@ class Soccer365CollectorTests(unittest.TestCase):
     def test_empty_listing_is_a_warning(self):
         client = FakeClient({COMPETITION_URL: "<html><body>No matches</body></html>"})
         result = collect_catalog(client, [entry()])
-        self.assertTrue(result["complete"])
+        self.assertFalse(result["complete"])
         self.assertEqual(result["records"], [])
         self.assertEqual(result["warnings"][0]["code"], "no_match_links_found")
 
