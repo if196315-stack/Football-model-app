@@ -79,10 +79,14 @@ def fixture_identity(match: dict, competition: str) -> tuple | None:
 
 
 def preserve_odds_by_identity(payload: dict) -> int:
-    if not OUT.exists():
+    # The preview checks out its feature branch, whose docs/data.json does not
+    # receive the production Odds API refreshes. Prefer an explicitly supplied
+    # read-only snapshot from main; fall back to the local output for tests/manual runs.
+    previous_path = Path(os.environ.get("PITCHAPI_PREVIOUS_DATA_PATH", str(OUT)))
+    if not previous_path.exists():
         return 0
     try:
-        previous = json.loads(OUT.read_text(encoding="utf-8"))
+        previous = json.loads(previous_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return 0
     old = {}
