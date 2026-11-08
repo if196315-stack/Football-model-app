@@ -177,6 +177,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
     leagues = discover_leagues(session, api_key)
     listing_count = 0
     shot_requests = 0
+    shot_attempts = 0
     errors = []
     for code in sorted(leagues):
         league = leagues[code]
@@ -212,7 +213,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
         reverse=True,
     )
     for match_id, row in pending:
-        if shot_requests >= max(0, int(max_shot_requests)):
+        if shot_attempts >= max(0, int(max_shot_requests)):
             break
         if row.get("status") != "finished" or (
             isinstance(row.get("homeXg"), (int, float))
@@ -221,6 +222,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
             continue
         if row.get("homeTeamId") is None or row.get("awayTeamId") is None:
             continue
+        shot_attempts += 1
         try:
             payload = fetch(session, f"/matches/{match_id}/shots", api_key)
             home_xg, away_xg, count = shot_xg(payload, row["homeTeamId"], row["awayTeamId"])
@@ -237,7 +239,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
     cache["lastRefresh"] = datetime.now(timezone.utc).isoformat()
     cache["lastRefreshSummary"] = {
         "listedMatches": listing_count, "cachedMatches": len(stored),
-        "shotRequests": shot_requests, "pendingShotXg": sum(
+        "shotRequests": shot_requests, "shotAttempts": shot_attempts, "pendingShotXg": sum(
             1 for row in stored.values()
             if row.get("status") == "finished"
             and (row.get("homeXg") is None or row.get("awayXg") is None)
