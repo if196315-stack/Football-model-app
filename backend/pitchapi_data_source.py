@@ -165,7 +165,7 @@ def normalize_match(match: dict, league_code: str, league: dict, season: str) ->
 
 
 def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CACHE_PATH,
-                    pause_seconds: float = 0.12) -> dict:
+                    pause_seconds: float = 0.12, max_shot_requests: int = 250) -> dict:
     """Refresh fixture/result listings and fetch missing finished-match shot xG.
 
     Existing shot results are reused. A failed shot request is left retryable
@@ -204,8 +204,16 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
             if pause_seconds:
                 time.sleep(pause_seconds)
 
-    # Fetch shots only for finished matches that do not already have paired xG.
-    for match_id, row in list(stored.items()):
+    # Prioritize recent finished matches and cap API usage per run. This makes
+    # cold bootstrap incremental instead of issuing thousands of requests at once.
+    pending = sorted(
+        stored.items(),
+        key=lambda item: str(item[1].get("date") or ""),
+        reverse=True,
+    )
+    for match_id, row in pending:
+        if shot_requests >= max(0, int(max_shot_requests)):
+            break
         if row.get("status") != "finished" or (
             isinstance(row.get("homeXg"), (int, float))
             and isinstance(row.get("awayXg"), (int, float))
@@ -229,7 +237,11 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
     cache["lastRefresh"] = datetime.now(timezone.utc).isoformat()
     cache["lastRefreshSummary"] = {
         "listedMatches": listing_count, "cachedMatches": len(stored),
-        "shotRequests": shot_requests, "errors": len(errors),
+        "shotRequests": shot_requests, "pendingShotXg": sum(
+            1 for row in stored.values()
+            if row.get("status") == "finished"
+            and (row.get("homeXg") is None or row.get("awayXg") is None)
+        ), "errors": len(errors),
     }
     save_cache(cache, cache_path)
     return {"cache": cache, "summary": cache["lastRefreshSummary"], "errors": errors}
@@ -253,7 +265,8 @@ def main() -> int:
     key = os.environ.get("PITCHAPI_API_KEY", "").strip()
     if not key:
         raise SystemExit("Set PITCHAPI_API_KEY in the environment")
-    result = refresh_history(key)
+    limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "250"))
+    result = refresh_history(key, max_shot_requests=limit)
     print(json.dumps({"provider": "PitchAPI", **result["summary"]}, ensure_ascii=False))
     if result["errors"]:
         print(f"PitchAPI refresh had {len(result['errors'])} retryable errors")
