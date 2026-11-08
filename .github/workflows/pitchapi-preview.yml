@@ -47,10 +47,16 @@ jobs:
             pitchapi-history-v1-
       - name: Install dependencies
         run: python -m pip install requests pandas
+      - name: Fetch latest production odds snapshot (read-only)
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          mkdir -p backend/cache
+          git show origin/main:docs/data.json > backend/cache/previous_odds_data.json
       - name: Refresh PitchAPI preview
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
           PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '250' }}
+          PITCHAPI_PREVIOUS_DATA_PATH: backend/cache/previous_odds_data.json
         run: python backend/update_data_pitchapi.py
       - name: Upload preview and refreshed cache
         uses: actions/upload-artifact@v4
