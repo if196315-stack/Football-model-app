@@ -26,6 +26,8 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
       - name: Audit Soccer365 match and xG coverage
+        env:
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
         run: python backend/audit_soccer365.py
       - name: Upload audit report
         uses: actions/upload-artifact@v4
