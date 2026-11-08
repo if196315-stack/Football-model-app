@@ -82,7 +82,8 @@ def choose_samples(matches: list[dict], limit: int = SAMPLE_LIMIT) -> list[dict]
 
 
 
-def match_integrity(matches: list[dict], season: str | None = None) -> dict:
+def match_integrity(matches: list[dict], season: str | None = None,
+                    excluded_match_ids: set[str] | None = None) -> dict:
     """Detect duplicate provider IDs and duplicate same-day team pairings."""
     rows = [m for m in matches if isinstance(m, dict)]
     ids = Counter(str(m.get("id")) for m in rows if m.get("id") is not None)
@@ -103,7 +104,12 @@ def match_integrity(matches: list[dict], season: str | None = None) -> dict:
     home_appearances = Counter()
     away_appearances = Counter()
     team_names = {}
-    countable_rows = [m for m in rows if norm(m.get("status")) not in {"canceled", "cancelled"}]
+    excluded_match_ids = excluded_match_ids or set()
+    countable_rows = [
+        m for m in rows
+        if norm(m.get("status")) not in {"canceled", "cancelled"}
+        and str(m.get("id")) not in excluded_match_ids
+    ]
     for match in countable_rows:
         home = match.get("home_team") or {}
         away = match.get("away_team") or {}
@@ -182,6 +188,22 @@ def match_context(match: dict) -> dict:
             if compact:
                 context[key] = compact
     return context
+
+
+def inspect_match_metadata(session: Any, match_id: str, api_key: str) -> dict:
+    """Fetch documented match-level fields needed to identify playoff fixtures."""
+    data = fetch(session, f"/matches/{match_id}", api_key)
+    if not isinstance(data, dict):
+        raise ValueError(f"Unexpected match metadata for {match_id}")
+    return {
+        "matchId": data.get("id", match_id),
+        "round_name": data.get("round_name"),
+        "has_playoff": data.get("has_playoff"),
+        "status": data.get("status"),
+        "date": data.get("date"),
+        "home_team": (data.get("home_team") or {}).get("name"),
+        "away_team": (data.get("away_team") or {}).get("name"),
+    }
 
 
 def flatten_shots(data: dict) -> list[dict]:
@@ -285,6 +307,34 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
             matches = data.get("matches", []) if isinstance(data, dict) else []
             status_counts = Counter(m.get("status", "missing") for m in matches if isinstance(m, dict))
             integrity = match_integrity(matches, season)
+            # The league listing may omit stage flags. For teams with anomalous
+            # appearance counts, inspect their individual match records and exclude
+            # only matches explicitly marked has_playoff=true from league totals.
+            candidate_ids = sorted({
+                str(fixture.get("matchId"))
+                for fixtures in integrity.get("teamFixtureLists", {}).values()
+                for fixture in fixtures
+                if fixture.get("matchId") is not None
+            })
+            playoff_details = []
+            for match_id in candidate_ids:
+                try:
+                    detail = inspect_match_metadata(session, match_id, api_key)
+                    if detail.get("has_playoff") is True:
+                        playoff_details.append(detail)
+                except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
+                    playoff_details.append({
+                        "matchId": match_id,
+                        "metadataFetchError": type(exc).__name__,
+                    })
+                if pause_seconds:
+                    time.sleep(pause_seconds)
+            playoff_ids = {
+                str(item["matchId"]) for item in playoff_details
+                if item.get("has_playoff") is True
+            }
+            if playoff_ids:
+                integrity = match_integrity(matches, season, playoff_ids)
             samples = choose_samples(matches, sample_limit)
             inspected = []
             for match in samples:
@@ -305,6 +355,8 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                     for match in samples
                 ],
                 **integrity,
+                "playoffMatchDetails": playoff_details,
+                "excludedPlayoffMatchIds": sorted(playoff_ids),
                 "xgSampleSize": len(inspected),
                 "xgPairedSamples": sum(bool(x["pairedXgPresent"]) for x in inspected),
                 "xgSamples": inspected,
