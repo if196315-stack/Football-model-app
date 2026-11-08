@@ -119,5 +119,79 @@ class PitchApiDataSourceTests(unittest.TestCase):
         self.assertTrue(all(r["status"] == "not_started"
                             for r in result["cache"]["matches"].values()))
 
+
+    def test_unresolved_shot_feed_uses_seven_day_retry_cooldown(self):
+        from datetime import datetime, timedelta, timezone
+
+        class Response:
+            status_code = 200
+            headers = {}
+            def __init__(self, data):
+                self.data = data
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {"data": self.data}
+
+        leagues = [
+            {"id": f"l_{code}", "name": name, "country_code": code,
+             "seasons": ["2026/2027"]}
+            for code, name in [
+                ("ENG", "Premier League"), ("ESP", "LaLiga"),
+                ("ITA", "Serie A"), ("GER", "Bundesliga"),
+                ("FRA", "Ligue 1"),
+            ]
+        ]
+        class Session:
+            def __init__(self):
+                self.shot_calls = 0
+            def get(self, url, params=None, **kwargs):
+                if url.endswith("/leagues"):
+                    return Response({"leagues": leagues})
+                if "/shots" in url:
+                    self.shot_calls += 1
+                    return Response({"periods": []})
+                code = url.split("/leagues/")[1].split("/")[0].replace("l_", "")
+                return Response({"matches": [{
+                    "id": f"m_{code}", "date": "2026-11-01",
+                    "status": "finished", "score_home": 1, "score_away": 0,
+                    "home_team": {"id": f"h_{code}", "name": "Home"},
+                    "away_team": {"id": f"a_{code}", "name": "Away"},
+                }]})
+
+        now = datetime.now(timezone.utc).isoformat()
+        old = (datetime.now(timezone.utc) - timedelta(days=8)).isoformat()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cache.json"
+            cache = {"version": 1, "provider": "PitchAPI", "matches": {}}
+            for code in ("ENG", "ESP", "ITA", "GER", "FRA"):
+                cache["matches"][f"m_{code}"] = {
+                    "id": f"m_{code}", "homeXg": None, "awayXg": None,
+                    "xgShotCount": 0, "xgFetchedAt": now,
+                }
+            save_cache(cache, path)
+            session = Session()
+            result = refresh_history(
+                "test-key", session=session, cache_path=path,
+                pause_seconds=0, max_shot_requests=5,
+            )
+            self.assertEqual(session.shot_calls, 0)
+            self.assertEqual(result["summary"]["shotAttempts"], 0)
+            self.assertEqual(result["summary"]["pendingShotXg"], 5)
+
+            cache = load_cache(path)
+            for row in cache["matches"].values():
+                row["xgFetchedAt"] = old
+            save_cache(cache, path)
+            session = Session()
+            result = refresh_history(
+                "test-key", session=session, cache_path=path,
+                pause_seconds=0, max_shot_requests=1,
+            )
+            self.assertEqual(session.shot_calls, 1)
+            self.assertEqual(result["summary"]["shotAttempts"], 1)
+            attempted = next(iter(result["cache"]["matches"].values())).get("xgAttemptedAt")
+            self.assertTrue(attempted)
+
 if __name__ == "__main__":
     unittest.main()
