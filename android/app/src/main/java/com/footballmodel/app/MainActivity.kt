@@ -334,6 +334,7 @@ class MainActivity : Activity() {
         collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h,a -> h + a >= 3 })
+        collect("bttsYes", "Обе забьют · обе команды минимум по 1 голу", { h,a -> h >= 1 && a >= 1 })
         if (metrics.isEmpty()) {
             val empty = card()
             addText(empty, "Пока нет завершённых матчей с сохранёнными прогнозами по основным рынкам.", 12, false, muted)
