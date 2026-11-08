@@ -115,5 +115,36 @@ class PitchApiUpdaterTests(unittest.TestCase):
             finally:
                 updater.OUT = old_out
 
+    def test_odds_transfer_reads_explicit_main_snapshot_path(self):
+        import tempfile
+        import json
+        import os
+        from pathlib import Path
+        import update_data_pitchapi as updater
+
+        with tempfile.TemporaryDirectory() as tmp:
+            old_out = updater.OUT
+            updater.OUT = Path(tmp) / "feature-data.json"
+            source = Path(tmp) / "main-data.json"
+            quote = {"best": {"h2h": {"home": 2.05}}}
+            source.write_text(json.dumps({
+                "competitions": [{"code": "PL", "matches": [{
+                    "id": "main-fixture", "home": "Liverpool", "away": "Manchester United",
+                    "utcDate": "2026-11-22T16:30:00Z", "status": "SCHEDULED",
+                    "odds": quote
+                }]}]
+            }), encoding="utf-8")
+            payload = {"competitions": [{"code": "PL", "matches": [{
+                "id": "pitchapi-fixture", "home": "Liverpool", "away": "Manchester United",
+                "utcDate": "2026-11-22", "status": "SCHEDULED"
+            }]}]}
+            try:
+                with patch.dict(os.environ, {"PITCHAPI_PREVIOUS_DATA_PATH": str(source)}):
+                    self.assertEqual(preserve_odds_by_identity(payload), 1)
+                self.assertEqual(payload["competitions"][0]["matches"][0]["odds"], quote)
+            finally:
+                updater.OUT = old_out
+
+
 if __name__ == "__main__":
     unittest.main()
