@@ -1,0 +1,56 @@
+name: PitchAPI migration preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_shot_requests:
+        description: "Maximum shot/xG requests in this run"
+        required: true
+        default: "250"
+        type: choice
+        options:
+          - "50"
+          - "100"
+          - "250"
+          - "500"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pitchapi-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    if: github.ref == 'refs/heads/feature/pitchapi-data-source'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore incremental PitchAPI history cache
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-v1-${{ github.run_id }}
+          restore-keys: |
+            pitchapi-history-v1-
+      - name: Install dependencies
+        run: python -m pip install requests pandas
+      - name: Refresh PitchAPI preview
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests }}
+        run: python backend/update_data_pitchapi.py
+      - name: Upload preview and refreshed cache
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-preview-${{ github.run_number }}
+          path: |
+            docs/data.json
+            backend/cache/pitchapi_history.json
+          if-no-files-found: error
+          retention-days: 14
