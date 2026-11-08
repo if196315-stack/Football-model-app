@@ -104,8 +104,8 @@ def strongest_signal(pred, baseline, home, away):
       ("X2","Гости не проиграют","x2","X2","Не X2"),
       ("Фора 0 хозяев","Фора 0 хозяев","dnbHome",f"Фора 0 · {home}",f"Фора 0 · {away}"),
       ("Фора 0 гостей","Фора 0 гостей","dnbAway",f"Фора 0 · {away}",f"Фора 0 · {home}"),
-      ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15","ИТБ 1.5","ИТМ 1.5"),
-      ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15","ИТБ 1.5","ИТМ 1.5")]
+      ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15",f"ИТБ 1.5 · {home}",f"ИТМ 1.5 · {home}"),
+      ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15",f"ИТБ 1.5 · {away}",f"ИТМ 1.5 · {away}")]
     best=None
     for key,title,field,yes,no in candidates:
       p=float(pred[field]); b=float(baseline[field])
