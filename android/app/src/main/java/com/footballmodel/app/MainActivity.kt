@@ -120,7 +120,7 @@ class MainActivity : Activity() {
     }
 
     private fun render(json: JSONObject) {
-        root.removeViews(3, (root.childCount - 3).coerceAtLeast(0))
+        root.removeViews(4, (root.childCount - 4).coerceAtLeast(0))
         refreshButton.isEnabled = true
         val state = json.optString("status", "unknown")
         statusView.text = json.optString("notice", "Статус: $state")
@@ -167,7 +167,7 @@ class MainActivity : Activity() {
                     inside(box, "1X: ${pct(pred, "1x")}    X2: ${pct(pred, "x2")}    DNB 1: ${pct(pred, "dnbHome")}", 13)
                     inside(box, "ТБ 2.5: ${pct(pred, "over25")}    ТМ 2.5: ${pct(pred, "under25")}", 13)
                     inside(box, "Обе забьют: Да ${pct(pred, "bttsYes")} / Нет ${pct(pred, "bttsNo")}", 13)
-                    inside(box, "ИТБ 1.5: ${pct(pred, "homeOver15")}    ИТБ 2.5: ${pct(pred, "awayOver15")}", 13)
+                    inside(box, "ИТБ 1.5 хозяев: ${pct(pred, "homeOver15")}    ИТБ 1.5 гостей: ${pct(pred, "awayOver15")}", 13)
                     inside(box, "Ожидаемые голы: ${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true)
                 }
             }
