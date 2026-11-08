@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T15:46:00.696469+00:00",
+  "updatedAt": "2026-11-08T18:58:51.496095+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -2220,11 +2220,11 @@
         {
           "id": 560635,
           "utcDate": "2026-11-08T14:00:00Z",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Crystal Palace FC",
           "away": "Liverpool FC",
-          "homeScore": 0,
-          "awayScore": 2,
+          "homeScore": 1,
+          "awayScore": 3,
           "prediction": {
             "1": 0.37678184018955635,
             "x": 0.23743400552713406,
@@ -2264,7 +2264,7 @@
         {
           "id": 560636,
           "utcDate": "2026-11-08T14:00:00Z",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Sunderland AFC",
           "away": "Chelsea FC",
           "homeScore": 1,
@@ -2308,7 +2308,7 @@
         {
           "id": 560638,
           "utcDate": "2026-11-08T14:00:00Z",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Brighton & Hove Albion FC",
           "away": "Brentford FC",
           "homeScore": 2,
@@ -2352,11 +2352,11 @@
         {
           "id": 560639,
           "utcDate": "2026-11-08T16:30:00Z",
-          "status": "TIMED",
+          "status": "FINISHED",
           "home": "Manchester United FC",
           "away": "Aston Villa FC",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 4,
+          "awayScore": 4,
           "prediction": {
             "1": 0.4504994692264096,
             "x": 0.23743164746904413,
@@ -11381,11 +11381,11 @@
         {
           "id": 564738,
           "utcDate": "2026-11-08T13:00:00Z",
-          "status": "FINISHED",
+          "status": "TIMED",
           "home": "Elche CF",
           "away": "Real Betis Balompié",
-          "homeScore": 0,
-          "awayScore": 2,
+          "homeScore": null,
+          "awayScore": null,
           "prediction": {
             "1": 0.35727670922333254,
             "x": 0.2580238690297225,
@@ -19495,11 +19495,11 @@
         {
           "id": 565855,
           "utcDate": "2026-11-08T14:30:00Z",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "1. FC Köln",
           "away": "Bayer 04 Leverkusen",
-          "homeScore": 0,
-          "awayScore": 1,
+          "homeScore": 1,
+          "awayScore": 2,
           "prediction": {
             "1": 0.39857467186150114,
             "x": 0.2180263742395566,
@@ -19539,11 +19539,11 @@
         {
           "id": 565854,
           "utcDate": "2026-11-08T16:30:00Z",
-          "status": "TIMED",
+          "status": "FINISHED",
           "home": "SC Freiburg",
           "away": "1. FC Union Berlin",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 2,
+          "awayScore": 0,
           "prediction": {
             "1": 0.407518675759324,
             "x": 0.24888058229559637,
@@ -22143,11 +22143,11 @@
         {
           "id": 559633,
           "utcDate": "2026-11-08T16:15:00Z",
-          "status": "TIMED",
+          "status": "FINISHED",
           "home": "Le Havre AC",
           "away": "FC Lorient",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 2,
           "prediction": {
             "1": 0.3650926893758872,
             "x": 0.26133202365953034,
@@ -23122,7 +23122,7 @@
         "away": "Liverpool FC",
         "utcDate": "2026-11-08T14:00:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.37678184018955635,
           "x": 0.23743400552713406,
@@ -23157,8 +23157,9 @@
             "baselineMatches": 4556
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 1,
+        "awayScore": 3,
+        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
       },
       "560636": {
         "id": 560636,
@@ -23167,7 +23168,7 @@
         "away": "Chelsea FC",
         "utcDate": "2026-11-08T14:00:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.3397938738345035,
           "x": 0.2472309533585889,
@@ -23202,8 +23203,9 @@
             "baselineMatches": 4556
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 1,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
       },
       "560638": {
         "id": 560638,
@@ -23212,7 +23214,7 @@
         "away": "Brentford FC",
         "utcDate": "2026-11-08T14:00:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.5637373788513996,
           "x": 0.21383460558947062,
@@ -23247,8 +23249,9 @@
             "baselineMatches": 4556
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 2,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
       },
       "560639": {
         "id": 560639,
@@ -23257,7 +23260,7 @@
         "away": "Aston Villa FC",
         "utcDate": "2026-11-08T16:30:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.4504994692264096,
           "x": 0.23743164746904413,
@@ -23292,8 +23295,9 @@
             "baselineMatches": 4556
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 4,
+        "awayScore": 4,
+        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
       },
       "560643": {
         "id": 560643,
@@ -37120,7 +37124,7 @@
         "away": "Bayer 04 Leverkusen",
         "utcDate": "2026-11-08T14:30:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.39857467186150114,
           "x": 0.2180263742395566,
@@ -37155,8 +37159,9 @@
             "baselineMatches": 3670
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 1,
+        "awayScore": 2,
+        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
       },
       "565854": {
         "id": 565854,
@@ -37165,7 +37170,7 @@
         "away": "1. FC Union Berlin",
         "utcDate": "2026-11-08T16:30:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.407518675759324,
           "x": 0.24888058229559637,
@@ -37200,8 +37205,9 @@
             "baselineMatches": 3670
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 2,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
       },
       "565859": {
         "id": 565859,
@@ -39460,7 +39466,7 @@
         "away": "FC Lorient",
         "utcDate": "2026-11-08T16:15:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.3650926893758872,
           "x": 0.26133202365953034,
@@ -39495,8 +39501,9 @@
             "baselineMatches": 4229
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 0,
+        "awayScore": 2,
+        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
       },
       "559614": {
         "id": 559614,
@@ -40447,6 +40454,190 @@
   },
   "evaluationMatches": [
     {
+      "id": 560635,
+      "league": "Англия · Премьер-лига",
+      "home": "Crystal Palace FC",
+      "away": "Liverpool FC",
+      "utcDate": "2026-11-08T14:00:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.37678184018955635,
+        "x": 0.23743400552713406,
+        "2": 0.38578415428330987,
+        "1x": 0.6142158457166904,
+        "x2": 0.6232181598104439,
+        "dnbHome": 0.49409735409197175,
+        "dnbAway": 0.5059026459080282,
+        "over15": 0.8187031467175154,
+        "over25": 0.6041352802517646,
+        "over35": 0.38065677484896765,
+        "under25": 0.39586471974823545,
+        "bttsYes": 0.6246226074125901,
+        "bttsNo": 0.3753773925874099,
+        "homeOver05": 0.7881485013902999,
+        "homeOver15": 0.4593825738631298,
+        "homeOver25": 0.20428162859690724,
+        "awayOver05": 0.7925189305197575,
+        "awayOver15": 0.4662103040449975,
+        "awayOver25": 0.20961503976720297,
+        "ah0Home": 0.49409735409197175,
+        "ahMinus05Home": 0.37678184018955635,
+        "ahPlus05Home": 0.6142158457166904,
+        "expectedHomeGoals": 1.5518697280157778,
+        "expectedAwayGoals": 1.5727151748937414,
+        "strongestSignal": {
+          "market": "Фора 0 хозяев",
+          "side": "Фора 0 · Liverpool FC",
+          "modelProbability": 0.5059026459080282,
+          "baselineProbability": 0.4176013805004314,
+          "edgePp": 8.830126540759686,
+          "baselineMatches": 4556
+        }
+      },
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+    },
+    {
+      "id": 560636,
+      "league": "Англия · Премьер-лига",
+      "home": "Sunderland AFC",
+      "away": "Chelsea FC",
+      "utcDate": "2026-11-08T14:00:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.3397938738345035,
+        "x": 0.2472309533585889,
+        "2": 0.4129751728069077,
+        "1x": 0.5870248271930925,
+        "x2": 0.6602061261654966,
+        "dnbHome": 0.45139193136399985,
+        "dnbAway": 0.5486080686360001,
+        "over15": 0.7841140031513031,
+        "over25": 0.5521610400203898,
+        "over35": 0.3285658787868486,
+        "under25": 0.4478389599796102,
+        "bttsYes": 0.5828450019166935,
+        "bttsNo": 0.41715499808330647,
+        "homeOver05": 0.7443694000138583,
+        "homeOver15": 0.39568367728292214,
+        "homeOver25": 0.15787620579283612,
+        "awayOver05": 0.7830050535471261,
+        "awayOver15": 0.4514625513400296,
+        "awayOver25": 0.19818377096618472,
+        "ah0Home": 0.45139193136399985,
+        "ahMinus05Home": 0.3397938738345035,
+        "ahPlus05Home": 0.5870248271930925,
+        "expectedHomeGoals": 1.364021845388777,
+        "expectedAwayGoals": 1.5278812139484585,
+        "strongestSignal": {
+          "market": "Фора 0 хозяев",
+          "side": "Фора 0 · Chelsea FC",
+          "modelProbability": 0.5486080686360002,
+          "baselineProbability": 0.4176013805004314,
+          "edgePp": 13.100668813556881,
+          "baselineMatches": 4556
+        }
+      },
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+    },
+    {
+      "id": 560638,
+      "league": "Англия · Премьер-лига",
+      "home": "Brighton & Hove Albion FC",
+      "away": "Brentford FC",
+      "utcDate": "2026-11-08T14:00:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.5637373788513996,
+        "x": 0.21383460558947062,
+        "2": 0.22242801555912983,
+        "1x": 0.7775719844408703,
+        "x2": 0.4362626211486005,
+        "dnbHome": 0.7170722380550629,
+        "dnbAway": 0.2829277619449371,
+        "over15": 0.8315579008316263,
+        "over25": 0.6245255733005645,
+        "over35": 0.40222058674367994,
+        "under25": 0.37547442669943554,
+        "bttsYes": 0.6062064982090903,
+        "bttsNo": 0.39379350179090966,
+        "homeOver05": 0.8675337466368124,
+        "homeOver15": 0.5997628381305056,
+        "homeOver25": 0.3291231181193008,
+        "awayOver05": 0.6987699332264418,
+        "awayOver15": 0.3373297100935671,
+        "awayOver25": 0.12048708827695516,
+        "ah0Home": 0.7170722380550629,
+        "ahMinus05Home": 0.5637373788513996,
+        "ahPlus05Home": 0.7775719844408703,
+        "expectedHomeGoals": 2.021427357593858,
+        "expectedAwayGoals": 1.1998809647530262,
+        "strongestSignal": {
+          "market": "Хозяева забьют 2+",
+          "side": "ИТБ 1.5 · Brighton & Hove Albion FC",
+          "modelProbability": 0.5997628381305056,
+          "baselineProbability": 0.45107503290917067,
+          "edgePp": 14.86878052213349,
+          "baselineMatches": 4556
+        }
+      },
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+    },
+    {
+      "id": 560639,
+      "league": "Англия · Премьер-лига",
+      "home": "Manchester United FC",
+      "away": "Aston Villa FC",
+      "utcDate": "2026-11-08T16:30:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.4504994692264096,
+        "x": 0.23743164746904413,
+        "2": 0.3120688833045461,
+        "1x": 0.6879311166954537,
+        "x2": 0.5495005307735902,
+        "dnbHome": 0.5907660181952307,
+        "dnbAway": 0.4092339818047694,
+        "over15": 0.8083751397869737,
+        "over25": 0.588190859424302,
+        "over35": 0.3642459603444513,
+        "under25": 0.41180914057569795,
+        "bttsYes": 0.6068046156104826,
+        "bttsNo": 0.3931953843895174,
+        "homeOver05": 0.8145199121613806,
+        "homeOver15": 0.5020216234635598,
+        "homeOver25": 0.23877185477670976,
+        "awayOver05": 0.7449843847282849,
+        "awayOver15": 0.39652327021333433,
+        "awayOver25": 0.15844932285990587,
+        "ah0Home": 0.5907660181952307,
+        "ahMinus05Home": 0.4504994692264096,
+        "ahPlus05Home": 0.6879311166954537,
+        "expectedHomeGoals": 1.684807745884372,
+        "expectedAwayGoals": 1.3664304993389111,
+        "strongestSignal": {
+          "market": "Хозяева забьют 2+",
+          "side": "ИТБ 1.5 · Manchester United FC",
+          "modelProbability": 0.5020216234635598,
+          "baselineProbability": 0.45107503290917067,
+          "edgePp": 5.094659055438916,
+          "baselineMatches": 4556
+        }
+      },
+      "homeScore": 4,
+      "awayScore": 4,
+      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+    },
+    {
       "id": 564738,
       "league": "Испания · Ла Лига",
       "home": "Elche CF",
@@ -40491,6 +40682,144 @@
       "homeScore": 0,
       "awayScore": 2,
       "resultUpdatedAt": "2026-11-08T15:46:45.849865+00:00"
+    },
+    {
+      "id": 565855,
+      "league": "Германия · Бундеслига",
+      "home": "1. FC Köln",
+      "away": "Bayer 04 Leverkusen",
+      "utcDate": "2026-11-08T14:30:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.39857467186150114,
+        "x": 0.2180263742395566,
+        "2": 0.38339895389894235,
+        "1x": 0.6166010461010577,
+        "x2": 0.6014253281384989,
+        "dnbHome": 0.5097034717429254,
+        "dnbAway": 0.4902965282570746,
+        "over15": 0.8780351887561543,
+        "over25": 0.703992495522405,
+        "over35": 0.4929140949775501,
+        "under25": 0.29600750447759505,
+        "bttsYes": 0.7019246833557307,
+        "bttsNo": 0.29807531664426934,
+        "homeOver05": 0.8408686231469237,
+        "homeOver15": 0.5483811505885177,
+        "homeOver25": 0.2795814855086686,
+        "awayOver05": 0.834761416984261,
+        "awayOver15": 0.5372716733518519,
+        "awayOver25": 0.26947662829858215,
+        "ah0Home": 0.5097034717429254,
+        "ahMinus05Home": 0.39857467186150114,
+        "ahPlus05Home": 0.6166010461010577,
+        "expectedHomeGoals": 1.8380251484184384,
+        "expectedAwayGoals": 1.800364891800564,
+        "strongestSignal": {
+          "market": "Гости забьют 2+",
+          "side": "ИТБ 1.5 · Bayer 04 Leverkusen",
+          "modelProbability": 0.5372716733518519,
+          "baselineProbability": 0.3760893246187364,
+          "edgePp": 16.11823487331155,
+          "baselineMatches": 3670
+        }
+      },
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+    },
+    {
+      "id": 565854,
+      "league": "Германия · Бундеслига",
+      "home": "SC Freiburg",
+      "away": "1. FC Union Berlin",
+      "utcDate": "2026-11-08T16:30:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.407518675759324,
+        "x": 0.24888058229559637,
+        "2": 0.34360074194507984,
+        "1x": 0.6563992580549204,
+        "x2": 0.5924813242406762,
+        "dnbHome": 0.542548449892024,
+        "dnbAway": 0.457451550107976,
+        "over15": 0.7794383132208659,
+        "over25": 0.5454340758034759,
+        "over35": 0.3221137219291724,
+        "under25": 0.4545659241965241,
+        "bttsYes": 0.5779895494198102,
+        "bttsNo": 0.4220104505801898,
+        "homeOver05": 0.7774796987272857,
+        "homeOver15": 0.4430902221353363,
+        "homeOver25": 0.19184051274724997,
+        "awayOver05": 0.7434143301310173,
+        "awayOver15": 0.39438272301505733,
+        "awayOver25": 0.15699015384282963,
+        "ah0Home": 0.542548449892024,
+        "ahMinus05Home": 0.407518675759324,
+        "ahPlus05Home": 0.6563992580549204,
+        "expectedHomeGoals": 1.5027369398629895,
+        "expectedAwayGoals": 1.3602926745448474,
+        "strongestSignal": {
+          "market": "Хозяева забьют 2+",
+          "side": "ИТМ 1.5 · SC Freiburg",
+          "modelProbability": 0.5569097778646637,
+          "baselineProbability": 0.5100762527233116,
+          "edgePp": 4.683352514135208,
+          "baselineMatches": 3670
+        }
+      },
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+    },
+    {
+      "id": 559633,
+      "league": "Франция · Лига 1",
+      "home": "Le Havre AC",
+      "away": "FC Lorient",
+      "utcDate": "2026-11-08T16:15:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.3650926893758872,
+        "x": 0.26133202365953034,
+        "2": 0.3735752869645824,
+        "1x": 0.6264247130354175,
+        "x2": 0.6349073106241128,
+        "dnbHome": 0.4942581796826228,
+        "dnbAway": 0.5057418203173772,
+        "over15": 0.740996277561274,
+        "over25": 0.49255769065887184,
+        "over35": 0.2736010734434619,
+        "under25": 0.5074423093411282,
+        "bttsYes": 0.5378497021792591,
+        "bttsNo": 0.4621502978207409,
+        "homeOver05": 0.7309553614373167,
+        "homeOver15": 0.37773258237780566,
+        "homeOver25": 0.14586337971860672,
+        "awayOver05": 0.735817439141094,
+        "awayOver15": 0.38416009700753767,
+        "awayOver25": 0.1501119337328958,
+        "ah0Home": 0.4942581796826228,
+        "ahMinus05Home": 0.3650926893758872,
+        "ahPlus05Home": 0.6264247130354175,
+        "expectedHomeGoals": 1.3128779705350426,
+        "expectedAwayGoals": 1.3311148964195536,
+        "strongestSignal": {
+          "market": "Фора 0 гостей",
+          "side": "Фора 0 · FC Lorient",
+          "modelProbability": 0.5057418203173772,
+          "baselineProbability": 0.4092346616065781,
+          "edgePp": 9.650715871079912,
+          "baselineMatches": 4229
+        }
+      },
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
     }
   ],
   "oddsUpdatedAt": "2026-11-08T05:30:24.907202+00:00",
