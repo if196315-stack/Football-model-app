@@ -285,11 +285,14 @@ class MainActivity : Activity() {
         addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
         addText(matchesContainer, "Качество прогнозов", 22, true)
         addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, фора 0 на каждую команду и индивидуальным тоталам команд.", 11, false, muted)
-        data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double)
+        data class BandRow(val label: String, val n: Int, val hits: Int)
+        data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
         val metrics = mutableListOf<MetricRow>()
         val leagues = json.optJSONArray("competitions")
         fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
             var n = 0; var hits = 0; var brier = 0.0; var logLoss = 0.0
+            val bandCounts = IntArray(4)
+            val bandHits = IntArray(4)
             if (leagues != null) for (i in 0 until leagues.length()) {
                 val matches = leagues.getJSONObject(i).optJSONArray("matches") ?: continue
                 for (j in 0 until matches.length()) {
@@ -301,13 +304,28 @@ class MainActivity : Activity() {
                     if (excludeDraws && h == aw) continue
                     val outcome = actual(h, aw)
                     val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
+                    val predictedYes = probability >= 0.5
+                    val confidence = maxOf(probability, 1.0 - probability)
+                    val band = when {
+                        confidence < 0.6 -> 0
+                        confidence < 0.7 -> 1
+                        confidence < 0.8 -> 2
+                        else -> 3
+                    }
+                    val correct = outcome == predictedYes
                     val y = if (outcome) 1.0 else 0.0
-                    n++; if (outcome == (probability >= 0.5)) hits++
+                    n++; if (correct) hits++
+                    bandCounts[band]++
+                    if (correct) bandHits[band]++
                     brier += (probability-y)*(probability-y)
                     logLoss += -(y*kotlin.math.ln(probability)+(1.0-y)*kotlin.math.ln(1.0-probability))
                 }
             }
-            if (n > 0) metrics.add(MetricRow(title,n,hits,brier/n,logLoss/n))
+            if (n > 0) {
+                val labels = listOf("50–59%", "60–69%", "70–79%", "80%+")
+                val bands = labels.indices.map { BandRow(labels[it], bandCounts[it], bandHits[it]) }
+                metrics.add(MetricRow(title,n,hits,brier/n,logLoss/n,bands))
+            }
         }
         collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h,a -> h >= a })
         collect("x2", "X2 · гости победят ИЛИ будет ничья", { h,a -> a >= h })
@@ -322,12 +340,17 @@ class MainActivity : Activity() {
             val box = card()
             addText(box, metric.name, 14, true)
             addText(box, "Попадания при пороге 50%: ${metric.hits}/${metric.n} (${String.format(Locale.US, "%.1f", metric.hits*100.0/metric.n)}%)", 11, true, accent)
+            addText(box, "ПОПАДАНИЯ ПО УВЕРЕННОСТИ ПРОГНОЗА", 9, true, cyan)
+            metric.bands.forEach { band ->
+                val rate = if (band.n > 0) String.format(Locale.US, "%.1f%%", band.hits*100.0/band.n) else "—"
+                addText(box, "${band.label}: ${band.hits}/${band.n} ($rate)", 11, false, if (band.n > 0) Color.WHITE else muted)
+            }
             addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
             addText(box, if (metric.name.startsWith("Фора 0")) "Фора 0: победа — выигрыш, ничья — возврат, поражение — проигрыш. Вероятность считается без ничьих." else "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
         }
         val explainer = card()
         addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
-        addText(explainer, "Brier Score и Log Loss оценивают качество вероятностей: чем ниже, тем лучше. Попадания — вспомогательная доля прогнозов выше 50%, а не доходность. П1 / X / П2 не являются главной статистикой.", 11, false, muted)
+        addText(explainer, "Диапазон — это уверенность в выбранной стороне: max(p, 1−p). Например, вероятность события 28% означает прогноз на противоположный исход с уверенностью 72% и попадёт в диапазон 70–79%. В каждом диапазоне показаны верные прогнозы / все прогнозы. Brier Score и Log Loss: чем ниже, тем лучше. Попадания не равны доходности.", 11, false, muted)
         val footer = card()
         addText(footer, "Выборка включает завершённые матчи с сохранённым прогнозом. Это мониторинг, а не независимый тест модели.", 10, false, muted)
     }
