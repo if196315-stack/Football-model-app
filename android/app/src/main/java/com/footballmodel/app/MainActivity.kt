@@ -1,6 +1,8 @@
 package com.footballmodel.app
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.text.InputType
 import android.os.Bundle
 import android.graphics.Color
 import android.graphics.Typeface
@@ -9,6 +11,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import org.json.JSONObject
+import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -29,6 +32,9 @@ class MainActivity : Activity() {
     private var currentTab = "matches"
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
+    private var bets = JSONArray()
+    private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
+    private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
 
@@ -81,6 +87,7 @@ class MainActivity : Activity() {
         root.addView(leagueBar)
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
+        bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         loadData()
     }
 
@@ -152,7 +159,7 @@ class MainActivity : Activity() {
 
     private fun renderTabs() {
         tabBar.removeAllViews()
-        listOf("matches" to "⚽  Матчи", "stats" to "▥  Статистика", "help" to "ⓘ  Справка").forEach { item ->
+        listOf("matches" to "⚽ Матчи", "history" to "▤ История", "stats" to "▥ Статистика", "help" to "ⓘ Справка").forEach { item ->
             val active = currentTab == item.first
             val t = label(item.second, 13, true, if (active) bg else Color.WHITE).apply {
                 gravity = Gravity.CENTER
@@ -219,6 +226,119 @@ class MainActivity : Activity() {
         addText(footer, "Выборка включает завершённые матчи с сохранённым прогнозом. Это мониторинг, а не независимый тест модели.", 10, false, muted)
     }
 
+
+    private fun saveBets() { betPrefs.edit().putString("bets", bets.toString()).apply() }
+    private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
+        val b = Button(this).apply { text = title; textSize = 12f; setTextColor(Color.WHITE); background = rounded(Color.rgb(39,75,67),14); setOnClickListener { action() } }
+        parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
+    }
+    private fun showAddBetDialog(m: JSONObject, league: String) {
+        val p = m.optJSONObject("prediction") ?: return
+        val markets = listOf(
+            BetMarket("1x","1X · хозяева не проиграют"), BetMarket("x2","X2 · гости не проиграют"),
+            BetMarket("dnbHome","DNB · победа хозяев без ничьей"), BetMarket("1","П1"),
+            BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
+            BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
+            BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 хозяев"),
+            BetMarket("awayOver15","ИТБ 1.5 гостей")
+        ).filter { p.has(it.key) && !p.isNull(it.key) }
+        if (markets.isEmpty()) return
+        val form = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(20,8,20,0) }
+        form.addView(label(m.optString("home")+" — "+m.optString("away"),16,true))
+        val spin = Spinner(this)
+        spin.adapter = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,markets.map { it.label })
+        form.addView(spin)
+        fun field(h: String) = EditText(this).apply { hint=h; setSingleLine(true); inputType=InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
+        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки")
+        form.addView(odds); form.addView(stake)
+        val dlg=AlertDialog.Builder(this).setTitle("Новая ставка").setView(form).setNegativeButton("Отмена",null).setPositiveButton("Сохранить",null).create()
+        dlg.setOnShowListener {
+            dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val o=odds.text.toString().replace(',','.').toDoubleOrNull()
+                val st=stake.text.toString().replace(',','.').toDoubleOrNull()
+                if(o==null || o<=1.0 || st==null || st<=0.0) { Toast.makeText(this,"Проверь коэффициент и сумму",Toast.LENGTH_LONG).show(); return@setOnClickListener }
+                val mk=markets[spin.selectedItemPosition]
+                bets.put(JSONObject().apply {
+                    put("id",System.currentTimeMillis().toString())
+                    put("matchId",m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away")))
+                    put("date",m.optString("utcDate")); put("league",league); put("home",m.optString("home")); put("away",m.optString("away"))
+                    put("marketKey",mk.key); put("market",mk.label); put("probability",p.optDouble(mk.key)); put("odds",o); put("stake",st); put("status","PENDING")
+                })
+                saveBets(); dlg.dismiss(); currentTab="history"; render()
+            }
+        }
+        dlg.show()
+    }
+    private fun findMatch(j: JSONObject,b: JSONObject): JSONObject? {
+        val cs=j.optJSONArray("competitions") ?: return null
+        for(i in 0 until cs.length()) { val ms=cs.getJSONObject(i).optJSONArray("matches") ?: continue
+            for(k in 0 until ms.length()) { val m=ms.getJSONObject(k)
+                val id=m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
+                if(id==b.optString("matchId")) return m
+            }
+        }
+        return null
+    }
+    private fun settleBet(b: JSONObject,m: JSONObject) {
+        if(b.optString("status")!="PENDING" || m.optString("status")!="FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) return
+        val h=m.optInt("homeScore"); val a=m.optInt("awayScore")
+        val won: Boolean?=when(b.optString("marketKey")) {
+            "1x"->h>=a; "x2"->a>=h; "dnbHome"->if(h==a)null else h>a
+            "1"->h>a; "x"->h==a; "2"->a>h; "over25"->h+a>=3; "under25"->h+a<=2
+            "bttsYes"->h>0&&a>0; "bttsNo"->h==0||a==0; "homeOver15"->h>=2; "awayOver15"->a>=2
+            else->null
+        }
+        b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a")
+    }
+    private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
+    private fun renderBetHistory(j: JSONObject) {
+        addText(matchesContainer,"ИСТОРИЯ СТАВОК",10,true,accent)
+        addText(matchesContainer,"Ставки, расчёт и доходность",19,true)
+        addText(matchesContainer,"Записи хранятся только на этом устройстве. Коэффициенты вводятся вручную.",11,false,muted)
+        var changed=false
+        for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue; val m=findMatch(j,b)
+            if(m!=null && b.optString("status")=="PENDING") { settleBet(b,m); if(b.optString("status")!="PENDING") changed=true }
+        }
+        if(changed) saveBets()
+        var stakeAll=0.0; var turnover=0.0; var profit=0.0; var payout=0.0
+        var wins=0; var losses=0; var pushes=0; var pending=0
+        for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
+            val st=b.optDouble("stake"); val o=b.optDouble("odds"); stakeAll+=st
+            when(b.optString("status")) {
+                "WON"->{wins++;turnover+=st;profit+=st*(o-1);payout+=st*o}
+                "LOST"->{losses++;turnover+=st;profit-=st}
+                "PUSH"->{pushes++;payout+=st}
+                else->pending++
+            }
+        }
+        val sum=card()
+        addText(sum,"СТАТИСТИКА СТАВОК",10,true,accent)
+        addText(sum,"Всего: "+bets.length()+" · выиграно: "+wins+" · проиграно: "+losses+" · возврат: "+pushes+" · ожидают: "+pending,12,true)
+        addText(sum,"Сумма ставок: "+fmt(stakeAll),13,true)
+        addText(sum,"Выплаты: "+fmt(payout)+" · чистый результат: "+(if(profit>=0)"+" else "")+fmt(profit),12,true,if(profit>=0)accent else Color.RED)
+        addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
+        addText(sum,"ROI = чистый результат / сумма выигравших и проигравших ставок. Возвраты и ожидающие ставки не входят.",10,false,muted)
+        if(bets.length()==0) { val e=card(); addText(e,"На вкладке «Матчи» нажми «Добавить ставку» в карточке игры.",12,false,muted); return }
+        for(i in bets.length()-1 downTo 0) { val b=bets.optJSONObject(i) ?: continue; val box=card()
+            val st=b.optString("status")
+            val status=when(st){"WON"->"ВЫИГРЫШ";"LOST"->"ПРОИГРЫШ";"PUSH"->"ВОЗВРАТ";else->"ОЖИДАЕТ"}
+            val col=when(st){"WON"->accent;"LOST"->Color.RED;else->Color.YELLOW}
+            addText(box,b.optString("league")+" · "+date(b.optString("date")),10,false,muted)
+            addText(box,b.optString("home")+" — "+b.optString("away"),15,true)
+            addText(box,b.optString("market")+" · кэф "+fmt(b.optDouble("odds")),12,true,accent)
+            addText(box,"Ставка: "+fmt(b.optDouble("stake"))+" · модель: "+String.format(Locale.getDefault(),"%.1f%%",b.optDouble("probability")*100),11,false,muted)
+            addText(box,status+(if(b.has("score"))" · счёт "+b.optString("score") else ""),12,true,col)
+            if(st=="WON") addText(box,"Чистая прибыль: +"+fmt(b.optDouble("stake")*(b.optDouble("odds")-1)),12,true,accent)
+            if(st=="LOST") addText(box,"Убыток: −"+fmt(b.optDouble("stake")),12,true,col)
+            if(st=="PUSH") addText(box,"Возврат: "+fmt(b.optDouble("stake")),12,true,accent)
+            actionButton(box,"Удалить запись") {
+                val id=b.optString("id"); val next=JSONArray()
+                for(k in 0 until bets.length()) { val x=bets.optJSONObject(k) ?: continue; if(x.optString("id")!=id)next.put(x) }
+                bets=next;saveBets();render()
+            }
+        }
+    }
+
     private fun renderHelp() {
         fun section(title: String, body: String) {
             val box = card()
@@ -270,6 +390,11 @@ class MainActivity : Activity() {
         val warning = json.optString("dataWarning", "")
         if (warning.isNotBlank()) addText(summary, "⚠  $warning", 11, false, Color.rgb(242, 190, 104))
 
+        if (currentTab == "history") {
+            leagueBar.visibility = View.GONE
+            renderBetHistory(json)
+            return
+        }
         if (currentTab == "stats") {
             leagueBar.visibility = View.GONE
             renderStats(json)
@@ -380,6 +505,7 @@ class MainActivity : Activity() {
                     addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
                     addText(box, "Дополнительные рынки: ТБ 2.5 ${pct(pred, "over25")} · Обе забьют ${pct(pred, "bttsYes")}", 11, false, muted)
                     addText(box, "Ожидаемые голы  ${String.format(Locale.US, "%.2f : %.2f", pred.optDouble("expectedHomeGoals"), pred.optDouble("expectedAwayGoals"))}", 12, true)
+                    actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
                 }
             }
         }
