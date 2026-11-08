@@ -82,6 +82,21 @@ class Soccer365ParserTests(unittest.TestCase):
         self.assertEqual(match["away"], "Nested Away")
         self.assertEqual(match["utcDate"], "2026-09-12T16:30:00+00:00")
 
+    def test_jsonld_string_team_names_override_title_fallback(self):
+        page = '''
+        <title>Fallback Home - Fallback Away</title>
+        <script type="application/ld+json">
+        {
+          "@type": "SportsEvent",
+          "homeTeam": "Structured Home",
+          "awayTeam": "Structured Away"
+        }
+        </script>
+        '''
+        match = parse_match_page(page, "https://soccer365.net/live/match-home-away/")
+        self.assertEqual(match["home"], "Structured Home")
+        self.assertEqual(match["away"], "Structured Away")
+
     def test_explicit_jsonld_timezone_is_normalized_to_utc(self):
         page = '''
         <title>Home - Away</title>
