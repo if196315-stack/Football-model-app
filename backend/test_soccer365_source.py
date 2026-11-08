@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock, patch
 
 from soccer365_source import extract_match_links, parse_match_page
 
@@ -94,6 +95,27 @@ class Soccer365ParserTests(unittest.TestCase):
 
         Soccer365Client._validate_url("https://soccer365.net/live/match-home-away/")
         Soccer365Client._validate_url("https://www.soccer365.net/live/match-home-away/")
+
+    def test_client_refuses_redirects_without_following_them(self):
+        from soccer365_source import Soccer365Client
+
+        session = Mock()
+        response = Mock()
+        response.is_redirect = True
+        response.is_permanent_redirect = False
+        response.status_code = 302
+        session.get.return_value = response
+        client = Soccer365Client(session=session, min_delay=1)
+
+        with patch("soccer365_source.time.sleep"):
+            with self.assertRaisesRegex(ValueError, "redirect refused"):
+                client.get("https://soccer365.net/live/match-home-away/")
+
+        session.get.assert_called_once_with(
+            "https://soccer365.net/live/match-home-away/",
+            timeout=(15, 45),
+            allow_redirects=False,
+        )
 
 
 if __name__ == "__main__":
