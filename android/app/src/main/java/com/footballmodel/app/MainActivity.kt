@@ -226,7 +226,7 @@ class MainActivity : Activity() {
 
     private fun renderTabs() {
         tabBar.removeAllViews()
-        listOf("matches" to "МАТЧИ", "week" to "НЕДЕЛЯ", "history" to "СТАВКИ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА").forEach { item ->
+        listOf("matches" to "МАТЧИ", "day" to "СТАВКИ ДНЯ", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА").forEach { item ->
             val active = currentTab == item.first
             val t = label(item.second, 11, true, if (active) bg else muted).apply {
                 gravity = Gravity.CENTER
@@ -468,55 +468,55 @@ class MainActivity : Activity() {
             "В первую очередь смотрите 1X, X2, фора 0 на хозяев, ИТБ 1.5 хозяев и ИТБ 1.5 гостей. П1/X/П2 — вспомогательные вероятности. ТБ 2.5 и «Обе забьют» — дополнительные рынки. Ни один прогноз не гарантирует результат.")
     }
 
-    private fun renderWeek(json: JSONObject) {
-        addText(matchesContainer, "ALL FIXTURES", 9, true, cyan)
-        addText(matchesContainer, "Все предстоящие матчи", 22, true)
-        addText(matchesContainer, "Все пять лиг · всё расписание, полученное от поставщика данных", 11, false, muted)
-
-        val items = mutableListOf<Pair<JSONObject, String>>()
+    private fun renderDay(json: JSONObject) {
+        addText(matchesContainer, "DAILY SIGNAL FILTER", 9, true, cyan)
+        addText(matchesContainer, "Ставки дня", 22, true)
+        addText(matchesContainer, "Матчи на сегодня с положительным отклонением модели от исторической базы. Сначала самые сильные сигналы.", 11, false, muted)
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }.format(java.util.Date())
+        val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
             val league = leagues.optJSONObject(i) ?: continue
             val matches = league.optJSONArray("matches") ?: continue
             for (j in 0 until matches.length()) {
                 val m = matches.optJSONObject(j) ?: continue
-                if (m.optString("status") !in listOf("SCHEDULED", "TIMED", "POSTPONED")) continue
-                items.add(m to league.optString("name"))
+                if (m.optString("status") !in listOf("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED")) continue
+                if (!m.optString("utcDate").startsWith(today)) continue
+                val prediction = m.optJSONObject("prediction") ?: continue
+                val signal = prediction.optJSONObject("strongestSignal") ?: continue
+                val edge = signal.optDouble("edgePp", 0.0)
+                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0) continue
+                items.add(Triple(m, league.optString("name"), signal))
             }
         }
-        val sorted = items.sortedBy { it.first.optString("utcDate") }
-        val overview = card()
-        addText(overview, "ВСЕГО ПРЕДСТОЯЩИХ МАТЧЕЙ", 9, true, accent)
-        addText(overview, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(overview, "Прогноз отображается там, где модель может его рассчитать", 11, false, muted)
+        val sorted = items.sortedByDescending { it.third.optDouble("edgePp") }
+        val summary = card()
+        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ СЕГОДНЯ", 9, true, accent)
+        addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
+        addText(summary, "Только матчи с рассчитанным прогнозом и положительным отклонением от исторической базы. Это фильтр модели, не рекомендация ставить.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
-            addText(empty, "В расписании поставщика пока нет предстоящих матчей.", 13, false, muted)
+            addText(empty, "На сегодня нет матчей с положительным сильнейшим сигналом модели.", 13, true)
+            addText(empty, "Матчи без прогноза, без надёжной исторической базы или без положительного отклонения сюда не попадают.", 11, false, muted)
             return
         }
-        sorted.forEach { (m, leagueName) ->
+        sorted.forEachIndexed { index, item ->
+            val (m, leagueName, signal) = item
             val box = card()
-            addText(box, leagueName.uppercase(Locale.getDefault()) + "  ·  " + date(m.optString("utcDate")), 10, true, accent)
-            addText(box, m.optString("home") + "  —  " + m.optString("away"), 16, true, Color.WHITE)
-            val p = m.optJSONObject("prediction")
-            if (p == null) {
-                addText(box, m.optString("predictionWarning", "Прогноз для этого матча пока недоступен"), 11, false, Color.rgb(242, 190, 104))
-                return@forEach
-            }
-            addMarketRow(box, listOf(
-                Triple("1X", pct(p, "1x"), Color.WHITE),
-                Triple("X2", pct(p, "x2"), Color.WHITE),
-                Triple("ТБ 2.5", pct(p, "over25"), cyan)
-            ))
-            val signal = p.optJSONObject("strongestSignal")
-            if (signal != null) {
-                val edge = signal.optDouble("edgePp")
-                addText(box, "Сильнейший сигнал: " + signal.optString("side") +
-                    (if (signal.optBoolean("noPositiveSignal")) " · нет плюсового отклонения" else " · +" + String.format(Locale.US, "%.1f", edge) + " п.п."),
-                    11, true, if (signal.optBoolean("noPositiveSignal")) Color.rgb(242,190,104) else gold)
-            }
-            addText(box, "Ожидаемые голы: " + String.format(Locale.US, "%.2f : %.2f", p.optDouble("expectedHomeGoals"), p.optDouble("expectedAwayGoals")), 11, false, muted)
+            addText(box, "#${index + 1}  ·  ${leagueName.uppercase(Locale.getDefault())}  ·  ${date(m.optString("utcDate"))}", 10, true, accent)
+            addText(box, "${m.optString("home")}  —  ${m.optString("away")}", 16, true, Color.WHITE)
+            addText(box, signal.optString("side"), 14, true, gold)
+            addText(box, "+${String.format(Locale.US, "%.1f", signal.optDouble("edgePp"))} п.п. к исторической базе", 13, true, accent)
+            addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability") * 100)}% · база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}%", 11, false, muted)
+            addText(box, "Историческая выборка: ${signal.optInt("baselineMatches")} матчей до даты игры", 10, false, muted)
+            renderOdds(box, m.optJSONObject("odds"))
+            actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, leagueName) }
         }
+        val note = card()
+        addText(note, "ВАЖНО", 10, true, gold)
+        addText(note, "Сильный сигнал означает отличие от исторической частоты, а не доказанное преимущество над букмекерской линией. Проверяйте коэффициент и не воспринимайте список как гарантию доходности.", 11, false, muted)
     }
 
     private fun render() {
@@ -533,9 +533,9 @@ class MainActivity : Activity() {
         addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
         addText(summary, "Обновлено: ${json.optString("updatedAt", "—").replace("T", " ").take(16)}", 10, false, muted)
 
-        if (currentTab == "week") {
+        if (currentTab == "day") {
             leagueBar.visibility = View.GONE
-            renderWeek(json)
+            renderDay(json)
             return
         }
         if (currentTab == "history") {
