@@ -72,3 +72,16 @@ Potential duplicate fixtures are warnings, not automatic merges. They are groupe
 The parser now carries an optional `season` value supplied by a future competition-page collector. It does not infer season from the calendar year. Missing competition IDs, season, type or timezone-aware kickoff remain visible as quality warnings and block model-readiness decisions downstream.
 
 The same module exposes `summarize_model_coverage()`: a read-only report that counts finished results for competition baselines and paired-xG samples per team. It partitions strictly by competition ID and competition type, prefers stable team IDs, and never fuzzy-merges teams. The candidate thresholds default to 30 paired-xG matches per team (the existing model's 30-match window) and 100 finished results per competition baseline (the existing baseline minimum). These are reporting gates, not a production model switch; recalibration/backtesting may change them.
+
+
+## Append-only historical store (isolated prototype)
+
+`backend/soccer365_store.py` provides a JSONL store utility for future Soccer365 history ingestion. It is not wired into the production update workflow and does not fetch pages or invent a competition catalogue.
+
+- New source match IDs are appended; re-importing an identical record is idempotent.
+- A changed payload under an existing ID is reported as a conflict and never overwrites the stored record. Corrections require an explicit review/migration process.
+- Records with integrity errors are rejected; incomplete-but-valid source evidence (for example, missing xG) is retained as null rather than fabricated.
+- Writes use a temporary file plus atomic replacement. Malformed existing JSONL or duplicate/missing IDs fail closed.
+- This prototype does not resolve possible duplicate fixtures with different IDs; those remain a separate quality-review task.
+
+The store is deliberately format-neutral at the application boundary: it stores normalized records as JSONL and does not alter `docs/data.json`, the Android contract, prediction archive, or production workflow.
