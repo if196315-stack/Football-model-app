@@ -163,6 +163,30 @@ class Soccer365CoverageTests(unittest.TestCase):
         self.assertEqual(item["finishedResultCoverage"], 0.25)
         self.assertEqual(item["finishedScoreRate"], 0.5)
 
+    def test_same_source_id_in_another_competition_or_season_blocks_both(self):
+        other = entry(
+            competitionId="eng-cup",
+            competitionName="FA Cup",
+            competitionType="domestic_cup",
+            url="https://soccer365.net/verified/fa-cup/",
+        )
+        previous_season = entry(
+            season="2025-2026",
+            url="https://soccer365.net/verified/prem-previous/",
+        )
+        report = summarize_historical_coverage(
+            [entry(expectedFinishedMatches=1), other, previous_season],
+            [
+                match("reused-id"),
+                match("reused-id", competitionId="eng-cup", competitionType="domestic_cup"),
+                match("reused-id", season="2025-2026"),
+            ],
+        )
+        self.assertEqual(len(report["competitions"]), 3)
+        for item in report["competitions"]:
+            self.assertEqual(item["crossGroupDuplicateIds"], 1)
+            self.assertFalse(item["sourceHistoryComplete"])
+
 
 if __name__ == "__main__":
     unittest.main()
