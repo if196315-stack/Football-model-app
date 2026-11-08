@@ -22,6 +22,7 @@ on:
     paths:
       - "backend/probe_pitchapi_coverage.py"
       - "backend/test_probe_pitchapi_coverage.py"
+      - "backend/recheck_pitchapi_exceptions.py"
       - ".github/workflows/audit-pitchapi-coverage.yml"
 
 permissions:
