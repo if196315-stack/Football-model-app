@@ -196,7 +196,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
                     listing_count += 1
                     previous = stored.get(row["id"], {})
                     # Preserve validated xG only for the exact provider match ID.
-                    for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt"):
+                    for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError"):
                         if field in previous:
                             row[field] = previous[field]
                     stored[row["id"]] = row
