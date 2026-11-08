@@ -33,6 +33,8 @@ jobs:
         env:
           SOCCER_DATA_KEY: ${{ secrets.SOCCER_DATA_KEY }}
         run: python backend/probe_soccer_data_coverage.py --output soccer-data-xg-coverage.json
+      - name: Wait for API rate-limit window
+        run: sleep 65
       - name: Verify real match-level xG
         env:
           SOCCER_DATA_KEY: ${{ secrets.SOCCER_DATA_KEY }}
