@@ -30,7 +30,7 @@ EXCLUDED_SEASONS = {
     ("GER", "2024/25"), ("GER", "2024/2025"),
     ("ITA", "2022/23"), ("ITA", "2022/2023"),
 }
-EXCLUDED_MATCH_IDS = {"m_3ir7kE"}  # Spezia–Hellas Verona relegation playoff
+EXCLUDED_MATCH_IDS = {"m_3ir3kE"}  # Spezia–Hellas Verona relegation playoff
 
 
 def comp_for_code(code: str) -> str:
