@@ -381,10 +381,12 @@ def run() -> dict:
     )
     update_prediction_archive(payload)
     retained = preserve_odds_by_identity(payload)
-    odds_updated = refresh_odds_from_api(payload, os.environ.get("ODDS_API_KEY", "").strip())
+    odds_updated = 0
+    if os.environ.get("PITCHAPI_REFRESH_ODDS_API", "").strip().lower() in ("1", "true", "yes"):
+        odds_updated = refresh_odds_from_api(payload, os.environ.get("ODDS_API_KEY", "").strip())
     if odds_updated:
         payload["oddsNotice"] = f"Обновлены котировки The Odds API для {odds_updated} матчей."
-    if retained and not odds_updated:
+    elif retained:
         payload["oddsNotice"] = f"Сохранены ранее полученные котировки для {retained} матчей; новые коэффициенты обновляются отдельно через The Odds API."
     OUT.parent.mkdir(parents=True, exist_ok=True)
     tmp = OUT.with_suffix(".json.tmp")
