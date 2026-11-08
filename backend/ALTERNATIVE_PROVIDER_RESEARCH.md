@@ -68,3 +68,19 @@ If Soccer365 cannot be used through a permitted, stable method, qualify one fall
 ## Current conclusion
 
 No alternative provider is qualified. Soccer365 remains the target; SStats is a discovery candidate with insufficient published xG coverage detail; Soccer Data is a more promising contingency because its docs expose season-level xG coverage counts, but live coverage and commercial terms still need verification. No production code or workflow has been switched.
+
+
+## Read-only coverage probe added to the feature branch
+
+`backend/probe_soccer_data_coverage.py` implements the documented Soccer Data coverage flow. It requests only the paginated `/coverage/leagues?data_type=xg` listing and one season-coverage endpoint per exact target competition. It does not request match-level data, store the API key, or write into the production dataset.
+
+Usage:
+
+```bash
+export SOCCER_DATA_KEY='your-personal-key'
+python backend/probe_soccer_data_coverage.py --output /tmp/soccer-data-xg-coverage.json
+```
+
+The report includes each found target competition, loaded seasons, finished match counts, xG-covered match counts and xG coverage percentages. Missing target competitions are explicitly listed. The key is read only from the environment and sent in the documented `X-Api-Key` header.
+
+The probe is deliberately limited to a small number of calls: one paged listing (the documented maximum page size of 200) and up to five competition-season detail calls for the target leagues. Unit tests use mocked responses and do not contact the provider. A real coverage result still requires a valid user-owned API key and a successful live run.
