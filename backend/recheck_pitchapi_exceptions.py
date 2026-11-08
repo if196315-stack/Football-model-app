@@ -59,7 +59,7 @@ def main() -> int:
     if not api_key:
         print("PITCHAPI_API_KEY is not configured", file=sys.stderr)
         return 2
-    output = {"provider": "PitchAPI", "auditType": "targeted_recheck", "leagueChecks": [], "shotChecks": []}
+    output = {"provider": "PitchAPI", "auditType": "targeted_recheck_v2", "leagueChecks": [], "shotChecks": []}
     for label, (league_id, season) in TARGETS.items():
         try:
             data = fetch(requests, f"/leagues/{league_id}/matches", api_key, {"season": season, "status": "played"})
