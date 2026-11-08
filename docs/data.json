@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T13:07:36.950986+00:00",
+  "updatedAt": "2026-11-08T14:19:22.846326+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -2220,11 +2220,11 @@
         {
           "id": 560635,
           "utcDate": "2026-11-08T14:00:00Z",
-          "status": "TIMED",
+          "status": "IN_PLAY",
           "home": "Crystal Palace FC",
           "away": "Liverpool FC",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 0,
           "prediction": {
             "1": 0.37678184018955635,
             "x": 0.23743400552713406,
@@ -2264,11 +2264,11 @@
         {
           "id": 560636,
           "utcDate": "2026-11-08T14:00:00Z",
-          "status": "TIMED",
+          "status": "IN_PLAY",
           "home": "Sunderland AFC",
           "away": "Chelsea FC",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 0,
           "prediction": {
             "1": 0.3397938738345035,
             "x": 0.2472309533585889,
@@ -2308,11 +2308,11 @@
         {
           "id": 560638,
           "utcDate": "2026-11-08T14:00:00Z",
-          "status": "TIMED",
+          "status": "IN_PLAY",
           "home": "Brighton & Hove Albion FC",
           "away": "Brentford FC",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 0,
           "prediction": {
             "1": 0.5637373788513996,
             "x": 0.21383460558947062,
