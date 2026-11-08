@@ -15,6 +15,13 @@ class Soccer365ParserTests(unittest.TestCase):
         self.assertEqual(len(links), 2)
         self.assertTrue(all("soccer365.net" in link for link in links))
 
+    def test_rejects_lookalike_hostnames(self):
+        page = """
+        <a href="https://soccer365.net.attacker.example/live/match-fake/">fake</a>
+        <a href="https://not-soccer365.net/live/match-fake/">fake2</a>
+        """
+        self.assertEqual(extract_match_links(page), [])
+
     def test_parses_xg_and_match_metadata_without_fabricating_utc(self):
         page = """
         <html><head><title>Боруссия Дортмунд - Падерборн 07: смотреть онлайн</title></head>
@@ -40,6 +47,26 @@ class Soccer365ParserTests(unittest.TestCase):
         self.assertEqual(match["statistics"]["awayXg"], 0.41)
         self.assertIsNone(match["utcDate"])
         self.assertEqual(match["localKickoff"], "2026-09-12T18:30:00")
+
+    def test_naive_jsonld_datetime_is_not_assumed_utc(self):
+        page = '''
+        <title>Home - Away</title>
+        <script type="application/ld+json">
+        {"@type":["Thing","SportsEvent"],"startDate":"2026-09-12T18:30:00"}
+        </script>
+        '''
+        match = parse_match_page(page, "https://soccer365.net/live/match-home-away/")
+        self.assertIsNone(match["utcDate"])
+
+    def test_explicit_jsonld_timezone_is_normalized_to_utc(self):
+        page = '''
+        <title>Home - Away</title>
+        <script type="application/ld+json">
+        {"@type":"SportsEvent","startDate":"2026-09-12T18:30:00+02:00"}
+        </script>
+        '''
+        match = parse_match_page(page, "https://soccer365.net/live/match-home-away/")
+        self.assertEqual(match["utcDate"], "2026-09-12T16:30:00+00:00")
 
     def test_missing_xg_remains_null(self):
         page = "<title>Home - Away: watch online</title><body>Finished</body>"
