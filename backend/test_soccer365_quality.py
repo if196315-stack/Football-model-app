@@ -160,6 +160,12 @@ class Soccer365QualityTests(unittest.TestCase):
         )])
         self.assertIn("xg_flag_mismatch", [x["code"] for x in result["issues"]])
 
+    def test_extremely_large_integer_xg_is_rejected_without_crashing(self):
+        result = validate_match_records([record(statistics={
+            "homeXg": 10 ** 1000, "awayXg": 0.5, "xgAvailable": True,
+        })])
+        self.assertIn("invalid_xg", [item["code"] for item in result["issues"]])
+
 
 if __name__ == "__main__":
     unittest.main()
