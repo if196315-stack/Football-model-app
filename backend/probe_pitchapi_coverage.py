@@ -199,6 +199,7 @@ def inspect_match_metadata(session: Any, match_id: str, api_key: str) -> dict:
         "matchId": data.get("id", match_id),
         "round_name": data.get("round_name"),
         "has_playoff": data.get("has_playoff"),
+        "hasPlayoffFieldPresent": "has_playoff" in data,
         "status": data.get("status"),
         "date": data.get("date"),
         "home_team": (data.get("home_team") or {}).get("name"),
@@ -317,16 +318,20 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                 if fixture.get("matchId") is not None
             })
             playoff_details = []
+            metadata_inspections = []
             for match_id in candidate_ids:
                 try:
                     detail = inspect_match_metadata(session, match_id, api_key)
+                    metadata_inspections.append(detail)
                     if detail.get("has_playoff") is True:
                         playoff_details.append(detail)
                 except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
-                    playoff_details.append({
+                    error_detail = {
                         "matchId": match_id,
                         "metadataFetchError": type(exc).__name__,
-                    })
+                    }
+                    metadata_inspections.append(error_detail)
+                    playoff_details.append(error_detail)
                 if pause_seconds:
                     time.sleep(pause_seconds)
             playoff_ids = {
@@ -356,6 +361,16 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                 ],
                 **integrity,
                 "playoffMatchDetails": playoff_details,
+                "matchMetadataInspections": metadata_inspections,
+                "matchMetadataSummary": {
+                    "candidateCount": len(candidate_ids),
+                    "successfulCount": sum("metadataFetchError" not in item for item in metadata_inspections),
+                    "errorCount": sum("metadataFetchError" in item for item in metadata_inspections),
+                    "hasPlayoffFieldPresentCount": sum(item.get("hasPlayoffFieldPresent") is True for item in metadata_inspections),
+                    "hasPlayoffTrueCount": sum(item.get("has_playoff") is True for item in metadata_inspections),
+                    "hasPlayoffFalseCount": sum(item.get("has_playoff") is False for item in metadata_inspections),
+                    "hasPlayoffNullOrMissingCount": sum(item.get("has_playoff") is None for item in metadata_inspections),
+                },
                 "excludedPlayoffMatchIds": sorted(playoff_ids),
                 "xgSampleSize": len(inspected),
                 "xgPairedSamples": sum(bool(x["pairedXgPresent"]) for x in inspected),
