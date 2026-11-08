@@ -22,7 +22,7 @@ def _text(value: Any) -> str:
 
 def _team_key(row: dict[str, Any], side: str) -> str:
     stable_id = row.get(f"{side}TeamId")
-    value = str(stable_id).strip() if stable_id is not None else str(row.get(side) or "")
+    value = str(stable_id).strip() if stable_id is not None and str(stable_id).strip() else str(row.get(side) or "")
     value = unicodedata.normalize("NFKC", value).casefold()
     return re.sub(r"[^\w]", "", value, flags=re.UNICODE)
 
@@ -48,7 +48,7 @@ def validate_match_records(records: Iterable[dict[str, Any]]) -> dict[str, Any]:
     rows = list(records)
     issues: list[dict[str, Any]] = []
     seen_ids: dict[str, int] = {}
-    candidates: list[tuple[int, str, str, str, str, datetime]] = []
+    candidates: list[tuple[int, str, str, str, str, str, datetime]] = []
 
     for index, row in enumerate(rows):
         raw_id = row.get("id")
@@ -121,14 +121,14 @@ def validate_match_records(records: Iterable[dict[str, Any]]) -> dict[str, Any]:
             issues.append(_issue("xg_flag_mismatch", "warning", match_id,
                                  "xgAvailable does not agree with the nullable xG pair"))
 
-        if home and away and competition_id and competition_type and kickoff:
-            candidates.append((index, home, away, competition_id, competition_type, kickoff))
+        if home and away and competition_id and competition_type and season and kickoff:
+            candidates.append((index, home, away, competition_id, competition_type, season, kickoff))
 
     # Compare only same ordered teams + competition ID/type. A five-minute window
     # catches minor timestamp formatting/drift without merging reverse fixtures.
-    buckets: dict[tuple[str, str, str, str], list[tuple[int, datetime]]] = defaultdict(list)
-    for index, home, away, comp_id, comp_type, kickoff in candidates:
-        buckets[(home, away, comp_id, comp_type)].append((index, kickoff))
+    buckets: dict[tuple[str, str, str, str, str], list[tuple[int, datetime]]] = defaultdict(list)
+    for index, home, away, comp_id, comp_type, season, kickoff in candidates:
+        buckets[(home, away, comp_id, comp_type, season)].append((index, kickoff))
     for grouped in buckets.values():
         grouped.sort(key=lambda item: item[1])
         for pos, (index, kickoff) in enumerate(grouped):
