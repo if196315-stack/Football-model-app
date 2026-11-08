@@ -183,8 +183,11 @@ class Soccer365CoverageTests(unittest.TestCase):
             ],
         )
         self.assertEqual(len(report["competitions"]), 3)
+        self.assertEqual(
+            [item["crossGroupDuplicateIds"] for item in report["competitions"]],
+            [1, 1, 2],
+        )
         for item in report["competitions"]:
-            self.assertEqual(item["crossGroupDuplicateIds"], 1)
             self.assertFalse(item["sourceHistoryComplete"])
 
 
