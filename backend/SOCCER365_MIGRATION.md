@@ -67,7 +67,7 @@ The first reusable HTML adapter is isolated in `backend/soccer365_source.py`. It
 - finite non-negative xG values, nullable pairs and the `xgAvailable` flag;
 - repeated source IDs and likely duplicate fixtures.
 
-Potential duplicate fixtures are warnings, not automatic merges. They are grouped only when ordered team identity, competition ID and competition type agree, with kickoff timestamps within five minutes. Stable team IDs are preferred when present; otherwise normalized names are used. This conservative check is a quarantine signal, not a deduplication decision.
+Potential duplicate fixtures are warnings, not automatic merges. They are grouped only when ordered team identity, competition ID, competition type and season agree, with kickoff timestamps within five minutes. Stable team IDs are preferred when present; otherwise normalized names are used. This conservative check is a quarantine signal, not a deduplication decision.
 
 The parser now carries an optional `season` value supplied by a future competition-page collector. It does not infer season from the calendar year. Missing competition IDs, season, type or timezone-aware kickoff remain visible as quality warnings and block model-readiness decisions downstream.
 
