@@ -82,6 +82,14 @@ def choose_samples(matches: list[dict], limit: int = SAMPLE_LIMIT) -> list[dict]
 
 
 
+def select_xg_matches(matches: list[dict], limit: int, full_history: bool = False) -> list[dict]:
+    """Return either a stratified sample or every provider-finished match."""
+    if full_history:
+        return [m for m in matches if isinstance(m, dict) and m.get("id")
+                and norm(m.get("status")) == "finished"]
+    return choose_samples(matches, limit)
+
+
 def match_integrity(matches: list[dict], season: str | None = None,
                     excluded_match_ids: set[str] | None = None) -> dict:
     """Detect duplicate provider IDs and duplicate same-day team pairings."""
@@ -268,9 +276,11 @@ def inspect_shots(session: Any, match: dict, api_key: str) -> dict:
 
 
 def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15,
-              sample_limit: int = SAMPLE_LIMIT) -> dict:
+              sample_limit: int = SAMPLE_LIMIT, full_history: bool = False) -> dict:
     if not isinstance(sample_limit, int) or isinstance(sample_limit, bool) or not 1 <= sample_limit <= 50:
         raise ValueError("sample_limit must be an integer between 1 and 50")
+    if not isinstance(full_history, bool):
+        raise ValueError("full_history must be a boolean")
     catalogue = fetch(session, "/leagues", api_key)
     leagues = catalogue.get("leagues", []) if isinstance(catalogue, dict) else []
     matched: dict[str, dict] = {}
@@ -281,8 +291,15 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
 
     report = {
         "provider": "PitchAPI",
-        "auditType": "read_only_sampled_xg",
-        "xgSampleLimitPerSeason": sample_limit,
+        "auditType": "read_only_full_history_xg" if full_history else "read_only_sampled_xg",
+        "xgMode": "all_provider_finished_matches" if full_history else "stratified_sample",
+        "xgSampleLimitPerSeason": None if full_history else sample_limit,
+        "xgEligibilityPolicy": (
+            "All matches with provider status finished are inspected, including any playoff candidates; "
+            "do not use as a model-training cohort until match classification is complete."
+            if full_history else
+            "Only sampled provider-finished matches are inspected; this is not a full-history cohort."
+        ),
         "targetLeagueCount": len(TARGETS),
         "matchedLeagueCount": len(matched),
         "missingTargets": sorted(set(TARGETS) - set(matched)),
@@ -290,7 +307,12 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
         "notes": [
             "Season match totals come from the provider's league match listing.",
             "xG is checked on up to xgSampleLimitPerSeason evenly spaced finished matches per season using shot-level expected_goals.",
-            "This is a sample, not a full match-by-match xG completeness measurement.",
+            (
+                "Full-history mode inspects every match listed with provider status finished; playoff eligibility remains a separate classification task."
+                if full_history else
+                "This is a sample, not a full match-by-match xG completeness measurement."
+            ),
+            "Canceled and awarded matches are not included in the finished-match xG cohort; their status counts remain in the report.",
             "Transient API errors are retried; final per-match shot-fetch failures are recorded as unavailable, never as zero xG.",
             "Shot xG is summed by team from periods[].shots; zero is not treated as missing when valid shots exist.",
         ],
@@ -340,7 +362,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
             }
             if playoff_ids:
                 integrity = match_integrity(matches, season, playoff_ids)
-            samples = choose_samples(matches, sample_limit)
+            samples = select_xg_matches(matches, sample_limit, full_history)
             inspected = []
             for match in samples:
                 inspected.append(inspect_shots(session, match, api_key))
@@ -388,7 +410,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", help="Optional JSON report path")
     parser.add_argument("--sample-limit", type=int, default=SAMPLE_LIMIT,
-                        help="Finished matches to inspect per league-season (1-50; default: 5)")
+                        help="Finished matches to inspect per league-season in sampled mode (1-50; default: 5)")
+    parser.add_argument("--full-history", action="store_true",
+                        help="Inspect shot-level xG for every provider-finished match in every target league-season")
     args = parser.parse_args(argv)
     if not 1 <= args.sample_limit <= 50:
         parser.error("--sample-limit must be between 1 and 50")
@@ -396,7 +420,7 @@ def main(argv: list[str] | None = None) -> int:
     if not key:
         parser.error("Set PITCHAPI_API_KEY in the environment; never pass it on the command line")
     try:
-        report = run_audit(key, sample_limit=args.sample_limit)
+        report = run_audit(key, sample_limit=args.sample_limit, full_history=args.full_history)
     except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
         print(f"PitchAPI audit failed: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
