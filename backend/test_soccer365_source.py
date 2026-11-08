@@ -43,6 +43,7 @@ class Soccer365ParserTests(unittest.TestCase):
             competition_name="Bundesliga",
             competition_type="league",
         )
+        self.assertEqual(match["id"], "soccer365:soccer365.net/live/match-paderborn-07-borussiya-d-smotret-onlayn")
         self.assertEqual(match["home"], "Боруссия Дортмунд")
         self.assertEqual(match["away"], "Падерборн 07")
         self.assertEqual(match["status"], "FINISHED")
