@@ -48,6 +48,7 @@ class Soccer365ParserTests(unittest.TestCase):
         self.assertEqual(match["status"], "FINISHED")
         self.assertEqual(match["statistics"]["homeXg"], 1.54)
         self.assertEqual(match["statistics"]["awayXg"], 0.41)
+        self.assertIsNone(match["season"])
         self.assertIsNone(match["utcDate"])
         self.assertEqual(match["localKickoff"], "2026-09-12T18:30:00")
 
