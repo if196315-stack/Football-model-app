@@ -48,3 +48,11 @@ Country is a presentation grouping only. Competition and match type remain separ
 ## Current implementation status
 
 The first reusable HTML adapter is isolated in `backend/soccer365_source.py`. It extracts match links and nullable match metadata/xG, and intentionally does not modify the live pipeline. It must pass real-page fixtures and access-policy checks before production use.
+
+
+## Autonomous validation notes (2026-11-08)
+
+- Parser CI passes after the conservative status change. Match status is now populated only from explicit JSON-LD `eventStatus` values; generic page text is not treated as match status.
+- A normal fetch of `https://soccer365.net/` returned HTTP 503 in the available web retrieval environment. The `robots.txt` and candidate terms URL could not be retrieved. This does not prove that automated access is prohibited, and it does not grant permission either.
+- No Cloudflare bypass, proxy, browser impersonation, or other access-control workaround was attempted.
+- Real-page parser validation and permission to automate access therefore remain open rollout gates. Until those gates are resolved, scores/status/xG must not be inferred from unverified page-wide text, and the production source remains unchanged.
