@@ -156,6 +156,7 @@ class PitchApiProbeTests(unittest.TestCase):
         session = Session()
         result = inspect_match_metadata(session, "m_playoff", "unused")
         self.assertTrue(result["has_playoff"])
+        self.assertTrue(result["hasPlayoffFieldPresent"])
         self.assertEqual(result["round_name"], "Relegation Playoff")
         self.assertTrue(session.url.endswith("/matches/m_playoff"))
 
