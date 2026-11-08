@@ -86,8 +86,10 @@ def preserve_odds_by_identity(payload: dict) -> int:
     except (OSError, json.JSONDecodeError):
         return 0
     old = {}
+    candidates = {}
     for comp in previous.get("competitions", []):
         code = comp.get("code")
+        candidates.setdefault(code, [])
         for match in comp.get("matches", []):
             quote = match.get("odds")
             if quote and match.get("id") is not None:
@@ -95,6 +97,7 @@ def preserve_odds_by_identity(payload: dict) -> int:
                 identity = fixture_identity(match, code)
                 if identity:
                     old[identity] = quote
+                candidates[code].append(match)
 
     retained = 0
     for comp in payload.get("competitions", []):
@@ -104,6 +107,23 @@ def preserve_odds_by_identity(payload: dict) -> int:
             if quote is None:
                 identity = fixture_identity(match, code)
                 quote = old.get(identity) if identity else None
+            if quote is None and match.get("utcDate"):
+                # Provider fixture IDs and some club spellings change across feeds.
+                # Fall back only to a unique high-confidence team/time match.
+                current_date = pd.to_datetime(match["utcDate"], utc=True, errors="coerce")
+                ranked = []
+                if not pd.isna(current_date):
+                    for previous_match in candidates.get(code, []):
+                        previous_date = pd.to_datetime(previous_match.get("utcDate"), utc=True, errors="coerce")
+                        if pd.isna(previous_date) or abs((previous_date-current_date).total_seconds()) > 6*3600:
+                            continue
+                        home_score = _similarity(key(match.get("home")), key(previous_match.get("home")))
+                        away_score = _similarity(key(match.get("away")), key(previous_match.get("away")))
+                        if home_score >= 0.88 and away_score >= 0.88:
+                            ranked.append((home_score + away_score, previous_match.get("odds")))
+                ranked.sort(key=lambda item: item[0], reverse=True)
+                if ranked and (len(ranked) == 1 or ranked[0][0] - ranked[1][0] >= 0.10):
+                    quote = ranked[0][1]
             if quote and match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
                 match["odds"] = quote
                 retained += 1
