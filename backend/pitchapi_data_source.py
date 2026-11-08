@@ -205,12 +205,12 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
             if pause_seconds:
                 time.sleep(pause_seconds)
 
-    # Prioritize recent finished matches and cap API usage per run. This makes
-    # cold bootstrap incremental instead of issuing thousands of requests at once.
+    # Backfill chronologically from the oldest finished matches first. Recent
+    # xG is already well covered; older seasons are needed for a longer,
+    # reproducible walk-forward history. The per-run cap bounds API usage.
     pending = sorted(
         stored.items(),
-        key=lambda item: str(item[1].get("date") or ""),
-        reverse=True,
+        key=lambda item: (not bool(item[1].get("date")), str(item[1].get("date") or "")),
     )
     for match_id, row in pending:
         if shot_attempts >= max(0, int(max_shot_requests)):
