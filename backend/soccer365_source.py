@@ -165,10 +165,15 @@ def parse_match_page(
             isinstance(item_type, list) and any(x in ("SportsEvent", "Event") for x in item_type)
         ):
             kickoff = _parse_datetime(item.get("startDate"))
-            if not home and isinstance(item.get("homeTeam"), dict):
-                home = item["homeTeam"].get("name")
-            if not away and isinstance(item.get("awayTeam"), dict):
-                away = item["awayTeam"].get("name")
+            # Structured event metadata is more authoritative than title parsing.
+            if isinstance(item.get("homeTeam"), dict):
+                structured_home = item["homeTeam"].get("name")
+                if isinstance(structured_home, str) and structured_home.strip():
+                    home = structured_home.strip()
+            if isinstance(item.get("awayTeam"), dict):
+                structured_away = item["awayTeam"].get("name")
+                if isinstance(structured_away, str) and structured_away.strip():
+                    away = structured_away.strip()
             score = item.get("homeTeamScore")
             if score is not None:
                 try:
