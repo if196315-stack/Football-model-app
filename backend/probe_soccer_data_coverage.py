@@ -148,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
     except (requests.RequestException, ValueError, KeyError) as exc:
         print(f"Coverage audit failed: {exc}", file=sys.stderr)
         return 1
-    rendered = json.dumps(report, ensure_ascii=False, indent=2) + "\\n"
+    rendered = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         with open(args.output, "w", encoding="utf-8") as stream:
             stream.write(rendered)
