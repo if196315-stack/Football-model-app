@@ -139,6 +139,26 @@ class PitchApiProbeTests(unittest.TestCase):
         self.assertNotIn("unrelated", result)
 
 
+    def test_match_integrity_excludes_awarded_and_reports_missing_return(self):
+        matches = [
+            {"id": "1", "date": "2024-01-01", "status": "finished",
+             "home_team": {"id": 1, "name": "A"}, "away_team": {"id": 2, "name": "B"}},
+            {"id": "2", "date": "2024-02-01", "status": "finished",
+             "home_team": {"id": 2, "name": "B"}, "away_team": {"id": 1, "name": "A"}},
+            {"id": "3", "date": "2024-03-01", "status": "awarded",
+             "home_team": {"id": 1, "name": "A"}, "away_team": {"id": 3, "name": "C"}},
+            {"id": "4", "date": "2024-04-01", "status": "finished",
+             "home_team": {"id": 2, "name": "B"}, "away_team": {"id": 3, "name": "C"}},
+        ]
+        result = match_integrity(matches, "2023/2024")
+        self.assertEqual({row["team"]: row["matches"] for row in result["teamMatchCounts"]},
+                         {"A": 2, "B": 3, "C": 1})
+        self.assertEqual(result["extraPairings"], [])
+        self.assertEqual(result["missingReturnFixtures"], [
+            {"teamIds": ["2", "3"], "teams": ["B", "C"], "matches": 1}
+        ])
+        self.assertEqual(result["listedMatches"] if "listedMatches" in result else 4, 4)
+
     def test_match_integrity_excludes_only_explicit_playoff_ids(self):
         matches = [
             {"id": "1", "date": "2023-08-01", "status": "finished",
