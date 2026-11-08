@@ -75,6 +75,26 @@ class Soccer365ParserTests(unittest.TestCase):
         self.assertIsNone(match["statistics"]["homeXg"])
         self.assertIsNone(match["statistics"]["awayXg"])
 
+    def test_client_rejects_non_https_and_unapproved_hosts(self):
+        from soccer365_source import Soccer365Client
+
+        for url in (
+            "http://soccer365.net/live/match-home-away/",
+            "https://soccer365.ru/live/match-home-away/",
+            "https://soccer365.net.attacker.example/live/match-home-away/",
+            "https://user@soccer365.net/live/match-home-away/",
+            "https://soccer365.net:8443/live/match-home-away/",
+        ):
+            with self.subTest(url=url):
+                with self.assertRaises(ValueError):
+                    Soccer365Client._validate_url(url)
+
+    def test_client_accepts_canonical_https_hosts(self):
+        from soccer365_source import Soccer365Client
+
+        Soccer365Client._validate_url("https://soccer365.net/live/match-home-away/")
+        Soccer365Client._validate_url("https://www.soccer365.net/live/match-home-away/")
+
 
 if __name__ == "__main__":
     unittest.main()
