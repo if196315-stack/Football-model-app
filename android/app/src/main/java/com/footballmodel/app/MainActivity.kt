@@ -694,11 +694,14 @@ class MainActivity : Activity() {
             }
             heading.addView(label(league.optString("name"), 16, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
             heading.addView(label("${upcoming.size} матчей", 11, false, muted))
-            heading.addView(label(if (expanded) "  ▾" else "  ▸", 18, true, accent))
+            val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, accent)
+            heading.addView(expandIcon)
             heading.setOnClickListener {
-                expandedLeagues[leagueCode] = !(expandedLeagues[leagueCode] ?: true)
-                tabViewCache.remove("matches|" + selectedLeague)
-                render()
+                val nextExpanded = !(expandedLeagues[leagueCode] ?: true)
+                expandedLeagues[leagueCode] = nextExpanded
+                // Toggle the existing list in place; avoid rebuilding every match card.
+                content.visibility = if (nextExpanded) View.VISIBLE else View.GONE
+                expandIcon.text = if (nextExpanded) "  ▾" else "  ▸"
             }
             section.addView(heading)
             content.visibility = if (expanded) View.VISIBLE else View.GONE
