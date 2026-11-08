@@ -10,6 +10,7 @@ from typing import Any, Iterable
 
 from soccer365_catalog import validate_competition_catalog
 from soccer365_source import extract_match_links, parse_match_page
+from soccer365_quality import validate_match_records
 
 
 def collect_catalog(client: Any, entries: Iterable[dict[str, Any]]) -> dict[str, Any]:
@@ -105,13 +106,15 @@ def collect_catalog(client: Any, entries: Iterable[dict[str, Any]]) -> dict[str,
 
         reports.append(report)
 
+    quality_report = validate_match_records(records)
     return {
-        "complete": not errors and not any(
+        "complete": not errors and quality_report["valid"] and not any(
             warning.get("code") == "no_match_links_found" for warning in warnings
         ),
         "catalogValid": True,
         "catalogValidation": validation,
         "records": records,
+        "qualityReport": quality_report,
         "competitionReports": reports,
         "errors": errors,
         "warnings": warnings,
