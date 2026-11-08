@@ -1,7 +1,7 @@
 """Read-only PitchAPI coverage and xG spot audit.
 
 Reads PITCHAPI_API_KEY from the environment. No application or production data
-is modified. Samples up to three matches per league-season for shot-level xG.
+is modified. Samples five matches per league-season for shot-level xG.
 """
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ TARGETS = {
     "FRA": {"ligue 1"},
 }
 TIMEOUT = 30
+SAMPLE_LIMIT = 5
 
 
 def norm(value: Any) -> str:
@@ -55,13 +56,16 @@ def season_start(season: Any) -> int | None:
     return year if year >= 2021 else None
 
 
-def choose_samples(matches: list[dict], limit: int = 3) -> list[dict]:
+def choose_samples(matches: list[dict], limit: int = SAMPLE_LIMIT) -> list[dict]:
+    """Choose evenly spaced finished matches from the full season chronology."""
     valid = [m for m in matches if isinstance(m, dict) and m.get("id")
              and m.get("status") == "finished"]
     if len(valid) <= limit:
         return valid
-    indexes = sorted({0, len(valid) // 2, len(valid) - 1})
-    return [valid[i] for i in indexes[:limit]]
+    if limit <= 1:
+        return [valid[0]]
+    indexes = [round(i * (len(valid) - 1) / (limit - 1)) for i in range(limit)]
+    return [valid[i] for i in indexes]
 
 
 def flatten_shots(data: dict) -> list[dict]:
@@ -127,7 +131,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
         "leagues": [],
         "notes": [
             "Season match totals come from the provider's league match listing.",
-            "xG is checked on up to three finished matches per season using shot-level expected_goals.",
+            "xG is checked on up to five evenly spaced finished matches per season using shot-level expected_goals.",
             "This is a sample, not a full match-by-match xG completeness measurement.",
             "Shot xG is summed by team from periods[].shots; zero is not treated as missing when valid shots exist.",
         ],
