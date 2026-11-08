@@ -52,7 +52,7 @@ class MainActivity : Activity() {
         val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true; clipToPadding = false; setPadding(0, 0, 0, 18); overScrollMode = View.OVER_SCROLL_NEVER }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(18, 34, 18, 34)
+            setPadding(18, 46, 18, 34)
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
         scroll.addView(root)
@@ -63,8 +63,8 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        brand.addView(label("FOOTBALL MODEL", 23, true, Color.WHITE))
-        brand.addView(label("MATCH INTELLIGENCE  ·  MODEL 1.3", 9, true, cyan))
+        brand.addView(label("MATCHIQ", 23, true, Color.WHITE))
+        brand.addView(label("FOOTBALL ANALYTICS  ·  MODEL 1.3", 9, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
         refreshButton = Button(this).apply {
             text = "↻"
