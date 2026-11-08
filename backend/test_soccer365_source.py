@@ -59,6 +59,29 @@ class Soccer365ParserTests(unittest.TestCase):
         match = parse_match_page(page, "https://soccer365.net/live/match-home-away/")
         self.assertIsNone(match["utcDate"])
 
+    def test_nested_jsonld_graph_finds_sports_event(self):
+        page = '''
+        <title>Fallback Home - Fallback Away</title>
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@graph": [{
+            "@type": "WebPage",
+            "@graph": [{
+              "@type": ["Thing", "SportsEvent"],
+              "startDate": "2026-09-12T18:30:00+02:00",
+              "homeTeam": {"name": "Nested Home"},
+              "awayTeam": {"name": "Nested Away"}
+            }]
+          }]
+        }
+        </script>
+        '''
+        match = parse_match_page(page, "https://soccer365.net/live/match-home-away/")
+        self.assertEqual(match["home"], "Nested Home")
+        self.assertEqual(match["away"], "Nested Away")
+        self.assertEqual(match["utcDate"], "2026-09-12T16:30:00+00:00")
+
     def test_explicit_jsonld_timezone_is_normalized_to_utc(self):
         page = '''
         <title>Home - Away</title>
