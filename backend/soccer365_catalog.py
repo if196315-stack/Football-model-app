@@ -48,6 +48,15 @@ def validate_competition_catalog(entries: Iterable[dict[str, Any]]) -> dict[str,
                     "severity": "error",
                 })
 
+        if "expectedFinishedMatches" in row:
+            expected = row.get("expectedFinishedMatches")
+            if isinstance(expected, bool) or not isinstance(expected, int) or expected < 0:
+                issues.append({
+                    "index": index,
+                    "code": "invalid_expected_finished_matches",
+                    "severity": "error",
+                })
+
         competition_type = row.get("competitionType")
         if competition_type not in COMPETITION_TYPES:
             issues.append({
