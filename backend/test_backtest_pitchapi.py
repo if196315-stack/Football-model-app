@@ -44,6 +44,19 @@ class PitchApiBacktestTests(unittest.TestCase):
         report = walk_forward(matches, holdout_from="2024-08-07")
         self.assertEqual(report["paired_xg_matches"], 7)
 
+
+    def test_calibration_tables_cover_each_predicted_class(self):
+        report = walk_forward(self.sample(), holdout_from="2024-08-07", include_predictions=True)
+        self.assertIn("calibration", report)
+        self.assertIn("holdout_calibration", report)
+        for model_key in ("model", "baseline"):
+            table = report["calibration"][model_key]["by_outcome"]
+            for outcome in ("1", "x", "2"):
+                self.assertIn(outcome, table)
+                covered = sum(bucket["n"] for bucket in table[outcome]["bins"])
+                self.assertEqual(covered, report["predicted_matches"])
+                self.assertGreaterEqual(table[outcome]["ece"], 0.0)
+
     def test_prediction_rows_are_opt_in(self):
         report = walk_forward(self.sample())
         self.assertNotIn("predictions", report)
