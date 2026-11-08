@@ -267,6 +267,10 @@ def main():
                     for m in r.json().get("matches",[]):
                         home=(m.get("homeTeam") or {}).get("name") or "TBD"; away=(m.get("awayTeam") or {}).get("name") or "TBD"
                         pred,warn=predict(c,home,away,st,b,names,matches,m.get("utcDate","")[:10])
+                        # Hide fixtures if either club cannot be matched confidently to Openplay.
+                        # The app consumes this JSON, so omitted fixtures stay out of all match lists.
+                        if warn == "Не удалось надёжно сопоставить команды с Openplay":
+                            continue
                         score=(m.get("score") or {}).get("fullTime") or {}
                         item["matches"].append({"id":m.get("id"),"utcDate":m.get("utcDate"),"status":m.get("status"),"home":home,"away":away,
                           "homeScore":score.get("home"),"awayScore":score.get("away"),"prediction":pred,"predictionWarning":warn})
