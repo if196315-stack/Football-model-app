@@ -84,8 +84,9 @@ def _parse_datetime(value: str | None) -> str | None:
         return None
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        # A naive timestamp has no declared timezone; never silently label it UTC.
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
+            return None
         return parsed.astimezone(timezone.utc).isoformat()
     except ValueError:
         return None
@@ -126,7 +127,9 @@ def extract_match_links(page_html: str, page_url: str = BASE_URL) -> list[str]:
     for href in parser.links:
         absolute = urljoin(page_url, html.unescape(href).split("?", 1)[0])
         parsed = urlparse(absolute)
-        if parsed.netloc.endswith("soccer365.net") and MATCH_PATH.search(parsed.path):
+        if parsed.hostname and parsed.hostname.lower().rstrip(".") in {
+            "soccer365.net", "www.soccer365.net"
+        } and MATCH_PATH.search(parsed.path):
             found.add(absolute.rstrip("/") + "/")
     return sorted(found)
 
@@ -153,7 +156,9 @@ def parse_match_page(
     home_score = away_score = None
     for item in objects:
         item_type = item.get("@type")
-        if item_type in ("SportsEvent", "Event", ["SportsEvent"]):
+        if item_type in ("SportsEvent", "Event") or (
+            isinstance(item_type, list) and any(x in ("SportsEvent", "Event") for x in item_type)
+        ):
             kickoff = _parse_datetime(item.get("startDate"))
             if not home and isinstance(item.get("homeTeam"), dict):
                 home = item["homeTeam"].get("name")
