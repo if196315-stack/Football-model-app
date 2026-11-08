@@ -56,12 +56,14 @@ def summarize_historical_coverage(
             "missingUtcKickoff": 0,
             "missingTeamIds": 0,
             "duplicateIds": 0,
+            "crossGroupDuplicateIds": 0,
             "missingMatchIds": 0,
             "_ids": set(),
             "_teams": defaultdict(lambda: {"pairedXgMatches": 0, "finishedMatches": 0}),
         }
 
     unmatched_records = 0
+    global_ids: dict[str, tuple[str, str, str, str]] = {}
     for row in rows:
         key = (
             str(row.get("country") or "").strip(),
@@ -81,6 +83,14 @@ def summarize_historical_coverage(
             if match_id in group["_ids"]:
                 group["duplicateIds"] += 1
                 continue
+            previous_group_key = global_ids.get(match_id)
+            if previous_group_key is not None and previous_group_key != key:
+                group["crossGroupDuplicateIds"] += 1
+                previous_group = groups.get(previous_group_key)
+                if previous_group is not None:
+                    previous_group["crossGroupDuplicateIds"] += 1
+                continue
+            global_ids[match_id] = key
             group["_ids"].add(match_id)
         group["totalRecords"] += 1
         if not row.get("utcDate"):
@@ -126,6 +136,7 @@ def summarize_historical_coverage(
             known_expected
             and group["finishedMatches"] == expected
             and group["duplicateIds"] == 0
+            and group["crossGroupDuplicateIds"] == 0
             and group["missingMatchIds"] == 0
         )
         teams = [
