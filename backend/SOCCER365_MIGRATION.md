@@ -103,3 +103,12 @@ The validator deliberately does not generate URLs, infer seasons, resolve redire
 The collector returns normalized records plus per-competition counts, warnings and errors. Any failed competition or match page makes the run incomplete. A match URL appearing under multiple competition entries is quarantined as an identity error rather than silently assigned to the first competition. An invalid manifest causes zero HTTP requests.
 
 The collector does not write to the JSONL store. A future runner must require an explicitly complete collection, review its quality report, and only then call the append-only store. Partial records are diagnostic evidence, not a complete season snapshot. The module is not wired into scheduled CI or production; tests use a fake client and synthetic HTML only.
+
+
+## Season-level historical coverage report
+
+`backend/soccer365_coverage.py` reports records by country, competition ID, competition type and season. It counts total records, finished matches, finished matches with a valid score, paired-xG coverage, finished matches missing xG, missing UTC kickoff, missing stable team IDs, and duplicate source IDs. It also reports per-team finished and paired-xG sample depth.
+
+The optional manifest field `expectedFinishedMatches` is accepted only as a non-negative integer. Populate it only when an expected count has been independently verified from Soccer365 for that exact competition-season. When absent, `sourceHistoryComplete` is null/unknown: meeting model sample thresholds is not proof that the historical archive is complete. When present, the report compares collected finished records against that expected count. A count larger than expected is not silently truncated and remains visible in the report.
+
+The report does not infer missing fixtures, fill xG, or combine seasons/types. It flags records that do not match an explicit manifest entry. Default readiness thresholds are 100 finished results with scores for the competition baseline and 30 paired-xG matches per team; these are diagnostics, not a production eligibility switch. Real source counts and page-level coverage still require verified access and real-page validation.
