@@ -144,8 +144,8 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
             home_base, away_base = base.get((league, "home")), base.get((league, "away"))
             if not home_base or not away_base:
                 continue
-            home_def = team_strength(histories[(league, match["home"])], league, "home", base)
-            away_def = team_strength(histories[(league, match["away"])], league, "away", base)
+            home_def = home_strength
+            away_def = away_strength
             home_lambda = max(0.05, min(4.5, home_base * home_strength["attack"] * away_def["defence"]))
             away_lambda = max(0.05, min(4.5, away_base * away_strength["attack"] * home_def["defence"]))
             model = probabilities(home_lambda, away_lambda)
