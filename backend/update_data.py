@@ -150,7 +150,7 @@ def preserve_existing_odds(payload):
             if quote and match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
                 match["odds"] = quote
                 kept += 1
-    for key in ("oddsUpdatedAt", "oddsCreditsRemaining", "oddsCreditsUsed", "oddsStatus", "oddsNotice", "oddsErrors"):
+    for key in ("oddsUpdatedAt", "oddsCreditsRemaining", "oddsCreditsUsed", "oddsStatus", "oddsNotice", "oddsErrors", "oddsCoverage"):
         if key in previous:
             payload[key] = previous[key]
     if kept:
