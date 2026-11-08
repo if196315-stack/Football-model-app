@@ -62,12 +62,16 @@ def validate_competition_catalog(entries: Iterable[dict[str, Any]]) -> dict[str,
             issues.append({"index": index, "code": "missing_url", "severity": "error"})
         else:
             parsed = urlparse(url.strip())
+            try:
+                port = parsed.port
+            except ValueError:
+                port = -1
             if (
                 parsed.scheme != "https"
                 or parsed.hostname not in {"soccer365.net", "www.soccer365.net"}
                 or parsed.username is not None
                 or parsed.password is not None
-                or parsed.port not in (None, 443)
+                or port not in (None, 443)
                 or parsed.query
                 or parsed.fragment
             ):
