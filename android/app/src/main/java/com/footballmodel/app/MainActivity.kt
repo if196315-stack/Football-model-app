@@ -88,6 +88,12 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        // Показываем рабочую оболочку сразу, не дожидаясь сети.
+        renderTabs()
+        leagueBar.visibility = View.VISIBLE
+        val loadingCard = card()
+        addText(loadingCard, "ЗАГРУЗКА ДАННЫХ", 10, true, accent)
+        addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
     }
 
