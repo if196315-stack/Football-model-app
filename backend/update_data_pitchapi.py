@@ -46,7 +46,7 @@ def build_model_frames(cache: dict):
         if (row.get("leagueCode"), row.get("season")) in EXCLUDED_SEASONS:
             continue
         try:
-            date = pd.to_datetime(row.get("date"), utc=True)
+            date = pd.to_datetime(row.get("date"), utc=True).tz_convert(None)
             home_xg, away_xg = float(row["homeXg"]), float(row["awayXg"])
             home_score, away_score = int(row["homeScore"]), int(row["awayScore"])
         except (TypeError, ValueError, OverflowError):
