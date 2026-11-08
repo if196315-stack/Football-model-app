@@ -120,6 +120,61 @@ class PitchApiDataSourceTests(unittest.TestCase):
                             for r in result["cache"]["matches"].values()))
 
 
+
+    def test_shot_requests_prioritize_oldest_unresolved_matches(self):
+        class Response:
+            status_code = 200
+            headers = {}
+            def __init__(self, data):
+                self.data = data
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {"data": self.data}
+
+        leagues = [
+            {"id": f"l_{code}", "name": name, "country_code": code,
+             "seasons": ["2021/2022", "2026/2027"]}
+            for code, name in [
+                ("ENG", "Premier League"), ("ESP", "LaLiga"),
+                ("ITA", "Serie A"), ("GER", "Bundesliga"),
+                ("FRA", "Ligue 1"),
+            ]
+        ]
+        class Session:
+            def __init__(self):
+                self.shot_match_ids = []
+            def get(self, url, params=None, **kwargs):
+                if url.endswith("/leagues"):
+                    return Response({"leagues": leagues})
+                if "/shots" in url:
+                    match_id = url.rsplit("/", 2)[-2]
+                    self.shot_match_ids.append(match_id)
+                    return Response({"shots": [
+                        {"team_id": f"h_{match_id}", "expected_goals": 0.2},
+                        {"team_id": f"a_{match_id}", "expected_goals": 0.3},
+                    ]})
+                code = url.split("/leagues/")[1].split("/")[0].replace("l_", "")
+                matches = []
+                for suffix, date in (("old", "2021-08-01"), ("new", "2026-08-01")):
+                    matches.append({
+                        "id": f"m_{code}_{suffix}", "date": date,
+                        "status": "finished", "score_home": 1, "score_away": 0,
+                        "home_team": {"id": f"h_m_{code}_{suffix}", "name": "Home"},
+                        "away_team": {"id": f"a_m_{code}_{suffix}", "name": "Away"},
+                    })
+                return Response({"matches": matches})
+
+        with tempfile.TemporaryDirectory() as tmp:
+            session = Session()
+            result = refresh_history(
+                "test-key", session=session, cache_path=Path(tmp) / "cache.json",
+                pause_seconds=0, max_shot_requests=1,
+            )
+        self.assertEqual(session.shot_match_ids, ["m_ENG_old"])
+        self.assertEqual(result["summary"]["shotAttempts"], 1)
+        self.assertEqual(result["cache"]["matches"]["m_ENG_old"]["homeXg"], 0.2)
+
     def test_unresolved_shot_feed_uses_seven_day_retry_cooldown(self):
         from datetime import datetime, timedelta, timezone
 
