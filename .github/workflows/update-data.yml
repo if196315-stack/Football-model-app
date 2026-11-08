@@ -2,6 +2,8 @@ name: Update football data
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "backend/**"
       - ".github/workflows/update-data.yml"
