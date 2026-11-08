@@ -310,7 +310,7 @@ class MainActivity : Activity() {
         val p = m.optJSONObject("prediction") ?: return
         val markets = listOf(
             BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"), BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
-            BetMarket("dnbHome","Фора 0 · ${m.optString(\"home\")}"), BetMarket("dnbAway","Фора 0 · ${m.optString(\"away\")}"), BetMarket("1","П1"),
+            BetMarket("dnbHome","Фора 0 · ${m.optString("home")}"), BetMarket("dnbAway","Фора 0 · ${m.optString("away")}"), BetMarket("1","П1"),
             BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
             BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
             BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
@@ -586,7 +586,7 @@ class MainActivity : Activity() {
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = 20f; setStroke(1, Color.rgb(45, 102, 91)) }
                     addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ", 10, true, accent)
                     addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
-                    addMarketRow(mainMarkets, listOf(Triple("Фора 0 · ${m.optString(\"home\")}", pct(pred, "dnbHome"), accent), Triple("Фора 0 · ${m.optString(\"away\")}", pct(pred, "dnbAway"), cyan)))
+                    addMarketRow(mainMarkets, listOf(Triple("Фора 0 · ${m.optString("home")}", pct(pred, "dnbHome"), accent), Triple("Фора 0 · ${m.optString("away")}", pct(pred, "dnbAway"), cyan)))
                     addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 12, true, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
