@@ -80,6 +80,16 @@ class MainActivity : Activity() {
         statusView.setPadding(0, 8, 0, 14)
         root.addView(statusView)
 
+        val hero = ImageView(this).apply {
+            setImageResource(R.drawable.stadium_hero)
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            adjustViewBounds = false
+            background = rounded(Color.rgb(11, 38, 56), 22)
+            clipToOutline = true
+            contentDescription = "Иллюстрация футбольного стадиона"
+        }
+        root.addView(hero, LinearLayout.LayoutParams(-1, dp(132)).apply { topMargin = dp(2); bottomMargin = dp(10) })
+
         tabBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(5, 5, 5, 5)
@@ -115,15 +125,17 @@ class MainActivity : Activity() {
             setPadding(0, 4, 0, 4)
         }
 
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
     private fun rounded(color: Int, radius: Int): GradientDrawable =
-        GradientDrawable().apply { setColor(color); cornerRadius = radius.toFloat() }
+        GradientDrawable().apply { setColor(color); cornerRadius = dp(radius).toFloat() }
 
     private fun card(parent: LinearLayout = matchesContainer): LinearLayout {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(17, 16, 17, 16)
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(20, 34, 54), Color.rgb(13, 25, 42))).apply { cornerRadius = 22f; setStroke(1, Color.rgb(39, 61, 87)) }
-            elevation = 3f
+            setPadding(dp(18), dp(17), dp(18), dp(17))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(22, 39, 61), Color.rgb(13, 27, 45))).apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), Color.rgb(43, 68, 91)) }
+            elevation = dp(2).toFloat()
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
         lp.setMargins(0, 7, 0, 9)
@@ -174,7 +186,7 @@ class MainActivity : Activity() {
             val tile = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(11, 10, 11, 10)
-                background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(26, 57, 65), Color.rgb(20, 43, 57))).apply { cornerRadius = 15f; setStroke(1, Color.rgb(46, 83, 88)) }
+                background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(29, 67, 74), Color.rgb(18, 42, 58))).apply { cornerRadius = dp(15).toFloat(); setStroke(dp(1), Color.rgb(55, 103, 105)) }
             }
             tile.addView(label(item.first, 9, true, muted))
             tile.addView(label(item.second, 19, true, item.third))
@@ -228,7 +240,7 @@ class MainActivity : Activity() {
             val active = currentTab == item.first
             val t = label(item.second, 11, true, if (active) bg else muted).apply {
                 gravity = Gravity.CENTER
-                background = rounded(if (active) accent else Color.TRANSPARENT, 13)
+                background = if (active) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(13).toFloat() } else rounded(Color.TRANSPARENT, 13)
                 setPadding(3, 0, 3, 0)
                 setOnClickListener { currentTab = item.first; render() }
             }
@@ -296,7 +308,12 @@ class MainActivity : Activity() {
 
     private fun saveBets() { betPrefs.edit().putString("bets", bets.toString()).apply() }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
-        val b = Button(this).apply { text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = 48; setPadding(16, 8, 16, 8); setTextColor(bg); background = rounded(accent,16); elevation = 0f; setOnClickListener { action() } }
+        val b = Button(this).apply {
+            text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = dp(48)
+            setPadding(dp(16), dp(8), dp(16), dp(8)); setTextColor(Color.rgb(5, 24, 31))
+            background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(16).toFloat() }
+            elevation = dp(2).toFloat(); setOnClickListener { action() }
+        }
         parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
     }
     private fun showAddBetDialog(m: JSONObject, league: String) {
@@ -507,9 +524,9 @@ class MainActivity : Activity() {
                 typeface = Typeface.DEFAULT_BOLD
                 letterSpacing = 0.06f
                 gravity = Gravity.CENTER
-                setPadding(16, 12, 16, 12)
+                setPadding(dp(16), dp(12), dp(16), dp(12))
                 setTextColor(if (selectedLeague == code) bg else muted)
-                background = rounded(if (selectedLeague == code) accent else surface, 28)
+                background = if (selectedLeague == code) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() } else rounded(surface, 28)
                 setOnClickListener { selectedLeague = code; render() }
             }
             val lp = LinearLayout.LayoutParams(-2, -2)
