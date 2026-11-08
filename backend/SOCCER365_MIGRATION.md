@@ -11,7 +11,7 @@
 
 Every record must retain:
 - stable Soccer365 match URL/ID;
-- country, competition ID/name, season and competition type (league, domestic cup, international cup, friendly, national-team match);
+- country, stable competition ID/name, season and competition type (league, domestic cup, international cup, friendly, national-team match);
 - kickoff in UTC, status and final score;
 - home/away team names and stable Soccer365 team IDs when available;
 - source URL and retrieval timestamp;
@@ -56,3 +56,17 @@ The first reusable HTML adapter is isolated in `backend/soccer365_source.py`. It
 - A normal fetch of `https://soccer365.net/` returned HTTP 503 in the available web retrieval environment. The `robots.txt` and candidate terms URL could not be retrieved. This does not prove that automated access is prohibited, and it does not grant permission either.
 - No Cloudflare bypass, proxy, browser impersonation, or other access-control workaround was attempted.
 - Real-page parser validation and permission to automate access therefore remain open rollout gates. Until those gates are resolved, scores/status/xG must not be inferred from unverified page-wide text, and the production source remains unchanged.
+
+
+## Data-quality gate (isolated prototype)
+
+`backend/soccer365_quality.py` validates normalized records without changing them:
+- stable match ID, distinct home/away identities, competition ID, season and competition type;
+- timezone-aware UTC kickoff and recognized match status;
+- non-negative integer scores and score/status consistency;
+- finite non-negative xG values, nullable pairs and the `xgAvailable` flag;
+- repeated source IDs and likely duplicate fixtures.
+
+Potential duplicate fixtures are warnings, not automatic merges. They are grouped only when ordered team identity, competition ID and competition type agree, with kickoff timestamps within five minutes. Stable team IDs are preferred when present; otherwise normalized names are used. This conservative check is a quarantine signal, not a deduplication decision.
+
+The parser now carries an optional `season` value supplied by a future competition-page collector. It does not infer season from the calendar year. Missing competition IDs, season, type or timezone-aware kickoff remain visible as quality warnings and block model-readiness decisions downstream.
