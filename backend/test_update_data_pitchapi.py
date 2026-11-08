@@ -42,6 +42,8 @@ class PitchApiUpdaterTests(unittest.TestCase):
         }}
         history, base, results = build_model_frames(cache)
         self.assertEqual(len(history), 2)
+        self.assertEqual(str(history.date.dtype), "datetime64[ns]")
+        self.assertEqual(str(results.date.dtype), "datetime64[ns]")
         self.assertEqual(len(results), 1)
         self.assertEqual(set(history.team), {"Arsenal", "Chelsea"})
         self.assertAlmostEqual(base["eng", "home"], 1.4)
