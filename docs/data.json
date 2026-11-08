@@ -1,0 +1,10 @@
+{
+  "updatedAt": null,
+  "source": "Football-Data.org (fixtures/results); Openplay (xG source)",
+  "modelVersion": "Openplay v1.3 · frozen research baseline",
+  "modelConfig": {"window": 30, "halfLife": 12, "shrinkage": 3},
+  "openplayDataThrough": "2026-05-24",
+  "status": "not_initialized",
+  "notice": "Ожидается первый запуск обновления данных.",
+  "competitions": []
+}
