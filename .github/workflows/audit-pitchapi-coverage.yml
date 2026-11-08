@@ -29,6 +29,9 @@ permissions:
 
 jobs:
   pitchapi-audit:
+    # A push starts the expensive full-history audit only when its commit
+    # message explicitly carries the one-shot marker.
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[full-history-audit]')
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -44,7 +47,7 @@ jobs:
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.audit_mode || 'sample' }}" = "full_history" ]; then
+          if { [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.audit_mode || 'sample' }}" = "full_history" ]; } || { [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.event.head_commit.message }}" == *"[full-history-audit]"* ]]; }; then
             python backend/probe_pitchapi_coverage.py --full-history --output pitchapi-coverage-audit.json
           else
             python backend/probe_pitchapi_coverage.py --sample-limit "${{ inputs.sample_limit || '20' }}" --output pitchapi-coverage-audit.json
