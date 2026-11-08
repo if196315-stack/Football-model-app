@@ -2,15 +2,6 @@ name: PitchAPI reproducible backtest
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pitchapi-data-source
-    paths:
-      - "backend/export_pitchapi_backtest.py"
-      - "backend/backtest_pitchapi.py"
-      - "backend/pitchapi_data_source.py"
-      - ".github/workflows/pitchapi-backtest.yml"
-
 permissions:
   contents: read
 
