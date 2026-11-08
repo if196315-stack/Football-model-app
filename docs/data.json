@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T14:19:22.846326+00:00",
+  "updatedAt": "2026-11-08T15:46:00.696469+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -2224,7 +2224,7 @@
           "home": "Crystal Palace FC",
           "away": "Liverpool FC",
           "homeScore": 0,
-          "awayScore": 0,
+          "awayScore": 2,
           "prediction": {
             "1": 0.37678184018955635,
             "x": 0.23743400552713406,
@@ -2267,7 +2267,7 @@
           "status": "IN_PLAY",
           "home": "Sunderland AFC",
           "away": "Chelsea FC",
-          "homeScore": 0,
+          "homeScore": 1,
           "awayScore": 0,
           "prediction": {
             "1": 0.3397938738345035,
@@ -2311,7 +2311,7 @@
           "status": "IN_PLAY",
           "home": "Brighton & Hove Albion FC",
           "away": "Brentford FC",
-          "homeScore": 0,
+          "homeScore": 2,
           "awayScore": 0,
           "prediction": {
             "1": 0.5637373788513996,
@@ -11381,11 +11381,11 @@
         {
           "id": 564738,
           "utcDate": "2026-11-08T13:00:00Z",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Elche CF",
           "away": "Real Betis Balompié",
           "homeScore": 0,
-          "awayScore": 0,
+          "awayScore": 2,
           "prediction": {
             "1": 0.35727670922333254,
             "x": 0.2580238690297225,
@@ -19495,11 +19495,11 @@
         {
           "id": 565855,
           "utcDate": "2026-11-08T14:30:00Z",
-          "status": "TIMED",
+          "status": "IN_PLAY",
           "home": "1. FC Köln",
           "away": "Bayer 04 Leverkusen",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 1,
           "prediction": {
             "1": 0.39857467186150114,
             "x": 0.2180263742395566,
@@ -30322,7 +30322,7 @@
         "away": "Real Betis Balompié",
         "utcDate": "2026-11-08T13:00:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.35727670922333254,
           "x": 0.2580238690297225,
@@ -30357,8 +30357,9 @@
             "baselineMatches": 4559
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 0,
+        "awayScore": 2,
+        "resultUpdatedAt": "2026-11-08T15:46:45.849865+00:00"
       },
       "564742": {
         "id": 564742,
@@ -40444,7 +40445,54 @@
       }
     }
   },
-  "evaluationMatches": [],
+  "evaluationMatches": [
+    {
+      "id": 564738,
+      "league": "Испания · Ла Лига",
+      "home": "Elche CF",
+      "away": "Real Betis Balompié",
+      "utcDate": "2026-11-08T13:00:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.35727670922333254,
+        "x": 0.2580238690297225,
+        "2": 0.3846994217469448,
+        "1x": 0.6153005782530551,
+        "x2": 0.6427232907766673,
+        "dnbHome": 0.48152048874688747,
+        "dnbAway": 0.5184795112531125,
+        "over15": 0.7514159802099626,
+        "over25": 0.5064786263828674,
+        "over35": 0.2860006373292849,
+        "under25": 0.49352137361713255,
+        "bttsYes": 0.5485763089267139,
+        "bttsNo": 0.45142369107328606,
+        "homeOver05": 0.7329858499866547,
+        "homeOver15": 0.38040604749327417,
+        "homeOver25": 0.14762340822105305,
+        "awayOver05": 0.7484132319016826,
+        "awayOver15": 0.40123170709868977,
+        "awayOver25": 0.16168212331965276,
+        "ah0Home": 0.48152048874688747,
+        "ahMinus05Home": 0.35727670922333254,
+        "ahPlus05Home": 0.6153005782530551,
+        "expectedHomeGoals": 1.3204536256814765,
+        "expectedAwayGoals": 1.3799673465629816,
+        "strongestSignal": {
+          "market": "Фора 0 хозяев",
+          "side": "Фора 0 · Real Betis Balompié",
+          "modelProbability": 0.5184795112531125,
+          "baselineProbability": 0.38397871711498666,
+          "edgePp": 13.450079413812588,
+          "baselineMatches": 4559
+        }
+      },
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultUpdatedAt": "2026-11-08T15:46:45.849865+00:00"
+    }
+  ],
   "oddsUpdatedAt": "2026-11-08T05:30:24.907202+00:00",
   "oddsCreditsRemaining": 450,
   "oddsCreditsUsed": 50,
