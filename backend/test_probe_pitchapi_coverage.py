@@ -23,8 +23,8 @@ class PitchApiProbeTests(unittest.TestCase):
     def test_sample_selection_spreads_across_history(self):
         matches = [{"id": str(i), "status": "finished"} for i in range(10)]
         selected = choose_samples(matches)
-        self.assertEqual([m["id"] for m in selected], ["0", "5", "9"])
-        self.assertLessEqual(len(selected), 3)
+        self.assertEqual([m["id"] for m in selected], ["0", "2", "4", "7", "9"])
+        self.assertLessEqual(len(selected), 5)
 
     def test_flatten_shots_from_periods(self):
         data = {"periods": [
