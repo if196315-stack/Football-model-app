@@ -135,8 +135,14 @@ def preserve_odds_by_identity(payload: dict) -> int:
 
 
 
-def app_status(raw: str) -> str:
+def app_status(raw: str, match_date: str | None = None,
+               today=None) -> str:
     value = str(raw or "").casefold()
+    if value == "not_started" and match_date:
+        kickoff = pd.to_datetime(match_date, utc=True, errors="coerce")
+        current_day = today or datetime.now(timezone.utc).date()
+        if not pd.isna(kickoff) and kickoff.date() < current_day:
+            return "POSTPONED"
     return {
         "finished": "FINISHED", "scheduled": "SCHEDULED",
         "timed": "TIMED", "not_started": "SCHEDULED",
@@ -185,7 +191,7 @@ def run() -> dict:
                     if row.get("leagueCode") == provider_code]
         for row in sorted(fixtures, key=lambda x: str(x.get("date") or "")):
             date = str(row.get("date") or "")
-            status = app_status(row.get("status"))
+            status = app_status(row.get("status"), date)
             home, away = row.get("home") or "TBD", row.get("away") or "TBD"
             pred, warning = None, None
             if status in ("SCHEDULED", "TIMED"):
