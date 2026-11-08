@@ -148,7 +148,9 @@ def main():
                     "from": str(cursor), "to": str(chunk_end),
                     "topLevelKeys": list(payload.keys())[:40] if isinstance(payload, dict) else [],
                     "collections": collections,
-                    "preview": json.dumps(payload, ensure_ascii=False)[:2500],
+                    "competitionSample": (payload.get("competitions") or [])[:8] if isinstance(payload, dict) else [],
+                    "gameSample": (games[:3] if games else []),
+                    "preview": json.dumps(payload, ensure_ascii=False)[:1200],
                 })
             for game in games:
                 code = league_code(game)
