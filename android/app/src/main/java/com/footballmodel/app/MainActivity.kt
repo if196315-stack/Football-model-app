@@ -189,10 +189,11 @@ class MainActivity : Activity() {
             val upcoming = mutableListOf<JSONObject>()
             for (j in 0 until matches.length()) {
                 val m = matches.getJSONObject(j)
-                if (m.optString("status") == "SCHEDULED" || m.optString("status") == "TIMED") {
+                if ((m.optString("status") == "SCHEDULED" || m.optString("status") == "TIMED")
+                    && m.optJSONObject("prediction") != null) {
                     upcoming.add(m)
                     totalUpcoming++
-                    if (m.optJSONObject("prediction") != null) totalPredicted++
+                    totalPredicted++
                 }
             }
             val heading = LinearLayout(this).apply {
@@ -205,7 +206,7 @@ class MainActivity : Activity() {
             matchesContainer.addView(heading)
             if (upcoming.isEmpty()) {
                 val empty = card()
-                addText(empty, "Нет предстоящих матчей", 12, false, muted)
+                addText(empty, "Нет предстоящих матчей с готовым прогнозом", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card()
