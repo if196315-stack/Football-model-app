@@ -141,7 +141,7 @@ def match_integrity(matches: list[dict], season: str | None = None,
         if home_id is not None and away_id is not None:
             pair = tuple(sorted((str(home_id), str(away_id))))
             pair_counts[pair] += 1
-            pair_names[pair] = sorted([home.get("name"), away.get("name")])
+            pair_names[pair] = sorted([home.get("name"), away.get("name")], key=lambda value: str(value or ""))
     team_pairings = [
         {"teamIds": list(pair), "teams": pair_names[pair], "matches": count}
         for pair, count in sorted(pair_counts.items())
