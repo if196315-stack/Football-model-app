@@ -164,7 +164,7 @@ def match_context(match: dict) -> dict:
     """Expose only compact provider fields that may distinguish league stages."""
     keys = (
         "round", "round_name", "stage", "stage_name", "matchday", "match_day",
-        "phase", "group", "leg", "competition_type", "competition_name",
+        "phase", "group", "leg", "has_playoff", "competition_type", "competition_name",
         "tournament", "league",
     )
     context = {}
