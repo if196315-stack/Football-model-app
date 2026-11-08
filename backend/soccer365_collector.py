@@ -73,9 +73,11 @@ def collect_catalog(client: Any, entries: Iterable[dict[str, Any]]) -> dict[str,
 
         for match_url in match_urls:
             if match_url in seen_match_urls:
-                warnings.append({
+                errors.append({
                     "url": match_url,
-                    "code": "duplicate_match_link_across_catalog",
+                    "stage": "catalog_identity",
+                    "errorType": "DuplicateMatchLink",
+                    "message": "Match URL appeared under more than one competition entry; identity requires review",
                 })
                 continue
             seen_match_urls.add(match_url)
