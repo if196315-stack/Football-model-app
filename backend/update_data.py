@@ -1,5 +1,7 @@
 import json, math, os, re
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
+import time
 from difflib import SequenceMatcher
 from pathlib import Path
 import pandas as pd
@@ -107,8 +109,34 @@ def main():
             for code,(label,c) in COMPS.items():
                 item={"code":code,"league":c,"name":label,"matches":[],"error":None}
                 try:
-                    r=requests.get(f"https://api.football-data.org/v4/competitions/{code}/matches",headers={"X-Auth-Token":token},
-                      params={"status":"SCHEDULED,TIMED,IN_PLAY,PAUSED,FINISHED"},timeout=35); r.raise_for_status()
+                    # Football-Data.org applies a shared request-rate limit. Retry 429
+                    # responses and respect Retry-After instead of silently losing leagues.
+                    url=f"https://api.football-data.org/v4/competitions/{code}/matches"
+                    params={"status":"SCHEDULED,TIMED,IN_PLAY,PAUSED,FINISHED"}
+                    r=None
+                    for attempt in range(4):
+                        r=requests.get(url,headers={"X-Auth-Token":token},params=params,timeout=35)
+                        if r.status_code == 429:
+                            if attempt == 3:
+                                break
+                            retry=r.headers.get("Retry-After","").strip()
+                            wait=None
+                            if retry:
+                                try: wait=float(retry)
+                                except ValueError:
+                                    try: wait=max(1,(parsedate_to_datetime(retry)-datetime.now(timezone.utc)).total_seconds())
+                                    except Exception: wait=None
+                            if wait is None: wait=65*(attempt+1)
+                            time.sleep(min(max(wait,5),180))
+                            continue
+                        if r.status_code in (500,502,503,504) and attempt < 3:
+                            time.sleep(10*(attempt+1)); continue
+                        break
+                    if r is None or not r.ok:
+                        detail=(r.text[:180] if r is not None else "no response")
+                        raise RuntimeError(f"Football-Data.org HTTP {r.status_code if r is not None else 'error'} for {code}: {detail}")
+                    # Stay below the provider's per-minute request limit.
+                    time.sleep(7)
                     for m in r.json().get("matches",[]):
                         home=(m.get("homeTeam") or {}).get("name") or "TBD"; away=(m.get("awayTeam") or {}).get("name") or "TBD"
                         pred,warn=predict(c,home,away,st,b,names)
