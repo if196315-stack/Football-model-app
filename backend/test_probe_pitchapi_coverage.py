@@ -1,7 +1,7 @@
 import unittest
 from collections import Counter
 
-from probe_pitchapi_coverage import choose_samples, season_start, norm, flatten_shots, match_integrity, select_xg_matches
+from probe_pitchapi_coverage import choose_samples, season_start, norm, flatten_shots, match_integrity, select_xg_matches, summarize_report
 
 
 class PitchApiProbeTests(unittest.TestCase):
@@ -266,6 +266,31 @@ class PitchApiProbeTests(unittest.TestCase):
         self.assertIsNone(result["expectedMatchesPerTeam"])
         self.assertFalse(result["teamCountsComparable"])
         self.assertEqual(result["teamCountOutliers"], [])
+
+
+    def test_summary_separates_fetch_failures_from_missing_xg(self):
+        report = {
+            "leagues": [{
+                "seasons": [{
+                    "listedMatches": 4,
+                    "finishedMatches": 3,
+                    "xgSampleSize": 3,
+                    "xgPairedSamples": 1,
+                    "xgSamples": [
+                        {"pairedXgPresent": True},
+                        {"pairedXgPresent": False, "xgFetchError": "HTTPError"},
+                        {"pairedXgPresent": False, "homeXgFromShots": 0.4, "awayXgFromShots": None},
+                    ],
+                }],
+            }],
+        }
+        summary = summarize_report(report)
+        self.assertEqual(summary["listedMatches"], 4)
+        self.assertEqual(summary["finishedMatches"], 3)
+        self.assertEqual(summary["pairedXgMatches"], 1)
+        self.assertEqual(summary["unpairedXgMatches"], 2)
+        self.assertEqual(summary["shotFetchFailures"], 1)
+        self.assertEqual(summary["missingOrPartialShotXg"], 1)
 
 
 if __name__ == "__main__":
