@@ -20,10 +20,13 @@ import kotlin.concurrent.thread
 
 class MainActivity : Activity() {
     private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
-    private val bg = Color.rgb(11, 18, 32)
-    private val panel = Color.rgb(22, 32, 51)
-    private val muted = Color.rgb(157, 172, 195)
-    private val accent = Color.rgb(89, 190, 145)
+    private val bg = Color.rgb(7, 13, 25)
+    private val panel = Color.rgb(17, 29, 47)
+    private val surface = Color.rgb(23, 39, 61)
+    private val muted = Color.rgb(143, 161, 187)
+    private val accent = Color.rgb(89, 224, 176)
+    private val cyan = Color.rgb(91, 190, 255)
+    private val gold = Color.rgb(255, 194, 92)
     private lateinit var root: LinearLayout
     private lateinit var statusView: TextView
     private lateinit var refreshButton: Button
@@ -42,10 +45,11 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.statusBarColor = bg
         window.navigationBarColor = bg
-        val scroll = ScrollView(this).apply { setBackgroundColor(bg) }
+        window.decorView.systemUiVisibility = 0
+        val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true; clipToPadding = false; setPadding(0, 0, 0, 18); overScrollMode = View.OVER_SCROLL_NEVER }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(20, 24, 20, 32)
+            setPadding(18, 22, 18, 34)
             setBackgroundColor(bg)
         }
         scroll.addView(root)
@@ -56,14 +60,17 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        brand.addView(label("⚽  FOOTBALL MODEL", 22, true, Color.WHITE))
-        brand.addView(label("OPENPLAY v1.3  ·  MATCH CENTER", 10, true, accent))
+        brand.addView(label("⚽  FOOTBALL MODEL", 23, true, Color.WHITE))
+        brand.addView(label("MATCH INTELLIGENCE  /  OPENPLAY 1.3", 9, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
         refreshButton = Button(this).apply {
             text = "↻"
-            textSize = 20f
+            text = "↻"
+            textSize = 21f
+            isAllCaps = false
+            elevation = 0f
             setTextColor(Color.WHITE)
-            background = rounded(Color.rgb(39, 57, 78), 16)
+            background = rounded(surface, 16)
             setOnClickListener { loadData() }
         }
         top.addView(refreshButton, LinearLayout.LayoutParams(52, 48))
@@ -75,10 +82,10 @@ class MainActivity : Activity() {
 
         tabBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(4, 4, 4, 4)
-            background = rounded(panel, 16)
+            setPadding(5, 5, 5, 5)
+            background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 48).apply { topMargin = 12; bottomMargin = 8 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 54).apply { topMargin = 14; bottomMargin = 12 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -92,7 +99,7 @@ class MainActivity : Activity() {
         renderTabs()
         leagueBar.visibility = View.VISIBLE
         val loadingCard = card()
-        addText(loadingCard, "ЗАГРУЗКА ДАННЫХ", 10, true, accent)
+        addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
     }
@@ -102,6 +109,7 @@ class MainActivity : Activity() {
             text = value
             textSize = size.toFloat()
             setTextColor(color)
+            letterSpacing = if (size <= 10) 0.07f else 0.005f
             if (bold) setTypeface(null, Typeface.BOLD)
             setPadding(0, 4, 0, 4)
         }
@@ -112,11 +120,13 @@ class MainActivity : Activity() {
     private fun card(parent: LinearLayout = matchesContainer): LinearLayout {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(16, 14, 16, 14)
+            setPadding(17, 16, 17, 16)
             background = rounded(panel, 20)
+            background = (background as GradientDrawable).apply { setStroke(1, Color.rgb(34, 52, 76)) }
+            elevation = 2f
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
-        lp.setMargins(0, 7, 0, 7)
+        lp.setMargins(0, 7, 0, 9)
         return box.also { parent.addView(it, lp) }
     }
 
@@ -167,9 +177,10 @@ class MainActivity : Activity() {
         tabBar.removeAllViews()
         listOf("matches" to "⚽ Матчи", "history" to "▤ История", "stats" to "▥ Статистика", "help" to "ⓘ Справка").forEach { item ->
             val active = currentTab == item.first
-            val t = label(item.second, 13, true, if (active) bg else Color.WHITE).apply {
+            val t = label(item.second, 11, true, if (active) bg else muted).apply {
                 gravity = Gravity.CENTER
                 background = rounded(if (active) accent else Color.TRANSPARENT, 13)
+                setPadding(3, 0, 3, 0)
                 setOnClickListener { currentTab = item.first; render() }
             }
             tabBar.addView(t, LinearLayout.LayoutParams(0, -1, 1f))
@@ -235,7 +246,7 @@ class MainActivity : Activity() {
 
     private fun saveBets() { betPrefs.edit().putString("bets", bets.toString()).apply() }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
-        val b = Button(this).apply { text = title; textSize = 12f; setTextColor(Color.WHITE); background = rounded(Color.rgb(39,75,67),14); setOnClickListener { action() } }
+        val b = Button(this).apply { text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = 48; setPadding(16, 8, 16, 8); setTextColor(bg); background = rounded(accent,16); elevation = 0f; setOnClickListener { action() } }
         parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
     }
     private fun showAddBetDialog(m: JSONObject, league: String) {
@@ -418,11 +429,12 @@ class MainActivity : Activity() {
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
                 text = names[index]
-                textSize = 12f
+                textSize = 11f
+                typeface = Typeface.DEFAULT_BOLD
                 gravity = Gravity.CENTER
-                setPadding(13, 10, 13, 10)
-                setTextColor(if (selectedLeague == code) bg else Color.WHITE)
-                background = rounded(if (selectedLeague == code) accent else panel, 28)
+                setPadding(15, 11, 15, 11)
+                setTextColor(if (selectedLeague == code) bg else muted)
+                background = rounded(if (selectedLeague == code) accent else surface, 28)
                 setOnClickListener { selectedLeague = code; render() }
             }
             val lp = LinearLayout.LayoutParams(-2, -2)
@@ -459,8 +471,9 @@ class MainActivity : Activity() {
             val heading = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(12, 13, 12, 13)
-                background = rounded(panel, 14)
+                setPadding(15, 15, 15, 15)
+                background = rounded(surface, 16)
+                background = (background as GradientDrawable).apply { setStroke(1, Color.rgb(38, 58, 83)) }
                 isClickable = true
                 isFocusable = true
             }
@@ -488,13 +501,15 @@ class MainActivity : Activity() {
                     addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
                 } else {
                     val mainMarkets = card(box)
-                    addText(mainMarkets, "ОСНОВНЫЕ РЫНКИ МОДЕЛИ", 10, true, accent)
+                    mainMarkets.background = rounded(Color.rgb(19, 47, 52), 17)
+                    addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ МОДЕЛИ", 10, true, accent)
                     addText(mainMarkets, "1X  ${pct(pred, "1x")}     X2  ${pct(pred, "x2")}", 17, true, Color.WHITE)
                     addText(mainMarkets, "Победа хозяев (ничья — возврат): ${pct(pred, "dnbHome")}", 13, true, Color.rgb(180, 220, 205))
                     addText(mainMarkets, "ИТБ 1.5 хозяев: ${pct(pred, "homeOver15")}     ИТБ 1.5 гостей: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
                     val signal = pred.optJSONObject("strongestSignal")
                     val signalBox = card(box)
-                    addText(signalBox, "САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, accent)
+                    signalBox.background = rounded(Color.rgb(24, 37, 58), 17)
+                    addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, gold)
                     if (signal == null) {
                         addText(signalBox, "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
                     } else {
