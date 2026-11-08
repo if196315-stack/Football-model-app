@@ -263,6 +263,17 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
             "model": score_metrics(items, "model"),
             "baseline": score_metrics(items, "baseline"),
         }
+    holdout_by_season = defaultdict(list)
+    for item in calibrated_holdout:
+        holdout_by_season[(item["league"], item["season"])].append(item)
+    calibrated_season_metrics = {
+        f"{league} {season}": {
+            "raw_model": score_metrics(items, "model"),
+            "temperature_scaled_model": score_metrics(items, "calibrated_model"),
+            "baseline": score_metrics(items, "baseline"),
+        }
+        for (league, season), items in sorted(holdout_by_season.items())
+    }
     return {
         "method": "strict_calendar_date_walk_forward",
         "input_matches": len(matches),
@@ -284,17 +295,6 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
             "model": calibration_metrics(holdout, "model"),
             "baseline": calibration_metrics(holdout, "baseline"),
         },
-    holdout_by_season = defaultdict(list)
-    for item in calibrated_holdout:
-        holdout_by_season[(item["league"], item["season"])].append(item)
-    calibrated_season_metrics = {
-        f"{league} {season}": {
-            "raw_model": score_metrics(items, "model"),
-            "temperature_scaled_model": score_metrics(items, "calibrated_model"),
-            "baseline": score_metrics(items, "baseline"),
-        }
-        for (league, season), items in sorted(holdout_by_season.items())
-    }
         "temperature_scaling": {
             "method": "scalar_temperature_fit_on_pre_holdout_predictions",
             "fit_period": f"dates_before_{holdout_from}",
