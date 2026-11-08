@@ -108,7 +108,7 @@ def score_metrics(items: list[dict], prefix: str) -> dict | None:
     return {"n": n, "brier": brier / n, "log_loss": logloss / n, "accuracy": correct / n}
 
 
-def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01") -> dict:
+def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_predictions: bool = False) -> dict:
     # Histories contain only paired, non-null PitchAPI shot-level xG.
     histories = defaultdict(list)
     league_totals = defaultdict(lambda: {"1": 0, "x": 0, "2": 0, "n": 0})
@@ -149,8 +149,9 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01") -> dict:
             model = probabilities(home_lambda, away_lambda)
             actual = "1" if match["hg"] > match["ag"] else "2" if match["hg"] < match["ag"] else "x"
             todays_predictions.append({
-                "league": league, "season": match["season"], "date": date,
-                "actual": actual, "model": model, "baseline": baseline,
+                "match_id": match["match_id"], "league": league, "season": match["season"], "date": date,
+                "actual": actual, "home_lambda": home_lambda, "away_lambda": away_lambda,
+                "model": model, "baseline": baseline,
             })
 
         predictions.extend(todays_predictions)
@@ -194,6 +195,7 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01") -> dict:
         "model_config": {"window": WINDOW, "half_life": HALF_LIFE, "shrinkage": SHRINKAGE,
                          "distribution": "independent_poisson", "goal_grid": "0..12"},
         "xg_policy": "Only paired non-null PitchAPI shot-level xG updates team history; missing xG is never imputed.",
+        **({"predictions": predictions} if include_predictions else {}),
     }
 
 
