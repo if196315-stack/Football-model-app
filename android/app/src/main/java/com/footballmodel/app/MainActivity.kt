@@ -469,18 +469,10 @@ class MainActivity : Activity() {
     }
 
     private fun renderWeek(json: JSONObject) {
-        addText(matchesContainer, "WEEKLY MATCH CENTER", 9, true, cyan)
-        addText(matchesContainer, "Матчи недели", 22, true)
-        addText(matchesContainer, "Все пять лиг · ближайшие 7 дней · только матчи с готовым прогнозом", 11, false, muted)
+        addText(matchesContainer, "ALL FIXTURES", 9, true, cyan)
+        addText(matchesContainer, "Все предстоящие матчи", 22, true)
+        addText(matchesContainer, "Все пять лиг · всё расписание, полученное от поставщика данных", 11, false, muted)
 
-        val start = java.util.Calendar.getInstance().apply {
-            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
-            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
-        }
-        val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 7) }
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
-            timeZone = java.util.TimeZone.getTimeZone("UTC")
-        }
         val items = mutableListOf<Pair<JSONObject, String>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -488,29 +480,29 @@ class MainActivity : Activity() {
             val matches = league.optJSONArray("matches") ?: continue
             for (j in 0 until matches.length()) {
                 val m = matches.optJSONObject(j) ?: continue
-                if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
-                if (m.optJSONObject("prediction") == null) continue
-                val kickoff = try { parser.parse(m.optString("utcDate")) } catch (_: Exception) { null } ?: continue
-                if (kickoff.time >= start.timeInMillis && kickoff.time < end.timeInMillis) {
-                    items.add(m to league.optString("name"))
-                }
+                if (m.optString("status") !in listOf("SCHEDULED", "TIMED", "POSTPONED")) continue
+                items.add(m to league.optString("name"))
             }
         }
         val sorted = items.sortedBy { it.first.optString("utcDate") }
         val overview = card()
-        addText(overview, "МАТЧЕЙ В ЭТОМ ОКНЕ", 9, true, accent)
+        addText(overview, "ВСЕГО ПРЕДСТОЯЩИХ МАТЧЕЙ", 9, true, accent)
         addText(overview, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(overview, "С готовым прогнозом модели 1.3", 11, false, muted)
+        addText(overview, "Прогноз отображается там, где модель может его рассчитать", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
-            addText(empty, "На ближайшие 7 дней нет предстоящих матчей с готовым прогнозом.", 13, false, muted)
+            addText(empty, "В расписании поставщика пока нет предстоящих матчей.", 13, false, muted)
             return
         }
         sorted.forEach { (m, leagueName) ->
             val box = card()
             addText(box, leagueName.uppercase(Locale.getDefault()) + "  ·  " + date(m.optString("utcDate")), 10, true, accent)
             addText(box, m.optString("home") + "  —  " + m.optString("away"), 16, true, Color.WHITE)
-            val p = m.optJSONObject("prediction") ?: return@forEach
+            val p = m.optJSONObject("prediction")
+            if (p == null) {
+                addText(box, m.optString("predictionWarning", "Прогноз для этого матча пока недоступен"), 11, false, Color.rgb(242, 190, 104))
+                return@forEach
+            }
             addMarketRow(box, listOf(
                 Triple("1X", pct(p, "1x"), Color.WHITE),
                 Triple("X2", pct(p, "x2"), Color.WHITE),
@@ -598,8 +590,7 @@ class MainActivity : Activity() {
             val upcoming = mutableListOf<JSONObject>()
             for (j in 0 until matches.length()) {
                 val m = matches.getJSONObject(j)
-                if ((m.optString("status") == "SCHEDULED" || m.optString("status") == "TIMED")
-                    && m.optJSONObject("prediction") != null) {
+                if (m.optString("status") in listOf("SCHEDULED", "TIMED", "POSTPONED")) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
@@ -631,7 +622,7 @@ class MainActivity : Activity() {
             matchesContainer.addView(section)
             if (upcoming.isEmpty()) {
                 val empty = card(content)
-                addText(empty, "Нет предстоящих матчей с готовым прогнозом", 12, false, muted)
+                addText(empty, "Нет предстоящих матчей в расписании поставщика", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
