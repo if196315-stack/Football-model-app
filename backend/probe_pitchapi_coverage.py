@@ -27,6 +27,17 @@ TARGETS = {
 TIMEOUT = 30
 SAMPLE_LIMIT = 5
 
+# PitchAPI's has_playoff flag is not reliable: this confirmed Serie A
+# relegation playoff was returned with has_playoff=false. Keep the fixture in
+# the raw/xG audit, but exclude it from regular-season team-count integrity.
+MANUAL_MATCH_CLASSIFICATIONS = {
+    "m_3ir3kE": {
+        "classification": "relegation_playoff",
+        "exclude_from_regular_season_integrity": True,
+        "reason": "Confirmed Serie A 2022/23 relegation playoff; provider has_playoff=false",
+    },
+}
+
 
 def norm(value: Any) -> str:
     return " ".join(str(value or "").casefold().replace("-", " ").split())
@@ -113,11 +124,30 @@ def match_integrity(matches: list[dict], season: str | None = None,
     away_appearances = Counter()
     team_names = {}
     excluded_match_ids = excluded_match_ids or set()
+    # Regular-season integrity counts only normally finished matches.
+    # Awarded/canceled fixtures remain visible in statusCounts but must not
+    # inflate played-match appearances or expected round-robin totals.
     countable_rows = [
         m for m in rows
-        if norm(m.get("status")) not in {"canceled", "cancelled"}
+        if norm(m.get("status")) == "finished"
         and str(m.get("id")) not in excluded_match_ids
     ]
+    pair_counts = Counter()
+    pair_names = {}
+    for match in countable_rows:
+        home = match.get("home_team") or {}
+        away = match.get("away_team") or {}
+        home_id, away_id = home.get("id"), away.get("id")
+        if home_id is not None and away_id is not None:
+            pair = tuple(sorted((str(home_id), str(away_id))))
+            pair_counts[pair] += 1
+            pair_names[pair] = sorted([home.get("name"), away.get("name")])
+    team_pairings = [
+        {"teamIds": list(pair), "teams": pair_names[pair], "matches": count}
+        for pair, count in sorted(pair_counts.items())
+    ]
+    missing_pairings = [row for row in team_pairings if row["matches"] < 2]
+    extra_pairings = [row for row in team_pairings if row["matches"] > 2]
     for match in countable_rows:
         home = match.get("home_team") or {}
         away = match.get("away_team") or {}
@@ -172,6 +202,9 @@ def match_integrity(matches: list[dict], season: str | None = None,
         "teamMatchCounts": team_match_counts,
         "teamCountOutliers": team_count_outliers,
         "teamFixtureLists": team_fixture_lists,
+        "teamPairingCounts": team_pairings,
+        "missingReturnFixtures": missing_pairings,
+        "extraPairings": extra_pairings,
     }
 
 def match_context(match: dict) -> dict:
@@ -312,7 +345,8 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                 if full_history else
                 "This is a sample, not a full match-by-match xG completeness measurement."
             ),
-            "Canceled and awarded matches are not included in the finished-match xG cohort; their status counts remain in the report.",
+            "Canceled and awarded matches remain in statusCounts but are excluded from regular-season team appearance integrity counts.",
+            "Provider-finished playoff candidates remain in the raw xG audit; only independently classified exclusions are removed from regular-season integrity counts.",
             "Transient API errors are retried; final per-match shot-fetch failures are recorded as unavailable, never as zero xG.",
             "Shot xG is summed by team from periods[].shots; zero is not treated as missing when valid shots exist.",
         ],
@@ -356,12 +390,22 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                     playoff_details.append(error_detail)
                 if pause_seconds:
                     time.sleep(pause_seconds)
-            playoff_ids = {
+            provider_playoff_ids = {
                 str(item["matchId"]) for item in playoff_details
                 if item.get("has_playoff") is True
             }
-            if playoff_ids:
-                integrity = match_integrity(matches, season, playoff_ids)
+            manual_classifications = [
+                {"matchId": match_id, **classification}
+                for match_id, classification in MANUAL_MATCH_CLASSIFICATIONS.items()
+                if any(str(match.get("id")) == match_id for match in matches)
+            ]
+            manually_excluded_ids = {
+                item["matchId"] for item in manual_classifications
+                if item.get("exclude_from_regular_season_integrity") is True
+            }
+            excluded_integrity_ids = provider_playoff_ids | manually_excluded_ids
+            if excluded_integrity_ids:
+                integrity = match_integrity(matches, season, excluded_integrity_ids)
             samples = select_xg_matches(matches, sample_limit, full_history)
             inspected = []
             for match in samples:
@@ -393,7 +437,9 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                     "hasPlayoffFalseCount": sum(item.get("has_playoff") is False for item in metadata_inspections),
                     "hasPlayoffNullOrMissingCount": sum(item.get("has_playoff") is None for item in metadata_inspections),
                 },
-                "excludedPlayoffMatchIds": sorted(playoff_ids),
+                "excludedPlayoffMatchIds": sorted(provider_playoff_ids),
+                "manualClassificationOverrides": manual_classifications,
+                "excludedFromRegularSeasonIntegrityMatchIds": sorted(excluded_integrity_ids),
                 "xgSampleSize": len(inspected),
                 "xgPairedSamples": sum(bool(x["pairedXgPresent"]) for x in inspected),
                 "xgSamples": inspected,
