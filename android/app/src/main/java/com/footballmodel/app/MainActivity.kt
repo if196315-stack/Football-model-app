@@ -197,11 +197,11 @@ class MainActivity : Activity() {
             }
             if (n > 0) metrics.add(MetricRow(title,n,hits,brier/n,logLoss/n))
         }
-        collect("1x", "1X · хозяева не проиграют") { h,a -> h >= a }
-        collect("x2", "X2 · гости не проиграют") { h,a -> a >= h }
+        collect("1x", "1X · хозяева не проиграют", { h,a -> h >= a })
+        collect("x2", "X2 · гости не проиграют", { h,a -> a >= h })
         collect("dnbHome", "DNB · победа хозяев без ничьей", { h,a -> h > a }, true)
-        collect("homeOver15", "ИТБ 1.5 · хозяева") { h,_ -> h >= 2 }
-        collect("awayOver15", "ИТБ 1.5 · гости") { _,a -> a >= 2 }
+        collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
+        collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         if (metrics.isEmpty()) {
             val empty = card()
             addText(empty, "Пока нет завершённых матчей с сохранёнными прогнозами по основным рынкам.", 12, false, muted)
@@ -215,7 +215,7 @@ class MainActivity : Activity() {
         val explainer = card()
         addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
         addText(explainer, "Brier Score и Log Loss оценивают качество вероятностей: чем ниже, тем лучше. Попадания — вспомогательная доля прогнозов выше 50%, а не доходность. П1 / X / П2 не являются главной статистикой.", 11, false, muted)
-        val footer = card(color = panel)
+        val footer = card()
         addText(footer, "Выборка включает завершённые матчи с сохранённым прогнозом. Это мониторинг, а не независимый тест модели.", 10, false, muted)
     }
 
