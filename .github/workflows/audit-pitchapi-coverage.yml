@@ -28,6 +28,8 @@ on:
       - "backend/test_backtest_pitchapi.py"
       - "backend/collect_odds_snapshots.py"
       - "backend/test_collect_odds_snapshots.py"
+      - "backend/pitchapi_data_source.py"
+      - "backend/test_pitchapi_data_source.py"
       - ".github/workflows/audit-pitchapi-coverage.yml"
 
 permissions:
