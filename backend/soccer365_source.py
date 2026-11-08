@@ -181,6 +181,7 @@ def parse_match_page(
     competition_id: str | int | None = None,
     competition_name: str | None = None,
     competition_type: str | None = None,
+    season: str | None = None,
 ) -> dict[str, Any]:
     """Normalize a match page; absent or ambiguous source values are left null."""
     parser = _PageParser()
@@ -249,6 +250,7 @@ def parse_match_page(
         "competitionId": str(competition_id) if competition_id is not None else None,
         "competition": competition_name,
         "competitionType": competition_type,
+        "season": season,
         "utcDate": kickoff,
         "localKickoff": local_kickoff,
         "status": status,
