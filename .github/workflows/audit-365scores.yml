@@ -1,0 +1,31 @@
+name: Audit 365Scores xG coverage
+
+on:
+  push:
+    paths:
+      - "backend/audit_365scores.py"
+      - ".github/workflows/audit-365scores.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: pip install requests
+      - name: Audit match and xG coverage
+        run: python backend/audit_365scores.py
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: 365scores-xg-audit
+          path: 365scores-audit.json
+          retention-days: 14
