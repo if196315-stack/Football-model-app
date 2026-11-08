@@ -112,3 +112,10 @@ The collector does not write to the JSONL store. A future runner must require an
 The optional manifest field `expectedFinishedMatches` is accepted only as a non-negative integer. Populate it only when an expected count has been independently verified from Soccer365 for that exact competition-season. When absent, `sourceHistoryComplete` is null/unknown: meeting model sample thresholds is not proof that the historical archive is complete. When present, the report requires an exact count match to mark the history complete and exposes the count delta. Both under-counts and over-counts remain incomplete and require review.
 
 The report does not infer missing fixtures, fill xG, or combine seasons/types. It flags records that do not match an explicit manifest entry. Default readiness thresholds are 100 finished results with scores for the competition baseline and 30 paired-xG matches per team; these are diagnostics, not a production eligibility switch. Real source counts and page-level coverage still require verified access and real-page validation.
+
+
+### Additional completeness safeguards (2026-11-08)
+
+An empty competition listing now makes the collector run incomplete instead of treating a zero-link page as a successful collection. This is deliberate: an empty result can mean a genuinely empty competition page, a changed page layout, or an unverified link extractor; it must be investigated.
+
+Season history is marked complete only when the finished-match count exactly equals the independently verified expected count **and** every counted source record has a stable match ID with no duplicate IDs in that competition-season. Missing/duplicate IDs are reported separately and block the completeness flag. Score coverage remains a separate metric; a finished record without a valid score can contribute to the finished-match count but not to finished-result coverage or baseline readiness.
