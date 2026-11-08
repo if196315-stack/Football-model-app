@@ -29,6 +29,11 @@ class PitchApiUpdaterTests(unittest.TestCase):
                         "home": "C", "away": "D", "homeScore": 1,
                         "awayScore": 0, "homeXg": 1.0, "awayXg": 0.2,
                         "hasPlayoff": True},
+            "manual_playoff": {"id": "m_3ir3kE", "leagueCode": "ITA", "season": "2022/23",
+                               "status": "finished", "date": "2023-06-11T12:00:00Z",
+                               "home": "Spezia", "away": "Hellas Verona", "homeScore": 1,
+                               "awayScore": 3, "homeXg": 0.8, "awayXg": 1.1,
+                               "hasPlayoff": False},
         }}
         history, base, results = build_model_frames(cache)
         self.assertEqual(len(history), 2)
