@@ -42,6 +42,20 @@ class Soccer365QualityTests(unittest.TestCase):
         self.assertTrue(result["valid"])
         self.assertIn("possible_duplicate_fixture", [x["code"] for x in result["issues"]])
 
+    def test_different_seasons_are_not_flagged_as_duplicates(self):
+        result = validate_match_records([
+            record(),
+            record(id="s365-102", season="2025-2026"),
+        ])
+        self.assertNotIn("possible_duplicate_fixture", [x["code"] for x in result["issues"]])
+
+    def test_stable_team_ids_prevent_same_name_false_merge(self):
+        result = validate_match_records([
+            record(homeTeamId="team-1", awayTeamId="team-2"),
+            record(id="s365-103", homeTeamId="team-3", awayTeamId="team-4"),
+        ])
+        self.assertNotIn("possible_duplicate_fixture", [x["code"] for x in result["issues"]])
+
     def test_different_competitions_are_not_flagged_as_duplicates(self):
         result = validate_match_records([
             record(),
