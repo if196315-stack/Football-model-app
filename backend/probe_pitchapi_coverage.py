@@ -1,7 +1,8 @@
-"""Read-only PitchAPI coverage and xG spot audit.
+"""Read-only PitchAPI coverage and shot-level xG audit.
 
 Reads PITCHAPI_API_KEY from the environment. No application or production data
-is modified. Samples a configurable number of matches per league-season for shot-level xG.
+is modified. Supports stratified samples or exhaustive inspection of all
+provider-finished matches in each target league-season.
 """
 from __future__ import annotations
 
@@ -339,9 +340,13 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
         "leagues": [],
         "notes": [
             "Season match totals come from the provider's league match listing.",
-            "xG is checked on up to xgSampleLimitPerSeason evenly spaced finished matches per season using shot-level expected_goals.",
             (
-                "Full-history mode inspects every match listed with provider status finished; playoff eligibility remains a separate classification task."
+                "Shot-level xG is checked for every provider-finished match in every target league-season."
+                if full_history else
+                "xG is checked on up to xgSampleLimitPerSeason evenly spaced finished matches per season using shot-level expected_goals."
+            ),
+            (
+                "Full-history mode includes playoff candidates in the raw xG audit; playoff eligibility remains a separate classification task."
                 if full_history else
                 "This is a sample, not a full match-by-match xG completeness measurement."
             ),
@@ -449,7 +454,36 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
         report["leagues"].append(league_row)
         if pause_seconds:
             time.sleep(pause_seconds)
+    report["summary"] = summarize_report(report)
     return report
+
+
+def summarize_report(report: dict) -> dict:
+    """Aggregate coverage counts without treating missing xG as zero."""
+    listed = finished = inspected = paired = fetch_failures = partial = 0
+    for league in report.get("leagues", []):
+        for season in league.get("seasons", []):
+            listed += season.get("listedMatches") or 0
+            finished += season.get("finishedMatches") or 0
+            inspected += season.get("xgSampleSize") or 0
+            paired += season.get("xgPairedSamples") or 0
+            for item in season.get("xgSamples", []):
+                if item.get("pairedXgPresent"):
+                    continue
+                if item.get("xgFetchError"):
+                    fetch_failures += 1
+                else:
+                    partial += 1
+    return {
+        "listedMatches": listed,
+        "finishedMatches": finished,
+        "xgInspectedMatches": inspected,
+        "pairedXgMatches": paired,
+        "unpairedXgMatches": inspected - paired,
+        "shotFetchFailures": fetch_failures,
+        "missingOrPartialShotXg": partial,
+        "pairedXgCoverageRate": round(paired / inspected, 6) if inspected else None,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
