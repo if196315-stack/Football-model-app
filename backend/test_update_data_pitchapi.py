@@ -10,7 +10,8 @@ from update_data_pitchapi import (
 
 class PitchApiUpdaterTests(unittest.TestCase):
     def test_upcoming_pitchapi_status_maps_to_app_schedule(self):
-        self.assertEqual(app_status("not_started"), "SCHEDULED")
+        self.assertEqual(app_status("not_started", "2026-11-20", today=pd.Timestamp("2026-11-09").date()), "SCHEDULED")
+        self.assertEqual(app_status("not_started", "2026-10-10", today=pd.Timestamp("2026-11-09").date()), "POSTPONED")
         self.assertEqual(app_status("finished"), "FINISHED")
         self.assertEqual(app_status("in_play"), "IN_PLAY")
 
