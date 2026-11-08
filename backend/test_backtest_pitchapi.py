@@ -57,6 +57,33 @@ class PitchApiBacktestTests(unittest.TestCase):
                 self.assertEqual(covered, report["predicted_matches"])
                 self.assertGreaterEqual(table[outcome]["ece"], 0.0)
 
+    def test_temperature_scaling_is_fitted_without_holdout_labels(self):
+        original = self.sample()
+        changed = self.sample()
+        changed[-2] = row("m7", "2024-08-07", "A", "B", 0, 4, 1.9, 0.3)
+        before = walk_forward(original, holdout_from="2024-08-07")
+        after = walk_forward(changed, holdout_from="2024-08-07")
+        self.assertIn("temperature_scaling", before)
+        self.assertEqual(
+            before["temperature_scaling"]["temperature"],
+            after["temperature_scaling"]["temperature"],
+        )
+        self.assertEqual(
+            before["temperature_scaling"]["fit_n"],
+            before["predicted_matches"] - before["holdout"]["model"]["n"],
+        )
+
+    def test_temperature_scaled_probabilities_sum_to_one(self):
+        report = walk_forward(self.sample(), holdout_from="2024-08-07")
+        result = report["temperature_scaling"]
+        self.assertGreater(result["temperature"], 0.0)
+        for outcome in ("1", "x", "2"):
+            self.assertIn(outcome, result["holdout_calibrated_calibration"]["by_outcome"])
+        self.assertEqual(
+            result["holdout_calibrated"]["n"],
+            result["holdout_raw"]["n"],
+        )
+
     def test_prediction_rows_are_opt_in(self):
         report = walk_forward(self.sample())
         self.assertNotIn("predictions", report)
