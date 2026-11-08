@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T02:22:51.040948+00:00",
+  "updatedAt": "2026-11-08T02:28:58.982858+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -283,7 +283,7 @@
             "expectedAwayGoals": 1.3665852997718326,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.5995465595023383,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 14.847152659316759,
@@ -525,7 +525,7 @@
             "expectedAwayGoals": 1.261653648455685,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Brentford FC",
               "modelProbability": 0.521735136329702,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 7.066010342053136,
@@ -569,7 +569,7 @@
             "expectedAwayGoals": 1.2862891563967744,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Fulham FC",
               "modelProbability": 0.5247926032577716,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 7.371757034860088,
@@ -690,7 +690,7 @@
             "expectedAwayGoals": 1.2630959961045911,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Liverpool FC",
               "modelProbability": 0.5348694466188565,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 8.379441370968582,
@@ -778,7 +778,7 @@
             "expectedAwayGoals": 1.472919275657449,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.6311339278791569,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 18.005889496998623,
@@ -1020,7 +1020,7 @@
             "expectedAwayGoals": 1.6131905746519788,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.5458993935617938,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 9.482436065262318,
@@ -1119,7 +1119,7 @@
             "expectedAwayGoals": 1.5021580830916703,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Chelsea FC",
               "modelProbability": 0.5896998942730387,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 13.862486136386803,
@@ -1174,7 +1174,7 @@
             "expectedAwayGoals": 1.2029466904702526,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Aston Villa FC",
               "modelProbability": 0.5876071768060424,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 13.653214389687168,
@@ -1240,7 +1240,7 @@
             "expectedAwayGoals": 1.3069030286854793,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Crystal Palace FC",
               "modelProbability": 0.5074102538680603,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 5.63352209588896,
@@ -1427,7 +1427,7 @@
             "expectedAwayGoals": 1.2393922528978343,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.5972800774125409,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 14.620504450337018,
@@ -1746,7 +1746,7 @@
             "expectedAwayGoals": 1.364615606594517,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Brentford FC",
               "modelProbability": 0.5202809065413383,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 6.920587363216763,
@@ -4553,7 +4553,7 @@
             "expectedAwayGoals": 1.3405374867079687,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.595800074421796,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 14.47250415126254,
@@ -6100,7 +6100,7 @@
             "expectedAwayGoals": 1.39113127853734,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Brentford FC",
               "modelProbability": 0.5239641815166812,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 7.288914860751055,
@@ -6474,7 +6474,7 @@
             "expectedAwayGoals": 1.5164537503217896,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Fulham FC",
               "modelProbability": 0.538371236907727,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 8.729620399855637,
@@ -6628,7 +6628,7 @@
             "expectedAwayGoals": 1.2741632595551087,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Chelsea FC",
               "modelProbability": 0.5759507385486627,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 12.487570563949207,
@@ -6804,7 +6804,7 @@
             "expectedAwayGoals": 1.4298114830720512,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Chelsea FC",
               "modelProbability": 0.5144779130585471,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 6.34028801493764,
@@ -7035,7 +7035,7 @@
             "expectedAwayGoals": 1.3179094766227921,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Fulham FC",
               "modelProbability": 0.5479254973723678,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 9.685046446319717,
@@ -7717,7 +7717,7 @@
             "expectedAwayGoals": 1.6522925157179718,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Crystal Palace FC",
               "modelProbability": 0.5327014310645031,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 8.16263981553324,
@@ -7761,7 +7761,7 @@
             "expectedAwayGoals": 1.3175075477298026,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Aston Villa FC",
               "modelProbability": 0.5030255835461384,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 5.195055063696769,
@@ -7838,7 +7838,7 @@
             "expectedAwayGoals": 1.4634009886019672,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Brentford FC",
               "modelProbability": 0.5320999756132354,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 8.102494270406474,
@@ -7959,7 +7959,7 @@
             "expectedAwayGoals": 1.5637054595920865,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.512550963924955,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 6.147593101578436,
@@ -8377,7 +8377,7 @@
             "expectedAwayGoals": 1.2497864668120593,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Liverpool FC",
               "modelProbability": 0.581082419189862,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 13.000738628069136,
@@ -8454,7 +8454,7 @@
             "expectedAwayGoals": 1.4142349851356413,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Everton FC",
               "modelProbability": 0.5152091574186579,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 6.413412450948725,
@@ -8707,7 +8707,7 @@
             "expectedAwayGoals": 1.452889262505916,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.5613983795308244,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 11.032334662165372,
@@ -8751,7 +8751,7 @@
             "expectedAwayGoals": 1.1881521762530154,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Chelsea FC",
               "modelProbability": 0.5639739182169196,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 11.289888530774888,
@@ -8795,7 +8795,7 @@
             "expectedAwayGoals": 1.1880660591434204,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Liverpool FC",
               "modelProbability": 0.5728367327321139,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 12.176169982294322,
@@ -9026,7 +9026,7 @@
             "expectedAwayGoals": 1.404480723981531,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Nottingham Forest FC",
               "modelProbability": 0.5050301363033635,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 5.395510339419279,
@@ -9103,7 +9103,7 @@
             "expectedAwayGoals": 1.3841717147944297,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Aston Villa FC",
               "modelProbability": 0.577974495817713,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 12.689946290854232,
@@ -9147,7 +9147,7 @@
             "expectedAwayGoals": 1.435963321766688,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Crystal Palace FC",
               "modelProbability": 0.542236543669197,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 9.116151076002637,
@@ -9290,7 +9290,7 @@
             "expectedAwayGoals": 1.4375798384734086,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.6077976736649887,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 15.672264075581804,
@@ -9620,7 +9620,7 @@
             "expectedAwayGoals": 1.3050670369820072,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Aston Villa FC",
               "modelProbability": 0.5132316967203113,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 6.215666381114065,
@@ -10082,7 +10082,7 @@
             "expectedAwayGoals": 1.725257424704224,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.5145575487390359,
               "baselineProbability": 0.35498025449758663,
               "edgePp": 15.95772942414493,
@@ -10357,7 +10357,7 @@
             "expectedAwayGoals": 1.2877323881037432,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Chelsea FC",
               "modelProbability": 0.5297979074150451,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 7.872287450587439,
@@ -10434,7 +10434,7 @@
             "expectedAwayGoals": 1.33229729488194,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Crystal Palace FC",
               "modelProbability": 0.511069361147336,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 5.999432823816536,
@@ -10698,7 +10698,7 @@
             "expectedAwayGoals": 1.6272907852069802,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Everton FC",
               "modelProbability": 0.5057910545413149,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 5.471602163214423,
@@ -11006,7 +11006,7 @@
             "expectedAwayGoals": 1.2227660720773657,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Fulham FC",
               "modelProbability": 0.5166837811936379,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 6.560874828446722,
@@ -11050,7 +11050,7 @@
             "expectedAwayGoals": 1.389214248033593,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Liverpool FC",
               "modelProbability": 0.5298062206078664,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 7.873118769869575,
@@ -11380,7 +11380,7 @@
             "expectedAwayGoals": 1.21123900976967,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Chelsea FC",
               "modelProbability": 0.5677106139940963,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 11.66355810849256,
@@ -11479,7 +11479,7 @@
             "expectedAwayGoals": 1.2805094563499968,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Liverpool FC",
               "modelProbability": 0.6044713969339328,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 15.339636402476215,
@@ -11644,7 +11644,7 @@
             "expectedAwayGoals": 1.5979580891024416,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AFC Bournemouth",
               "modelProbability": 0.556292136234386,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 10.521710332521533,
@@ -11776,7 +11776,7 @@
             "expectedAwayGoals": 1.4734193826274868,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Liverpool FC",
               "modelProbability": 0.5948356810396095,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 14.376064813043882,
@@ -11875,7 +11875,7 @@
             "expectedAwayGoals": 1.3054854938186862,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Chelsea FC",
               "modelProbability": 0.5993366606130844,
               "baselineProbability": 0.45107503290917067,
               "edgePp": 14.826162770391377,
@@ -12213,7 +12213,7 @@
             "expectedAwayGoals": 1.0883995777432447,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Barcelona",
               "modelProbability": 0.5298864625240004,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 9.86213890751953,
@@ -12521,7 +12521,7 @@
             "expectedAwayGoals": 1.155078624803878,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Sevilla FC",
               "modelProbability": 0.6489205492577141,
               "baselineProbability": 0.568734926551195,
               "edgePp": 8.01856227065192,
@@ -13027,7 +13027,7 @@
             "expectedAwayGoals": 1.1704212558180551,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Real Madrid CF",
               "modelProbability": 0.5515121979990618,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 12.024712455025671,
@@ -13434,7 +13434,7 @@
             "expectedAwayGoals": 0.7464896668507365,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Getafe CF",
               "modelProbability": 0.8278843584212725,
               "baselineProbability": 0.6923920192940145,
               "edgePp": 13.5492339127258,
@@ -13500,7 +13500,7 @@
             "expectedAwayGoals": 1.2949693993290805,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Barcelona",
               "modelProbability": 0.5429207703766951,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 11.165569692788996,
@@ -13610,7 +13610,7 @@
             "expectedAwayGoals": 0.8250260766135483,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Getafe CF",
               "modelProbability": 0.7009548887656272,
               "baselineProbability": 0.568734926551195,
               "edgePp": 13.221996221443222,
@@ -13852,7 +13852,7 @@
             "expectedAwayGoals": 0.8393372597454112,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Getafe CF",
               "modelProbability": 0.7945876819472246,
               "baselineProbability": 0.6923920192940145,
               "edgePp": 10.219566265321012,
@@ -14523,7 +14523,7 @@
             "expectedAwayGoals": 1.1956954786598692,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Barcelona",
               "modelProbability": 0.5930545376033707,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 16.178946415456558,
@@ -15407,7 +15407,7 @@
             "expectedAwayGoals": 1.033044041105074,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Getafe CF",
               "modelProbability": 0.697042024211615,
               "baselineProbability": 0.568734926551195,
               "edgePp": 12.830709766042004,
@@ -15572,7 +15572,7 @@
             "expectedAwayGoals": 1.1208119871897277,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Elche CF",
               "modelProbability": 0.6578453935448008,
               "baselineProbability": 0.568734926551195,
               "edgePp": 8.91104669936058,
@@ -15990,7 +15990,7 @@
             "expectedAwayGoals": 1.000749408280939,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Elche CF",
               "modelProbability": 0.7045012898557519,
               "baselineProbability": 0.568734926551195,
               "edgePp": 13.576636330455694,
@@ -16133,7 +16133,7 @@
             "expectedAwayGoals": 0.8659881636879159,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Barcelona",
               "modelProbability": 0.6872853505787274,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 25.602027712992232,
@@ -16221,7 +16221,7 @@
             "expectedAwayGoals": 1.0260613972881039,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Getafe CF",
               "modelProbability": 0.7386421753725017,
               "baselineProbability": 0.568734926551195,
               "edgePp": 16.99072488213067,
@@ -16507,7 +16507,7 @@
             "expectedAwayGoals": 1.0958064508621521,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Barcelona",
               "modelProbability": 0.5881128220262865,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 15.684774857748135,
@@ -16672,7 +16672,7 @@
             "expectedAwayGoals": 1.1272119161499998,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Getafe CF",
               "modelProbability": 0.6933337259359824,
               "baselineProbability": 0.568734926551195,
               "edgePp": 12.459879938478746,
@@ -16936,7 +16936,7 @@
             "expectedAwayGoals": 1.177050481190097,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Villarreal CF",
               "modelProbability": 0.5041149987922732,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 7.284992534346807,
@@ -17134,7 +17134,7 @@
             "expectedAwayGoals": 1.0726436498606557,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Real Madrid CF",
               "modelProbability": 0.5466034505855039,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 11.533837713669875,
@@ -17596,7 +17596,7 @@
             "expectedAwayGoals": 0.9128294658441511,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Elche CF",
               "modelProbability": 0.7677846995688398,
               "baselineProbability": 0.6923920192940145,
               "edgePp": 7.539268027482526,
@@ -17948,7 +17948,7 @@
             "expectedAwayGoals": 0.8317097534584789,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Getafe CF",
               "modelProbability": 0.7973512905213636,
               "baselineProbability": 0.6923920192940145,
               "edgePp": 10.495927122734905,
@@ -18520,7 +18520,7 @@
             "expectedAwayGoals": 1.368918629472399,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Real Madrid CF",
               "modelProbability": 0.5132938342262079,
               "baselineProbability": 0.4312650734488051,
               "edgePp": 8.202876077740278,
@@ -18564,7 +18564,7 @@
             "expectedAwayGoals": 0.8163886163121925,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Elche CF",
               "modelProbability": 0.8028893556488637,
               "baselineProbability": 0.6923920192940145,
               "edgePp": 11.049733635484916,
@@ -18817,7 +18817,7 @@
             "expectedAwayGoals": 0.8236694544767003,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Sevilla FC",
               "modelProbability": 0.7002944157074168,
               "baselineProbability": 0.568734926551195,
               "edgePp": 13.155948915622185,
@@ -19485,7 +19485,7 @@
             "expectedAwayGoals": 0.9628412907016827,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Parma Calcio 1913",
               "modelProbability": 0.6923850230642985,
               "baselineProbability": 0.5675675675675675,
               "edgePp": 12.481745549673096,
@@ -22135,7 +22135,7 @@
             "expectedAwayGoals": 0.9922571147415066,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · AC Monza",
               "modelProbability": 0.7386073020725643,
               "baselineProbability": 0.6497473082838936,
               "edgePp": 8.885999378867071,
@@ -22575,7 +22575,7 @@
             "expectedAwayGoals": 1.1587323287097229,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Parma Calcio 1913",
               "modelProbability": 0.6708880091518415,
               "baselineProbability": 0.5675675675675675,
               "edgePp": 10.3320441584274,
@@ -22663,7 +22663,7 @@
             "expectedAwayGoals": 1.1920737157995676,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · AC Milan",
               "modelProbability": 0.5301434342508942,
               "baselineProbability": 0.43243243243243246,
               "edgePp": 9.77110018184617,
@@ -24016,7 +24016,7 @@
             "expectedAwayGoals": 0.973593157363177,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Parma Calcio 1913",
               "modelProbability": 0.7454722728040661,
               "baselineProbability": 0.6497473082838936,
               "edgePp": 9.572496452017255,
@@ -24577,7 +24577,7 @@
             "expectedAwayGoals": 1.1342582800284822,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · AC Monza",
               "modelProbability": 0.6627164022155783,
               "baselineProbability": 0.5675675675675675,
               "edgePp": 9.514883464801072,
@@ -24863,7 +24863,7 @@
             "expectedAwayGoals": 0.9247765998176771,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Parma Calcio 1913",
               "modelProbability": 0.7634049222784154,
               "baselineProbability": 0.6497473082838936,
               "edgePp": 11.365761399452179,
@@ -25443,7 +25443,7 @@
             "expectedAwayGoals": 1.4723295773294391,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Eintracht Frankfurt",
               "modelProbability": 0.553245367960126,
               "baselineProbability": 0.48992374727668847,
               "edgePp": 6.332162068343755,
@@ -25630,7 +25630,7 @@
             "expectedAwayGoals": 1.2972325063865326,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Eintracht Frankfurt",
               "modelProbability": 0.5270133405799113,
               "baselineProbability": 0.5100762527233116,
               "edgePp": 1.6937087856599753,
@@ -26081,7 +26081,7 @@
             "expectedAwayGoals": 1.5235789540459257,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Augsburg",
               "modelProbability": 0.5531608411841249,
               "baselineProbability": 0.48992374727668847,
               "edgePp": 6.323709390743643,
@@ -28841,7 +28841,7 @@
             "expectedAwayGoals": 1.2640730218661136,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Borussia Dortmund",
               "modelProbability": 0.6995847339655649,
               "baselineProbability": 0.48992374727668847,
               "edgePp": 20.96609866888764,
@@ -29479,7 +29479,7 @@
             "expectedAwayGoals": 1.4859732458610426,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Augsburg",
               "modelProbability": 0.5482830878353384,
               "baselineProbability": 0.48992374727668847,
               "edgePp": 5.835934055864994,
@@ -29765,7 +29765,7 @@
             "expectedAwayGoals": 1.2767374914683907,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · Eintracht Frankfurt",
               "modelProbability": 0.6350865449939765,
               "baselineProbability": 0.6239106753812635,
               "edgePp": 1.1175869612712996,
@@ -30172,7 +30172,7 @@
             "expectedAwayGoals": 1.4857399461864007,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · SC Freiburg",
               "modelProbability": 0.5667216701341454,
               "baselineProbability": 0.48992374727668847,
               "edgePp": 7.6797922857456955,
@@ -30755,7 +30755,7 @@
             "expectedAwayGoals": 1.9527008708817613,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Borussia Dortmund",
               "modelProbability": 0.5810403104188472,
               "baselineProbability": 0.3760893246187364,
               "edgePp": 20.495098580011078,
@@ -31577,7 +31577,7 @@
             "expectedAwayGoals": 1.154638905875215,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · FC Lorient",
               "modelProbability": 0.6168495713377483,
               "baselineProbability": 0.567950839045143,
               "edgePp": 4.889873229260533,
@@ -31852,7 +31852,7 @@
             "expectedAwayGoals": 1.250637419769755,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · FC Lorient",
               "modelProbability": 0.5171837089081686,
               "baselineProbability": 0.432049160954857,
               "edgePp": 8.513454795331155,
@@ -33863,7 +33863,7 @@
             "expectedAwayGoals": 1.1995312022103914,
             "strongestSignal": {
               "market": "Хозяева забьют 2+",
-              "side": "ИТБ 1.5",
+              "side": "ИТБ 1.5 · Paris FC",
               "modelProbability": 0.5254217057077081,
               "baselineProbability": 0.432049160954857,
               "edgePp": 9.337254475285107,
@@ -35766,7 +35766,7 @@
             "expectedAwayGoals": 1.052960176801206,
             "strongestSignal": {
               "market": "Гости забьют 2+",
-              "side": "ИТМ 1.5",
+              "side": "ИТМ 1.5 · FC Lorient",
               "modelProbability": 0.7162847922852809,
               "baselineProbability": 0.6761994800283622,
               "edgePp": 4.008531225691869,
