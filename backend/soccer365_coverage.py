@@ -119,7 +119,7 @@ def summarize_historical_coverage(
         group = groups[key]
         expected = group["expectedFinishedMatches"]
         known_expected = isinstance(expected, int) and not isinstance(expected, bool) and expected >= 0
-        source_complete = known_expected and group["finishedMatches"] >= expected
+        source_complete = known_expected and group["finishedMatches"] == expected
         teams = [
             {
                 "team": team_key,
@@ -133,6 +133,7 @@ def summarize_historical_coverage(
             **{k: v for k, v in group.items() if not k.startswith("_")},
             "expectedCountVerified": known_expected,
             "sourceHistoryComplete": source_complete if known_expected else None,
+            "finishedCountDelta": group["finishedMatches"] - expected if known_expected else None,
             "finishedResultCoverage": (
                 group["finishedWithScore"] / expected if known_expected and expected else None
             ),
