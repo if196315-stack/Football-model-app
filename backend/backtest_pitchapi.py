@@ -146,6 +146,47 @@ def calibration_metrics(items: list[dict], prefix: str, bins: int = 10) -> dict:
     return {"method": "one_vs_rest_equal_width", "bin_count": bins, "by_outcome": result}
 
 
+
+def apply_temperature(probs: dict[str, float], temperature: float) -> dict[str, float]:
+    """Apply scalar temperature scaling while preserving a valid 1X2 simplex."""
+    logits = {key: math.log(max(1e-15, probs[key])) / temperature for key in CLASSES}
+    peak = max(logits.values())
+    exp_values = {key: math.exp(value - peak) for key, value in logits.items()}
+    total = sum(exp_values.values())
+    return {key: value / total for key, value in exp_values.items()}
+
+
+def fit_temperature(items: list[dict], prefix: str = "model") -> float:
+    """Fit one scalar temperature using only the supplied chronological training rows."""
+    if not items:
+        return 1.0
+
+    def objective(log_temperature: float) -> float:
+        temperature = math.exp(log_temperature)
+        loss = 0.0
+        for item in items:
+            scaled = apply_temperature(item[prefix], temperature)
+            loss -= math.log(max(1e-15, scaled[item["actual"]]))
+        return loss / len(items)
+
+    # Golden-section search over T in [exp(-3), exp(3)].
+    left, right = -3.0, 3.0
+    ratio = (math.sqrt(5.0) - 1.0) / 2.0
+    x1 = right - ratio * (right - left)
+    x2 = left + ratio * (right - left)
+    y1, y2 = objective(x1), objective(x2)
+    for _ in range(100):
+        if y1 <= y2:
+            right, x2, y2 = x2, x1, y1
+            x1 = right - ratio * (right - left)
+            y1 = objective(x1)
+        else:
+            left, x1, y1 = x1, x2, y2
+            x2 = left + ratio * (right - left)
+            y2 = objective(x2)
+    return math.exp((left + right) / 2.0)
+
+
 def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_predictions: bool = False) -> dict:
     # Histories contain only paired, non-null PitchAPI shot-level xG.
     histories = defaultdict(list)
@@ -206,7 +247,13 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
                 league_xg[league].append({"side": "home", "home_xg": match["hx"], "away_xg": match["ax"]})
                 league_xg[league].append({"side": "away", "home_xg": match["hx"], "away_xg": match["ax"]})
 
+    train_for_calibration = [p for p in predictions if p["date"] < holdout_from]
     holdout = [p for p in predictions if p["date"] >= holdout_from]
+    temperature = fit_temperature(train_for_calibration, "model")
+    calibrated_holdout = [
+        {**item, "calibrated_model": apply_temperature(item["model"], temperature)}
+        for item in holdout
+    ]
     groups = defaultdict(list)
     for item in predictions:
         groups[(item["league"], item["season"])].append(item)
@@ -236,6 +283,16 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
         "holdout_calibration": {
             "model": calibration_metrics(holdout, "model"),
             "baseline": calibration_metrics(holdout, "baseline"),
+        },
+        "temperature_scaling": {
+            "method": "scalar_temperature_fit_on_pre_holdout_predictions",
+            "fit_period": f"dates_before_{holdout_from}",
+            "fit_n": len(train_for_calibration),
+            "temperature": temperature,
+            "holdout_raw": score_metrics(holdout, "model"),
+            "holdout_calibrated": score_metrics(calibrated_holdout, "calibrated_model"),
+            "holdout_raw_calibration": calibration_metrics(holdout, "model"),
+            "holdout_calibrated_calibration": calibration_metrics(calibrated_holdout, "calibrated_model"),
         },
         "by_league_season": season_metrics,
         "model_config": {"window": WINDOW, "half_life": HALF_LIFE, "shrinkage": SHRINKAGE,
