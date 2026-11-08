@@ -104,6 +104,20 @@ class PitchApiProbeTests(unittest.TestCase):
             for fixture in fixtures
         ))
 
+    def test_match_context_preserves_competition_stage_metadata(self):
+        from probe_pitchapi_coverage import match_context
+
+        result = match_context({
+            "round": "Relegation Playoff",
+            "stage": {"id": 7, "name": "Playoff", "unused": "ignored"},
+            "matchday": 38,
+            "unrelated": "not copied",
+        })
+        self.assertEqual(result["round"], "Relegation Playoff")
+        self.assertEqual(result["stage"], {"id": 7, "name": "Playoff"})
+        self.assertEqual(result["matchday"], 38)
+        self.assertNotIn("unrelated", result)
+
     def test_invalid_sample_limit_is_rejected_before_network_access(self):
         from probe_pitchapi_coverage import run_audit
 

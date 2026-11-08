@@ -1,7 +1,7 @@
 """Read-only PitchAPI coverage and xG spot audit.
 
 Reads PITCHAPI_API_KEY from the environment. No application or production data
-is modified. Samples five matches per league-season for shot-level xG.
+is modified. Samples a configurable number of matches per league-season for shot-level xG.
 """
 from __future__ import annotations
 
@@ -160,6 +160,30 @@ def match_integrity(matches: list[dict], season: str | None = None) -> dict:
         "teamFixtureLists": team_fixture_lists,
     }
 
+def match_context(match: dict) -> dict:
+    """Expose only compact provider fields that may distinguish league stages."""
+    keys = (
+        "round", "round_name", "stage", "stage_name", "matchday", "match_day",
+        "phase", "group", "leg", "competition_type", "competition_name",
+        "tournament", "league",
+    )
+    context = {}
+    for key in keys:
+        value = match.get(key)
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            if key in match:
+                context[key] = value
+        elif isinstance(value, dict):
+            compact = {
+                nested: value[nested]
+                for nested in ("id", "name", "type", "slug")
+                if isinstance(value.get(nested), (str, int, float, bool))
+            }
+            if compact:
+                context[key] = compact
+    return context
+
+
 def flatten_shots(data: dict) -> list[dict]:
     """PitchAPI groups shots under periods[].shots."""
     if not isinstance(data, dict):
@@ -272,6 +296,14 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                 "listedMatches": len(matches) if isinstance(matches, list) else None,
                 "finishedMatches": status_counts.get("finished", 0),
                 "statusCounts": dict(status_counts),
+                "providerMatchFields": sorted({
+                    key for match in matches if isinstance(match, dict) for key in match
+                }),
+                "sampleMatchContext": [
+                    {"matchId": match.get("id"), "date": match.get("date"),
+                     **match_context(match)}
+                    for match in samples
+                ],
                 **integrity,
                 "xgSampleSize": len(inspected),
                 "xgPairedSamples": sum(bool(x["pairedXgPresent"]) for x in inspected),
