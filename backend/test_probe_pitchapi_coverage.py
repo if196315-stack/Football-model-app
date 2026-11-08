@@ -122,6 +122,43 @@ class PitchApiProbeTests(unittest.TestCase):
         self.assertEqual(result["matchday"], 38)
         self.assertNotIn("unrelated", result)
 
+
+    def test_match_integrity_excludes_only_explicit_playoff_ids(self):
+        matches = [
+            {"id": "1", "date": "2023-08-01", "status": "finished",
+             "home_team": {"id": 1, "name": "A"}, "away_team": {"id": 2, "name": "B"}},
+            {"id": "2", "date": "2023-08-02", "status": "finished",
+             "home_team": {"id": 1, "name": "A"}, "away_team": {"id": 2, "name": "B"}},
+        ]
+        result = match_integrity(matches, "2023/2024", {"2"})
+        self.assertEqual([row["matches"] for row in result["teamMatchCounts"]], [1, 1])
+        self.assertEqual(len(result["teamFixtureLists"]["1"]), 1)
+
+    def test_inspect_match_metadata_reads_playoff_flag(self):
+        from probe_pitchapi_coverage import inspect_match_metadata
+
+        class Response:
+            status_code = 200
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {"data": {
+                    "id": "m_playoff", "round_name": "Relegation Playoff",
+                    "has_playoff": True, "status": "finished",
+                    "home_team": {"name": "A"}, "away_team": {"name": "B"},
+                }}
+
+        class Session:
+            def get(self, url, **kwargs):
+                self.url = url
+                return Response()
+
+        session = Session()
+        result = inspect_match_metadata(session, "m_playoff", "unused")
+        self.assertTrue(result["has_playoff"])
+        self.assertEqual(result["round_name"], "Relegation Playoff")
+        self.assertTrue(session.url.endswith("/matches/m_playoff"))
+
     def test_invalid_sample_limit_is_rejected_before_network_access(self):
         from probe_pitchapi_coverage import run_audit
 
