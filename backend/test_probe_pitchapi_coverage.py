@@ -159,6 +159,36 @@ class PitchApiProbeTests(unittest.TestCase):
         self.assertEqual(result["round_name"], "Relegation Playoff")
         self.assertTrue(session.url.endswith("/matches/m_playoff"))
 
+    def test_fetch_retries_transient_521_gateway_error(self):
+        from unittest.mock import patch
+        from probe_pitchapi_coverage import fetch
+
+        class Response:
+            def __init__(self, status, body):
+                self.status_code = status
+                self.body = body
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    import requests
+                    raise requests.HTTPError(f"HTTP {self.status_code}")
+            def json(self):
+                return self.body
+
+        class Session:
+            def __init__(self):
+                self.calls = 0
+            def get(self, *args, **kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    return Response(521, {})
+                return Response(200, {"data": {"ok": True}})
+
+        session = Session()
+        with patch("probe_pitchapi_coverage.time.sleep", return_value=None):
+            result = fetch(session, "/leagues", "unused")
+        self.assertEqual(session.calls, 2)
+        self.assertEqual(result, {"ok": True})
+
     def test_invalid_sample_limit_is_rejected_before_network_access(self):
         from probe_pitchapi_coverage import run_audit
 
