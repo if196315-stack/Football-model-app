@@ -70,5 +70,54 @@ class PitchApiDataSourceTests(unittest.TestCase):
         self.assertEqual([r["id"] for r in model_history_rows(cache)], ["good"])
 
 
+
+    def test_refresh_requests_upcoming_fixtures_and_caches_them(self):
+        class Response:
+            status_code = 200
+            headers = {}
+            def __init__(self, data):
+                self.data = data
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {"data": self.data}
+
+        leagues = [
+            {"id": f"l_{code}", "name": name, "country_code": code,
+             "seasons": ["2026/2027"]}
+            for code, name in [
+                ("ENG", "Premier League"), ("ESP", "LaLiga"),
+                ("ITA", "Serie A"), ("GER", "Bundesliga"),
+                ("FRA", "Ligue 1"),
+            ]
+        ]
+        class Session:
+            def __init__(self):
+                self.match_params = []
+            def get(self, url, params=None, **kwargs):
+                if url.endswith("/leagues"):
+                    return Response({"leagues": leagues})
+                self.match_params.append(params)
+                code = url.split("/leagues/")[1].split("/")[0]
+                return Response({"matches": [{
+                    "id": f"m_{code}", "date": "2026-11-20",
+                    "status": "not_started", "score_home": None,
+                    "score_away": None,
+                    "home_team": {"id": f"h_{code}", "name": "Home"},
+                    "away_team": {"id": f"a_{code}", "name": "Away"},
+                }]})
+
+        with tempfile.TemporaryDirectory() as tmp:
+            session = Session()
+            result = refresh_history(
+                "test-key", session=session, cache_path=Path(tmp) / "cache.json",
+                pause_seconds=0, max_shot_requests=0,
+            )
+        self.assertEqual(len(session.match_params), 5)
+        self.assertTrue(all(p["status"] == "all" for p in session.match_params))
+        self.assertEqual(len(result["cache"]["matches"]), 5)
+        self.assertTrue(all(r["status"] == "not_started"
+                            for r in result["cache"]["matches"].values()))
+
 if __name__ == "__main__":
     unittest.main()
