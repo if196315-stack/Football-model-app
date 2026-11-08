@@ -124,12 +124,12 @@ def match_integrity(matches: list[dict], season: str | None = None,
     away_appearances = Counter()
     team_names = {}
     excluded_match_ids = excluded_match_ids or set()
-    # Regular-season integrity counts only normally finished matches.
-    # Awarded/canceled fixtures remain visible in statusCounts but must not
-    # inflate played-match appearances or expected round-robin totals.
+    # Regular-season integrity excludes explicitly canceled/awarded fixtures.
+    # These remain visible in statusCounts but must not inflate played-match
+    # appearances or expected round-robin totals.
     countable_rows = [
         m for m in rows
-        if norm(m.get("status")) == "finished"
+        if norm(m.get("status")) not in {"canceled", "cancelled", "awarded"}
         and str(m.get("id")) not in excluded_match_ids
     ]
     pair_counts = Counter()
