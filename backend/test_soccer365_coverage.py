@@ -97,6 +97,7 @@ class Soccer365CoverageTests(unittest.TestCase):
             competitionId="eng-cup",
             competitionName="FA Cup",
             competitionType="domestic_cup",
+            url="https://soccer365.net/verified/fa-cup/",
         )
         next_season = entry(
             season="2025-2026",
