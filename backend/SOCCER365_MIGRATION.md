@@ -94,3 +94,12 @@ The store is deliberately format-neutral at the application boundary: it stores 
 Supported type labels are `league`, `domestic_cup`, `international_cup`, `friendly`, and `national_team`. The validator rejects duplicate competition-season identities, duplicate URLs, unknown types, non-Soccer365 hosts, non-HTTPS URLs, nonstandard ports, query strings and fragments.
 
 The validator deliberately does not generate URLs, infer seasons, resolve redirects, fetch pages, or populate a catalogue with guessed competition IDs. Different seasons for the same competition are separate manifest entries. A real catalogue must be populated only after the corresponding pages and permitted access method have been verified.
+
+
+## Manifest-driven collector (isolated prototype)
+
+`backend/soccer365_collector.py` connects the verified manifest, competition-page link extraction and match-page parser. It requests only URLs explicitly present in the manifest and match links found on those pages. It does not crawl site navigation, guess season routes, follow redirects itself, or bypass access controls; the supplied `Soccer365Client` still rejects redirects and non-canonical hosts.
+
+The collector returns normalized records plus per-competition counts, warnings and errors. Any failed competition or match page makes the run incomplete. A match URL appearing under multiple competition entries is quarantined as an identity error rather than silently assigned to the first competition. An invalid manifest causes zero HTTP requests.
+
+The collector does not write to the JSONL store. A future runner must require an explicitly complete collection, review its quality report, and only then call the append-only store. Partial records are diagnostic evidence, not a complete season snapshot. The module is not wired into scheduled CI or production; tests use a fake client and synthetic HTML only.
