@@ -306,8 +306,8 @@ class MainActivity : Activity() {
             BetMarket("dnbHome","П1 с возвратом при ничьей"), BetMarket("dnbAway","П2 с возвратом при ничьей"), BetMarket("1","П1"),
             BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
             BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
-            BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 хозяев"),
-            BetMarket("awayOver15","ИТБ 1.5 гостей")
+            BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
+            BetMarket("awayOver15","ИТБ 1.5 · ${m.optString("away")}")
         ).filter { p.has(it.key) && !p.isNull(it.key) }
         if (markets.isEmpty()) return
         val form = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(20,8,20,0) }
@@ -440,7 +440,7 @@ class MainActivity : Activity() {
         section("1. ЧТО ДЕЛАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы каждой команды по истории xG (ожидаемых голов). Затем независимая модель Пуассона строит распределение возможных счетов. Из него рассчитываются вероятности исходов и рынков. Это вероятности, а не прогноз точного счёта.")
         section("2. НАШИ ОСНОВНЫЕ РЫНКИ",
-            "1X — хозяева победят ИЛИ матч закончится вничью. Ставка выигрывает в обоих случаях.\n\nX2 — гости победят ИЛИ матч закончится вничью. Ставка выигрывает в обоих случаях.\n\nП1 с возвратом при ничьей: выигрыш при победе хозяев, возврат суммы при ничьей, проигрыш при победе гостей.\n\nП2 с возвратом при ничьей: выигрыш при победе гостей, возврат суммы при ничьей, проигрыш при победе хозяев. Вероятности этих двух рынков считаются среди матчей без ничьей.\n\nИТБ 1.5 — команда забьёт минимум 2 гола.")
+            "1X — хозяева победят ИЛИ матч закончится вничью. Ставка выигрывает в обоих случаях.\n\nX2 — гости победят ИЛИ матч закончится вничью. Ставка выигрывает в обоих случаях.\n\nП1 с возвратом при ничьей: выигрыш при победе хозяев, возврат суммы при ничьей, проигрыш при победе гостей.\n\nП2 с возвратом при ничьей: выигрыш при победе гостей, возврат суммы при ничьей, проигрыш при победе хозяев. Вероятности этих двух рынков считаются среди матчей без ничьей.\n\nИТБ 1.5 — указанная в названии команда забьёт минимум 2 гола.")
         section("3. П1, X И П2 — ЗАЧЕМ ОНИ ПОКАЗАНЫ",
             "П1 — вероятность победы хозяев; X — вероятность ничьей; П2 — вероятность победы гостей. Это вероятности нашей модели, не коэффициенты и не оценки букмекера. Они выводятся из распределения счетов. Из них следуют 1X = П1 + X и X2 = X + П2. Они показаны для контекста, но не являются главными рынками оценки модели.")
         section("4. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
@@ -581,7 +581,8 @@ class MainActivity : Activity() {
                     addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
                     addMarketRow(mainMarkets, listOf(Triple("П1 · при ничьей возврат", pct(pred, "dnbHome"), accent), Triple("П2 · при ничьей возврат", pct(pred, "dnbAway"), cyan)))
                     addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
-                    addText(mainMarkets, "Хозяева ${pct(pred, "homeOver15")}     Гости ${pct(pred, "awayOver15")}", 13, true, Color.WHITE)
+                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 12, true, Color.WHITE)
+                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
                     val signal = pred.optJSONObject("strongestSignal")
                     val signalBox = card(box)
                     signalBox.background = rounded(Color.rgb(24, 37, 58), 17)
