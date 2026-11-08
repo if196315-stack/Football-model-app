@@ -175,7 +175,7 @@ def main():
                     # Football-Data.org applies a shared request-rate limit. Retry 429
                     # responses and respect Retry-After instead of silently losing leagues.
                     url=f"https://api.football-data.org/v4/competitions/{code}/matches"
-                    params={"status":"SCHEDULED,TIMED,IN_PLAY,PAUSED,FINISHED"}
+                    params={"status":"SCHEDULED,TIMED,POSTPONED,IN_PLAY,PAUSED,FINISHED"}
                     r=None
                     for attempt in range(4):
                         r=requests.get(url,headers={"X-Auth-Token":token},params=params,timeout=35)
