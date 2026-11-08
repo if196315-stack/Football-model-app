@@ -21,19 +21,63 @@ LEAGUES = {
 
 
 def norm(value):
-    value = str(value or "").lower().replace("&", " and ")
-    value = re.sub(r"\b(fc|afc|cf|sc|ac|club|football|the)\b", " ", value)
-    return " ".join(re.findall(r"[a-z0-9]+", value))
+    import unicodedata
+    value = unicodedata.normalize("NFKD", str(value or "").lower())
+    value = "".join(ch for ch in value if not unicodedata.combining(ch))
+    value = value.replace("&", " and ")
+    value = re.sub(r"[^a-z0-9]+", " ", value)
+    ignored = {"fc","afc","cf","sc","ac","club","football","the","de","del","cd","ud","sd","fk","sk","sv","vfl","tsv"}
+    return " ".join(x for x in value.split() if x not in ignored)
 
 
-def similarity(a, b):
-    aa, bb = norm(a), norm(b)
+# Known naming variants used by fixture and bookmaker feeds.
+ALIASES = {
+    "PL": {
+        "man utd":"manchester united", "man united":"manchester united",
+        "man city":"manchester city", "spurs":"tottenham hotspur",
+        "wolves":"wolverhampton wanderers", "west ham":"west ham united",
+        "newcastle":"newcastle united", "brighton":"brighton hove albion",
+        "nottm forest":"nottingham forest", "forest":"nottingham forest",
+    },
+    "PD": {
+        "atletico madrid":"atletico de madrid", "athletic bilbao":"athletic club",
+        "real betis":"real betis", "celta vigo":"celta",
+        "sociedad":"real sociedad", "espanyol":"espanyol",
+    },
+    "SA": {
+        "inter":"internazionale", "inter milan":"internazionale",
+        "milan":"milan", "roma":"roma", "lazio":"lazio",
+        "napoli":"napoli",
+    },
+    "BL1": {
+        "bayern":"bayern munich", "bayern munchen":"bayern munich",
+        "dortmund":"borussia dortmund", "gladbach":"borussia monchengladbach",
+        "leverkusen":"bayer leverkusen", "koln":"koln",
+    },
+    "FL1": {
+        "psg":"paris saint germain", "paris sg":"paris saint germain",
+        "olympique lyon":"lyon", "olympique marseille":"marseille",
+        "st etienne":"saint etienne",
+    },
+}
+
+
+def canonical(value, league):
+    value = norm(value)
+    aliases = ALIASES.get(league, {})
+    return norm(aliases.get(value, value))
+
+
+def similarity(a, b, league=None):
+    aa, bb = canonical(a, league), canonical(b, league)
     if not aa or not bb:
         return 0.0
     if aa == bb:
         return 1.0
-    return SequenceMatcher(None, aa, bb).ratio()
-
+    seq = SequenceMatcher(None, aa, bb).ratio()
+    ta, tb = set(aa.split()), set(bb.split())
+    token = 2 * len(ta & tb) / max(1, len(ta) + len(tb))
+    return 0.72 * seq + 0.28 * token
 
 def parse_time(value):
     try:
@@ -70,7 +114,7 @@ def read_market(bookmaker, key, home, away):
     return out or None
 
 
-def event_for_match(match, events):
+def event_for_match(match, events, league):
     target_time = parse_time(match.get("utcDate", ""))
     if not target_time:
         return None
@@ -79,15 +123,15 @@ def event_for_match(match, events):
         event_time = parse_time(event.get("commence_time", ""))
         if not event_time or abs((event_time - target_time).total_seconds()) > 18 * 3600:
             continue
-        h = similarity(match.get("home"), event.get("home_team"))
-        a = similarity(match.get("away"), event.get("away_team"))
+        h = similarity(match.get("home"), event.get("home_team"), league)
+        a = similarity(match.get("away"), event.get("away_team"), league)
         score = h + a
-        if h >= 0.78 and a >= 0.78:
+        if h >= 0.86 and a >= 0.86 and min(h, a) >= 0.86:
             ranked.append((score, event))
     ranked.sort(key=lambda item: item[0], reverse=True)
     if not ranked:
         return None
-    if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.04:
+    if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.10:
         return None
     return ranked[0][1]
 
@@ -185,7 +229,7 @@ def main():
                     continue
                 league_eligible += 1
                 eligible += 1
-                event = event_for_match(match, events)
+                event = event_for_match(match, events, code)
                 if event:
                     league_matched += 1
                     matched += 1
