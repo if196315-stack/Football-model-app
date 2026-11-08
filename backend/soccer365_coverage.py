@@ -56,6 +56,7 @@ def summarize_historical_coverage(
             "missingUtcKickoff": 0,
             "missingTeamIds": 0,
             "duplicateIds": 0,
+            "missingMatchIds": 0,
             "_ids": set(),
             "_teams": defaultdict(lambda: {"pairedXgMatches": 0, "finishedMatches": 0}),
         }
@@ -73,6 +74,8 @@ def summarize_historical_coverage(
             unmatched_records += 1
             continue
         raw_id = row.get("id")
+        if raw_id is None or not str(raw_id).strip():
+            group["missingMatchIds"] += 1
         if raw_id is not None and str(raw_id).strip():
             match_id = str(raw_id).strip()
             if match_id in group["_ids"]:
@@ -119,7 +122,12 @@ def summarize_historical_coverage(
         group = groups[key]
         expected = group["expectedFinishedMatches"]
         known_expected = isinstance(expected, int) and not isinstance(expected, bool) and expected >= 0
-        source_complete = known_expected and group["finishedMatches"] == expected
+        source_complete = (
+            known_expected
+            and group["finishedMatches"] == expected
+            and group["duplicateIds"] == 0
+            and group["missingMatchIds"] == 0
+        )
         teams = [
             {
                 "team": team_key,
