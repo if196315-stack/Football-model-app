@@ -31,12 +31,26 @@ def inspect_shots(session, match_id: str, api_key: str) -> dict:
         if team_id is not None and isinstance(xg, (int, float)) and not isinstance(xg, bool) and 0 <= xg <= 1:
             totals[str(team_id)] += float(xg)
             valid += 1
+    try:
+        meta = fetch(session, f"/matches/{match_id}", api_key)
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        meta = {}
+    home = (meta.get("home_team") or {}).get("name")
+    away = (meta.get("away_team") or {}).get("name")
+    home_id = str((meta.get("home_team") or {}).get("id"))
+    away_id = str((meta.get("away_team") or {}).get("id"))
     return {
         "matchId": match_id,
         "fetchStatus": "ok",
+        "date": meta.get("date"),
+        "home": home,
+        "away": away,
+        "score": meta.get("score"),
         "shotCount": len(shots),
         "validXgShots": valid,
-        "teamXgTotals": {key: round(value, 4) for key, value in totals.items()},
+        "homeXg": round(totals[home_id], 4) if home_id in totals else None,
+        "awayXg": round(totals[away_id], 4) if away_id in totals else None,
+        "teamXgTotalsById": {key: round(value, 4) for key, value in totals.items()},
     }
 
 
