@@ -84,6 +84,18 @@ class PitchApiBacktestTests(unittest.TestCase):
             result["holdout_raw"]["n"],
         )
 
+    def test_holdout_metrics_are_reported_by_league_season(self):
+        report = walk_forward(self.sample(), holdout_from="2024-08-07")
+        rows = report["holdout_by_league_season"]
+        self.assertTrue(rows)
+        self.assertEqual(
+            sum(item["raw_model"]["n"] for item in rows.values()),
+            report["holdout"]["model"]["n"],
+        )
+        for item in rows.values():
+            self.assertEqual(item["raw_model"]["n"], item["temperature_scaled_model"]["n"])
+            self.assertEqual(item["raw_model"]["n"], item["baseline"]["n"])
+
     def test_prediction_rows_are_opt_in(self):
         report = walk_forward(self.sample())
         self.assertNotIn("predictions", report)
