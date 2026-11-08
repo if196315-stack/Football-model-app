@@ -106,7 +106,9 @@ def collect_catalog(client: Any, entries: Iterable[dict[str, Any]]) -> dict[str,
         reports.append(report)
 
     return {
-        "complete": not errors,
+        "complete": not errors and not any(
+            warning.get("code") == "no_match_links_found" for warning in warnings
+        ),
         "catalogValid": True,
         "catalogValidation": validation,
         "records": records,
