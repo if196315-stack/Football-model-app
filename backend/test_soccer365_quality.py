@@ -12,6 +12,7 @@ def record(**overrides):
         "competitionId": "eng-prem",
         "competition": "Premier League",
         "competitionType": "league",
+        "season": "2026-2027",
         "utcDate": "2026-08-01T15:00:00+00:00",
         "status": "FINISHED",
         "homeScore": 2,
@@ -34,12 +35,19 @@ class Soccer365QualityTests(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertIn("duplicate_match_id", [x["code"] for x in result["issues"]])
 
-    def test_possible_duplicate_fixture_with_different_ids_is_reported(self):
+    def test_near_time_duplicate_with_different_ids_is_reported(self):
         first = record()
-        second = record(id="s365-101")
+        second = record(id="s365-101", utcDate="2026-08-01T15:04:00+00:00")
         result = validate_match_records([first, second])
         self.assertTrue(result["valid"])
         self.assertIn("possible_duplicate_fixture", [x["code"] for x in result["issues"]])
+
+    def test_different_competitions_are_not_flagged_as_duplicates(self):
+        result = validate_match_records([
+            record(),
+            record(id="s365-101", competitionId="eng-cup", competitionType="cup"),
+        ])
+        self.assertNotIn("possible_duplicate_fixture", [x["code"] for x in result["issues"]])
 
     def test_missing_xg_stays_valid_and_is_not_zero_filled(self):
         item = record(statistics={"homeXg": None, "awayXg": None, "xgAvailable": False})
@@ -67,16 +75,30 @@ class Soccer365QualityTests(unittest.TestCase):
         self.assertFalse(result["valid"])
 
     def test_missing_competition_and_kickoff_are_warnings(self):
-        result = validate_match_records([record(competitionId=None, competition=None,
+        result = validate_match_records([record(competitionId=None,
                                                 utcDate=None, localKickoff=None)])
         codes = [x["code"] for x in result["issues"]]
-        self.assertIn("missing_competition", codes)
+        self.assertIn("missing_competition_id", codes)
         self.assertIn("missing_kickoff", codes)
+
+    def test_missing_season_and_competition_type_are_warnings(self):
+        result = validate_match_records([record(season=None, competitionType=None)])
+        codes = [x["code"] for x in result["issues"]]
+        self.assertIn("missing_season", codes)
+        self.assertIn("missing_competition_type", codes)
+
+    def test_naive_utc_datetime_is_not_model_ready(self):
+        result = validate_match_records([record(utcDate="2026-08-01T15:00:00")])
+        self.assertIn("invalid_utc_kickoff", [x["code"] for x in result["issues"]])
 
     def test_finished_without_score_is_warning(self):
         result = validate_match_records([record(homeScore=None, awayScore=None)])
         self.assertIn("finished_without_score", [x["code"] for x in result["issues"]])
         self.assertTrue(result["valid"])
+
+    def test_nonfinished_match_with_score_is_warning(self):
+        result = validate_match_records([record(status="SCHEDULED")])
+        self.assertIn("score_on_nonfinished_match", [x["code"] for x in result["issues"]])
 
     def test_same_team_on_both_sides_is_error(self):
         result = validate_match_records([record(away="Alpha FC")])
