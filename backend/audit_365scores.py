@@ -48,10 +48,21 @@ def norm(value):
     return re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
 
 
-def league_code(game):
+def league_code(game, competitions=None, countries=None):
     comp = game.get("competition") or game.get("tournament") or {}
-    name = norm(comp.get("name") or game.get("competitionName") or "")
-    country = norm((comp.get("country") or {}).get("name") if isinstance(comp.get("country"), dict) else comp.get("country"))
+    if not isinstance(comp, dict):
+        comp = {}
+    comp_id = game.get("competitionId")
+    if competitions and comp_id is not None:
+        comp = competitions.get(comp_id, comp)
+    name = norm(comp.get("name") or game.get("competitionName") or game.get("competitionDisplayName") or "")
+    country_obj = comp.get("country") or {}
+    if isinstance(country_obj, dict):
+        country = norm(country_obj.get("name"))
+    else:
+        country = norm(country_obj)
+    if not country and countries:
+        country = norm(countries.get(comp.get("countryId"), ""))
     hay = name + " " + country
     for code, aliases in LEAGUES.items():
         if any(norm(alias) in hay for alias in aliases):
@@ -152,8 +163,10 @@ def main():
                     "gameSample": (games[:3] if games else []),
                     "preview": json.dumps(payload, ensure_ascii=False)[:1200],
                 })
+            competitions = {c.get("id"): c for c in payload.get("competitions", []) if isinstance(c, dict)}
+            countries = {c.get("id"): c.get("name", "") for c in payload.get("countries", []) if isinstance(c, dict)}
             for game in games:
-                code = league_code(game)
+                code = league_code(game, competitions, countries)
                 gid = game.get("id") or game.get("gameId")
                 if code and gid is not None:
                     matches[str(gid)] = (code, game)
