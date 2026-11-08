@@ -1,7 +1,7 @@
 import unittest
 from collections import Counter
 
-from probe_pitchapi_coverage import choose_samples, season_start, norm, flatten_shots
+from probe_pitchapi_coverage import choose_samples, season_start, norm, flatten_shots, match_integrity
 
 
 class PitchApiProbeTests(unittest.TestCase):
@@ -38,6 +38,24 @@ class PitchApiProbeTests(unittest.TestCase):
 
     def test_normalise(self):
         self.assertEqual(norm("La-Liga"), "la liga")
+
+
+    def test_match_integrity_detects_duplicate_ids_and_fixtures(self):
+        matches = [
+            {"id": "1", "date": "2024-01-01T12:00:00Z",
+             "home_team": {"id": 10}, "away_team": {"id": 20}},
+            {"id": "1", "date": "2024-01-01T18:00:00Z",
+             "home_team": {"id": 20}, "away_team": {"id": 10}},
+            {"id": "2", "date": "2024-01-02T12:00:00Z",
+             "home_team": {"id": 30}, "away_team": {"id": 40}},
+        ]
+        result = match_integrity(matches)
+        self.assertEqual(result["uniqueMatchIds"], 2)
+        self.assertEqual(result["duplicateMatchIds"], ["1"])
+        self.assertEqual(result["uniqueFixtures"], 2)
+        self.assertEqual(result["duplicateFixtures"], [
+            {"date": "2024-01-01", "teamIds": ["10", "20"]}
+        ])
 
 
 if __name__ == "__main__":
