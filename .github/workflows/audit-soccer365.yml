@@ -7,6 +7,10 @@ on:
       - ".github/workflows/audit-soccer365.yml"
   workflow_dispatch:
 
+concurrency:
+  group: soccer365-xg-audit
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
