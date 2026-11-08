@@ -1,67 +1,128 @@
-import json
-import os
+import json, math, os, re
 from datetime import datetime, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
-
+import pandas as pd
 import requests
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs" / "data.json"
-COMPETITIONS = {
-    "PL": ("Англия · Premier League", "eng"),
-    "PD": ("Испания · La Liga", "esp"),
-    "SA": ("Италия · Serie A", "ita"),
-    "BL1": ("Германия · Bundesliga", "ger"),
-    "FL1": ("Франция · Ligue 1", "fra"),
-}
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/"docs"/"data.json"
+BASE="https://github.com/nlbair/openplay/releases/download/data-v0.1.0"
+COMPS={"PL":("Англия · Премьер-лига","eng"),"PD":("Испания · Ла Лига","esp"),"SA":("Италия · Серия A","ita"),"BL1":("Германия · Бундеслига","ger"),"FL1":("Франция · Лига 1","fra")}
+MAP={v:k for k,(_,v) in COMPS.items()}
+WINDOW,HALF_LIFE,SHRINKAGE=30,12.0,3.0
+
+def parquet(name):
+    p=ROOT/"backend"/"cache"/name
+    p.parent.mkdir(parents=True,exist_ok=True)
+    if not p.exists():
+        r=requests.get(f"{BASE}/{name}",timeout=120); r.raise_for_status(); p.write_bytes(r.content)
+    return pd.read_parquet(p)
+
+def key(s):
+    s=re.sub(r"[^a-z0-9]+"," ",str(s or "").lower().replace("&"," and "))
+    return " ".join(x for x in s.split() if x not in {"fc","afc","cf","sc","ac","club","football","the","de"})
+
+def match_name(name,names):
+    k=key(name); exact=[n for n in names if key(n)==k]
+    if len(exact)==1:return exact[0]
+    ranked=sorted(((SequenceMatcher(None,k,key(n)).ratio(),n) for n in names),reverse=True)
+    if ranked and ranked[0][0]>=.94 and (len(ranked)==1 or ranked[0][0]-ranked[1][0]>=.04):return ranked[0][1]
+    return None
+
+def history():
+    m=parquet("matches.parquet"); s=parquet("team_match_stats.parquet")
+    m=m[m.comp.isin(MAP)].copy(); s=s[s.comp.isin(MAP)].copy()
+    m["date"]=pd.to_datetime(m.date); s["date"]=pd.to_datetime(s.date)
+    h=m[["match_id","comp","home_team_id","home_team"]].rename(columns={"home_team_id":"team_id","home_team":"team"})
+    a=m[["match_id","comp","away_team_id","away_team"]].rename(columns={"away_team_id":"team_id","away_team":"team"})
+    s=s.merge(pd.concat([h,a]).drop_duplicates(["match_id","team_id"]),on=["match_id","comp","team_id"],how="left")
+    s=s.dropna(subset=["date","team","xg","xg_against"]).sort_values("date")
+    base={}
+    for c in MAP:
+        for side in ("home","away"):
+            v=s.loc[(s.comp==c)&(s.side==side),"xg"]
+            base[c,side]=float(v.mean()) if len(v) else None
+    return s,base
+
+def strengths(s,base):
+    out={}
+    for (c,t),g in s.groupby(["comp","team"]):
+        g=g.tail(WINDOW); aa=dd=sw=0.0
+        for i,(_,r) in enumerate(g.iterrows()):
+            w=.5**((len(g)-1-i)/HALF_LIFE); b=base.get((c,str(r.side))); ob=base.get((c,"away" if r.side=="home" else "home"))
+            if not b or not ob:continue
+            aa+=w*float(r.xg)/b; dd+=w*float(r.xg_against)/ob; sw+=w
+        if sw:out[c,t]={"attack":(aa+SHRINKAGE)/(sw+SHRINKAGE),"defence":(dd+SHRINKAGE)/(sw+SHRINKAGE),"matches":len(g)}
+    return out
+
+def pois(lam):
+    p=[math.exp(-lam)]
+    for i in range(1,13):p.append(p[-1]*lam/i)
+    p[-1]+=max(0,1-sum(p)); return p
+
+def markets(lh,la):
+    h,a=pois(lh),pois(la); p1=px=p2=ov15=ov25=ov35=btts=ho05=ho15=ho25=ao05=ao15=ao25=0.0
+    for x,hp in enumerate(h):
+        for y,ap in enumerate(a):
+            p=hp*ap
+            if x>y:p1+=p
+            elif x==y:px+=p
+            else:p2+=p
+            if x+y>=2:ov15+=p
+            if x+y>=3:ov25+=p
+            if x+y>=4:ov35+=p
+            if x and y:btts+=p
+            if x>=1:ho05+=p
+            if x>=2:ho15+=p
+            if x>=3:ho25+=p
+            if y>=1:ao05+=p
+            if y>=2:ao15+=p
+            if y>=3:ao25+=p
+    return {"1":p1,"x":px,"2":p2,"1x":p1+px,"x2":px+p2,"dnbHome":p1/max(1e-12,p1+p2),
+      "over15":ov15,"over25":ov25,"over35":ov35,"under25":1-ov25,"bttsYes":btts,"bttsNo":1-btts,
+      "homeOver05":ho05,"homeOver15":ho15,"homeOver25":ho25,"awayOver05":ao05,"awayOver15":ao15,"awayOver25":ao25,
+      "ah0Home":p1/max(1e-12,p1+p2),"ahMinus05Home":p1,"ahPlus05Home":p1+px,"expectedHomeGoals":lh,"expectedAwayGoals":la}
+
+def predict(c,home,away,st,base,names):
+    hn=match_name(home,names.get(c,[])); an=match_name(away,names.get(c,[]))
+    if not hn or not an:return None,"Не удалось надёжно сопоставить команды с Openplay"
+    hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))
+    if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
+    lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
+    return markets(lh,la),None
 
 def main():
-    token = os.getenv("FOOTBALL_DATA_TOKEN", "").strip()
-    now = datetime.now(timezone.utc).isoformat()
-    payload = {
-        "updatedAt": now,
-        "source": "Football-Data.org (fixtures/results); Openplay (xG source)",
-        "modelVersion": "Openplay v1.3 · frozen research baseline",
-        "modelConfig": {"window": 30, "halfLife": 12, "shrinkage": 3},
-        "openplayDataThrough": "2026-05-24",
-        "status": "waiting_for_openplay_2026_27",
-        "notice": "В опубликованном снимке Openplay пока нет xG матчей сезона 2026/27. Поэтому свежие прогнозы не рассчитываются.",
-        "competitions": [],
-    }
-    if not token:
-        payload["status"] = "missing_api_token"
-        payload["notice"] = "Добавьте FOOTBALL_DATA_TOKEN в GitHub Secrets, затем запустите workflow."
-    else:
-        headers = {"X-Auth-Token": token}
-        for code, (label, league) in COMPETITIONS.items():
-            item = {"code": code, "league": league, "name": label, "matches": [], "error": None}
-            try:
-                response = requests.get(
-                    "https://api.football-data.org/v4/competitions/" + code + "/matches",
-                    headers=headers, timeout=30,
-                )
-                response.raise_for_status()
-                body = response.json()
-                for match in body.get("matches", []):
-                    item["matches"].append({
-                        "id": match.get("id"),
-                        "utcDate": match.get("utcDate"),
-                        "status": match.get("status"),
-                        "home": (match.get("homeTeam") or {}).get("name", "TBD"),
-                        "away": (match.get("awayTeam") or {}).get("name", "TBD"),
-                        "homeScore": ((match.get("score") or {}).get("fullTime") or {}).get("home"),
-                        "awayScore": ((match.get("score") or {}).get("fullTime") or {}).get("away"),
-                    })
-            except Exception as exc:
-                item["error"] = str(exc)[:240]
-            payload["competitions"].append(item)
-        payload["status"] = "fixtures_only"
-        payload["notice"] = (
-            "Расписание и результаты обновлены. Прогнозы не публикуются: "
-            "сначала требуется подтвердить актуальный xG-снимок Openplay и сопоставление команд."
-        )
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    p={"updatedAt":datetime.now(timezone.utc).isoformat(),"source":"Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
+      "modelVersion":"Openplay v1.3 · frozen research baseline","modelConfig":{"window":WINDOW,"halfLife":HALF_LIFE,"shrinkage":SHRINKAGE},
+      "openplayDataThrough":None,"status":"initializing","notice":"Загружаю исторические xG и расписание.",
+      "dataWarning":"При отсутствии xG за текущий сезон прогноз использует последнюю доступную историю Openplay; дата базы указана отдельно.","competitions":[]}
+    try:
+        s,b=history(); st=strengths(s,b); p["openplayDataThrough"]=s.date.max().date().isoformat()
+        names={c:sorted(s.loc[s.comp==c,"team"].dropna().unique().tolist()) for c in MAP}
+        token=os.getenv("FOOTBALL_DATA_TOKEN","").strip()
+        if not token:
+            p["status"]="missing_api_token"; p["notice"]="Историческая модель загружена, но отсутствует FOOTBALL_DATA_TOKEN для получения расписания."
+        else:
+            for code,(label,c) in COMPS.items():
+                item={"code":code,"league":c,"name":label,"matches":[],"error":None}
+                try:
+                    r=requests.get(f"https://api.football-data.org/v4/competitions/{code}/matches",headers={"X-Auth-Token":token},
+                      params={"status":"SCHEDULED,TIMED,IN_PLAY,PAUSED,FINISHED"},timeout=35); r.raise_for_status()
+                    for m in r.json().get("matches",[]):
+                        home=(m.get("homeTeam") or {}).get("name") or "TBD"; away=(m.get("awayTeam") or {}).get("name") or "TBD"
+                        pred,warn=predict(c,home,away,st,b,names)
+                        score=(m.get("score") or {}).get("fullTime") or {}
+                        item["matches"].append({"id":m.get("id"),"utcDate":m.get("utcDate"),"status":m.get("status"),"home":home,"away":away,
+                          "homeScore":score.get("home"),"awayScore":score.get("away"),"prediction":pred,"predictionWarning":warn})
+                except Exception as e:item["error"]=str(e)[:240]
+                item["matches"].sort(key=lambda x:x.get("utcDate") or "")
+                p["competitions"].append(item)
+            upcoming=[m for c in p["competitions"] for m in c["matches"] if m.get("status") in ("SCHEDULED","TIMED") and m.get("prediction")]
+            p["status"]="ready" if upcoming else "no_predictions"
+            p["notice"]="Прогнозы рассчитаны по последней доступной истории Openplay. Свежесть xG указана отдельно."
+    except Exception as e:
+        p["status"]="model_data_error"; p["notice"]="Ошибка загрузки/обработки Openplay: "+str(e)[:300]
+    OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(p,ensure_ascii=False,indent=2),encoding="utf-8")
 
-if __name__ == "__main__":
-    main()
+if __name__=="__main__":main()
