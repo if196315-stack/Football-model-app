@@ -192,6 +192,72 @@ def predict(c,home,away,st,base,names,matches,target_date):
     pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
     return pred,None
 
+
+def update_prediction_archive(payload):
+    """Freeze forecasts before kickoff and attach final scores without rewriting forecasts."""
+    now = datetime.now(timezone.utc)
+    archive = {"version": 1, "matches": {}}
+    if OUT.exists():
+        try:
+            previous = json.loads(OUT.read_text(encoding="utf-8"))
+            old = previous.get("predictionArchive", {})
+            if isinstance(old.get("matches"), dict):
+                archive["matches"] = old["matches"]
+        except Exception:
+            pass
+
+    for competition in payload.get("competitions", []):
+        for match in competition.get("matches", []):
+            match_id = match.get("id")
+            if match_id is None:
+                continue
+            key_id = str(match_id)
+            status = match.get("status")
+            existing = archive["matches"].get(key_id)
+
+            if existing:
+                # Only attach the result. Never replace the captured forecast.
+                if status == "FINISHED" and match.get("homeScore") is not None and match.get("awayScore") is not None:
+                    existing["status"] = "FINISHED"
+                    existing["homeScore"] = match["homeScore"]
+                    existing["awayScore"] = match["awayScore"]
+                    existing["resultUpdatedAt"] = now.isoformat()
+                continue
+
+            # Capture only a forecast that exists before scheduled kickoff.
+            if status not in ("SCHEDULED", "TIMED") or not match.get("prediction"):
+                continue
+            try:
+                kickoff = datetime.fromisoformat(str(match.get("utcDate", "")).replace("Z", "+00:00"))
+                if kickoff.tzinfo is None:
+                    kickoff = kickoff.replace(tzinfo=timezone.utc)
+            except Exception:
+                continue
+            if kickoff <= now:
+                continue
+
+            archive["matches"][key_id] = {
+                "id": match_id,
+                "league": competition.get("name", ""),
+                "home": match.get("home", ""),
+                "away": match.get("away", ""),
+                "utcDate": match.get("utcDate", ""),
+                "predictionCapturedAt": now.isoformat(),
+                "status": "SCHEDULED",
+                "prediction": match["prediction"],
+                "homeScore": None,
+                "awayScore": None
+            }
+
+    payload["predictionArchive"] = archive
+    payload["evaluationMatches"] = [
+        item for item in archive["matches"].values()
+        if item.get("status") == "FINISHED"
+        and item.get("homeScore") is not None
+        and item.get("awayScore") is not None
+        and isinstance(item.get("prediction"), dict)
+    ]
+
 def preserve_existing_odds(payload):
     """Keep bookmaker quotes when the six-hour fixture/model refresh rewrites data.json."""
     if not OUT.exists():
@@ -282,6 +348,7 @@ def main():
             p["notice"]="Прогнозы рассчитаны по последней доступной истории Openplay. Свежесть xG указана отдельно."
     except Exception as e:
         p["status"]="model_data_error"; p["notice"]="Ошибка загрузки/обработки Openplay: "+str(e)[:300]
+    update_prediction_archive(p)
     preserve_existing_odds(p)
     OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(p,ensure_ascii=False,indent=2),encoding="utf-8")
 
