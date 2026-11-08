@@ -239,10 +239,20 @@ class Soccer365Client:
         self.min_delay = max(1.0, float(min_delay))
         self._last_request = 0.0
 
-    def get(self, url: str) -> str:
+    @staticmethod
+    def _validate_url(url: str) -> None:
         parsed = urlparse(url)
-        if parsed.netloc not in ("soccer365.net", "www.soccer365.net", "soccer365.ru", "www.soccer365.ru"):
-            raise ValueError("Only Soccer365 hosts are allowed")
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname not in {"soccer365.net", "www.soccer365.net"}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.port not in (None, 443)
+        ):
+            raise ValueError("Only HTTPS Soccer365.net URLs are allowed")
+
+    def get(self, url: str) -> str:
+        self._validate_url(url)
         delay = self.min_delay - (time.monotonic() - self._last_request)
         if delay > 0:
             time.sleep(delay)
