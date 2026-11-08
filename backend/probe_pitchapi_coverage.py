@@ -33,17 +33,29 @@ def norm(value: Any) -> str:
 
 
 def fetch(session: Any, path: str, api_key: str, params: dict | None = None) -> dict:
-    response = session.get(
-        f"{BASE_URL}{path}", params=params or {},
-        headers={"X-API-KEY": api_key}, timeout=TIMEOUT,
-    )
-    response.raise_for_status()
-    body = response.json()
-    if not isinstance(body, dict) or "data" not in body:
-        raise ValueError(f"Unexpected response envelope for {path}")
-    if "error" in body:
-        raise ValueError(f"API returned an error for {path}")
-    return body["data"]
+    """GET a PitchAPI resource, retrying transient transport and gateway errors."""
+    retryable_statuses = {429, 500, 502, 503, 504}
+    for attempt in range(3):
+        try:
+            response = session.get(
+                f"{BASE_URL}{path}", params=params or {},
+                headers={"X-API-KEY": api_key}, timeout=TIMEOUT,
+            )
+            if response.status_code in retryable_statuses and attempt < 2:
+                time.sleep(1 * (attempt + 1))
+                continue
+            response.raise_for_status()
+            body = response.json()
+            if not isinstance(body, dict) or "data" not in body:
+                raise ValueError(f"Unexpected response envelope for {path}")
+            if "error" in body:
+                raise ValueError(f"API returned an error for {path}")
+            return body["data"]
+        except requests.RequestException:
+            if attempt >= 2:
+                raise
+            time.sleep(1 * (attempt + 1))
+    raise RuntimeError(f"Unreachable retry state for {path}")
 
 
 def season_start(season: Any) -> int | None:
@@ -163,7 +175,22 @@ def flatten_shots(data: dict) -> list[dict]:
 
 
 def inspect_shots(session: Any, match: dict, api_key: str) -> dict:
-    data = fetch(session, f"/matches/{match['id']}/shots", api_key)
+    try:
+        data = fetch(session, f"/matches/{match['id']}/shots", api_key)
+    except requests.RequestException as exc:
+        return {
+            "matchId": match.get("id"),
+            "home": (match.get("home_team") or {}).get("name"),
+            "away": (match.get("away_team") or {}).get("name"),
+            "date": match.get("date"),
+            "status": match.get("status"),
+            "shotCount": None,
+            "validXgShots": None,
+            "homeXgFromShots": None,
+            "awayXgFromShots": None,
+            "pairedXgPresent": False,
+            "xgFetchError": type(exc).__name__,
+        }
     shots = flatten_shots(data)
     teams = {match.get("home_team", {}).get("id"), match.get("away_team", {}).get("id")}
     totals = Counter()
@@ -217,6 +244,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
             "Season match totals come from the provider's league match listing.",
             "xG is checked on up to xgSampleLimitPerSeason evenly spaced finished matches per season using shot-level expected_goals.",
             "This is a sample, not a full match-by-match xG completeness measurement.",
+            "Transient API errors are retried; final per-match shot-fetch failures are recorded as unavailable, never as zero xG.",
             "Shot xG is summed by team from periods[].shots; zero is not treated as missing when valid shots exist.",
         ],
     }
