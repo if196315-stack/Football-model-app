@@ -11,7 +11,7 @@ import java.net.URL
 import kotlin.concurrent.thread
 
 class MainActivity : Activity() {
-    private val dataUrl = "https://if196315-stack.github.io/Football-model-app/data.json"
+    private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
     private lateinit var content: LinearLayout
     private lateinit var status: TextView
 
