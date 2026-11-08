@@ -26,6 +26,13 @@ class PitchApiProbeTests(unittest.TestCase):
         self.assertEqual([m["id"] for m in selected], ["0", "2", "4", "7", "9"])
         self.assertLessEqual(len(selected), 5)
 
+    def test_sample_selection_accepts_larger_limit(self):
+        matches = [{"id": str(i), "status": "finished"} for i in range(30)]
+        selected = choose_samples(matches, 20)
+        self.assertEqual(len(selected), 20)
+        self.assertEqual(selected[0]["id"], "0")
+        self.assertEqual(selected[-1]["id"], "29")
+
     def test_flatten_shots_from_periods(self):
         data = {"periods": [
             {"period": "FirstHalf", "shots": [{"id": "s1"}, {"id": "s2"}]},
@@ -96,6 +103,18 @@ class PitchApiProbeTests(unittest.TestCase):
             for fixtures in result["teamFixtureLists"].values()
             for fixture in fixtures
         ))
+
+    def test_invalid_sample_limit_is_rejected_before_network_access(self):
+        from probe_pitchapi_coverage import run_audit
+
+        class NoNetwork:
+            def get(self, *args, **kwargs):
+                raise AssertionError("network must not be called")
+
+        for invalid in (0, 51, True, 1.5):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    run_audit("not-a-real-key", session=NoNetwork(), sample_limit=invalid)
 
     def test_active_season_team_counts_are_not_flagged(self):
         matches = [
