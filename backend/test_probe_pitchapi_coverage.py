@@ -75,6 +75,8 @@ class PitchApiProbeTests(unittest.TestCase):
             {"A": 2, "B": 2, "C": 2},
         )
         self.assertEqual(len(result["teamCountOutliers"]), 3)
+        self.assertEqual(len(result["teamFixtureLists"]["1"]), 2)
+        self.assertEqual(result["teamFixtureLists"]["1"][0]["home"], "A")
 
 
 if __name__ == "__main__":
