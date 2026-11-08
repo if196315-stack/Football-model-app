@@ -98,12 +98,12 @@ def historical_baselines(matches, comp, target_date):
       "dnbAway":rate(away_w,home_w+away_w) if home_w+away_w else 0.5,
       "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
 
-def strongest_signal(pred, baseline):
+def strongest_signal(pred, baseline, home, away):
     if not baseline:return None
     candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
-      ("Победа хозяев без ничьей","Победа хозяев — при ничьей возврат","dnbHome","Победа хозяев","Ничья или победа гостей"),
-      ("Победа гостей без ничьей","Победа гостей — при ничьей возврат","dnbAway","Победа гостей","Ничья или победа хозяев"),
+      ("Фора 0 хозяев","Фора 0 хозяев","dnbHome",f"Фора 0 · {home}",f"Фора 0 · {away}"),
+      ("Фора 0 гостей","Фора 0 гостей","dnbAway",f"Фора 0 · {away}",f"Фора 0 · {home}"),
       ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15","ИТБ 1.5","ИТМ 1.5"),
       ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15","ИТБ 1.5","ИТМ 1.5")]
     best=None
@@ -125,7 +125,7 @@ def predict(c,home,away,st,base,names,matches,target_date):
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
     lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
     pred=markets(lh,la)
-    pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date))
+    pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
     return pred,None
 
 def preserve_existing_odds(payload):
