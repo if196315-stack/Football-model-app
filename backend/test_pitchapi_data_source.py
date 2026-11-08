@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from pitchapi_data_source import (
     flatten_shots, load_cache, model_history_rows, normalize_match,
-    save_cache, shot_xg,
+    save_cache, shot_xg, refresh_history,
 )
 
 
