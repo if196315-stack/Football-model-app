@@ -267,7 +267,7 @@ def main() -> int:
     key = os.environ.get("PITCHAPI_API_KEY", "").strip()
     if not key:
         raise SystemExit("Set PITCHAPI_API_KEY in the environment")
-    limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "100"))
+    limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "250"))
     result = refresh_history(key, max_shot_requests=limit)
     print(json.dumps({"provider": "PitchAPI", **result["summary"]}, ensure_ascii=False))
     if result["errors"]:
