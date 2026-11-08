@@ -40,6 +40,10 @@ class Soccer365CatalogTests(unittest.TestCase):
                 result = validate_competition_catalog([entry(url=url)])
                 self.assertIn("untrusted_catalog_url", [issue["code"] for issue in result["issues"]])
 
+    def test_malformed_port_is_rejected_without_crashing(self):
+        result = validate_competition_catalog([entry(url="https://soccer365.net:abc/competition/")])
+        self.assertIn("untrusted_catalog_url", [issue["code"] for issue in result["issues"]])
+
     def test_url_query_and_fragment_are_rejected(self):
         result = validate_competition_catalog([entry(url="https://soccer365.net/competition/?season=2026#top")])
         self.assertIn("untrusted_catalog_url", [issue["code"] for issue in result["issues"]])
