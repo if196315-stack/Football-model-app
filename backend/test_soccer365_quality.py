@@ -166,6 +166,19 @@ class Soccer365QualityTests(unittest.TestCase):
         })])
         self.assertIn("invalid_xg", [item["code"] for item in result["issues"]])
 
+    def test_teams_without_any_paired_xg_remain_visible_as_not_ready(self):
+        rows = [
+            record(id="no-xg-1", statistics={"homeXg": None, "awayXg": None}),
+            record(id="no-xg-2", statistics={"homeXg": None, "awayXg": None}),
+        ]
+        summary = summarize_model_coverage(
+            rows, min_team_xg_matches=1, min_competition_baseline_matches=1
+        )
+        teams = summary["competitions"][0]["teams"]
+        self.assertEqual(len(teams), 2)
+        self.assertEqual([team["pairedXgMatches"] for team in teams], [0, 0])
+        self.assertTrue(all(not team["modelSampleReady"] for team in teams))
+
 
 if __name__ == "__main__":
     unittest.main()
