@@ -10,7 +10,7 @@ on:
     - cron: "43 4 * * *"
 
 concurrency:
-  group: football-odds-update
+  group: football-data-json-write
   cancel-in-progress: false
 
 permissions:
