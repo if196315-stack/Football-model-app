@@ -44,7 +44,7 @@ jobs:
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
         run: |
-          if [ "${{ inputs.audit_mode || 'sample' }}" = "full_history" ]; then
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ inputs.audit_mode || 'sample' }}" = "full_history" ]; then
             python backend/probe_pitchapi_coverage.py --full-history --output pitchapi-coverage-audit.json
           else
             python backend/probe_pitchapi_coverage.py --sample-limit "${{ inputs.sample_limit || '20' }}" --output pitchapi-coverage-audit.json
