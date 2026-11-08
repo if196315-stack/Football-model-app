@@ -1,6 +1,10 @@
 name: Update football data
 
 on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/update-data.yml"
   workflow_dispatch:
   schedule:
     - cron: "17 */6 * * *"
@@ -18,7 +22,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install requests pandas pyarrow
-      - name: Fetch fixtures and publish safe status
+      - name: Fetch fixtures and calculate predictions
         env:
           FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
         run: python backend/update_data.py
@@ -26,6 +30,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json
-          git diff --cached --quiet || git commit -m "Update fixtures and model data status"
+          git add docs/data.json backend/cache/
+          git diff --cached --quiet || git commit -m "Update football fixtures and model forecasts"
           git push
