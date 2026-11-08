@@ -4,11 +4,16 @@ from unittest.mock import patch
 import pandas as pd
 
 from update_data_pitchapi import (
-    build_model_frames, fixture_identity, preserve_odds_by_identity,
+    app_status, build_model_frames, fixture_identity, preserve_odds_by_identity,
 )
 
 
 class PitchApiUpdaterTests(unittest.TestCase):
+    def test_upcoming_pitchapi_status_maps_to_app_schedule(self):
+        self.assertEqual(app_status("not_started"), "SCHEDULED")
+        self.assertEqual(app_status("finished"), "FINISHED")
+        self.assertEqual(app_status("in_play"), "IN_PLAY")
+
     def test_build_model_frames_uses_paired_xg_and_excludes_known_bad_cohorts(self):
         cache = {"matches": {
             "good": {"id": "good", "leagueCode": "ENG", "season": "2024/25",
