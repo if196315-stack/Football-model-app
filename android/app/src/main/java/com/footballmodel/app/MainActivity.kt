@@ -230,7 +230,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "МАТЧИ", "day" to "СТАВКИ ДНЯ", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
+        val items = listOf("matches" to "МАТЧИ", "day" to "СТАВКИ\nДНЯ", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
