@@ -88,7 +88,7 @@ class MainActivity : Activity() {
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 54).apply { topMargin = 14; bottomMargin = 12 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 68).apply { topMargin = 14; bottomMargin = 12 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -230,21 +230,48 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        tabBar.removeAllViews()
-        listOf("matches" to "МАТЧИ", "day" to "СТАВКИ ДНЯ", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА").forEach { item ->
-            val active = currentTab == item.first
-            val t = label(item.second, 11, true, if (active) bg else muted).apply {
-                gravity = Gravity.CENTER
-                background = if (active) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(13).toFloat() } else rounded(Color.TRANSPARENT, 13)
-                setPadding(3, 0, 3, 0)
-                setOnClickListener {
-                    if (currentTab != item.first) {
-                        currentTab = item.first
-                        render()
+        val items = listOf("matches" to "МАТЧИ", "day" to "СТАВКИ ДНЯ", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
+        // Создаём кнопки меню один раз: при переключении меняем только оформление,
+        // не пересоздавая сами View и обработчики нажатий.
+        if (tabBar.childCount != items.size) {
+            tabBar.removeAllViews()
+            items.forEach { item ->
+                val t = label(item.second, 10, true, muted).apply {
+                    gravity = Gravity.CENTER
+                    maxLines = 2
+                    includeFontPadding = false
+                    setPadding(dp(3), dp(5), dp(3), dp(5))
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        if (currentTab != item.first) {
+                            currentTab = item.first
+                            render()
+                        }
                     }
                 }
+                tabBar.addView(t, LinearLayout.LayoutParams(0, -1, 1f).apply {
+                    setMargins(dp(2), dp(2), dp(2), dp(2))
+                })
             }
-            tabBar.addView(t, LinearLayout.LayoutParams(0, -1, 1f))
+        }
+        items.forEachIndexed { index, item ->
+            val t = tabBar.getChildAt(index) as? TextView ?: return@forEachIndexed
+            val active = currentTab == item.first
+            t.setTextColor(if (active) bg else muted)
+            t.background = if (active) {
+                GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                    intArrayOf(Color.rgb(89, 224, 176), Color.rgb(91, 190, 255))).apply {
+                    cornerRadius = dp(15).toFloat()
+                }
+            } else {
+                GradientDrawable().apply {
+                    setColor(Color.rgb(21, 36, 55))
+                    cornerRadius = dp(15).toFloat()
+                    setStroke(dp(1), Color.rgb(39, 61, 82))
+                }
+            }
+            t.elevation = if (active) dp(3).toFloat() else 0f
         }
     }
 
@@ -571,10 +598,12 @@ class MainActivity : Activity() {
         }
         renderedKey = targetKey
 
-        val summary = card()
-        addText(summary, "●  LIVE MODEL DASHBOARD", 9, true, cyan)
-        addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
-        addText(summary, "Обновлено: ${json.optString("updatedAt", "—").replace("T", " ").take(16)}", 10, false, muted)
+        if (currentTab == "matches") {
+            val summary = card()
+            addText(summary, "●  LIVE MODEL DASHBOARD", 9, true, cyan)
+            addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
+            addText(summary, "Обновлено: ${json.optString("updatedAt", "—").replace("T", " ").take(16)}", 10, false, muted)
+        }
 
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
