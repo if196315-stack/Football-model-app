@@ -544,7 +544,12 @@ class MainActivity : Activity() {
         val warning = json.optString("dataWarning", "")
         if (warning.isNotBlank()) addText(summary, "⚠  $warning", 11, false, Color.rgb(242, 190, 104))
 
-        if (currentTab == "week") {\n            leagueBar.visibility = View.GONE\n            renderWeek(json)\n            return\n        }\n        if (currentTab == "history") {
+        if (currentTab == "week") {
+            leagueBar.visibility = View.GONE
+            renderWeek(json)
+            return
+        }
+        if (currentTab == "history") {
             leagueBar.visibility = View.GONE
             renderBetHistory(json)
             return
