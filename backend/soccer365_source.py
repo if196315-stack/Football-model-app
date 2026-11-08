@@ -150,6 +150,29 @@ def _jsonld_team_name(value: Any) -> str | None:
     return None
 
 
+def _jsonld_match_status(value: Any) -> str | None:
+    """Map only explicit structured event-status values; never infer from page-wide text."""
+    if isinstance(value, dict):
+        value = value.get("@id") or value.get("name")
+    if not isinstance(value, str):
+        return None
+    token = value.rstrip("/#").rsplit("/", 1)[-1].rsplit("#", 1)[-1].lower()
+    statuses = {
+        "eventcompleted": "FINISHED",
+        "completed": "FINISHED",
+        "finished": "FINISHED",
+        "eventscheduled": "SCHEDULED",
+        "scheduled": "SCHEDULED",
+        "postponed": "POSTPONED",
+        "eventpostponed": "POSTPONED",
+        "eventcancelled": "CANCELLED",
+        "eventcanceled": "CANCELLED",
+        "cancelled": "CANCELLED",
+        "canceled": "CANCELLED",
+    }
+    return statuses.get(token)
+
+
 def parse_match_page(
     page_html: str,
     url: str,
@@ -170,12 +193,14 @@ def parse_match_page(
     kickoff = None
     local_kickoff = None
     home_score = away_score = None
+    status = None
     for item in objects:
         item_type = item.get("@type")
         if item_type in ("SportsEvent", "Event") or (
             isinstance(item_type, list) and any(x in ("SportsEvent", "Event") for x in item_type)
         ):
             kickoff = _parse_datetime(item.get("startDate"))
+            status = _jsonld_match_status(item.get("eventStatus"))
             # Structured event metadata is more authoritative than title parsing.
             structured_home = _jsonld_team_name(item.get("homeTeam"))
             if structured_home:
@@ -212,16 +237,9 @@ def parse_match_page(
     home_xg = _number(xg_match.group(1)) if xg_match else None
     away_xg = _number(xg_match.group(2)) if xg_match else None
 
-    status = None
-    lowered = text.lower()
-    if any(word in lowered for word in ("завершен", "матч окончен", "finished", "full time")):
-        status = "FINISHED"
-    elif any(word in lowered for word in ("перенесен", "отложен", "postponed")):
-        status = "POSTPONED"
-    elif any(word in lowered for word in ("отменен", "cancelled", "canceled")):
-        status = "CANCELLED"
-    # Unknown status stays null; minute markers and generic navigation text
-    # are not reliable evidence that a match is currently live.
+    # Status is populated only from explicit structured event metadata.
+    # Page-wide text is intentionally ignored: it may describe another match,
+    # a navigation item, or a historical widget elsewhere on the page.
 
     return {
         "id": url.rstrip("/").rsplit("/", 1)[-1],
