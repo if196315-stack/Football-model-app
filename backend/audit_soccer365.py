@@ -25,16 +25,26 @@ S.headers.update(HEADERS)
 
 def get(url, headers=None):
     last = None
-    for attempt in range(4):
+    for attempt in range(5):
         try:
-            r = S.get(url, headers=headers, timeout=(15, 45))
+            r = S.get(url, headers=headers, timeout=(20, 60))
+            if r.status_code in (429, 500, 502, 503, 504):
+                if attempt == 4:
+                    r.raise_for_status()
+                retry_after = r.headers.get("Retry-After")
+                try:
+                    wait = float(retry_after) if retry_after else min(30 * (2 ** attempt), 240)
+                except ValueError:
+                    wait = min(30 * (2 ** attempt), 240)
+                time.sleep(wait)
+                continue
             r.raise_for_status()
             return r.text
-        except Exception as e:
+        except requests.RequestException as e:
             last = e
-            if attempt == 3:
+            if attempt == 4:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(min(30 * (2 ** attempt), 240))
     raise last
 
 
@@ -78,14 +88,22 @@ def parse_match(url, league):
     text = soup.get_text(" ", strip=True)
     d = match_date(html[:100000] + " " + title + " " + text[:5000])
 
-    # The last competition link in the match page's competition/navigation
-    # block identifies the actual tournament, unlike the archive it was found on.
-    comp_ids = []
+    # Prefer the competition-season link whose season contains the match date.
+    # Global navigation contains several leagues and must never determine a match's competition.
+    comp_candidates = []
     for a in soup.select('a[href*="/competitions/"]'):
-        m = re.search(r"/competitions/(\d+)(?:/|$)", a.get("href", ""))
+        href = a.get("href", "")
+        m = re.search(r"/competitions/(\d+)/(20\d{2})-(20\d{2})/?", href)
         if m:
-            comp_ids.append(int(m.group(1)))
-    actual_comp_id = comp_ids[-1] if comp_ids else None
+            comp_candidates.append((int(m.group(1)), int(m.group(2)), int(m.group(3))))
+    actual_comp_id = None
+    if d:
+        for cid, season_start, season_end in comp_candidates:
+            if season_start <= d.year <= season_end:
+                actual_comp_id = cid
+                break
+    if actual_comp_id is None and len({x[0] for x in comp_candidates}) == 1:
+        actual_comp_id = comp_candidates[0][0]
 
     vals = re.findall(
         r"(?<![\w])([0-9]+(?:[.,][0-9]+)?)\s*Ожидаемые\s+голы\s*\(xG\)\s*([0-9]+(?:[.,][0-9]+)?)",
@@ -140,7 +158,7 @@ def fetch_official_fixtures():
                 })
         except Exception as e:
             errors.append({"league": league, "error": str(e)[:250]})
-        time.sleep(7)
+        time.sleep(10)
     return fixtures, errors
 
 
@@ -205,7 +223,7 @@ def main():
                     report["errors"].append({"league": code, "url": url, "error": "match date not parsed"})
             except Exception as e:
                 report["errors"].append({"league": code, "url": url, "error": str(e)[:250]})
-            time.sleep(0.2)
+            time.sleep(2.0)
 
         report["matches"].extend(rows)
         report["leagues"][code] = {
