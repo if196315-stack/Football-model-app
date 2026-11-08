@@ -112,6 +112,24 @@ def match_integrity(matches: list[dict]) -> dict:
     team_count_outliers = [
         row for row in team_match_counts if row["matches"] != expected_per_team
     ]
+    outlier_ids = {row["teamId"] for row in team_count_outliers}
+    team_fixture_lists = {team_id: [] for team_id in sorted(outlier_ids)}
+    for match in sorted(rows, key=lambda item: str(item.get("date") or "")):
+        home = match.get("home_team") or {}
+        away = match.get("away_team") or {}
+        home_id, away_id = str(home.get("id")), str(away.get("id"))
+        if home_id in outlier_ids:
+            team_fixture_lists[home_id].append({
+                "date": match.get("date"), "home": home.get("name"),
+                "away": away.get("name"), "status": match.get("status"),
+                "matchId": match.get("id"),
+            })
+        if away_id in outlier_ids:
+            team_fixture_lists[away_id].append({
+                "date": match.get("date"), "home": home.get("name"),
+                "away": away.get("name"), "status": match.get("status"),
+                "matchId": match.get("id"),
+            })
     return {
         "uniqueMatchIds": len(ids),
         "duplicateMatchIds": duplicate_ids,
@@ -121,6 +139,7 @@ def match_integrity(matches: list[dict]) -> dict:
         "expectedMatchesPerTeam": expected_per_team,
         "teamMatchCounts": team_match_counts,
         "teamCountOutliers": team_count_outliers,
+        "teamFixtureLists": team_fixture_lists,
     }
 
 def flatten_shots(data: dict) -> list[dict]:
