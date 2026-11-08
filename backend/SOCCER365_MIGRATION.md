@@ -127,3 +127,12 @@ Until Soccer365's actual internal match identifier is confirmed on permitted rea
 
 
 The collector also attaches the deterministic match-record quality report. Integrity errors (for example, missing team identity or the same team on both sides) make the run incomplete. Warnings such as missing xG or an unknown timezone remain visible without fabricating values; they do not by themselves turn a successful page fetch into a transport failure.
+
+
+## Read-only coverage report command
+
+Once a verified catalogue and append-only JSONL archive exist, run:
+
+`python backend/report_soccer365_coverage.py --catalog path/to/catalog.json --records path/to/archive.jsonl`
+
+The command validates the manifest, reads the archive, and prints a JSON coverage report. It performs no network requests and does not modify either input. Invalid JSON/catalog/archive input is reported with a non-zero exit status. The repository currently contains no verified populated Soccer365 season catalogue or real-page archive, so the command is a reporting tool rather than a claim that five-league coverage has already been measured.
