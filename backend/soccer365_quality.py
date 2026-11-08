@@ -4,7 +4,6 @@ Reports issues without mutating records, inventing identifiers, or filling missi
 """
 from __future__ import annotations
 
-import math
 import re
 import unicodedata
 from collections import defaultdict
@@ -110,7 +109,7 @@ def validate_match_records(records: Iterable[dict[str, Any]]) -> dict[str, Any]:
         for field, value in (("homeXg", hxg), ("awayXg", axg)):
             if value is not None and (
                 isinstance(value, bool) or not isinstance(value, (int, float))
-                or not math.isfinite(value) or not 0 <= value <= 20
+                or not 0 <= value <= 20
             ):
                 issues.append(_issue("invalid_xg", "error", match_id,
                                      f"{field} must be finite and between 0 and 20, or null"))
@@ -198,7 +197,7 @@ def summarize_model_coverage(
         hxg, axg = stats.get("homeXg"), stats.get("awayXg")
         paired_xg = all(
             isinstance(v, (int, float)) and not isinstance(v, bool)
-            and math.isfinite(v) and 0 <= v <= 20
+            and 0 <= v <= 20
             for v in (hxg, axg)
         )
         if not paired_xg:
