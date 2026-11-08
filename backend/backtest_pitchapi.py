@@ -74,20 +74,22 @@ def probabilities(home_lambda: float, away_lambda: float) -> dict[str, float]:
     return {key: value / total for key, value in result.items()}
 
 
-def team_strength(records: list[dict], league: str, side: str, base: dict) -> dict | None:
+def team_strength(records: list[dict], league: str, base: dict) -> dict | None:
     history = records[-WINDOW:]
     if not history:
         return None
-    own = base.get((league, side))
-    opponent = base.get((league, "away" if side == "home" else "home"))
-    if not own or not opponent:
-        return None
     attack = defence = weight_sum = 0.0
     for index, row in enumerate(history):
+        own = base.get((league, row["side"]))
+        opponent = base.get((league, "away" if row["side"] == "home" else "home"))
+        if not own or not opponent:
+            continue
         weight = 0.5 ** ((len(history) - 1 - index) / HALF_LIFE)
         attack += weight * row["xg"] / own
         defence += weight * row["xga"] / opponent
         weight_sum += weight
+    if not weight_sum:
+        return None
     return {
         "attack": (attack + SHRINKAGE) / (weight_sum + SHRINKAGE),
         "defence": (defence + SHRINKAGE) / (weight_sum + SHRINKAGE),
@@ -135,8 +137,8 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
             if totals["n"] == 0:
                 continue
             baseline = {key: (totals[key] + 1.0) / (totals["n"] + 3.0) for key in CLASSES}
-            home_strength = team_strength(histories[(league, match["home"])], league, "home", base)
-            away_strength = team_strength(histories[(league, match["away"])], league, "away", base)
+            home_strength = team_strength(histories[(league, match["home"])], league, base)
+            away_strength = team_strength(histories[(league, match["away"])], league, base)
             if home_strength is None or away_strength is None:
                 continue
             home_base, away_base = base.get((league, "home")), base.get((league, "away"))
@@ -163,8 +165,8 @@ def walk_forward(matches: list[dict], holdout_from: str = "2024-07-01", include_
             league_totals[league][outcome] += 1
             league_totals[league]["n"] += 1
             if match["paired_xg"]:
-                histories[(league, match["home"])].append({"xg": match["hx"], "xga": match["ax"]})
-                histories[(league, match["away"])].append({"xg": match["ax"], "xga": match["hx"]})
+                histories[(league, match["home"])].append({"side": "home", "xg": match["hx"], "xga": match["ax"]})
+                histories[(league, match["away"])].append({"side": "away", "xg": match["ax"], "xga": match["hx"]})
                 league_xg[league].append({"side": "home", "home_xg": match["hx"], "away_xg": match["ax"]})
                 league_xg[league].append({"side": "away", "home_xg": match["hx"], "away_xg": match["ax"]})
 
