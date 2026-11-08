@@ -22,14 +22,78 @@ def parquet(name):
     return pd.read_parquet(p)
 
 def key(s):
-    s=re.sub(r"[^a-z0-9]+"," ",str(s or "").lower().replace("&"," and "))
-    return " ".join(x for x in s.split() if x not in {"fc","afc","cf","sc","ac","club","football","the","de"})
+    """Normalize club names across provider spelling, accents and common suffixes."""
+    import unicodedata
+    value=unicodedata.normalize("NFKD",str(s or "").lower())
+    value="".join(ch for ch in value if not unicodedata.combining(ch))
+    value=value.replace("&"," and ").replace("@"," at ")
+    value=re.sub(r"[^a-z0-9]+"," ",value)
+    ignored={"fc","afc","cf","sc","ac","club","football","the","de"," del","cd","ud","sd","fk","sk","sv","vfl","tsv","1"}
+    return " ".join(x for x in value.split() if x not in ignored)
 
-def match_name(name,names):
-    k=key(name); exact=[n for n in names if key(n)==k]
+# Common provider/Openplay aliases. Keys and values are normalized by key().
+ALIASES={
+    "eng":{
+        "man utd":"manchester united","man united":"manchester united",
+        "man city":"manchester city","spurs":"tottenham hotspur",
+        "wolves":"wolverhampton wanderers","brighton":"brighton hove albion",
+        "west ham":"west ham united","newcastle":"newcastle united",
+        "nottingham forest":"nottm forest",
+    },
+    "esp":{
+        "atletico madrid":"atletico de madrid","athletic bilbao":"athletic club",
+        "real betis":"real betis balompie","celta vigo":"rc celta de vigo",
+        "sociedad":"real sociedad","espanyol":"rcd espanyol",
+    },
+    "ita":{
+        "inter":"internazionale","inter milan":"internazionale",
+        "milan":"ac milan","roma":"as roma","lazio":"ss lazio",
+        "juventus":"juventus",
+    },
+    "ger":{
+        "bayern":"bayern munich","bayern munchen":"bayern munich",
+        "dortmund":"borussia dortmund","gladbach":"borussia monchengladbach",
+        "leverkusen":"bayer leverkusen","koln":"fc koln",
+    },
+    "fra":{
+        "psg":"paris saint germain","paris sg":"paris saint germain",
+        "olympique lyon":"lyon","olympique marseille":"marseille",
+        "st etienne":"saint etienne",
+    },
+}
+
+def _alias_key(value, league):
+    normalized=key(value)
+    aliases=ALIASES.get(league,{})
+    # Resolve aliases in both directions, supporting either provider as source.
+    normalized=key(aliases.get(normalized,normalized))
+    for alias,canonical in aliases.items():
+        if normalized==key(canonical):
+            return key(canonical)
+    return normalized
+
+def _similarity(a,b):
+    if not a or not b:return 0.0
+    seq=SequenceMatcher(None,a,b).ratio()
+    at=set(a.split()); bt=set(b.split())
+    token=(2*len(at&bt)/max(1,len(at)+len(bt)))
+    # A partial match helps when one source includes a city or legal suffix.
+    shorter,longer=(a,b) if len(a)<=len(b) else (b,a)
+    partial=SequenceMatcher(None,shorter,longer).ratio() if len(shorter)>=5 else 0.0
+    return max(seq,0.72*seq+0.28*token,0.90*partial)
+
+def match_name(name,names,league=None):
+    target=_alias_key(name,league)
+    normalized=[(n,_alias_key(n,league)) for n in names]
+    exact=[n for n,k in normalized if k==target]
     if len(exact)==1:return exact[0]
-    ranked=sorted(((SequenceMatcher(None,k,key(n)).ratio(),n) for n in names),reverse=True)
-    if ranked and ranked[0][0]>=.94 and (len(ranked)==1 or ranked[0][0]-ranked[1][0]>=.04):return ranked[0][1]
+    ranked=sorted(((_similarity(target,k),n) for n,k in normalized),reverse=True)
+    if not ranked:return None
+    best_score,best_name=ranked[0]
+    second_score=ranked[1][0] if len(ranked)>1 else 0.0
+    # Conservative fuzzy acceptance: high confidence and a clear gap over runner-up.
+    if best_score>=0.88 and best_score-second_score>=0.06:
+        return best_name
     return None
 
 def history():
@@ -119,7 +183,7 @@ def strongest_signal(pred, baseline, home, away):
     return best
 
 def predict(c,home,away,st,base,names,matches,target_date):
-    hn=match_name(home,names.get(c,[])); an=match_name(away,names.get(c,[]))
+    hn=match_name(home,names.get(c,[]),c); an=match_name(away,names.get(c,[]),c)
     if not hn or not an:return None,"Не удалось надёжно сопоставить команды с Openplay"
     hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
