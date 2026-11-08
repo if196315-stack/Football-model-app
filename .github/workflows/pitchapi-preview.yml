@@ -13,7 +13,7 @@ on:
       max_shot_requests:
         description: "Maximum shot/xG requests in this run"
         required: true
-        default: "250"
+        default: "500"
         type: choice
         options:
           - "50"
@@ -55,7 +55,7 @@ jobs:
       - name: Refresh PitchAPI preview
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '250' }}
+          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '500' }}
           PITCHAPI_PREVIOUS_DATA_PATH: backend/cache/previous_odds_data.json
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
