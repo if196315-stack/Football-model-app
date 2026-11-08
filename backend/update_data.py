@@ -86,13 +86,45 @@ def markets(lh,la):
       "homeOver05":ho05,"homeOver15":ho15,"homeOver25":ho25,"awayOver05":ao05,"awayOver15":ao15,"awayOver25":ao25,
       "ah0Home":p1/max(1e-12,p1+p2),"ahMinus05Home":p1,"ahPlus05Home":p1+px,"expectedHomeGoals":lh,"expectedAwayGoals":la}
 
-def predict(c,home,away,st,base,names):
+def historical_baselines(matches, comp, target_date):
+    g=matches[(matches.comp==comp)&(matches.date<pd.Timestamp(target_date))]
+    n=len(g)
+    if n < 100:return None
+    hs=g.home_score.astype(float); aw=g.away_score.astype(float)
+    home_w=int((hs>aw).sum()); away_w=int((aw>hs).sum())
+    def rate(count,total): return (count+1.0)/(total+2.0)
+    return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
+      "dnbHome":rate(home_w,home_w+away_w) if home_w+away_w else 0.5,
+      "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
+
+def strongest_signal(pred, baseline):
+    if not baseline:return None
+    candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
+      ("X2","Гости не проиграют","x2","X2","Не X2"),
+      ("DNB","Победа хозяев без ничьей","dnbHome","DNB · хозяева","DNB · гости"),
+      ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15","ИТБ 1.5","ИТМ 1.5"),
+      ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15","ИТБ 1.5","ИТМ 1.5")]
+    best=None
+    for key,title,field,yes,no in candidates:
+      p=float(pred[field]); b=float(baseline[field])
+      if p>=0.5: side,mp,bp=yes,p,b
+      else: side,mp,bp=no,1-p,1-b
+      edge=mp-bp
+      item={"market":title,"side":side,"modelProbability":mp,"baselineProbability":bp,
+        "edgePp":edge*100.0,"baselineMatches":baseline["matches"]}
+      if best is None or edge>best["edgePp"]/100.0:best=item
+    if best is not None and best["edgePp"]<=0:best["noPositiveSignal"]=True
+    return best
+
+def predict(c,home,away,st,base,names,matches,target_date):
     hn=match_name(home,names.get(c,[])); an=match_name(away,names.get(c,[]))
     if not hn or not an:return None,"Не удалось надёжно сопоставить команды с Openplay"
     hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
     lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
-    return markets(lh,la),None
+    pred=markets(lh,la)
+    pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date))
+    return pred,None
 
 def main():
     p={"updatedAt":datetime.now(timezone.utc).isoformat(),"source":"Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
@@ -139,7 +171,7 @@ def main():
                     time.sleep(7)
                     for m in r.json().get("matches",[]):
                         home=(m.get("homeTeam") or {}).get("name") or "TBD"; away=(m.get("awayTeam") or {}).get("name") or "TBD"
-                        pred,warn=predict(c,home,away,st,b,names)
+                        pred,warn=predict(c,home,away,st,b,names,s,m.get("utcDate","")[:10])
                         score=(m.get("score") or {}).get("fullTime") or {}
                         item["matches"].append({"id":m.get("id"),"utcDate":m.get("utcDate"),"status":m.get("status"),"home":home,"away":away,
                           "homeScore":score.get("home"),"awayScore":score.get("away"),"prediction":pred,"predictionWarning":warn})
