@@ -88,7 +88,8 @@ def collect_catalog(
             continue
 
         try:
-            match_urls = sorted(set(extract_links(listing_html, competition_url)))
+            raw_links = list(extract_links(listing_html, competition_url))
+            match_urls = sorted({url for url in raw_links if isinstance(url, str)})
         except Exception as exc:
             errors.append({
                 "url": competition_url,
@@ -98,7 +99,10 @@ def collect_catalog(
             })
             reports.append(report)
             continue
-        rejected_links = [url for url in match_urls if not isinstance(url, str) or not _allowed_match_url(url)]
+        rejected_links = [
+            url for url in raw_links
+            if not isinstance(url, str) or not _allowed_match_url(url)
+        ]
         if rejected_links:
             errors.extend({
                 "url": str(url),
