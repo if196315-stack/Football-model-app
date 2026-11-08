@@ -539,8 +539,6 @@ class MainActivity : Activity() {
 
         val summary = card()
         addText(summary, "●  LIVE MODEL DASHBOARD", 9, true, cyan)
-        addText(summary, "Футбольная аналитика", 22, true, Color.WHITE)
-        addText(summary, "История xG до $through", 14, true, accent)
         addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
         addText(summary, "Обновлено: ${json.optString("updatedAt", "—").replace("T", " ").take(16)}", 10, false, muted)
         val warning = json.optString("dataWarning", "")
