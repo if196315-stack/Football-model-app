@@ -45,7 +45,7 @@ def history():
         for side in ("home","away"):
             v=s.loc[(s.comp==c)&(s.side==side),"xg"]
             base[c,side]=float(v.mean()) if len(v) else None
-    return s,base
+    return s,base,m
 
 def strengths(s,base):
     out={}
@@ -132,7 +132,7 @@ def main():
       "openplayDataThrough":None,"status":"initializing","notice":"Загружаю исторические xG и расписание.",
       "dataWarning":"При отсутствии xG за текущий сезон прогноз использует последнюю доступную историю Openplay; дата базы указана отдельно.","competitions":[]}
     try:
-        s,b=history(); st=strengths(s,b); p["openplayDataThrough"]=s.date.max().date().isoformat()
+        s,b,matches=history(); st=strengths(s,b); p["openplayDataThrough"]=s.date.max().date().isoformat()
         names={c:sorted(s.loc[s.comp==c,"team"].dropna().unique().tolist()) for c in MAP}
         token=os.getenv("FOOTBALL_DATA_TOKEN","").strip()
         if not token:
@@ -171,7 +171,7 @@ def main():
                     time.sleep(7)
                     for m in r.json().get("matches",[]):
                         home=(m.get("homeTeam") or {}).get("name") or "TBD"; away=(m.get("awayTeam") or {}).get("name") or "TBD"
-                        pred,warn=predict(c,home,away,st,b,names,s,m.get("utcDate","")[:10])
+                        pred,warn=predict(c,home,away,st,b,names,matches,m.get("utcDate","")[:10])
                         score=(m.get("score") or {}).get("fullTime") or {}
                         item["matches"].append({"id":m.get("id"),"utcDate":m.get("utcDate"),"status":m.get("status"),"home":home,"away":away,
                           "homeScore":score.get("home"),"awayScore":score.get("away"),"prediction":pred,"predictionWarning":warn})
