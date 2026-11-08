@@ -23,7 +23,7 @@ COMPETITIONS = {
     "Germany": ("Bundesliga", "competition_897d0j7x1ypu"),
     "France": ("Ligue 1", "competition_7x8p84ket95z"),
 }
-REQUEST_INTERVAL_SECONDS = 6.2
+REQUEST_INTERVAL_SECONDS = 7.1
 
 
 class SoccerDataClient:
@@ -45,6 +45,17 @@ class SoccerDataClient:
             BASE_URL + path, params=params, timeout=(10, 30)
         )
         self._last_request = time.monotonic()
+        if response.status_code == 429:
+            retry_after = response.headers.get("Retry-After", "65")
+            try:
+                wait_seconds = max(1.0, float(retry_after)) + 1.0
+            except (TypeError, ValueError):
+                wait_seconds = 66.0
+            self.sleep(wait_seconds)
+            response = self.session.get(
+                BASE_URL + path, params=params, timeout=(10, 30)
+            )
+            self._last_request = time.monotonic()
         response.raise_for_status()
         payload = response.json()
         if not isinstance(payload, dict) or "data" not in payload:
