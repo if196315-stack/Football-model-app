@@ -149,27 +149,38 @@ def parse_match_page(
 
     home, away = _teams_from_title(title)
     kickoff = None
+    local_kickoff = None
+    home_score = away_score = None
     for item in objects:
-        if item.get("@type") in ("SportsEvent", "Event", ["SportsEvent"]):
+        item_type = item.get("@type")
+        if item_type in ("SportsEvent", "Event", ["SportsEvent"]):
             kickoff = _parse_datetime(item.get("startDate"))
             if not home and isinstance(item.get("homeTeam"), dict):
                 home = item["homeTeam"].get("name")
             if not away and isinstance(item.get("awayTeam"), dict):
                 away = item["awayTeam"].get("name")
+            score = item.get("homeTeamScore")
+            if score is not None:
+                try:
+                    home_score = int(score)
+                except (TypeError, ValueError):
+                    pass
+            score = item.get("awayTeamScore")
+            if score is not None:
+                try:
+                    away_score = int(score)
+                except (TypeError, ValueError):
+                    pass
             break
 
     if kickoff is None:
         date_match = DATE_DMY.search(text)
         if date_match:
             day, month, year, hour, minute = date_match.groups()
-            try:
-                dt = datetime(
-                    int(year), int(month), int(day),
-                    int(hour or 12), int(minute or 0), tzinfo=timezone.utc
-                )
-                kickoff = dt.isoformat()
-            except ValueError:
-                pass
+            # Keep local wall time unless the page exposes an explicit timezone.
+            local_kickoff = f"{year}-{int(month):02d}-{int(day):02d}"
+            if hour is not None:
+                local_kickoff += f"T{int(hour):02d}:{int(minute or 0):02d}:00"
 
     # The first xG pair on Soccer365's page is the full-match value; later
     # pairs represent half-specific values. Never sum those periods.
@@ -185,8 +196,8 @@ def parse_match_page(
         status = "POSTPONED"
     elif any(word in lowered for word in ("отменен", "cancelled", "canceled")):
         status = "CANCELLED"
-    elif any(word in lowered for word in ("идет", "перерыв", "live", "1-й тайм", "2-й тайм")):
-        status = "IN_PLAY"
+    # Unknown status stays null; minute markers and generic navigation text
+    # are not reliable evidence that a match is currently live.
 
     return {
         "id": url.rstrip("/").rsplit("/", 1)[-1],
@@ -197,11 +208,12 @@ def parse_match_page(
         "competition": competition_name,
         "competitionType": competition_type,
         "utcDate": kickoff,
+        "localKickoff": local_kickoff,
         "status": status,
         "home": home,
         "away": away,
-        "homeScore": None,
-        "awayScore": None,
+        "homeScore": home_score,
+        "awayScore": away_score,
         "statistics": {
             "homeXg": home_xg,
             "awayXg": away_xg,
