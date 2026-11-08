@@ -52,7 +52,7 @@ class MainActivity : Activity() {
         val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true; clipToPadding = false; setPadding(0, 0, 0, 18); overScrollMode = View.OVER_SCROLL_NEVER }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(18, 22, 18, 34)
+            setPadding(18, 34, 18, 34)
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
         scroll.addView(root)
