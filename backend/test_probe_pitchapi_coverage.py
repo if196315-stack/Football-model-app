@@ -1,7 +1,7 @@
 import unittest
 from collections import Counter
 
-from probe_pitchapi_coverage import choose_samples, season_start, norm
+from probe_pitchapi_coverage import choose_samples, season_start, norm, flatten_shots
 
 
 class PitchApiProbeTests(unittest.TestCase):
@@ -25,6 +25,16 @@ class PitchApiProbeTests(unittest.TestCase):
         selected = choose_samples(matches)
         self.assertEqual([m["id"] for m in selected], ["0", "5", "9"])
         self.assertLessEqual(len(selected), 3)
+
+    def test_flatten_shots_from_periods(self):
+        data = {"periods": [
+            {"period": "FirstHalf", "shots": [{"id": "s1"}, {"id": "s2"}]},
+            {"period": "SecondHalf", "shots": [{"id": "s3"}]},
+        ]}
+        self.assertEqual([x["id"] for x in flatten_shots(data)], ["s1", "s2", "s3"])
+
+    def test_flatten_shots_empty_periods(self):
+        self.assertEqual(flatten_shots({"periods": []}), [])
 
     def test_normalise(self):
         self.assertEqual(norm("La-Liga"), "la liga")
