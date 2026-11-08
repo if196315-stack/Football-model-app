@@ -108,9 +108,8 @@ class Soccer365CollectorTests(unittest.TestCase):
         })
         result = collect_catalog(client, [entry(), second])
         self.assertEqual(client.calls.count(MATCH_URL), 1)
-        self.assertIn("duplicate_match_link_across_catalog", [
-            warning["code"] for warning in result["warnings"]
-        ])
+        self.assertFalse(result["complete"])
+        self.assertEqual(result["errors"][0]["stage"], "catalog_identity")
 
 
 if __name__ == "__main__":
