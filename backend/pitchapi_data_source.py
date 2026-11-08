@@ -11,7 +11,7 @@ import os
 import re
 import time
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -220,6 +220,18 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
             and isinstance(row.get("awayXg"), (int, float))
         ):
             continue
+        # Empty/partial shot feeds must not consume the request budget on every
+        # scheduled preview run. Retry unresolved matches after a 7-day cooldown.
+        attempted_at = row.get("xgAttemptedAt") or row.get("xgFetchedAt")
+        if attempted_at:
+            try:
+                attempted = datetime.fromisoformat(str(attempted_at).replace("Z", "+00:00"))
+                if attempted.tzinfo is None:
+                    attempted = attempted.replace(tzinfo=timezone.utc)
+                if (datetime.now(timezone.utc) - attempted) < timedelta(days=7):
+                    continue
+            except (TypeError, ValueError):
+                pass
         if row.get("homeTeamId") is None or row.get("awayTeamId") is None:
             continue
         shot_attempts += 1
@@ -228,9 +240,11 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
             home_xg, away_xg, count = shot_xg(payload, row["homeTeamId"], row["awayTeamId"])
             row["homeXg"], row["awayXg"], row["xgShotCount"] = home_xg, away_xg, count
             row["xgFetchedAt"] = datetime.now(timezone.utc).isoformat()
+            row["xgAttemptedAt"] = row["xgFetchedAt"]
             shot_requests += 1
         except (requests.RequestException, ValueError, RuntimeError, TypeError) as exc:
             row["xgFetchError"] = type(exc).__name__
+            row["xgAttemptedAt"] = datetime.now(timezone.utc).isoformat()
             errors.append(f"shots {match_id}: {type(exc).__name__}")
         if pause_seconds:
             time.sleep(pause_seconds)
