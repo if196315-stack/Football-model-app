@@ -193,7 +193,10 @@ def inspect_shots(session: Any, match: dict, api_key: str) -> dict:
     }
 
 
-def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15) -> dict:
+def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15,
+              sample_limit: int = SAMPLE_LIMIT) -> dict:
+    if not isinstance(sample_limit, int) or isinstance(sample_limit, bool) or not 1 <= sample_limit <= 50:
+        raise ValueError("sample_limit must be an integer between 1 and 50")
     catalogue = fetch(session, "/leagues", api_key)
     leagues = catalogue.get("leagues", []) if isinstance(catalogue, dict) else []
     matched: dict[str, dict] = {}
@@ -205,13 +208,14 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
     report = {
         "provider": "PitchAPI",
         "auditType": "read_only_sampled_xg",
+        "xgSampleLimitPerSeason": sample_limit,
         "targetLeagueCount": len(TARGETS),
         "matchedLeagueCount": len(matched),
         "missingTargets": sorted(set(TARGETS) - set(matched)),
         "leagues": [],
         "notes": [
             "Season match totals come from the provider's league match listing.",
-            "xG is checked on up to five evenly spaced finished matches per season using shot-level expected_goals.",
+            "xG is checked on up to xgSampleLimitPerSeason evenly spaced finished matches per season using shot-level expected_goals.",
             "This is a sample, not a full match-by-match xG completeness measurement.",
             "Shot xG is summed by team from periods[].shots; zero is not treated as missing when valid shots exist.",
         ],
@@ -229,7 +233,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
             matches = data.get("matches", []) if isinstance(data, dict) else []
             status_counts = Counter(m.get("status", "missing") for m in matches if isinstance(m, dict))
             integrity = match_integrity(matches, season)
-            samples = choose_samples(matches)
+            samples = choose_samples(matches, sample_limit)
             inspected = []
             for match in samples:
                 inspected.append(inspect_shots(session, match, api_key))
@@ -256,12 +260,16 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", help="Optional JSON report path")
+    parser.add_argument("--sample-limit", type=int, default=SAMPLE_LIMIT,
+                        help="Finished matches to inspect per league-season (1-50; default: 5)")
     args = parser.parse_args(argv)
+    if not 1 <= args.sample_limit <= 50:
+        parser.error("--sample-limit must be between 1 and 50")
     key = os.environ.get("PITCHAPI_API_KEY")
     if not key:
         parser.error("Set PITCHAPI_API_KEY in the environment; never pass it on the command line")
     try:
-        report = run_audit(key)
+        report = run_audit(key, sample_limit=args.sample_limit)
     except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
         print(f"PitchAPI audit failed: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
