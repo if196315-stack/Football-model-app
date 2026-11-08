@@ -259,8 +259,12 @@ class Soccer365Client:
         last_error: Exception | None = None
         for attempt in range(5):
             try:
-                response = self.session.get(url, timeout=(15, 45))
+                response = self.session.get(url, timeout=(15, 45), allow_redirects=False)
                 self._last_request = time.monotonic()
+                # Never follow redirects automatically: a trusted page must not
+                # redirect the client to an unapproved host or downgrade HTTPS.
+                if response.is_redirect or response.is_permanent_redirect:
+                    raise ValueError("Soccer365 redirect refused; validate the destination explicitly")
                 if response.status_code in (401, 403, 404, 451):
                     response.raise_for_status()
                 if response.status_code in (429, 500, 502, 503, 504):
