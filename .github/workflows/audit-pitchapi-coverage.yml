@@ -111,3 +111,5 @@ jobs:
           path: pitchapi-coverage-audit.json
           if-no-files-found: error
           retention-days: 14
+
+# Results-only export is deliberately triggered by a dedicated commit marker; it never calls shot/xG endpoints.
