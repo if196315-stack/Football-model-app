@@ -139,6 +139,29 @@ class Soccer365CoverageTests(unittest.TestCase):
         self.assertEqual(len(report["competitions"]), 3)
         self.assertEqual([x["totalRecords"] for x in report["competitions"]], [1, 1, 1])
 
+    def test_boolean_and_non_finite_xg_are_not_counted_as_paired_xg(self):
+        rows = [
+            match("bool-xg", statistics={"homeXg": True, "awayXg": 0.8}),
+            match("nan-xg", statistics={"homeXg": float("nan"), "awayXg": 0.8}),
+            match("inf-xg", statistics={"homeXg": float("inf"), "awayXg": 0.8}),
+        ]
+        report = summarize_historical_coverage([entry()], rows)
+        item = report["competitions"][0]
+        self.assertEqual(item["finishedWithPairedXg"], 0)
+        self.assertEqual(item["finishedMissingXg"], 3)
+
+    def test_finished_score_rate_is_distinct_from_season_result_coverage(self):
+        rows = [
+            match("scored"),
+            match("missing-score", homeScore=None, awayScore=None),
+        ]
+        report = summarize_historical_coverage(
+            [entry(expectedFinishedMatches=4)], rows
+        )
+        item = report["competitions"][0]
+        self.assertEqual(item["finishedResultCoverage"], 0.25)
+        self.assertEqual(item["finishedScoreRate"], 0.5)
+
 
 if __name__ == "__main__":
     unittest.main()
