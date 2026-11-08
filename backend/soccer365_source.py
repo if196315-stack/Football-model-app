@@ -139,6 +139,17 @@ def extract_match_links(page_html: str, page_url: str = BASE_URL) -> list[str]:
     return sorted(found)
 
 
+def _jsonld_team_name(value: Any) -> str | None:
+    """Read a team name from common JSON-LD string or object representations."""
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    if isinstance(value, dict):
+        name = value.get("name")
+        if isinstance(name, str) and name.strip():
+            return name.strip()
+    return None
+
+
 def parse_match_page(
     page_html: str,
     url: str,
@@ -166,14 +177,12 @@ def parse_match_page(
         ):
             kickoff = _parse_datetime(item.get("startDate"))
             # Structured event metadata is more authoritative than title parsing.
-            if isinstance(item.get("homeTeam"), dict):
-                structured_home = item["homeTeam"].get("name")
-                if isinstance(structured_home, str) and structured_home.strip():
-                    home = structured_home.strip()
-            if isinstance(item.get("awayTeam"), dict):
-                structured_away = item["awayTeam"].get("name")
-                if isinstance(structured_away, str) and structured_away.strip():
-                    away = structured_away.strip()
+            structured_home = _jsonld_team_name(item.get("homeTeam"))
+            if structured_home:
+                home = structured_home
+            structured_away = _jsonld_team_name(item.get("awayTeam"))
+            if structured_away:
+                away = structured_away
             score = item.get("homeTeamScore")
             if score is not None:
                 try:
