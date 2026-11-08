@@ -59,12 +59,23 @@ jobs:
           PITCHAPI_PREVIOUS_DATA_PATH: backend/cache/previous_odds_data.json
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
+      - name: Build clean paired-xG cohort from refreshed cache
+        run: python backend/export_pitchapi_backtest.py
+      - name: Run strict chronological walk-forward backtest
+        run: |
+          python backend/backtest_pitchapi.py \
+            --input artifacts/pitchapi-clean-candidate.csv \
+            --output artifacts/pitchapi-backtest-report.json \
+            --holdout-from 2026-07-01
       - name: Upload preview and refreshed cache
         uses: actions/upload-artifact@v4
         with:
-          name: pitchapi-preview-${{ github.run_number }}
+          name: pitchapi-preview-and-backtest-${{ github.run_number }}
           path: |
             docs/data.json
             backend/cache/pitchapi_history.json
+            artifacts/pitchapi-clean-candidate.csv
+            artifacts/pitchapi-clean-candidate-manifest.json
+            artifacts/pitchapi-backtest-report.json
           if-no-files-found: error
           retention-days: 14
