@@ -10,7 +10,7 @@ on:
         type: string
   push:
     branches:
-      - feature/soccer365-source-migration
+      - feature/pitchapi-data-source
     paths:
       - "backend/probe_pitchapi_coverage.py"
       - "backend/test_probe_pitchapi_coverage.py"
