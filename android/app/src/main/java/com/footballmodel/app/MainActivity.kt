@@ -283,10 +283,10 @@ class MainActivity : Activity() {
             }
             if (n > 0) metrics.add(MetricRow(title,n,hits,brier/n,logLoss/n))
         }
-        collect("1x", "1X · хозяева не проиграют", { h,a -> h >= a })
-        collect("x2", "X2 · гости не проиграют", { h,a -> a >= h })
-        collect("dnbHome", "Победа хозяев — при ничьей возврат", { h,a -> h > a }, true)
-        collect("dnbAway", "Победа гостей — при ничьей возврат", { h,a -> a > h }, true)
+        collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h,a -> h >= a })
+        collect("x2", "X2 · гости победят ИЛИ будет ничья", { h,a -> a >= h })
+        collect("dnbHome", "П1 с возвратом при ничьей", { h,a -> h > a }, true)
+        collect("dnbAway", "П2 с возвратом при ничьей", { h,a -> a > h }, true)
         collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         if (metrics.isEmpty()) {
@@ -315,8 +315,8 @@ class MainActivity : Activity() {
     private fun showAddBetDialog(m: JSONObject, league: String) {
         val p = m.optJSONObject("prediction") ?: return
         val markets = listOf(
-            BetMarket("1x","1X · хозяева не проиграют"), BetMarket("x2","X2 · гости не проиграют"),
-            BetMarket("dnbHome","Победа хозяев — при ничьей возврат"), BetMarket("dnbAway","Победа гостей — при ничьей возврат"), BetMarket("1","П1"),
+            BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"), BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
+            BetMarket("dnbHome","П1 с возвратом при ничьей"), BetMarket("dnbAway","П2 с возвратом при ничьей"), BetMarket("1","П1"),
             BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
             BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
             BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 хозяев"),
@@ -453,7 +453,7 @@ class MainActivity : Activity() {
         section("1. ЧТО ДЕЛАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы каждой команды по истории xG (ожидаемых голов). Затем независимая модель Пуассона строит распределение возможных счетов. Из него рассчитываются вероятности исходов и рынков. Это вероятности, а не прогноз точного счёта.")
         section("2. НАШИ ОСНОВНЫЕ РЫНКИ",
-            "1X — хозяева не проиграют: победа хозяев или ничья.\n\nX2 — гости не проиграют: ничья или победа гостей.\n\nПобеда хозяев — при ничьей возврат: выигрыш при победе хозяев, возврат суммы при ничьей, проигрыш при победе гостей.\n\nПобеда гостей — при ничьей возврат: выигрыш при победе гостей, возврат суммы при ничьей, проигрыш при победе хозяев. Вероятности этих двух рынков считаются среди матчей без ничьей.\n\nИТБ 1.5 — команда забьёт минимум 2 гола.")
+            "1X — хозяева победят ИЛИ матч закончится вничью. Ставка выигрывает в обоих случаях.\n\nX2 — гости победят ИЛИ матч закончится вничью. Ставка выигрывает в обоих случаях.\n\nП1 с возвратом при ничьей: выигрыш при победе хозяев, возврат суммы при ничьей, проигрыш при победе гостей.\n\nП2 с возвратом при ничьей: выигрыш при победе гостей, возврат суммы при ничьей, проигрыш при победе хозяев. Вероятности этих двух рынков считаются среди матчей без ничьей.\n\nИТБ 1.5 — команда забьёт минимум 2 гола.")
         section("3. П1, X И П2 — ЗАЧЕМ ОНИ ПОКАЗАНЫ",
             "П1 — вероятность победы хозяев; X — вероятность ничьей; П2 — вероятность победы гостей. Это вероятности нашей модели, не коэффициенты и не оценки букмекера. Они выводятся из распределения счетов. Из них следуют 1X = П1 + X и X2 = X + П2. Они показаны для контекста, но не являются главными рынками оценки модели.")
         section("4. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
@@ -594,8 +594,8 @@ class MainActivity : Activity() {
                     val mainMarkets = card(box)
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = 20f; setStroke(1, Color.rgb(45, 102, 91)) }
                     addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ", 10, true, accent)
-                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева не проиграют", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости не проиграют", pct(pred, "x2"), Color.WHITE)))
-                    addMarketRow(mainMarkets, listOf(Triple("Хозяева · ничья возврат", pct(pred, "dnbHome"), accent), Triple("Гости · ничья возврат", pct(pred, "dnbAway"), cyan)))
+                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
+                    addMarketRow(mainMarkets, listOf(Triple("П1 · при ничьей возврат", pct(pred, "dnbHome"), accent), Triple("П2 · при ничьей возврат", pct(pred, "dnbAway"), cyan)))
                     addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
                     addText(mainMarkets, "Хозяева ${pct(pred, "homeOver15")}     Гости ${pct(pred, "awayOver15")}", 13, true, Color.WHITE)
                     val signal = pred.optJSONObject("strongestSignal")
