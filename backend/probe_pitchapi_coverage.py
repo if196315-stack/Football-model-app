@@ -34,7 +34,7 @@ def norm(value: Any) -> str:
 
 def fetch(session: Any, path: str, api_key: str, params: dict | None = None) -> dict:
     """GET a PitchAPI resource, retrying transient transport and gateway errors."""
-    retryable_statuses = {429, 500, 502, 503, 504}
+    retryable_statuses = {429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
     for attempt in range(3):
         try:
             response = session.get(
