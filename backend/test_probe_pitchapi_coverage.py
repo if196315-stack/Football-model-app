@@ -1,7 +1,7 @@
 import unittest
 from collections import Counter
 
-from probe_pitchapi_coverage import choose_samples, season_start, norm, flatten_shots, match_integrity
+from probe_pitchapi_coverage import choose_samples, season_start, norm, flatten_shots, match_integrity, select_xg_matches
 
 
 class PitchApiProbeTests(unittest.TestCase):
@@ -32,6 +32,22 @@ class PitchApiProbeTests(unittest.TestCase):
         self.assertEqual(len(selected), 20)
         self.assertEqual(selected[0]["id"], "0")
         self.assertEqual(selected[-1]["id"], "29")
+
+    def test_full_history_selection_includes_every_finished_match_only(self):
+        matches = [
+            {"id": "1", "status": "finished"},
+            {"id": "2", "status": "awarded"},
+            {"id": "3", "status": "canceled"},
+            {"id": "4", "status": "finished"},
+            {"status": "finished"},
+        ]
+        selected = select_xg_matches(matches, 1, full_history=True)
+        self.assertEqual([row["id"] for row in selected], ["1", "4"])
+
+    def test_sampled_selection_keeps_configured_limit(self):
+        matches = [{"id": str(i), "status": "finished"} for i in range(10)]
+        selected = select_xg_matches(matches, 3, full_history=False)
+        self.assertEqual(len(selected), 3)
 
     def test_flatten_shots_from_periods(self):
         data = {"periods": [
