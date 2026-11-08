@@ -23,6 +23,7 @@ on:
       - "backend/probe_pitchapi_coverage.py"
       - "backend/test_probe_pitchapi_coverage.py"
       - "backend/recheck_pitchapi_exceptions.py"
+      - "backend/export_pitchapi_results.py"
       - ".github/workflows/audit-pitchapi-coverage.yml"
 
 permissions:
@@ -56,6 +57,29 @@ jobs:
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
         run: python backend/recheck_pitchapi_exceptions.py
+
+  results-export:
+    needs: unit-tests
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[results-export]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Export PitchAPI fixture results only
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/export_pitchapi_results.py
+      - name: Upload fixture results export
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-results-export
+          path: pitchapi-results-export.json
+          if-no-files-found: error
+          retention-days: 14
 
   pitchapi-audit:
     needs: unit-tests
