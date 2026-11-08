@@ -83,7 +83,7 @@ def main():
     }
     urls = {}
     for code, comp_id in LEAGUES.items():
-        for season in ("2025-2026", "2026-2027"):
+        for season in ("2026-2027",):
             page_url = f"{BASE}/competitions/{comp_id}/{season}/results/"
             try:
                 soup = BeautifulSoup(get(page_url), "html.parser")
