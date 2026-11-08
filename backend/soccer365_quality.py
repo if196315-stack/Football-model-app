@@ -200,10 +200,8 @@ def summarize_model_coverage(
             and 0 <= v <= 20
             for v in (hxg, axg)
         )
-        if not paired_xg:
-            continue
-
-        group["finishedWithPairedXg"] += 1
+        if paired_xg:
+            group["finishedWithPairedXg"] += 1
         for side in ("home", "away"):
             team_key = _team_key(row, side)
             if not team_key:
@@ -211,7 +209,8 @@ def summarize_model_coverage(
             team_id = row.get(f"{side}TeamId")
             label = str(team_id if team_id is not None else row.get(side) or "")
             team = group["teams"].setdefault(team_key, {"team": label, "pairedXgMatches": 0})
-            team["pairedXgMatches"] += 1
+            if paired_xg:
+                team["pairedXgMatches"] += 1
 
     output = []
     for key in sorted(groups):
