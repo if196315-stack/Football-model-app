@@ -254,7 +254,22 @@ class MainActivity : Activity() {
         val date: String, val confidence: Double
     )
 
+    private fun addIllustration(parent: LinearLayout, resourceId: Int) {
+        val image = ImageView(this).apply {
+            setImageResource(resourceId)
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            background = rounded(Color.rgb(16, 44, 64), 18)
+            clipToOutline = true
+            contentDescription = "Иллюстрация раздела"
+        }
+        parent.addView(image, LinearLayout.LayoutParams(-1, dp(96)).apply {
+            topMargin = dp(4)
+            bottomMargin = dp(10)
+        })
+    }
+
     private fun renderStats(json: JSONObject) {
+        addIllustration(matchesContainer, R.drawable.analytics_art)
         addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
         addText(matchesContainer, "Качество прогнозов", 22, true)
         addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, П1 с возвратом при ничьей и индивидуальным тоталам команд.", 11, false, muted)
@@ -398,6 +413,7 @@ class MainActivity : Activity() {
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
     private fun renderBetHistory(j: JSONObject) {
+        addIllustration(matchesContainer, R.drawable.history_art)
         addText(matchesContainer,"BET TRACKER",9,true,cyan)
         addText(matchesContainer,"История ставок",22,true)
         addText(matchesContainer,"Записи хранятся только на этом устройстве. Коэффициенты вводятся вручную.",11,false,muted)
@@ -446,6 +462,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderHelp() {
+        addIllustration(matchesContainer, R.drawable.guide_art)
         fun section(title: String, body: String) {
             val box = card()
             addText(box, title, 14, true, accent)
