@@ -3,6 +3,14 @@ name: Audit PitchAPI coverage and xG
 on:
   workflow_dispatch:
     inputs:
+      audit_mode:
+        description: "Sampled check or all finished historical matches"
+        required: true
+        default: "sample"
+        type: choice
+        options:
+          - sample
+          - full_history
       sample_limit:
         description: "Finished matches to inspect per league-season (1-50)"
         required: false
@@ -22,7 +30,7 @@ permissions:
 jobs:
   pitchapi-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,10 +40,15 @@ jobs:
         run: python -m pip install requests
       - name: Run probe unit tests
         run: python -m unittest discover -s backend -p "test_probe_pitchapi_coverage.py" -v
-      - name: Fetch league, season and sampled xG coverage
+      - name: Fetch league, season and shot-level xG coverage
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-        run: python backend/probe_pitchapi_coverage.py --sample-limit "${{ github.event.inputs.sample_limit || '20' }}" --output pitchapi-coverage-audit.json
+        run: |
+          if [ "${{ inputs.audit_mode || 'sample' }}" = "full_history" ]; then
+            python backend/probe_pitchapi_coverage.py --full-history --output pitchapi-coverage-audit.json
+          else
+            python backend/probe_pitchapi_coverage.py --sample-limit "${{ inputs.sample_limit || '20' }}" --output pitchapi-coverage-audit.json
+          fi
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         with:
