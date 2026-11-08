@@ -1,0 +1,38 @@
+name: Audit PitchAPI coverage and xG
+
+on:
+  push:
+    branches:
+      - feature/soccer365-source-migration
+    paths:
+      - "backend/probe_pitchapi_coverage.py"
+      - "backend/test_probe_pitchapi_coverage.py"
+      - ".github/workflows/audit-pitchapi-coverage.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pitchapi-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Run probe unit tests
+        run: python -m unittest discover -s backend -p "test_probe_pitchapi_coverage.py" -v
+      - name: Fetch league, season and sampled xG coverage
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/probe_pitchapi_coverage.py --output pitchapi-coverage-audit.json
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-coverage-audit
+          path: pitchapi-coverage-audit.json
+          if-no-files-found: error
+          retention-days: 14
