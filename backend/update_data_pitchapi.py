@@ -100,9 +100,13 @@ def preserve_odds_by_identity(payload: dict) -> int:
                 candidates[code].append(match)
 
     retained = 0
+    eligible_by_league = {}
+    retained_by_league = {}
     for comp in payload.get("competitions", []):
         code = comp.get("code")
         for match in comp.get("matches", []):
+            if match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
+                eligible_by_league[code] = eligible_by_league.get(code, 0) + 1
             quote = old.get(str(match.get("id")))
             if quote is None:
                 identity = fixture_identity(match, code)
@@ -115,7 +119,14 @@ def preserve_odds_by_identity(payload: dict) -> int:
                 if not pd.isna(current_date):
                     for previous_match in candidates.get(code, []):
                         previous_date = pd.to_datetime(previous_match.get("utcDate"), utc=True, errors="coerce")
-                        if pd.isna(previous_date) or abs((previous_date-current_date).total_seconds()) > 6*3600:
+                        if pd.isna(previous_date):
+                            continue
+                        # PitchAPI fixture dates may be date-only. In that case
+                        # compare calendar dates instead of assuming midnight kickoff.
+                        if "T" not in str(match.get("utcDate") or ""):
+                            if previous_date.date() != current_date.date():
+                                continue
+                        elif abs((previous_date-current_date).total_seconds()) > 6*3600:
                             continue
                         home_score = _similarity(key(match.get("home")), key(previous_match.get("home")))
                         away_score = _similarity(key(match.get("away")), key(previous_match.get("away")))
@@ -127,10 +138,31 @@ def preserve_odds_by_identity(payload: dict) -> int:
             if quote and match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
                 match["odds"] = quote
                 retained += 1
+                retained_by_league[code] = retained_by_league.get(code, 0) + 1
     for field in ("oddsUpdatedAt", "oddsCreditsRemaining", "oddsCreditsUsed",
-                  "oddsStatus", "oddsNotice", "oddsErrors", "oddsCoverage"):
+                  "oddsErrors"):
         if field in previous:
             payload[field] = previous[field]
+    eligible = sum(eligible_by_league.values())
+    payload["oddsCoverage"] = {
+        "eligible": eligible, "matched": retained, "updated": 0,
+        "retained": retained, "notMatched": max(0, eligible - retained),
+        "byLeague": {
+            code: {
+                "eligible": count, "matched": retained_by_league.get(code, 0),
+                "updated": 0, "retained": retained_by_league.get(code, 0),
+                "notMatched": max(0, count - retained_by_league.get(code, 0)),
+            }
+            for code, count in eligible_by_league.items()
+        },
+    }
+    payload["oddsStatus"] = "ready" if retained else "no_quotes"
+    payload["oddsNotice"] = (
+        f"Перенесены прежние котировки The Odds API для {retained} из {eligible} предстоящих матчей; "
+        "новые коэффициенты обновляются отдельным заданием."
+        if retained else
+        "Котировки из предыдущего снимка не сопоставлены; обновление The Odds API выполняется отдельным заданием."
+    )
     return retained
 
 
