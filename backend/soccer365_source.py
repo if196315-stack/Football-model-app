@@ -243,7 +243,9 @@ def parse_match_page(
     # a navigation item, or a historical widget elsewhere on the page.
 
     return {
-        "id": url.rstrip("/").rsplit("/", 1)[-1],
+        # Internal numeric IDs are not verified from real pages; use the
+        # canonical page locator to avoid collisions between equal URL slugs.
+        "id": "soccer365:" + urlparse(url).netloc.lower() + urlparse(url).path.rstrip("/"),
         "source": "Soccer365",
         "sourceUrl": url,
         "country": country,
