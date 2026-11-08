@@ -28,7 +28,9 @@ class Soccer365ParserTests(unittest.TestCase):
         <html><head><title>Боруссия Дортмунд - Падерборн 07: смотреть онлайн</title></head>
         <body>
           <div>12.09.2026 18:30</div>
-          <div>Завершен</div>
+          <script type="application/ld+json">
+          {"@type":"SportsEvent","eventStatus":"https://schema.org/EventCompleted"}
+          </script>
           <div>Статистика матча</div>
           <div>1.54 Ожидаемые голы (xG) 0.41</div>
         </body></html>
@@ -48,6 +50,34 @@ class Soccer365ParserTests(unittest.TestCase):
         self.assertEqual(match["statistics"]["awayXg"], 0.41)
         self.assertIsNone(match["utcDate"])
         self.assertEqual(match["localKickoff"], "2026-09-12T18:30:00")
+
+
+    def test_ignores_unrelated_page_text_when_determining_match_status(self):
+        page = """
+        <title>Home - Away</title>
+        <nav>Завершен · Finished · Postponed</nav>
+        <div>Другие матчи: матч окончен</div>
+        """
+        match = parse_match_page(page, "https://soccer365.net/live/match-home-away/")
+        self.assertIsNone(match["status"])
+
+    def test_maps_explicit_jsonld_event_status(self):
+        cases = {
+            "https://schema.org/EventCompleted": "FINISHED",
+            "https://schema.org/EventScheduled": "SCHEDULED",
+            "https://schema.org/EventPostponed": "POSTPONED",
+            "https://schema.org/EventCancelled": "CANCELLED",
+        }
+        for source_status, expected in cases.items():
+            with self.subTest(source_status=source_status):
+                page = f"""
+                <title>Home - Away</title>
+                <script type="application/ld+json">
+                {{"@type":"SportsEvent","eventStatus":"{source_status}"}}
+                </script>
+                """
+                match = parse_match_page(page, "https://soccer365.net/live/match-home-away/")
+                self.assertEqual(match["status"], expected)
 
     def test_naive_jsonld_datetime_is_not_assumed_utc(self):
         page = '''
