@@ -24,6 +24,8 @@ on:
       - "backend/test_probe_pitchapi_coverage.py"
       - "backend/recheck_pitchapi_exceptions.py"
       - "backend/export_pitchapi_results.py"
+      - "backend/backtest_pitchapi.py"
+      - "backend/test_backtest_pitchapi.py"
       - ".github/workflows/audit-pitchapi-coverage.yml"
 
 permissions:
@@ -40,7 +42,7 @@ jobs:
       - name: Install dependency
         run: python -m pip install requests
       - name: Run probe unit tests
-        run: python -m unittest discover -s backend -p "test_probe_pitchapi_coverage.py" -v
+        run: python -m unittest discover -s backend -p "test_*.py" -v
 
   targeted-recheck:
     needs: unit-tests
