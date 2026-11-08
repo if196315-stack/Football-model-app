@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T01:51:25.064309+00:00",
+  "updatedAt": "2026-11-08T02:09:12.041540+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -349,7 +349,7 @@
             "expectedAwayGoals": 1.3891742375903517,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5037226871797251,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 8.612130667929375,
@@ -426,7 +426,7 @@
             "expectedAwayGoals": 1.4462320471766645,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5884963961188914,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 17.089501561846,
@@ -635,7 +635,7 @@
             "expectedAwayGoals": 0.959013514332847,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.7706660449516212,
               "baselineProbability": 0.5823986194995686,
               "edgePp": 18.826742545205256,
@@ -921,7 +921,7 @@
             "expectedAwayGoals": 1.6266598798577119,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5015557428926094,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 8.395436239217801,
@@ -1306,7 +1306,7 @@
             "expectedAwayGoals": 1.534291981738409,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5087278924357659,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 9.11265119353345,
@@ -1372,7 +1372,7 @@
             "expectedAwayGoals": 1.642165964330717,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5144545299649501,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 9.685314946451873,
@@ -1955,7 +1955,7 @@
             "expectedAwayGoals": 1.5727151748937414,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5059026459080282,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 8.830126540759686,
@@ -2311,7 +2311,7 @@
             "expectedAwayGoals": 1.5278812139484585,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5486080686360002,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 13.100668813556881,
@@ -6356,7 +6356,7 @@
             "expectedAwayGoals": 1.5237096635000447,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5140524191636848,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 9.645103866325345,
@@ -6433,7 +6433,7 @@
             "expectedAwayGoals": 1.5489175721090103,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5212891478189485,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 10.368776731851714,
@@ -6730,7 +6730,7 @@
             "expectedAwayGoals": 1.8026105797193617,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.7007016669631448,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 28.310028646271345,
@@ -7445,7 +7445,7 @@
             "expectedAwayGoals": 1.1900121841856035,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.6287557616357877,
               "baselineProbability": 0.5823986194995686,
               "edgePp": 4.635714213621911,
@@ -7566,7 +7566,7 @@
             "expectedAwayGoals": 1.7263742366649752,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.691613968001664,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 27.401258750123258,
@@ -8028,7 +8028,7 @@
             "expectedAwayGoals": 0.8839715512628104,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.8351119257998556,
               "baselineProbability": 0.5823986194995686,
               "edgePp": 25.2713306300287,
@@ -8094,7 +8094,7 @@
             "expectedAwayGoals": 1.5014040510914213,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5343459129168711,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 11.674453241643967,
@@ -8138,7 +8138,7 @@
             "expectedAwayGoals": 1.542445693875433,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.56074507745419,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 14.314369695375861,
@@ -8292,7 +8292,7 @@
             "expectedAwayGoals": 1.0985046051401375,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.720616790832706,
               "baselineProbability": 0.5823986194995686,
               "edgePp": 13.82181713331374,
@@ -8864,7 +8864,7 @@
             "expectedAwayGoals": 0.9681552806898677,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.761221549463644,
               "baselineProbability": 0.5823986194995686,
               "edgePp": 17.882292996407536,
@@ -8919,7 +8919,7 @@
             "expectedAwayGoals": 1.4951306997052447,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5727364351221902,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 15.51350546217588,
@@ -9370,7 +9370,7 @@
             "expectedAwayGoals": 0.8719505518163391,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.7981957783411263,
               "baselineProbability": 0.5823986194995686,
               "edgePp": 21.57971588415577,
@@ -9568,7 +9568,7 @@
             "expectedAwayGoals": 1.2871275730586074,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.5972007159613579,
               "baselineProbability": 0.5823986194995686,
               "edgePp": 1.4802096461789316,
@@ -9975,7 +9975,7 @@
             "expectedAwayGoals": 1.5695084189863573,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.6145053692450898,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 19.690398874465842,
@@ -10261,7 +10261,7 @@
             "expectedAwayGoals": 1.4910485674793534,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5394258962983745,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 12.182451579794307,
@@ -10569,7 +10569,7 @@
             "expectedAwayGoals": 1.538234378252727,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.526535213355928,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 10.893383285549662,
@@ -10756,7 +10756,7 @@
             "expectedAwayGoals": 1.770804206234041,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.6434746669493477,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 22.587328644891635,
@@ -11108,7 +11108,7 @@
             "expectedAwayGoals": 1.524471655120608,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5194132303731036,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 10.181184987267223,
@@ -11702,7 +11702,7 @@
             "expectedAwayGoals": 1.7002515356204442,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.7022629637228688,
               "baselineProbability": 0.4176013805004314,
               "edgePp": 28.46615832224374,
@@ -12117,7 +12117,7 @@
             "expectedAwayGoals": 1.7910433447728202,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.6819734460143612,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 29.79947288993745,
@@ -12425,7 +12425,7 @@
             "expectedAwayGoals": 1.488512714959578,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5094259416045592,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 12.544722448957257,
@@ -12722,7 +12722,7 @@
             "expectedAwayGoals": 1.6584774915411464,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.6579672223555892,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 27.398850524060258,
@@ -12865,7 +12865,7 @@
             "expectedAwayGoals": 1.4741229747687394,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5971780162469817,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 21.31992991319951,
@@ -13668,7 +13668,7 @@
             "expectedAwayGoals": 1.4034079375018764,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.556188445922722,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 17.220972880773534,
@@ -16554,7 +16554,7 @@
             "expectedAwayGoals": 1.1472711138975924,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5125897118933225,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 12.861099477833582,
@@ -17016,7 +17016,7 @@
             "expectedAwayGoals": 1.365014297701285,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5734807693213763,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 18.95020522063896,
@@ -17478,7 +17478,7 @@
             "expectedAwayGoals": 1.046845009402549,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.6537915059974957,
               "baselineProbability": 0.6160212828850133,
               "edgePp": 3.777022311248235,
@@ -18149,7 +18149,7 @@
             "expectedAwayGoals": 1.2207999143806905,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5713753104792405,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 18.739659336425383,
@@ -18633,7 +18633,7 @@
             "expectedAwayGoals": 1.260370650389971,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5035713107968056,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 11.959259368181897,
@@ -18919,7 +18919,7 @@
             "expectedAwayGoals": 0.9217401056461664,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.76606149692524,
               "baselineProbability": 0.6160212828850133,
               "edgePp": 15.00402140402266,
@@ -19062,7 +19062,7 @@
             "expectedAwayGoals": 1.3183812099366787,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.594159156260146,
               "baselineProbability": 0.38397871711498666,
               "edgePp": 21.01804391451594,
@@ -19554,7 +19554,7 @@
             "expectedAwayGoals": 1.0090866708466146,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.7777304945923378,
               "baselineProbability": 0.5697743467933492,
               "edgePp": 20.795614779898862,
@@ -20049,7 +20049,7 @@
             "expectedAwayGoals": 1.3304631482930633,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5716415124017535,
               "baselineProbability": 0.43022565320665085,
               "edgePp": 14.14158591951027,
@@ -20093,7 +20093,7 @@
             "expectedAwayGoals": 0.9383366612172678,
             "strongestSignal": {
               "market": "Победа гостей — при ничьей возврат",
-              "side": "Не победа гостей",
+              "side": "Ничья или победа хозяев",
               "modelProbability": 0.6990238851510155,
               "baselineProbability": 0.5697743467933492,
               "edgePp": 12.92495383576664,
@@ -23480,7 +23480,7 @@
             "expectedAwayGoals": 1.8684051258906802,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.8081192998143804,
               "baselineProbability": 0.43022565320665085,
               "edgePp": 37.789364660772954,
@@ -23975,7 +23975,7 @@
             "expectedAwayGoals": 1.8601424084618114,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.7193201525531112,
               "baselineProbability": 0.43022565320665085,
               "edgePp": 28.909449934646037,
@@ -24261,7 +24261,7 @@
             "expectedAwayGoals": 1.9670333852609232,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.7798584480022902,
               "baselineProbability": 0.43022565320665085,
               "edgePp": 34.96327947956394,
@@ -24415,7 +24415,7 @@
             "expectedAwayGoals": 1.371110210523992,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5017634933653478,
               "baselineProbability": 0.43022565320665085,
               "edgePp": 7.153784015869691,
@@ -34306,7 +34306,7 @@
             "expectedAwayGoals": 1.2887766200127961,
             "strongestSignal": {
               "market": "Победа хозяев — при ничьей возврат",
-              "side": "Не победа хозяев",
+              "side": "Ничья или победа гостей",
               "modelProbability": 0.5428202626952484,
               "baselineProbability": 0.40923466160657807,
               "edgePp": 13.358560108867035,
