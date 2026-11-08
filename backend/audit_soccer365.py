@@ -44,7 +44,7 @@ def get(url):
 
 
 def match_date(text):
-    iso = re.search(r\'"startDate"\\s*:\\s*"([^"]+)"\', text)
+    iso = re.search(r'"startDate"\s*:\s*"([^"]+)"', text)
     if iso:
         try:
             return datetime.fromisoformat(iso.group(1).replace("Z", "+00:00")).date()
