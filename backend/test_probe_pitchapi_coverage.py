@@ -58,5 +58,24 @@ class PitchApiProbeTests(unittest.TestCase):
         ])
 
 
+    def test_match_integrity_reports_per_team_appearance_counts(self):
+        matches = [
+            {"id": "1", "date": "2024-01-01", "home_team": {"id": 1, "name": "A"},
+             "away_team": {"id": 2, "name": "B"}},
+            {"id": "2", "date": "2024-01-02", "home_team": {"id": 2, "name": "B"},
+             "away_team": {"id": 3, "name": "C"}},
+            {"id": "3", "date": "2024-01-03", "home_team": {"id": 3, "name": "C"},
+             "away_team": {"id": 1, "name": "A"}},
+        ]
+        result = match_integrity(matches)
+        self.assertEqual(result["teamCount"], 3)
+        self.assertEqual(result["expectedMatchesPerTeam"], 4)
+        self.assertEqual(
+            {row["team"]: row["matches"] for row in result["teamMatchCounts"]},
+            {"A": 2, "B": 2, "C": 2},
+        )
+        self.assertEqual(len(result["teamCountOutliers"]), 3)
+
+
 if __name__ == "__main__":
     unittest.main()
