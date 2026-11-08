@@ -284,42 +284,39 @@ class MainActivity : Activity() {
     private fun renderStats(json: JSONObject) {
         addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
         addText(matchesContainer, "Качество прогнозов", 22, true)
-        addText(matchesContainer, "П1 / X / П2 остаются внутренними вероятностями модели. Главная оценка — по рынкам 1X, X2, фора 0, индивидуальным тоталам команд и дополнительному рынку ТБ 2.5.", 11, false, muted)
+        addText(matchesContainer, "Здесь учитываются только прогнозы, зафиксированные до начала матча. После финального счёта результат добавляется к архиву; исходный прогноз не пересчитывается.", 11, false, muted)
         data class BandRow(val label: String, val n: Int, val hits: Int)
         data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
         val metrics = mutableListOf<MetricRow>()
-        val leagues = json.optJSONArray("competitions")
+        val evaluatedMatches = json.optJSONArray("evaluationMatches")
         fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
             var n = 0; var hits = 0; var brier = 0.0; var logLoss = 0.0
             val bandCounts = IntArray(4)
             val bandHits = IntArray(4)
-            if (leagues != null) for (i in 0 until leagues.length()) {
-                val matches = leagues.getJSONObject(i).optJSONArray("matches") ?: continue
-                for (j in 0 until matches.length()) {
-                    val m = matches.getJSONObject(j)
-                    if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
-                    val p = m.optJSONObject("prediction") ?: continue
-                    if (!p.has(key) || p.isNull(key)) continue
-                    val h = m.optInt("homeScore"); val aw = m.optInt("awayScore")
-                    if (excludeDraws && h == aw) continue
-                    val outcome = actual(h, aw)
-                    val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
-                    val predictedYes = probability >= 0.5
-                    val confidence = maxOf(probability, 1.0 - probability)
-                    val band = when {
-                        confidence < 0.6 -> 0
-                        confidence < 0.7 -> 1
-                        confidence < 0.8 -> 2
-                        else -> 3
-                    }
-                    val correct = outcome == predictedYes
-                    val y = if (outcome) 1.0 else 0.0
-                    n++; if (correct) hits++
-                    bandCounts[band]++
-                    if (correct) bandHits[band]++
-                    brier += (probability-y)*(probability-y)
-                    logLoss += -(y*kotlin.math.ln(probability)+(1.0-y)*kotlin.math.ln(1.0-probability))
+            if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
+                val m = evaluatedMatches.optJSONObject(i) ?: continue
+                if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                val p = m.optJSONObject("prediction") ?: continue
+                if (!p.has(key) || p.isNull(key)) continue
+                val h = m.optInt("homeScore"); val aw = m.optInt("awayScore")
+                if (excludeDraws && h == aw) continue
+                val outcome = actual(h, aw)
+                val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
+                val predictedYes = probability >= 0.5
+                val confidence = maxOf(probability, 1.0 - probability)
+                val band = when {
+                    confidence < 0.6 -> 0
+                    confidence < 0.7 -> 1
+                    confidence < 0.8 -> 2
+                    else -> 3
                 }
+                val correct = outcome == predictedYes
+                val y = if (outcome) 1.0 else 0.0
+                n++; if (correct) hits++
+                bandCounts[band]++
+                if (correct) bandHits[band]++
+                brier += (probability-y)*(probability-y)
+                logLoss += -(y*kotlin.math.ln(probability)+(1.0-y)*kotlin.math.ln(1.0-probability))
             }
             if (n > 0) {
                 val labels = listOf("50–59%", "60–69%", "70–79%", "80%+")
@@ -337,7 +334,7 @@ class MainActivity : Activity() {
         collect("bttsYes", "Обе забьют · обе команды минимум по 1 голу", { h,a -> h >= 1 && a >= 1 })
         if (metrics.isEmpty()) {
             val empty = card()
-            addText(empty, "Пока нет завершённых матчей с сохранёнными прогнозами по основным рынкам.", 12, false, muted)
+            addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
         } else metrics.forEach { metric ->
             val box = card()
             addText(box, metric.name, 14, true)
@@ -354,7 +351,7 @@ class MainActivity : Activity() {
         addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
         addText(explainer, "Диапазон — это уверенность в выбранной стороне: max(p, 1−p). Например, вероятность события 28% означает прогноз на противоположный исход с уверенностью 72% и попадёт в диапазон 70–79%. В каждом диапазоне показаны верные прогнозы / все прогнозы. Brier Score и Log Loss: чем ниже, тем лучше. Попадания не равны доходности.", 11, false, muted)
         val footer = card()
-        addText(footer, "Выборка включает завершённые матчи с сохранённым прогнозом. Это мониторинг, а не независимый тест модели.", 10, false, muted)
+        addText(footer, "Учитываются только неизменяемые прогнозы, зафиксированные до начала матча. Старые пересчитываемые прогнозы в эту статистику не включены.", 10, false, muted)
     }
 
 
