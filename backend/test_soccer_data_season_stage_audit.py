@@ -27,8 +27,10 @@ class SeasonStageAuditTests(unittest.TestCase):
         client.get.return_value = {"data": [], "meta": {"total": 4}}
         self.assertEqual(_stage_total(client, "competition_x", "season_x", "playoff"), 4)
         self.assertEqual(client.get.call_args.args[0], "/matches")
-        self.assertEqual(client.get.call_args.kwargs["params"]["per_page"], 1)
-        self.assertEqual(client.get.call_args.kwargs["params"]["stage"], "playoff")
+        params = client.get.call_args.args[1]
+        self.assertEqual(params["per_page"], 1)
+        self.assertEqual(params["stage"], "playoff")
+        self.assertEqual(params["status"], "finished")
 
 
 if __name__ == "__main__":
