@@ -64,9 +64,23 @@ def choose_samples(matches: list[dict], limit: int = 3) -> list[dict]:
     return [valid[i] for i in indexes[:limit]]
 
 
+def flatten_shots(data: dict) -> list[dict]:
+    """PitchAPI groups shots under periods[].shots."""
+    if not isinstance(data, dict):
+        return []
+    direct = data.get("shots")
+    if isinstance(direct, list):
+        return [shot for shot in direct if isinstance(shot, dict)]
+    periods = data.get("periods", [])
+    if not isinstance(periods, list):
+        return []
+    return [shot for period in periods if isinstance(period, dict)
+            for shot in (period.get("shots") or []) if isinstance(shot, dict)]
+
+
 def inspect_shots(session: Any, match: dict, api_key: str) -> dict:
     data = fetch(session, f"/matches/{match['id']}/shots", api_key)
-    shots = data.get("shots", []) if isinstance(data, dict) else []
+    shots = flatten_shots(data)
     teams = {match.get("home_team", {}).get("id"), match.get("away_team", {}).get("id")}
     totals = Counter()
     valid_shots = 0
@@ -87,7 +101,7 @@ def inspect_shots(session: Any, match: dict, api_key: str) -> dict:
         "away": (match.get("away_team") or {}).get("name"),
         "date": match.get("date"),
         "status": match.get("status"),
-        "shotCount": len(shots) if isinstance(shots, list) else None,
+        "shotCount": len(shots),
         "validXgShots": valid_shots,
         "homeXgFromShots": round(totals[home_id], 4) if home_id in totals else None,
         "awayXgFromShots": round(totals[away_id], 4) if away_id in totals else None,
@@ -115,7 +129,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
             "Season match totals come from the provider's league match listing.",
             "xG is checked on up to three finished matches per season using shot-level expected_goals.",
             "This is a sample, not a full match-by-match xG completeness measurement.",
-            "Shot xG is summed by team; a zero sum is not treated as missing if valid shots exist.",
+            "Shot xG is summed by team from periods[].shots; zero is not treated as missing when valid shots exist.",
         ],
     }
     for code in sorted(matched):
