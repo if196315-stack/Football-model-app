@@ -89,7 +89,13 @@ class PitchApiProbeTests(unittest.TestCase):
         result = match_integrity(matches, "2023/2024")
         self.assertEqual(result["teamMatchCounts"][0]["matches"], 1)
         self.assertEqual(result["teamMatchCounts"][1]["matches"], 1)
-        self.assertEqual(result["teamFixtureLists"], {})
+        self.assertEqual(len(result["teamFixtureLists"]["1"]), 1)
+        self.assertEqual(len(result["teamFixtureLists"]["2"]), 1)
+        self.assertTrue(all(
+            fixture["status"] != "canceled"
+            for fixtures in result["teamFixtureLists"].values()
+            for fixture in fixtures
+        ))
 
     def test_active_season_team_counts_are_not_flagged(self):
         matches = [
