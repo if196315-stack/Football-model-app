@@ -226,7 +226,7 @@ class MainActivity : Activity() {
 
     private fun renderTabs() {
         tabBar.removeAllViews()
-        listOf("matches" to "МАТЧИ", "history" to "СТАВКИ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА").forEach { item ->
+        listOf("matches" to "МАТЧИ", "week" to "НЕДЕЛЯ", "history" to "СТАВКИ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА").forEach { item ->
             val active = currentTab == item.first
             val t = label(item.second, 11, true, if (active) bg else muted).apply {
                 gravity = Gravity.CENTER
@@ -468,6 +468,65 @@ class MainActivity : Activity() {
             "В первую очередь смотрите 1X, X2, фора 0 на хозяев, ИТБ 1.5 хозяев и ИТБ 1.5 гостей. П1/X/П2 — вспомогательные вероятности. ТБ 2.5 и «Обе забьют» — дополнительные рынки. Ни один прогноз не гарантирует результат.")
     }
 
+    private fun renderWeek(json: JSONObject) {
+        addText(matchesContainer, "WEEKLY MATCH CENTER", 9, true, cyan)
+        addText(matchesContainer, "Матчи недели", 22, true)
+        addText(matchesContainer, "Все пять лиг · ближайшие 7 дней · только матчи с готовым прогнозом", 11, false, muted)
+
+        val start = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+        }
+        val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 7) }
+        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
+        val items = mutableListOf<Pair<JSONObject, String>>()
+        val leagues = json.optJSONArray("competitions")
+        if (leagues != null) for (i in 0 until leagues.length()) {
+            val league = leagues.optJSONObject(i) ?: continue
+            val matches = league.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val m = matches.optJSONObject(j) ?: continue
+                if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                if (m.optJSONObject("prediction") == null) continue
+                val kickoff = try { parser.parse(m.optString("utcDate")) } catch (_: Exception) { null } ?: continue
+                if (kickoff.time >= start.timeInMillis && kickoff.time < end.timeInMillis) {
+                    items.add(m to league.optString("name"))
+                }
+            }
+        }
+        val sorted = items.sortedBy { it.first.optString("utcDate") }
+        val overview = card()
+        addText(overview, "МАТЧЕЙ В ЭТОМ ОКНЕ", 9, true, accent)
+        addText(overview, sorted.size.toString(), 28, true, Color.WHITE)
+        addText(overview, "С прогнозом модели Openplay 1.3", 11, false, muted)
+        if (sorted.isEmpty()) {
+            val empty = card()
+            addText(empty, "На ближайшие 7 дней нет предстоящих матчей с готовым прогнозом.", 13, false, muted)
+            return
+        }
+        sorted.forEach { (m, leagueName) ->
+            val box = card()
+            addText(box, leagueName.uppercase(Locale.getDefault()) + "  ·  " + date(m.optString("utcDate")), 10, true, accent)
+            addText(box, m.optString("home") + "  —  " + m.optString("away"), 16, true, Color.WHITE)
+            val p = m.optJSONObject("prediction") ?: return@forEach
+            addMarketRow(box, listOf(
+                Triple("1X", pct(p, "1x"), Color.WHITE),
+                Triple("X2", pct(p, "x2"), Color.WHITE),
+                Triple("ТБ 2.5", pct(p, "over25"), cyan)
+            ))
+            val signal = p.optJSONObject("strongestSignal")
+            if (signal != null) {
+                val edge = signal.optDouble("edgePp")
+                addText(box, "Сильнейший сигнал: " + signal.optString("side") +
+                    (if (signal.optBoolean("noPositiveSignal")) " · нет плюсового отклонения" else " · +" + String.format(Locale.US, "%.1f", edge) + " п.п."),
+                    11, true, if (signal.optBoolean("noPositiveSignal")) Color.rgb(242,190,104) else gold)
+            }
+            addText(box, "Ожидаемые голы: " + String.format(Locale.US, "%.2f : %.2f", p.optDouble("expectedHomeGoals"), p.optDouble("expectedAwayGoals")), 11, false, muted)
+        }
+    }
+
     private fun render() {
         val json = data ?: return
         matchesContainer.removeAllViews()
@@ -487,7 +546,7 @@ class MainActivity : Activity() {
         val warning = json.optString("dataWarning", "")
         if (warning.isNotBlank()) addText(summary, "⚠  $warning", 11, false, Color.rgb(242, 190, 104))
 
-        if (currentTab == "history") {
+        if (currentTab == "week") {\n            leagueBar.visibility = View.GONE\n            renderWeek(json)\n            return\n        }\n        if (currentTab == "history") {
             leagueBar.visibility = View.GONE
             renderBetHistory(json)
             return
