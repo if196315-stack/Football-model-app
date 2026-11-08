@@ -107,7 +107,7 @@ The collector does not write to the JSONL store. A future runner must require an
 
 ## Season-level historical coverage report
 
-`backend/soccer365_coverage.py` reports records by country, competition ID, competition type and season. It counts total records, finished matches, finished matches with a valid score, paired-xG coverage, finished matches missing xG, missing UTC kickoff, missing stable team IDs, and duplicate source IDs. It also reports per-team finished and paired-xG sample depth.
+`backend/soccer365_coverage.py` reports records by country, competition ID, competition type and season. It counts total records, finished matches, finished matches with a valid score, paired-xG coverage, finished matches missing xG, missing UTC kickoff, missing stable team IDs, and duplicate source IDs. It also reports per-team finished and paired-xG sample depth. `finishedResultCoverage` measures scored finished matches against the independently verified expected season total; `finishedScoreRate` separately measures the share of records marked FINISHED that contain a valid score. Paired xG excludes booleans, NaN and infinities.
 
 The optional manifest field `expectedFinishedMatches` is accepted only as a non-negative integer. Populate it only when an expected count has been independently verified from Soccer365 for that exact competition-season. When absent, `sourceHistoryComplete` is null/unknown: meeting model sample thresholds is not proof that the historical archive is complete. When present, the report requires an exact count match to mark the history complete and exposes the count delta. Both under-counts and over-counts remain incomplete and require review.
 
