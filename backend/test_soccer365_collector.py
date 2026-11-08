@@ -122,6 +122,27 @@ class Soccer365CollectorTests(unittest.TestCase):
         self.assertFalse(result["complete"])
         self.assertEqual(result["errors"][0]["stage"], "catalog_identity")
 
+    def test_custom_link_extractor_supports_verified_route_shapes(self):
+        alternate_url = "https://soccer365.net/match/verified-id/"
+        client = FakeClient({COMPETITION_URL: "<html></html>", alternate_url: MATCH_PAGE})
+        result = collect_catalog(
+            client, [entry()],
+            link_extractor=lambda _html, _url: [alternate_url],
+        )
+        self.assertTrue(result["complete"])
+        self.assertEqual(client.calls, [COMPETITION_URL, alternate_url])
+
+    def test_custom_extractor_cannot_fetch_external_hosts(self):
+        external_url = "https://example.com/live/match/"
+        client = FakeClient({COMPETITION_URL: "<html></html>"})
+        result = collect_catalog(
+            client, [entry()],
+            link_extractor=lambda _html, _url: [external_url],
+        )
+        self.assertFalse(result["complete"])
+        self.assertEqual(client.calls, [COMPETITION_URL])
+        self.assertEqual(result["errors"][0]["stage"], "match_link_validation")
+
 
 if __name__ == "__main__":
     unittest.main()
