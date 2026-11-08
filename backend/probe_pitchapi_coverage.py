@@ -68,6 +68,31 @@ def choose_samples(matches: list[dict], limit: int = SAMPLE_LIMIT) -> list[dict]
     return [valid[i] for i in indexes]
 
 
+
+def match_integrity(matches: list[dict]) -> dict:
+    """Detect duplicate provider IDs and duplicate same-day team pairings."""
+    rows = [m for m in matches if isinstance(m, dict)]
+    ids = Counter(str(m.get("id")) for m in rows if m.get("id") is not None)
+    fixtures = Counter()
+    fixture_labels = {}
+    for match in rows:
+        home_id = (match.get("home_team") or {}).get("id")
+        away_id = (match.get("away_team") or {}).get("id")
+        date = str(match.get("date") or "")[:10]
+        if date and home_id is not None and away_id is not None:
+            pair = tuple(sorted((str(home_id), str(away_id))))
+            key = (date, pair)
+            fixtures[key] += 1
+            fixture_labels[key] = {"date": date, "teamIds": list(pair)}
+    duplicate_ids = sorted(match_id for match_id, count in ids.items() if count > 1)
+    duplicate_fixtures = [fixture_labels[key] for key, count in sorted(fixtures.items()) if count > 1]
+    return {
+        "uniqueMatchIds": len(ids),
+        "duplicateMatchIds": duplicate_ids,
+        "uniqueFixtures": len(fixtures),
+        "duplicateFixtures": duplicate_fixtures,
+    }
+
 def flatten_shots(data: dict) -> list[dict]:
     """PitchAPI groups shots under periods[].shots."""
     if not isinstance(data, dict):
@@ -148,6 +173,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                          {"season": season, "status": "played"})
             matches = data.get("matches", []) if isinstance(data, dict) else []
             status_counts = Counter(m.get("status", "missing") for m in matches if isinstance(m, dict))
+            integrity = match_integrity(matches)
             samples = choose_samples(matches)
             inspected = []
             for match in samples:
@@ -159,6 +185,7 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
                 "listedMatches": len(matches) if isinstance(matches, list) else None,
                 "finishedMatches": status_counts.get("finished", 0),
                 "statusCounts": dict(status_counts),
+                **integrity,
                 "xgSampleSize": len(inspected),
                 "xgPairedSamples": sum(bool(x["pairedXgPresent"]) for x in inspected),
                 "xgSamples": inspected,
