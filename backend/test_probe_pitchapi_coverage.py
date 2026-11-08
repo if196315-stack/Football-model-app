@@ -109,11 +109,15 @@ class PitchApiProbeTests(unittest.TestCase):
 
         result = match_context({
             "round": "Relegation Playoff",
+            "round_name": "Relegation Playoff",
+            "has_playoff": True,
             "stage": {"id": 7, "name": "Playoff", "unused": "ignored"},
             "matchday": 38,
             "unrelated": "not copied",
         })
         self.assertEqual(result["round"], "Relegation Playoff")
+        self.assertEqual(result["round_name"], "Relegation Playoff")
+        self.assertTrue(result["has_playoff"])
         self.assertEqual(result["stage"], {"id": 7, "name": "Playoff"})
         self.assertEqual(result["matchday"], 38)
         self.assertNotIn("unrelated", result)
