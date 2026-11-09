@@ -1236,18 +1236,20 @@ class MainActivity : Activity() {
         val baseStake = bank * 0.005
         val maxStake = bank * 0.01
         val minimumBookmakerStake = 25.0
-        val minimumFitsRiskLimit = minimumBookmakerStake <= maxStake + 0.000001
+        // Raise a smaller model stake to the bookmaker minimum, without breaking the existing 1% cap.
+        val recommendedStake = maxOf(baseStake, minimumBookmakerStake)
+        val recommendedStakeAllowed = recommendedStake <= maxStake + 0.000001
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
-        addText(bankrollCard, "Базовая ставка стратегии 0,5%: ${fmt(baseStake)} ₽", 15, true, gold)
-        addText(bankrollCard, "Минимум букмекера: 25 ₽ · верхний лимит 1% банка: ${fmt(maxStake)} ₽.", 10, false, muted)
-        val minimumStakeNote = when {
-            !minimumFitsRiskLimit -> "25 ₽ превышают лимит 1% банка. По стратегии такую ставку делать нельзя — пропусти её."
-            minimumBookmakerStake > baseStake -> "25 ₽ выше базовой ставки 0,5%. Не округляем автоматически: 25 ₽ составляют ${String.format(Locale.US, "%.2f%%", minimumBookmakerStake / bank * 100.0)} банка и используют повышенный риск вплоть до лимита 1%."
-            else -> "Минимум букмекера не выше базовой ставки стратегии."
+        addText(bankrollCard, "Рекомендуемая сумма: ${fmt(recommendedStake)} ₽", 15, true, if (recommendedStakeAllowed) gold else Color.RED)
+        addText(bankrollCard, "Расчёт: максимум из 0,5% банка (${fmt(baseStake)} ₽) и минимума букмекера 25 ₽. Верхний лимит 1%: ${fmt(maxStake)} ₽.", 10, false, muted)
+        val minimumStakeNote = if (recommendedStakeAllowed) {
+            "Сумма учитывает минимум букмекера и не превышает лимит риска на матч (${String.format(Locale.US, "%.2f%%", recommendedStake / bank * 100.0)} банка). При большем банке рекомендованная сумма растёт по стратегии."
+        } else {
+            "Минимум 25 ₽ выше лимита 1% банка. При текущем банке нельзя одновременно выполнить минимум букмекера и лимит стратегии — сигнал не ставить."
         }
-        addText(bankrollCard, minimumStakeNote, 10, true, if (minimumFitsRiskLimit) gold else Color.RED)
+        addText(bankrollCard, minimumStakeNote, 10, true, if (recommendedStakeAllowed) gold else Color.RED)
         addText(bankrollCard, "Стратегия без изменений: базовый риск 0,5%; диапазон 0,25–1%; лимит на матч 1%, на день 2%.", 10, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
@@ -1290,7 +1292,7 @@ class MainActivity : Activity() {
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
-            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка BetBoom от 1.50 и выполнение порогов стратегии. Возраст цены показываем отдельно; перед подтверждением купона её нужно перепроверить.", 11, false, muted)
+            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка BetBoom от 1.50 и выполнение порогов стратегии. Возраст цены показываем отдельно; перед ставкой проверь актуальный коэффициент в BetBoom.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
@@ -1306,6 +1308,9 @@ class MainActivity : Activity() {
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
             addText(box, date(m.optString("utcDate")), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
+            val candidateStake = maxOf(bank * 0.005, 25.0)
+            val candidateStakeAllowed = candidateStake <= bank * 0.01 + 0.000001
+            addText(box, if (candidateStakeAllowed) "Сумма по стратегии с минимумом БК: ${fmt(candidateStake)} ₽" else "Ставка недопустима: минимум 25 ₽ выше лимита 1% банка", 12, true, if (candidateStakeAllowed) accent else Color.RED)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
             if (signal.optBoolean("paperOnly")) {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; рыночный порог для оценки: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
