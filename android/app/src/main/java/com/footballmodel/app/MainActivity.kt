@@ -46,6 +46,7 @@ class MainActivity : Activity() {
     private var data: JSONObject? = null
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
+    private val settingsPrefs by lazy { getSharedPreferences("bank_settings", MODE_PRIVATE) }
     private val feedCache by lazy { getSharedPreferences("feed_cache_v1", MODE_PRIVATE) }
     private val loadInProgress = AtomicBoolean(false)
     @Volatile private var lastPayload: String? = null
@@ -1045,6 +1046,9 @@ class MainActivity : Activity() {
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
         addText(profile, "Аналитическая платформа футбольных матчей", 11, false, muted)
         addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
+        addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽ · цель: ${fmt(targetBankroll())} ₽", 12, false, muted)
+        actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
+        actionButton(profile, "Изменить целевую сумму") { showBankSettingDialog("target_bankroll", "Целевая сумма", targetBankroll(), "Цель влияет только на отображение прогресса, не на отбор сигналов и риск.") }
         addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / BetBoom", 10, false, muted)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
@@ -1167,9 +1171,40 @@ class MainActivity : Activity() {
         }
     }
 
-    // Bank = initial bankroll + settled net P/L - stakes reserved on pending bets.
+    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "2500")
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 2500.0
+
+    private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
+
+    private fun showBankSettingDialog(key: String, title: String, current: Double, message: String) {
+        val field = EditText(this).apply {
+            hint = "Сумма в рублях"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setSingleLine(true)
+            setText(String.format(Locale.US, "%.2f", current))
+            setSelection(text.length)
+        }
+        val dialog = AlertDialog.Builder(this).setTitle(title).setMessage(message).setView(field)
+            .setNegativeButton("Отмена", null).setPositiveButton("Сохранить", null).create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val value = field.text.toString().replace(',', '.').toDoubleOrNull()
+                if (value == null || !value.isFinite() || value <= 0.0) {
+                    Toast.makeText(this, "Введи сумму больше нуля", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                settingsPrefs.edit().putString(key, value.toString()).apply()
+                dialog.dismiss()
+                render()
+            }
+        }
+        dialog.show()
+    }
+
+    // Bank = user-defined starting bankroll + settled net P/L - stakes reserved on pending bets.
     private fun currentBankroll(): Double {
-        var bank = 2500.0
+        var bank = initialBankroll()
         for (i in 0 until bets.length()) {
             val b = bets.optJSONObject(i) ?: continue
             val stake = b.optDouble("stake", 0.0)
@@ -1192,16 +1227,22 @@ class MainActivity : Activity() {
         addText(betsCountCard, bets.length().toString(), 26, true, Color.WHITE)
         addText(betsCountCard, "Всего зафиксировано · ожидают результата: $pendingBets", 11, false, muted)
         val target = card()
-        addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
-        addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
-        addText(target, "Не будем повышать риск, догонять проигрыши или ставить ради выполнения календарного плана.", 11, false, muted)
+        val goal = targetBankroll()
+        val progress = (bank / goal * 100.0).coerceIn(0.0, 100.0)
+        addText(target, "ЦЕЛЬ БАНКА · ${fmt(initialBankroll())} ₽ → ${fmt(goal)} ₽", 10, true, gold)
+        addText(target, "Прогресс: ${String.format(Locale.US, "%.1f%%", progress)} · осталось ${fmt((goal - bank).coerceAtLeast(0.0))} ₽", 12, true)
+        addText(target, "Цель — ориентир, не прогноз и не повод повышать риск или догонять проигрыши. Стратегия отбора сигналов не зависит от цели.", 11, false, muted)
         val bank = currentBankroll()
-        val stakePlan = bank * 0.005
+        val baseStake = bank * 0.005
+        val maxStake = bank * 0.01
+        val minimumBookmakerStake = 25.0
+        val stakePlan = if (baseStake >= minimumBookmakerStake) baseStake else minimumBookmakerStake
+        val canMeetMinimum = stakePlan <= maxStake + 0.000001
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
-        addText(bankrollCard, "Базовая ставка 0,5%: " + String.format(Locale.US, "%.2f ₽", stakePlan), 15, true, gold)
-        addText(bankrollCard, "Базовый размер по стратегии. Допустимый диапазон 0,25–1%; лимит на матч 1%, на день 2%.", 10, false, muted)
+        addText(bankrollCard, if (canMeetMinimum) "Ставка с учётом минимума 25 ₽: ${fmt(stakePlan)} ₽" else "Минимум букмекера 25 ₽ превышает лимит 1% банка", 15, true, if (canMeetMinimum) gold else Color.RED)
+        addText(bankrollCard, "Базовая ставка стратегии — 0,5% (${fmt(baseStake)} ₽); диапазон 0,25–1%, лимит на матч 1%, на день 2%. Минимум букмекера не меняет лимиты: если 25 ₽ выше 1% банка, ставку пропускаем.", 10, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
