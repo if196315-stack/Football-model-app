@@ -166,6 +166,22 @@ class MainActivity : Activity() {
         box.addView(label(value, size, bold, color))
     }
 
+    // Shared premium title panel for every secondary screen.
+    private fun screenHeader(eyebrow: String, title: String, description: String) {
+        val hero = card()
+        hero.setPadding(dp(18), dp(17), dp(18), dp(17))
+        hero.background = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(Color.rgb(28, 59, 66), Color.rgb(17, 35, 54), Color.rgb(11, 24, 41))
+        ).apply {
+            cornerRadius = dp(22).toFloat()
+            setStroke(dp(1), Color.rgb(58, 112, 105))
+        }
+        addText(hero, eyebrow.uppercase(Locale.getDefault()), 9, true, gold)
+        addText(hero, title, 22, true, Color.WHITE)
+        addText(hero, description, 11, false, Color.rgb(190, 207, 221))
+    }
+
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
         val best = odds?.optJSONObject("best")
         if (best == null) {
@@ -384,9 +400,7 @@ class MainActivity : Activity() {
     )
 
     private fun renderStats(json: JSONObject) {
-        addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
-        addText(matchesContainer, "Статистика и точность модели", 22, true)
-        addText(matchesContainer, "Здесь учитываются только прогнозы, зафиксированные до начала матча. После финального счёта результат добавляется к архиву; исходный прогноз не пересчитывается.", 11, false, muted)
+        screenHeader("PERFORMANCE CENTER", "Статистика и точность модели", "Только прогнозы, зафиксированные до начала матча. Исходные вероятности не пересчитываются после финального свистка.")
         data class BandRow(val label: String, val n: Int, val hits: Int)
         data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
         val metrics = mutableListOf<MetricRow>()
@@ -631,9 +645,7 @@ class MainActivity : Activity() {
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
     private fun renderBetHistory(j: JSONObject) {
-        addText(matchesContainer,"BET TRACKER",9,true,cyan)
-        addText(matchesContainer,"История ставок",22,true)
-        addText(matchesContainer,"Записи хранятся только на этом устройстве. Коэффициенты вводятся вручную.",11,false,muted)
+        screenHeader("BET TRACKER", "История ставок", "Личная история на этом устройстве · коэффициенты вводятся вручную.")
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue; val m=findMatch(j,b)
             if(m!=null && b.optString("status")=="PENDING") { settleBet(b,m); if(b.optString("status")!="PENDING") changed=true }
@@ -684,8 +696,7 @@ class MainActivity : Activity() {
             addText(box, title, 14, true, accent)
             addText(box, body, 12, false, Color.WHITE)
         }
-        addText(matchesContainer, "IQ MATCH · PROFILE", 9, true, cyan)
-        addText(matchesContainer, "Профиль и справка", 22, true)
+        screenHeader("IQ MATCH · PROFILE", "Профиль и справка", "О платформе, модели, источниках данных и правилах использования.")
         val profile = card()
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
         addText(profile, "Аналитическая платформа футбольных матчей", 11, false, muted)
@@ -752,9 +763,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        addText(matchesContainer, "AI · MATCH INTELLIGENCE", 9, true, cyan)
-        addText(matchesContainer, "AI-аналитика и сигналы", 22, true)
-        addText(matchesContainer, "Каждая рекомендация содержит обоснование, проверку цены и ограничения модели.", 11, false, muted)
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены Melbet и ограничений модели.")
         val target = card()
         addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
         addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
@@ -823,9 +832,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderDay(json: JSONObject) {
-        addText(matchesContainer, "DAILY SIGNAL FILTER", 9, true, cyan)
-        addText(matchesContainer, "Ставки дня", 22, true)
-        addText(matchesContainer, "Только самые сильные положительные сигналы модели с подтверждённым коэффициентом от 1.50 на выбранную сторону.", 11, false, muted)
+        screenHeader("DAILY SIGNAL FILTER", "Ставки дня", "Сильные положительные сигналы с подтверждённой котировкой от 1.50 на выбранную сторону.")
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
