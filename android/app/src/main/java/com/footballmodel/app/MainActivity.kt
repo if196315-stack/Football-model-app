@@ -1007,14 +1007,16 @@ class MainActivity : Activity() {
         synchronized(AutoPaperExecutionLock) {
             val persisted = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
             val merged = LinkedHashMap<String, JSONObject>()
+            fun identity(item: JSONObject, index: Int): String = item.optString("id").ifBlank {
+                "legacy:${item.optString("matchId")}:${item.optString("marketKey")}:${item.optString("date")}:${item.optString("createdAt")}:$index"
+            }
             for (i in 0 until persisted.length()) {
                 val item = persisted.optJSONObject(i) ?: continue
-                val id = item.optString("id").ifBlank { "legacy:persisted:$i" }
-                merged[id] = item
+                merged[identity(item, i)] = item
             }
             for (i in 0 until bets.length()) {
                 val item = bets.optJSONObject(i) ?: continue
-                val id = item.optString("id").ifBlank { "legacy:memory:$i" }
+                val id = identity(item, i)
                 val old = merged[id]
                 val oldStatus = old?.optString("status")
                 val newStatus = item.optString("status")
