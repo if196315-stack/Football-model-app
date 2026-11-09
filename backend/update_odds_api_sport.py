@@ -313,6 +313,8 @@ def main():
             page_payload=page_resp.json()
             fixtures.extend(page_payload if isinstance(page_payload,list) else page_payload.get("matches") or [])
     eligible=matched=updated=retained=0
+    matched_team_total_quotes = matched_team_total_fixtures = 0
+    matched_team_totals_by_competition = {}
     for comp in data.get("competitions",[]):
         for match in comp.get("matches",[]):
             if match.get("status") not in ("SCHEDULED","TIMED","IN_PLAY","PAUSED"):continue
@@ -322,6 +324,14 @@ def main():
             source=match_fixture(match,fixtures)
             if not source:continue
             matched+=1;quote=parse_odds(source)
+            team_total_quotes = quote["best"].get("teamTotals") or []
+            if team_total_quotes:
+                matched_team_total_fixtures += 1
+                matched_team_total_quotes += len(team_total_quotes)
+                bucket = matched_team_totals_by_competition.setdefault(
+                    str(comp.get("code") or "unknown"), {"fixtures": 0, "quotes": 0})
+                bucket["fixtures"] += 1
+                bucket["quotes"] += len(team_total_quotes)
             if quote["best"]:
                 match["odds"]=quote
                 updated+=1
@@ -333,6 +343,6 @@ def main():
     data["oddsStatus"]="ready" if updated else "no_quotes"
     data["oddsNotice"]=f"BetBoom: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки BetBoom."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched,"teamTotalDiagnostics":market_diagnostics}, ensure_ascii=False))
+    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched,"matchedTeamTotalFixtures":matched_team_total_fixtures,"matchedTeamTotalQuotes":matched_team_total_quotes,"matchedTeamTotalsByCompetition":matched_team_totals_by_competition,"teamTotalDiagnostics":market_diagnostics}, ensure_ascii=False))
 
 if __name__=="__main__":main()
