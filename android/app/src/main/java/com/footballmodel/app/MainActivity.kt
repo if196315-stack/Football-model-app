@@ -1326,7 +1326,7 @@ class MainActivity : Activity() {
                     signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(32, 55, 66), Color.rgb(17, 34, 52))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(67, 137, 119)) }
                     addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, gold)
                     if (signal == null) {
-                        addText(signalBox, "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
+                        addText(signalBox, if (leagueCode == "UCL" || leagueCode == "UEL") "Вероятности рассчитаны по историческим xG; проверенные тестовые сигналы и их результаты — ниже." else "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
                     } else {
                         val edge = signal.optDouble("edgePp")
                         if (signal.optBoolean("noPositiveSignal")) {
