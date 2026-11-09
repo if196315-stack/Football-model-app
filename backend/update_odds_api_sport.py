@@ -47,12 +47,19 @@ def team_similarity(target_name,team):
     return max((sim(target_name,name) for name in names),default=0.0)
 
 def match_fixture(target,candidates):
+    raw_target=target.get("utcDate") or target.get("dateEvent")
     t=kickoff(target)
     if not t:return None
+    date_only=isinstance(raw_target,str) and len(raw_target.strip())==10 and "T" not in raw_target
     ranked=[]
     for m in candidates:
         mt=kickoff(m)
-        if not mt or abs((mt-t).total_seconds())>6*3600:continue
+        if not mt:continue
+        if date_only:
+            # PitchAPI may provide only YYYY-MM-DD. Compare calendar dates,
+            # not an artificial midnight timestamp against the real kickoff.
+            if mt.date()!=t.date():continue
+        elif abs((mt-t).total_seconds())>6*3600:continue
         h=team_similarity(target.get("home"),m.get("homeTeam"))
         a=team_similarity(target.get("away"),m.get("awayTeam"))
         # Provider and model may use short/long club names (e.g. Man City).
