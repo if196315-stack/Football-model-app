@@ -51,10 +51,19 @@ class MainActivity : Activity() {
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
-        val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true; clipToPadding = false; setPadding(0, 0, 0, 18); overScrollMode = View.OVER_SCROLL_NEVER }
+        val scroll = ScrollView(this).apply {
+            setBackgroundColor(bg)
+            isFillViewport = true
+            clipToPadding = false
+            setPadding(0, 0, 0, dp(18))
+            overScrollMode = View.OVER_SCROLL_NEVER
+            isSmoothScrollingEnabled = true
+            isVerticalScrollBarEnabled = false
+            descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(16, 22, 16, 28)
+            setPadding(dp(16), dp(22), dp(16), dp(28))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
         scroll.addView(root)
@@ -150,7 +159,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(17), dp(17), dp(17), dp(17))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply { cornerRadius = dp(23).toFloat(); setStroke(dp(1), Color.rgb(43, 68, 91)) }
-            elevation = dp(2).toFloat()
+            elevation = 0f
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
         lp.setMargins(0, 7, 0, 9)
@@ -333,7 +342,7 @@ class MainActivity : Activity() {
                 shape = GradientDrawable.OVAL
                 setStroke(dp(2), Color.rgb(91, 190, 174))
             }
-            elevation = dp(3).toFloat()
+            elevation = 0f
         }
     }
 
@@ -500,6 +509,7 @@ class MainActivity : Activity() {
                     readTimeout = 20000
                     setRequestProperty("Cache-Control", "no-cache")
                 }
+                if (conn.responseCode !in 200..299) throw IllegalStateException("HTTP ${conn.responseCode}")
                 val body = conn.inputStream.bufferedReader().use { it.readText() }
                 conn.disconnect()
                 val json = JSONObject(body)
