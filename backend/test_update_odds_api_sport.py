@@ -14,9 +14,9 @@ class ApiSportOddsTests(unittest.TestCase):
         target = {"utcDate": "2026-11-21T15:00:00Z", "home": "Manchester City", "away": "Fulham"}
         source = [{
             "id": 123, "startTimestamp": 1795273200000,
-            "homeTeam": {"name": "Manchester City"}, "awayTeam": {"name": "Fulham"}
+            "homeTeam": {"name": "Man City", "translations": {"en": "Manchester City"}},
+            "awayTeam": {"name": "Fulham"}
         }]
-        # Explicit timestamp is derived from 2026-11-21T15:00:00Z.
         self.assertIsNotNone(match_fixture(target, source))
 
     def test_parses_double_chance_and_only_zero_handicap(self):
