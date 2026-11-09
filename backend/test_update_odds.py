@@ -30,6 +30,7 @@ class OddsMarketParsingTests(unittest.TestCase):
             {"name": "Arsenal", "point": 0, "price": 1.9},
             {"name": "Arsenal", "point": -1.5, "price": 2.2},
             {"name": "Chelsea", "point": 1.5, "price": 1.7},
+            {"name": "Arsenal", "point": -0.25, "price": 1.95},
         ]}]}
         self.assertEqual(read_market(bookmaker, "spreads", "Arsenal", "Chelsea"), [
             {"team": "home", "point": -1.5, "price": 2.2},
