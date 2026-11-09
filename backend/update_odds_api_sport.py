@@ -92,9 +92,9 @@ def market_group(slug, market):
     name = market_label(market).lower()
     if name:
         normalized = re.sub(r"[^a-zа-я0-9]+", " ", name)
-        normalized = re.sub(r"\\b(over|under|больше|меньше)\\b", " ", normalized)
-        normalized = re.sub(r"\\b\\d+(?:[.,]\\d+)?\\b", " ", normalized)
-        normalized = re.sub(r"\\s+", " ", normalized).strip()
+        normalized = re.sub(r"\b(over|under|больше|меньше)\b", " ", normalized)
+        normalized = re.sub(r"\b\d+(?:[.,]\d+)?\b", " ", normalized)
+        normalized = re.sub(r"\s+", " ", normalized).strip()
         if normalized:
             return normalized
     normalized_slug = re.sub(r"(^|[_-])(over|under)(?=[_-]|$)", "_", slug.lower())
