@@ -943,6 +943,14 @@ class MainActivity : Activity() {
                 }
                 val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
                 val mk=markets[spin.selectedItemPosition]
+                val duplicate = (0 until coupon.length()).any { index ->
+                    val existing = coupon.optJSONObject(index)
+                    existing?.optString("matchId") == matchId && existing.optString("marketKey") == mk.key
+                }
+                if (duplicate) {
+                    Toast.makeText(this, "Этот исход уже есть в купоне", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 coupon.put(JSONObject().apply {
                     put("id", System.currentTimeMillis().toString())
                     put("matchId", matchId)
@@ -1092,18 +1100,27 @@ class MainActivity : Activity() {
         for (i in 0 until selections.length()) {
             val pick = selections.optJSONObject(i) ?: continue
             val match = findMatch(j, pick)
-            if (match == null || match.optString("status") != "FINISHED" || match.isNull("homeScore") || match.isNull("awayScore")) {
+            if (match == null || match.isNull("homeScore") || match.isNull("awayScore")) {
                 allSettled = false
                 continue
             }
-            val leg = JSONObject().put("status", "PENDING").put("marketKey", pick.optString("marketKey"))
-            settleBet(leg, match)
-            val result = leg.optString("status")
-            scores.add(pick.optString("home") + " " + match.optInt("homeScore") + ":" + match.optInt("awayScore") + " " + pick.optString("away"))
-            if (result == "LOST") lost = true
-            if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
+            val matchStatus = match.optString("status")
+            val scoreLabel = pick.optString("home") + " " + match.optInt("homeScore") + ":" + match.optInt("awayScore") + " " + pick.optString("away")
+            if (matchStatus == "FINISHED") {
+                val leg = JSONObject().put("status", "PENDING").put("marketKey", pick.optString("marketKey"))
+                settleBet(leg, match)
+                val result = leg.optString("status")
+                scores.add(scoreLabel + " · ФИНАЛ")
+                if (result == "LOST") lost = true
+                if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
+            } else {
+                allSettled = false
+                if (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) scores.add(scoreLabel + " · LIVE")
+            }
         }
         bet.put("couponScores", scores.joinToString(" · "))
+        val anyLive = scores.any { it.contains("LIVE") }
+        bet.put("matchStatus", if (anyLive) "IN_PLAY" else if (allSettled) "FINISHED" else "SCHEDULED")
         if (lost) bet.put("status", "LOST")
         else if (allSettled) {
             bet.put("status", if (effectiveOdds > 1.0) "WON" else "PUSH")
@@ -1192,8 +1209,11 @@ class MainActivity : Activity() {
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             if (b.optString("marketKey") == "COUPON") {
                 val before = b.optString("status")
+                val beforeScores = b.optString("couponScores")
+                val beforeMatchStatus = b.optString("matchStatus")
                 settleCoupon(j, b)
-                if (b.optString("status") != before) changed = true
+                if (b.optString("status") != before || b.optString("couponScores") != beforeScores ||
+                    b.optString("matchStatus") != beforeMatchStatus) changed = true
                 continue
             }
             val m=findMatch(j,b)
