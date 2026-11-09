@@ -905,7 +905,12 @@ class MainActivity : Activity() {
                 val id = "AI_AUTO:" + matchId + ":" + marketKey
                 var duplicate = false
                 for (k in 0 until bets.length()) {
-                    if (bets.optJSONObject(k)?.optString("id") == id) { duplicate = true; break }
+                    val prior = bets.optJSONObject(k) ?: continue
+                    if (prior.optString("id") == id ||
+                        (prior.optString("matchId") == matchId && prior.optString("status") in listOf("PENDING", "WON", "LOST"))) {
+                        duplicate = true
+                        break
+                    }
                 }
                 if (duplicate) continue
                 val bank = currentBankroll()
