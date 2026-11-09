@@ -1183,7 +1183,7 @@ class MainActivity : Activity() {
                     }
                     "ИТБ " + row.optDouble("point").toString() + " · " + team
                 }
-                "btts" -> when (row.optString("outcome")) { "yes" -> "ОЗ ДА"; "no" -> "ОЗ НЕТ"; else -> "" }
+                "btts" -> when (row.optString("outcome")) { "yes" -> "ОЗ ДА"; else -> "" }
                 else -> ""
             }
             if (side.isBlank()) continue
@@ -1260,6 +1260,8 @@ class MainActivity : Activity() {
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
+                // ОЗ — нет отключён в AI: не показываем и не допускаем в очередь кандидатов.
+                if (signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
