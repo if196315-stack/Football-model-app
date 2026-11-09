@@ -80,8 +80,16 @@ class MainActivity : Activity() {
         root.addView(top)
 
         statusView = label("Подключаюсь к серверу…", 12, false, muted)
-        statusView.setPadding(0, 8, 0, 14)
-        root.addView(statusView)
+        statusView.setPadding(dp(12), dp(9), dp(12), dp(9))
+        statusView.background = GradientDrawable().apply {
+            setColor(Color.rgb(14, 31, 47))
+            cornerRadius = dp(12).toFloat()
+            setStroke(dp(1), Color.rgb(35, 69, 84))
+        }
+        root.addView(statusView, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(12)
+            bottomMargin = dp(8)
+        })
 
         tabBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -147,7 +155,7 @@ class MainActivity : Activity() {
             return
         }
         val panelOdds = card(parent)
-        panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = 18f; setStroke(1, Color.rgb(105, 83, 52)) }
+        panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = dp(18).toFloat(); setStroke(dp(1), Color.rgb(105, 83, 52)) }
         addText(panelOdds, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, gold)
         var shown = 0
         fun validPrice(obj: JSONObject, key: String): Boolean {
@@ -240,12 +248,12 @@ class MainActivity : Activity() {
         items.forEach { item ->
             val tile = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(11, 10, 11, 10)
+                setPadding(dp(11), dp(10), dp(11), dp(10))
                 background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(29, 67, 74), Color.rgb(18, 42, 58))).apply { cornerRadius = dp(15).toFloat(); setStroke(dp(1), Color.rgb(55, 103, 105)) }
             }
             tile.addView(label(item.first, 9, true, muted))
             tile.addView(label(item.second, 19, true, item.third))
-            row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(3, 5, 3, 5) })
+            row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(3), dp(5), dp(3), dp(5)) })
         }
         parent.addView(row)
     }
@@ -658,9 +666,9 @@ class MainActivity : Activity() {
         section("2. ОСНОВНЫЕ РЫНКИ",
             "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nИТБ 1.5 — команда забьёт минимум 2 гола.\nДля ставок доступны только поддерживаемые ненулевые форы.")
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
-            "ОЗ — да/нет: обе команды забьют хотя бы по одному голу или хотя бы одна команда не забьёт.\nТотал матча больше/меньше 1.5, 2.5 и 3.5.\nИндивидуальные тоталы каждой команды больше/меньше 0.5, 1.5, 2.5 и 3.5.\nВероятности рассчитываются по xG независимым распределением Пуассона; новые рынки отображаются в карточке, анализируются и доступны в ручном трекере ставок. Пока не участвуют в выборе сильнейшего сигнала и TOP.")
-        section("4. TOP И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В TOP попадают матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
+            "ОЗ — да/нет: обе команды забьют хотя бы по одному голу или хотя бы одна команда не забьёт.\nВ карточках отображаются только тоталы БОЛЬШЕ: общие и индивидуальные.\nВероятности рассчитываются по xG независимым распределением Пуассона. Котировки доступны только при наличии свежих данных Melbet от API-Sport.")
+        section("4. AI И СИЛЬНЕЙШИЙ СИГНАЛ",
+            "В AI показываются матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты и подтверждённой ценой Melbet от 1.50. Сильнейший сигнал выбирается среди поддерживаемых рынков. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
         section("5. АНАЛИЗ",
             "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
         section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
@@ -781,7 +789,7 @@ class MainActivity : Activity() {
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "TOP: только ITB 1.5, точная нулевая фора и Double Chance. ОЗ и тоталы остаются в карточках матчей вне TOP. Котировки — только API-Sport / Melbet.", 11, false, muted)
+        addText(footer, "AI отбирает только сигналы с положительным edge и подтверждённой котировкой Melbet от 1.50. ОЗ и тоталы показываются в карточках матчей. Котировки — только API-Sport / Melbet.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
