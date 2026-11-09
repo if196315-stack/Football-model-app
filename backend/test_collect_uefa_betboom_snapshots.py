@@ -46,7 +46,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
             "ucl-finished": {**fixture("ucl-finished", "UCL"), "status": "finished"},
         }}
         rows = snapshot_rows(cache, [source], "2026-11-10T12:00:00+00:00")
-        self.assertEqual(len(rows), 2 * 2 + 2 + 2 + 2)  # DC, totals, ITB, BTTS for two UEFA fixtures
+        self.assertEqual(len(rows), 2 * 2 + 2 + 2 + 2 * 2)  # DC, totals, ITB, BTTS for two UEFA fixtures
         self.assertEqual({row["league_code"] for row in rows}, {"UCL", "UEL"})
         self.assertEqual({row["market"] for row in rows},
                          {"double_chance", "match_total_over", "team_total_over", "btts"})
