@@ -326,8 +326,6 @@ class MainActivity : Activity() {
         }
         collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h,a -> h >= a })
         collect("x2", "X2 · гости победят ИЛИ будет ничья", { h,a -> a >= h })
-        collect("dnbHome", "Фора 0 · хозяева", { h,a -> h > a }, true)
-        collect("dnbAway", "Фора 0 · гости", { h,a -> a > h }, true)
         collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h,a -> h + a >= 3 })
@@ -345,7 +343,7 @@ class MainActivity : Activity() {
                 addText(box, "${band.label}: ${band.hits}/${band.n} ($rate)", 11, false, if (band.n > 0) Color.WHITE else muted)
             }
             addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
-            addText(box, if (metric.name.startsWith("Фора 0")) "Фора 0: победа — выигрыш, ничья — возврат, поражение — проигрыш. Вероятность считается без ничьих." else "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
+            addText(box, "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
         }
         val explainer = card()
         addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
@@ -372,7 +370,6 @@ class MainActivity : Activity() {
         val p = m.optJSONObject("prediction") ?: return
         val markets = listOf(
             BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"), BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
-            BetMarket("dnbHome","Фора 0 · ${m.optString("home")}"), BetMarket("dnbAway","Фора 0 · ${m.optString("away")}"), BetMarket("1","П1"),
             BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
             BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
             BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
@@ -441,7 +438,7 @@ class MainActivity : Activity() {
         if(b.optString("status")!="PENDING" || m.optString("status")!="FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) return
         val h=m.optInt("homeScore"); val a=m.optInt("awayScore")
         val won: Boolean?=when(b.optString("marketKey")) {
-            "1x"->h>=a; "x2"->a>=h; "dnbHome"->if(h==a)null else h>a; "dnbAway"->if(h==a)null else a>h
+            "1x"->h>=a; "x2"->a>=h
             "1"->h>a; "x"->h==a; "2"->a>h; "over25"->h+a>=3; "under25"->h+a<=2
             "bttsYes"->h>0&&a>0; "bttsNo"->h==0||a==0; "homeOver15"->h>=2; "awayOver15"->a>=2
             else->null
@@ -506,17 +503,17 @@ class MainActivity : Activity() {
         addText(matchesContainer, "КРАТКАЯ СПРАВКА", 9, true, cyan)
         addText(matchesContainer, "Как пользоваться моделью", 22, true)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
-            "Модель оценивает ожидаемые голы команд по историческим данным Openplay и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
+            "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
         section("2. ОСНОВНЫЕ РЫНКИ",
-            "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nФора 0 — победа выбранной команды; при ничьей возврат.\nИТБ 1.5 — команда забьёт минимум 2 гола.")
+            "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nИТБ 1.5 — команда забьёт минимум 2 гола.\nНулевая фора AH 0 не используется.")
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
             "ТБ 2.5 — в матче будет минимум 3 гола.\nОбе забьют (BTTS) — каждая команда забьёт минимум 1 гол.\nЭти рынки отображаются в карточках и оцениваются в разделе «Анализ», но пока не участвуют в выборе сильнейшего сигнала и списке TOP.")
         section("4. TOP И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В TOP попадают матчи на сегодня с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2, форы 0 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
+            "В TOP попадают матчи на сегодня с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
         section("5. АНАЛИЗ",
-            "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Для форы 0 ничьи исключаются. Чем ниже Brier Score и Log Loss, тем лучше.")
+            "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
         section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
-            "Openplay — источник исторических xG-данных; Football-Data.org — расписание и результаты. Если команду нельзя надёжно сопоставить с Openplay или нет подходящих данных, прогноз не строится. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты на момент прогноза.")
+            "PitchAPI — источник расписания, результатов и shot-level xG. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. The Odds API — отдельный источник букмекерских котировок. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты на момент прогноза.")
     }
 
     private fun renderDay(json: JSONObject) {
@@ -723,7 +720,6 @@ class MainActivity : Activity() {
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = 20f; setStroke(1, Color.rgb(45, 102, 91)) }
                     addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ", 10, true, accent)
                     addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
-                    addMarketRow(mainMarkets, listOf(Triple("Фора 0 · ${m.optString("home")}", pct(pred, "dnbHome"), accent), Triple("Фора 0 · ${m.optString("away")}", pct(pred, "dnbAway"), cyan)))
                     addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 12, true, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
@@ -757,6 +753,6 @@ class MainActivity : Activity() {
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
         addText(footer, "Предстоящих матчей: $totalUpcoming  ·  с прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Источник исторических данных: Openplay (Noah Bair), CC BY 4.0.", 10, false, muted)
+        addText(footer, "Источники: PitchAPI (матчи и xG) · The Odds API (котировки).", 10, false, muted)
     }
 }
