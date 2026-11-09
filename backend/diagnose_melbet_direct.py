@@ -10,6 +10,7 @@ import requests
 
 BASE_URL = "https://melbet.mobi/service-api/LineFeed/GetGameZip"
 TIMEOUT = 30
+SUPPORTED_GROUPS = {2, 3, 4, 6, 9, 15, 17, 62}
 EVENTS = [
     {"id": 385744564, "home": "Manchester City", "away": "Fulham"},
     {"id": 385744560, "home": "Aston Villa", "away": "Sunderland"},
@@ -36,14 +37,12 @@ def unwrap_value(payload: Any) -> Any:
     return payload
 
 
-def collect_market_rows(value: Any, limit: int = 20) -> tuple[int, list[dict]]:
+def iter_market_rows(value: Any) -> list[dict]:
     """Find terse market records without assuming one exact nesting shape."""
-    count = 0
-    sample: list[dict] = []
+    rows: list[dict] = []
     seen: set[int] = set()
 
     def walk(node: Any, depth: int = 0) -> None:
-        nonlocal count
         if depth > 10:
             return
         if isinstance(node, list):
@@ -56,17 +55,54 @@ def collect_market_rows(value: Any, limit: int = 20) -> tuple[int, list[dict]]:
             marker = id(node)
             if marker not in seen:
                 seen.add(marker)
-                count += 1
-                if len(sample) < limit:
-                    sample.append({key: node.get(key) for key in
-                                   ("G", "GS", "T", "C", "CV", "P", "B")
-                                   if key in node})
+                rows.append(node)
         for child in node.values():
             if isinstance(child, (dict, list)):
                 walk(child, depth + 1)
 
     walk(value)
-    return count, sample
+    return rows
+
+
+def compact_market(row: dict) -> dict:
+    return {key: row.get(key) for key in
+            ("G", "GS", "T", "C", "CV", "P", "B") if key in row}
+
+
+def collect_market_rows(value: Any, limit: int = 20) -> tuple[int, list[dict]]:
+    rows = iter_market_rows(value)
+    return len(rows), [compact_market(row) for row in rows[:limit]]
+
+
+def supported_market_summary(value: Any, limit: int = 160) -> dict:
+    rows = iter_market_rows(value)
+    counts: dict[str, int] = {}
+    supported = []
+    one_x_two = {}
+    for row in rows:
+        group = row.get("G")
+        try:
+            group_id = int(group)
+        except (TypeError, ValueError):
+            continue
+        if group_id == 1:
+            try:
+                outcome_id = int(row.get("T"))
+            except (TypeError, ValueError):
+                outcome_id = None
+            outcome = {1: "home", 2: "draw", 3: "away"}.get(outcome_id)
+            if outcome and row.get("C") is not None:
+                one_x_two[outcome] = row.get("C")
+        if group_id in SUPPORTED_GROUPS:
+            key = str(group_id)
+            counts[key] = counts.get(key, 0) + 1
+            if len(supported) < limit:
+                supported.append(compact_market(row))
+    return {
+        "oneXTwo": one_x_two,
+        "supportedMarketGroupCounts": dict(sorted(counts.items())),
+        "supportedMarketSample": supported,
+    }
 
 
 def summarize_response(event: dict, status: int, content_type: str,
@@ -90,6 +126,7 @@ def summarize_response(event: dict, status: int, content_type: str,
         "sourceAway": event_obj.get("O2") or event_obj.get("O2E"),
         "marketRecordsFound": market_count,
         "marketSample": market_sample,
+        **supported_market_summary(value),
     }
     if not isinstance(payload, (dict, list)) and text_body:
         result["bodyPreview"] = text_body[:300]
