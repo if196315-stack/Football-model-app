@@ -44,8 +44,15 @@ def _state_before(history_rows: list[dict], cutoff_date: str) -> tuple[dict, dic
             ]
             if values:
                 base[(league, side)] = sum(values) / len(values)
-    history_max_date = max((str(row.get("date") or "")[:10] for row in selected), default=None)
-    return histories, base, league_xg, history_max_date
+    history_max_date_by_league = {}
+    for row in selected:
+        league = str(row.get("leagueCode") or "")
+        date = str(row.get("date") or "")[:10]
+        if league and date:
+            history_max_date_by_league[league] = max(
+                date, history_max_date_by_league.get(league, date)
+            )
+    return histories, base, league_xg, history_max_date_by_league
 
 
 def _market_probabilities(home_lambda: float, away_lambda: float) -> dict:
@@ -102,7 +109,7 @@ def predict_upcoming(history_payload: dict, fixture_cache: dict,
 
     predicted_at = predicted_at or datetime.now(timezone.utc).isoformat()
     for match_date, fixtures in sorted(by_date.items()):
-        histories, base, _league_xg, history_max_date = _state_before(history_rows, match_date)
+        histories, base, _league_xg, history_max_date_by_league = _state_before(history_rows, match_date)
         for fixture in fixtures:
             league = str(fixture.get("leagueCode") or "")
             home, away = fixture.get("home"), fixture.get("away")
@@ -124,7 +131,7 @@ def predict_upcoming(history_payload: dict, fixture_cache: dict,
                 "kickoff_date": match_date,
                 "predicted_at": predicted_at,
                 "model_version": MODEL_VERSION,
-                "history_max_date": history_max_date,
+                "history_max_date": history_max_date_by_league.get(league),
                 "home_history_matches": len(home_history[-WINDOW:]),
                 "away_history_matches": len(away_history[-WINDOW:]),
                 "home_lambda": round(home_lambda, 6),
