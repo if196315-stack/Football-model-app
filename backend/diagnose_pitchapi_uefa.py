@@ -43,7 +43,7 @@ def season_value(value):
 
 
 def season_sort(value):
-    match = re.search(r"(20\\d{2})", str(value))
+    match = re.search(r"(20\d{2})", str(value))
     return int(match.group(1)) if match else 0
 
 
