@@ -1,51 +1,23 @@
-"""Shared model helpers imported by the active PitchAPI updater.
+"""Provider-neutral model core shared by the active PitchAPI data pipeline.
 
-The legacy Openplay / Football-Data ingestion path is disabled. These
-provider-neutral model functions remain here until moved to a dedicated module.
+This module contains only team-name normalization, xG model calculations,
+historical baselines, and prediction archiving. Provider ingestion is handled
+by backend/update_data_pitchapi.py.
 """
-
-import json, math, os, re
+import json
+import math
+import re
 from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
-import time
 from difflib import SequenceMatcher
 from pathlib import Path
+
 import pandas as pd
-import requests
 
-ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/"docs"/"data.json"
-BASE="https://github.com/nlbair/openplay/releases/download/data-v0.1.0"
-COMPS={"PL":("Англия · Премьер-лига","eng"),"PD":("Испания · Ла Лига","esp"),"SA":("Италия · Серия A","ita"),"BL1":("Германия · Бундеслига","ger"),"FL1":("Франция · Лига 1","fra")}
-MAP={v:k for k,(_,v) in COMPS.items()}
-WINDOW,HALF_LIFE,SHRINKAGE=30,12.0,3.0
-
-def parquet(name):
-    p=ROOT/"backend"/"cache"/name
-    p.parent.mkdir(parents=True,exist_ok=True)
-    if not p.exists():
-        url=f"{BASE}/{name}"
-        last_error=None
-        # Openplay release downloads can intermittently return 502/503/504.
-        # Retry transient failures and write atomically so a partial file is never cached.
-        for attempt in range(5):
-            try:
-                r=requests.get(url,timeout=(20,240))
-                if r.status_code in (429,500,502,503,504):
-                    r.raise_for_status()
-                r.raise_for_status()
-                if not r.content:
-                    raise RuntimeError(f"Empty Openplay download: {name}")
-                tmp=p.with_suffix(p.suffix+".tmp")
-                tmp.write_bytes(r.content)
-                tmp.replace(p)
-                break
-            except Exception as exc:
-                last_error=exc
-                if attempt == 4:
-                    raise RuntimeError(f"Openplay download failed after 5 attempts ({name}): {last_error}") from last_error
-                time.sleep(min(15 * (attempt + 1),60))
-    return pd.read_parquet(p)
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "docs" / "data.json"
+COMPS = {"PL": ("Англия · Премьер-лига", "eng"), "PD": ("Испания · Ла Лига", "esp"), "SA": ("Италия · Серия A", "ita"), "BL1": ("Германия · Бундеслига", "ger"), "FL1": ("Франция · Лига 1", "fra")}
+MAP = {v: k for k, (_, v) in COMPS.items()}
+WINDOW, HALF_LIFE, SHRINKAGE = 30, 12.0, 3.0
 
 def key(s):
     """Normalize club names across provider spelling, accents and common suffixes."""
@@ -122,21 +94,6 @@ def match_name(name,names,league=None):
         return best_name
     return None
 
-def history():
-    m=parquet("matches.parquet"); s=parquet("team_match_stats.parquet")
-    m=m[m.comp.isin(MAP)].copy(); s=s[s.comp.isin(MAP)].copy()
-    m["date"]=pd.to_datetime(m.date); s["date"]=pd.to_datetime(s.date)
-    h=m[["match_id","comp","home_team_id","home_team"]].rename(columns={"home_team_id":"team_id","home_team":"team"})
-    a=m[["match_id","comp","away_team_id","away_team"]].rename(columns={"away_team_id":"team_id","away_team":"team"})
-    s=s.merge(pd.concat([h,a]).drop_duplicates(["match_id","team_id"]),on=["match_id","comp","team_id"],how="left")
-    s=s.dropna(subset=["date","team","xg","xg_against"]).sort_values("date")
-    base={}
-    for c in MAP:
-        for side in ("home","away"):
-            v=s.loc[(s.comp==c)&(s.side==side),"xg"]
-            base[c,side]=float(v.mean()) if len(v) else None
-    return s,base,m
-
 def strengths(s,base):
     out={}
     for (c,t),g in s.groupby(["comp","team"]):
@@ -206,14 +163,13 @@ def strongest_signal(pred, baseline, home, away):
 
 def predict(c,home,away,st,base,names,matches,target_date):
     hn=match_name(home,names.get(c,[]),c); an=match_name(away,names.get(c,[]),c)
-    if not hn or not an:return None,"Не удалось надёжно сопоставить команды с Openplay"
+    if not hn or not an:return None,"Не удалось надёжно сопоставить команды с исторической базой xG"
     hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
     lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
     pred=markets(lh,la)
     pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
     return pred,None
-
 
 def update_prediction_archive(payload):
     """Freeze forecasts before kickoff and attach final scores without rewriting forecasts."""
@@ -279,100 +235,3 @@ def update_prediction_archive(payload):
         and item.get("awayScore") is not None
         and isinstance(item.get("prediction"), dict)
     ]
-
-def preserve_existing_odds(payload):
-    """Keep bookmaker quotes when the six-hour fixture/model refresh rewrites data.json."""
-    if not OUT.exists():
-        return
-    try:
-        previous = json.loads(OUT.read_text(encoding="utf-8"))
-    except Exception:
-        return
-    old_odds = {}
-    for competition in previous.get("competitions", []):
-        for match in competition.get("matches", []):
-            quote = match.get("odds")
-            match_id = match.get("id")
-            if quote and match_id is not None:
-                old_odds[str(match_id)] = quote
-    kept = 0
-    for competition in payload.get("competitions", []):
-        for match in competition.get("matches", []):
-            quote = old_odds.get(str(match.get("id")))
-            if quote and match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
-                match["odds"] = quote
-                kept += 1
-    for key in ("oddsUpdatedAt", "oddsCreditsRemaining", "oddsCreditsUsed", "oddsStatus", "oddsNotice", "oddsErrors", "oddsCoverage"):
-        if key in previous:
-            payload[key] = previous[key]
-    if kept:
-        payload["oddsNotice"] = f"Сохранены котировки для {kept} матчей; обновление коэффициентов выполняется отдельным заданием."
-
-
-def main():
-    p={"updatedAt":datetime.now(timezone.utc).isoformat(),"source":"Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
-      "modelVersion":"Openplay v1.3 · frozen research baseline","modelConfig":{"window":WINDOW,"halfLife":HALF_LIFE,"shrinkage":SHRINKAGE},
-      "openplayDataThrough":None,"status":"initializing","notice":"Загружаю исторические xG и расписание.",
-      "dataWarning":"При отсутствии xG за текущий сезон прогноз использует последнюю доступную историю Openplay; дата базы указана отдельно.","competitions":[]}
-    try:
-        s,b,matches=history(); st=strengths(s,b); p["openplayDataThrough"]=s.date.max().date().isoformat()
-        names={c:sorted(s.loc[s.comp==c,"team"].dropna().unique().tolist()) for c in MAP}
-        token=os.getenv("FOOTBALL_DATA_TOKEN","").strip()
-        if not token:
-            p["status"]="missing_api_token"; p["notice"]="Историческая модель загружена, но отсутствует FOOTBALL_DATA_TOKEN для получения расписания."
-        else:
-            for code,(label,c) in COMPS.items():
-                item={"code":code,"league":c,"name":label,"matches":[],"error":None}
-                try:
-                    # Football-Data.org applies a shared request-rate limit. Retry 429
-                    # responses and respect Retry-After instead of silently losing leagues.
-                    url=f"https://api.football-data.org/v4/competitions/{code}/matches"
-                    params={"status":"SCHEDULED,TIMED,POSTPONED,IN_PLAY,PAUSED,FINISHED"}
-                    r=None
-                    for attempt in range(4):
-                        r=requests.get(url,headers={"X-Auth-Token":token},params=params,timeout=35)
-                        if r.status_code == 429:
-                            if attempt == 3:
-                                break
-                            retry=r.headers.get("Retry-After","").strip()
-                            wait=None
-                            if retry:
-                                try: wait=float(retry)
-                                except ValueError:
-                                    try: wait=max(1,(parsedate_to_datetime(retry)-datetime.now(timezone.utc)).total_seconds())
-                                    except Exception: wait=None
-                            if wait is None: wait=65*(attempt+1)
-                            time.sleep(min(max(wait,5),180))
-                            continue
-                        if r.status_code in (500,502,503,504) and attempt < 3:
-                            time.sleep(10*(attempt+1)); continue
-                        break
-                    if r is None or not r.ok:
-                        detail=(r.text[:180] if r is not None else "no response")
-                        raise RuntimeError(f"Football-Data.org HTTP {r.status_code if r is not None else 'error'} for {code}: {detail}")
-                    # Stay below the provider's per-minute request limit.
-                    time.sleep(7)
-                    for m in r.json().get("matches",[]):
-                        home=(m.get("homeTeam") or {}).get("name") or "TBD"; away=(m.get("awayTeam") or {}).get("name") or "TBD"
-                        pred,warn=predict(c,home,away,st,b,names,matches,m.get("utcDate","")[:10])
-                        # Hide fixtures if either club cannot be matched confidently to Openplay.
-                        # The app consumes this JSON, so omitted fixtures stay out of all match lists.
-                        if warn == "Не удалось надёжно сопоставить команды с Openplay":
-                            continue
-                        score=(m.get("score") or {}).get("fullTime") or {}
-                        item["matches"].append({"id":m.get("id"),"utcDate":m.get("utcDate"),"status":m.get("status"),"home":home,"away":away,
-                          "homeScore":score.get("home"),"awayScore":score.get("away"),"prediction":pred,"predictionWarning":warn})
-                except Exception as e:item["error"]=str(e)[:240]
-                item["matches"].sort(key=lambda x:x.get("utcDate") or "")
-                p["competitions"].append(item)
-            upcoming=[m for c in p["competitions"] for m in c["matches"] if m.get("status") in ("SCHEDULED","TIMED") and m.get("prediction")]
-            p["status"]="ready" if upcoming else "no_predictions"
-            p["notice"]="Прогнозы рассчитаны по последней доступной истории Openplay. Свежесть xG указана отдельно."
-    except Exception as e:
-        p["status"]="model_data_error"; p["notice"]="Ошибка загрузки/обработки Openplay: "+str(e)[:300]
-    update_prediction_archive(p)
-    preserve_existing_odds(p)
-    OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(p,ensure_ascii=False,indent=2),encoding="utf-8")
-
-if __name__ == "__main__":
-    raise SystemExit("Legacy Openplay/Football-Data updater disabled; use update_data_pitchapi.py.")
