@@ -888,10 +888,8 @@ class MainActivity : Activity() {
         spin.adapter = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,markets.map { it.label })
         form.addView(spin)
         fun field(h: String) = EditText(this).apply { hint=h; setSingleLine(true); inputType=InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
-        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки · 0.25–1% доступного банка")
-        val suggestedStake = currentBankroll() * 0.005
-        stake.setText(String.format(Locale.US, "%.2f", suggestedStake))
-        form.addView(odds); form.addView(stake)
+        val odds=field("Коэффициент (например 1.85)")
+        form.addView(odds)
         fun suggestedOdds(marketKey: String): Double? {
             val best = m.optJSONObject("odds")?.optJSONObject("best") ?: return null
             val h = best.optJSONObject("h2h"); val t = best.optJSONObject("totals")
@@ -939,23 +937,11 @@ class MainActivity : Activity() {
         dlg.setOnShowListener {
             dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val o=odds.text.toString().replace(',','.').toDoubleOrNull()
-                val st=stake.text.toString().replace(',','.').toDoubleOrNull()
-                val bankNow = currentBankroll()
-                val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
-                val matchExposure = (0 until bets.length()).sumOf { idx ->
-                    val existing = bets.optJSONObject(idx)
-                    if (existing?.optString("status") == "PENDING" && existing.optString("matchId") == matchId) existing.optDouble("stake") else 0.0
-                }
-                val today = m.optString("utcDate").take(10)
-                val dailyExposure = (0 until bets.length()).sumOf { idx ->
-                    val existing = bets.optJSONObject(idx)
-                    if (existing?.optString("status") == "PENDING" && existing.optString("date").take(10) == today) existing.optDouble("stake") else 0.0
-                }
-                if(o==null || o<=1.0 || st==null || st < bankNow*0.0025 || st > bankNow*0.01 ||
-                    matchExposure + st > bankNow*0.01 || dailyExposure + st > bankNow*0.02) {
-                    Toast.makeText(this,"Ставка: 0.25–1% банка; лимит на матч 1%, на день 2%.",Toast.LENGTH_LONG).show()
+                if(o==null || !o.isFinite() || o<=1.0) {
+                    Toast.makeText(this,"Введи корректный коэффициент больше 1.00",Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
+                val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
                 val mk=markets[spin.selectedItemPosition]
                 coupon.put(JSONObject().apply {
                     put("id", System.currentTimeMillis().toString())
@@ -1031,7 +1017,16 @@ class MainActivity : Activity() {
             setPadding(dp(12), dp(10), dp(12), dp(10))
         }
         stakeCard.addView(stakeField, LinearLayout.LayoutParams(-1, -2))
-        addText(stakeCard, "Потенциальная выплата: " + String.format(Locale.US, "%.2f", currentBankroll() * 0.005 * combinedOdds), 13, true, gold)
+        val payoutView = label("Потенциальная выплата: " + String.format(Locale.US, "%.2f", currentBankroll() * 0.005 * combinedOdds), 13, true, gold)
+        stakeCard.addView(payoutView)
+        stakeField.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val amount = s?.toString()?.replace(',', '.')?.toDoubleOrNull() ?: 0.0
+                payoutView.text = "Потенциальная выплата: " + String.format(Locale.US, "%.2f", amount * combinedOdds)
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
         addText(stakeCard, "Сумма 0,25–1% банка; лимит на матч 1%, на день 2%.", 10, false, muted)
         actionButton(stakeCard, "Зафиксировать тестовый купон") {
             val stake = stakeField.text.toString().replace(',', '.').toDoubleOrNull()
@@ -1043,12 +1038,33 @@ class MainActivity : Activity() {
             val selections = JSONArray()
             for (k in 0 until coupon.length()) coupon.optJSONObject(k)?.let { selections.put(JSONObject(it.toString())) }
             val matchIds = (0 until selections.length()).mapNotNull { selections.optJSONObject(it)?.optString("matchId") }.distinct()
-            val matchExposure = (0 until bets.length()).sumOf { k ->
-                val b = bets.optJSONObject(k)
-                if (b?.optString("status") == "PENDING" && matchIds.contains(b.optString("matchId"))) b.optDouble("stake") else 0.0
+            val days = (0 until selections.length()).mapNotNull { selections.optJSONObject(it)?.optString("date")?.take(10) }.distinct()
+            fun existingTouchesMatch(b: JSONObject, matchId: String): Boolean {
+                if (b.optString("marketKey") != "COUPON") return b.optString("matchId") == matchId
+                val legs = b.optJSONArray("selections") ?: return false
+                return (0 until legs.length()).any { legs.optJSONObject(it)?.optString("matchId") == matchId }
             }
-            if (matchExposure + stake > bank * 0.01) {
-                Toast.makeText(this, "Лимит экспозиции на матч превышен", Toast.LENGTH_LONG).show()
+            fun existingTouchesDay(b: JSONObject, day: String): Boolean {
+                if (b.optString("marketKey") != "COUPON") return b.optString("date").take(10) == day
+                val legs = b.optJSONArray("selections") ?: return false
+                return (0 until legs.length()).any { legs.optJSONObject(it)?.optString("date")?.take(10) == day }
+            }
+            val matchViolation = matchIds.any { matchId ->
+                val exposure = (0 until bets.length()).sumOf { k ->
+                    val b = bets.optJSONObject(k)
+                    if (b?.optString("status") == "PENDING" && existingTouchesMatch(b, matchId)) b.optDouble("stake") else 0.0
+                }
+                exposure + stake > bank * 0.01
+            }
+            val dailyViolation = days.any { day ->
+                val exposure = (0 until bets.length()).sumOf { k ->
+                    val b = bets.optJSONObject(k)
+                    if (b?.optString("status") == "PENDING" && existingTouchesDay(b, day)) b.optDouble("stake") else 0.0
+                }
+                exposure + stake > bank * 0.02
+            }
+            if (matchViolation || dailyViolation) {
+                Toast.makeText(this, "Лимит экспозиции: на матч не более 1%, на день не более 2% банка", Toast.LENGTH_LONG).show()
                 return@actionButton
             }
             val effectiveCombinedOdds = (0 until selections.length()).fold(1.0) { acc, k -> acc * (selections.optJSONObject(k)?.optDouble("odds", 1.0) ?: 1.0) }
