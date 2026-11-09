@@ -13,7 +13,7 @@ on:
       max_shot_requests:
         description: "Maximum shot/xG requests in this run"
         required: true
-        default: "500"
+        default: "500" # Keep incremental batches bounded while backfilling historical xG.
         type: choice
         options:
           - "50"
