@@ -243,6 +243,53 @@ def convert_event(event):
     }
 
 
+MODEL_MARKETS = ("double_chance", "spreads", "team_totals")
+
+
+def has_model_market(quote):
+    best = (quote or {}).get("best") or {}
+    dc = best.get("doubleChance") or {}
+    if any(isinstance(price, (int, float)) and price > 1 for price in dc.values()):
+        return True
+    for row in best.get("spreads") or []:
+        if isinstance(row.get("price"), (int, float)) and row["price"] > 1 and abs(float(row.get("point", 0))) > 0.001:
+            return True
+    for row in best.get("teamTotals") or []:
+        if row.get("side") == "over" and isinstance(row.get("price"), (int, float)) and row["price"] > 1:
+            return True
+    return False
+
+
+def fetch_event_market_quote(session, sport, event, api_key, regions="eu"):
+    """Fetch model markets from the per-event endpoint; /odds only accepts featured markets."""
+    event_id = event.get("id")
+    if not event_id:
+        return None, ["event id missing"]
+    url = f"{BASE_URL}/{sport}/events/{event_id}/odds"
+    params = {
+        "apiKey": api_key, "regions": regions,
+        "markets": ",".join(MODEL_MARKETS),
+        "oddsFormat": "decimal", "dateFormat": "iso",
+    }
+    response = session.get(url, params=params, timeout=35)
+    if response.status_code != 422:
+        response.raise_for_status()
+        return convert_event(response.json()), []
+
+    # Isolate a market-level rejection rather than losing all requested markets.
+    combined_errors = []
+    quote = None
+    for market in MODEL_MARKETS:
+        single_params = dict(params)
+        single_params["markets"] = market
+        single = session.get(url, params=single_params, timeout=35)
+        if single.status_code >= 400:
+            combined_errors.append(f"{market}: HTTP {single.status_code} {single.text[:120]}")
+            continue
+        one_quote = convert_event(single.json())
+        quote = merge_quote(quote, one_quote)
+    return quote, combined_errors
+
 def merge_quote(existing, incoming):
     """Add missing markets from The Odds API without replacing BSD consensus."""
     if not existing:
@@ -329,7 +376,8 @@ def main():
                 params={
                     "apiKey": api_key,
                     "regions": "eu",
-                    "markets": "h2h,totals,spreads,double_chance,btts,team_totals",
+                    # The bulk odds endpoint accepts featured markets only.
+                    "markets": "h2h",
                     "oddsFormat": "decimal",
                     "dateFormat": "iso",
                 },
@@ -351,11 +399,20 @@ def main():
                     league_matched += 1
                     matched += 1
                     quote = convert_event(event)
+                    model_quote, market_errors = fetch_event_market_quote(
+                        requests, sport, event, api_key, regions="eu"
+                    )
+                    if model_quote:
+                        quote = merge_quote(quote, model_quote)
+                    for market_error in market_errors:
+                        if len(errors) < 25:
+                            errors.append(f"{code} {match.get('home')}–{match.get('away')}: {market_error}")
                     if quote.get("best"):
                         match["odds"] = merge_quote(match.get("odds"), quote)
+                    if has_model_market(quote):
                         updated += 1
                         league_updated += 1
-                    elif match.get("odds"):
+                    elif has_model_market(match.get("odds")):
                         retained += 1
                         league_retained += 1
                 elif match.get("odds"):
@@ -387,8 +444,8 @@ def main():
     data["oddsCreditsUsed"] = int(quota_used) if str(quota_used or "").isdigit() else None
     data["oddsStatus"] = "ready" if (updated or retained) else ("partial_error" if errors else "no_quotes")
     data["oddsNotice"] = (
-        f"Новые коэффициенты: {updated}; сохранены прежние: {retained}; без совпадения: {max(0, eligible - matched)}."
-        if (updated or retained) else "На момент последнего обновления подходящих коэффициентов не найдено."
+        f"Новые котировки по рынкам модели: {updated}; сохранены прежние: {retained}; матчи без сопоставления: {max(0, eligible - matched)}."
+        if (updated or retained) else "The Odds API не вернул котировок по рынкам модели для сопоставленных матчей."
     )
     if errors:
         data["oddsErrors"] = errors
