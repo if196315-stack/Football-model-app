@@ -3,8 +3,8 @@
 
 The archive stores only the strategy's supported markets and exact line values.
 It records both capture time and the bookmaker board's source-side prematch update
-timestamp; model probabilities remain explicitly unavailable until a live UEFA
-prediction pipeline is connected.
+timestamp and attaches pre-match probabilities from the UEFA xG/Poisson model
+when a paired-xG history is available.
 """
 from __future__ import annotations
 
