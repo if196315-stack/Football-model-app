@@ -484,10 +484,18 @@ class MainActivity : Activity() {
         if(b.optString("status")!="PENDING" || m.optString("status")!="FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) return
         val h=m.optInt("homeScore"); val a=m.optInt("awayScore")
         val won: Boolean?=when(b.optString("marketKey")) {
-            "1x"->h>=a; "x2"->a>=h
+            "1x"->h>=a; "x2"->a>=h; "12"->h!=a
             "1"->h>a; "x"->h==a; "2"->a>h; "over25"->h+a>=3; "under25"->h+a<=2
             "bttsYes"->h>0&&a>0; "bttsNo"->h==0||a==0; "homeOver15"->h>=2; "awayOver15"->a>=2
-            else->null
+            else -> if(b.optString("marketKey").startsWith("spread:")) {
+                val parts = b.optString("marketKey").split(":")
+                val handicap = parts.getOrNull(2)?.toDoubleOrNull()
+                when(parts.getOrNull(1)) {
+                    "home" -> handicap?.let { h + it > a }
+                    "away" -> handicap?.let { a + it > h }
+                    else -> null
+                }
+            } else null
         }
         b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a")
     }
