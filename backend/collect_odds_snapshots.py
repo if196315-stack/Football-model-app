@@ -49,7 +49,7 @@ def snapshot_rows(data, retrieved_at=None):
                 if abs(point) > 0.001:
                     continue
                 yield {**common, "market": "spread", "team": quote["team"], "point": point,
-                       "price": float(quote["price"]), "bookmaker": quote.get("bookmaker")}
+                       "price": float(quote["price"]), "bookmaker": "MELBET"}
 
 
             for side, price in (best.get("btts") or {}).items():
