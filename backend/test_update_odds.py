@@ -101,5 +101,25 @@ class OddsMarketParsingTests(unittest.TestCase):
         self.assertEqual(quote["best"]["spreads"][0]["point"], -0.5)
 
 
+    def test_btts_quotes_are_captured_for_observation(self):
+        bookmaker = {"markets": [{"key": "btts", "outcomes": [
+            {"name": "Yes", "price": 1.72},
+            {"name": "No", "price": 2.08},
+        ]}]}
+        self.assertEqual(read_market(bookmaker, "btts", "Arsenal", "Chelsea"),
+                         {"yes": 1.72, "no": 2.08})
+
+    def test_convert_event_keeps_btts_separate_from_actionable_markets(self):
+        event = {"id": "event-btts", "home_team": "Arsenal", "away_team": "Chelsea",
+                 "bookmakers": [{"key": "book", "title": "Book", "markets": [
+                     {"key": "btts", "outcomes": [
+                         {"name": "Yes", "price": 1.72},
+                         {"name": "No", "price": 2.08},
+                     ]},
+                 ]}]}
+        quote = convert_event(event)
+        self.assertEqual(quote["best"]["btts"], {"yes": 1.72, "no": 2.08})
+        self.assertNotIn("btts", quote["bestBookmakers"] if "btts" not in quote["bestBookmakers"] else {})
+
 if __name__ == "__main__":
     unittest.main()
