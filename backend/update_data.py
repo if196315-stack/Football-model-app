@@ -111,27 +111,41 @@ def pois(lam):
     p[-1]+=max(0,1-sum(p)); return p
 
 def markets(lh,la):
-    h,a=pois(lh),pois(la); p1=px=p2=ov15=ov25=ov35=btts=ho05=ho15=ho25=ao05=ao15=ao25=0.0
+    """Independent-Poisson probabilities for match and team goal markets."""
+    h,a=pois(lh),pois(la)
+    p1=px=p2=0.0
+    totals=[0.0]*13
+    home_goals=[0.0]*13
+    away_goals=[0.0]*13
+    btts=0.0
     for x,hp in enumerate(h):
         for y,ap in enumerate(a):
             p=hp*ap
             if x>y:p1+=p
             elif x==y:px+=p
             else:p2+=p
-            if x+y>=2:ov15+=p
-            if x+y>=3:ov25+=p
-            if x+y>=4:ov35+=p
+            totals[min(x+y,12)]+=p
+            home_goals[x]+=p
+            away_goals[y]+=p
             if x and y:btts+=p
-            if x>=1:ho05+=p
-            if x>=2:ho15+=p
-            if x>=3:ho25+=p
-            if y>=1:ao05+=p
-            if y>=2:ao15+=p
-            if y>=3:ao25+=p
-    return {"1":p1,"x":px,"2":p2,"1x":p1+px,"x2":px+p2,
-      "over15":ov15,"over25":ov25,"over35":ov35,"under25":1-ov25,"bttsYes":btts,"bttsNo":1-btts,
-      "homeOver05":ho05,"homeOver15":ho15,"homeOver25":ho25,"awayOver05":ao05,"awayOver15":ao15,"awayOver25":ao25,
-      "ahMinus05Home":p1,"ahPlus05Home":p1+px,"expectedHomeGoals":lh,"expectedAwayGoals":la}
+    result={"1":p1,"x":px,"2":p2,"1x":p1+px,"x2":px+p2,
+            "bttsYes":btts,"bttsNo":1-btts,
+            "ahMinus05Home":p1,"ahPlus05Home":p1+px,
+            "expectedHomeGoals":lh,"expectedAwayGoals":la}
+    for line in (1.5,2.5,3.5):
+        threshold=int(line)+1
+        over=sum(totals[threshold:])
+        tag=str(line).replace(".","")
+        result[f"over{tag}"]=over
+        result[f"under{tag}"]=1-over
+    for team,distribution in (("home",home_goals),("away",away_goals)):
+        for line in (0.5,1.5,2.5,3.5):
+            threshold=int(line)+1
+            over=sum(distribution[threshold:])
+            tag=str(line).replace(".","")
+            result[f"{team}Over{tag}"]=over
+            result[f"{team}Under{tag}"]=1-over
+    return result
 
 def historical_baselines(matches, comp, target_date):
     g=matches[(matches.comp==comp)&(matches.date<pd.Timestamp(target_date))]

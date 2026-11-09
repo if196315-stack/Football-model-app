@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Append immutable snapshots of model-used best odds from docs/data.json.
+"""Append immutable Melbet odds snapshots from docs/data.json.
 
-No external API calls are made here. Run after BSD and The Odds API refreshes.
+No external API calls are made here. Run after the API-Sport refresh.
 """
 import argparse
 import json
@@ -19,8 +19,11 @@ def snapshot_rows(data, retrieved_at=None):
         league_code = competition.get("code")
         for match in competition.get("matches", []):
             odds = match.get("odds") or {}
+            # Trust only the bookmaker marker attached to this exact match.
+            # A file-level marker must never relabel stale mixed-book prices.
+            if str(odds.get("bookmaker") or "").lower() != "melbet":
+                continue
             best = odds.get("best") or {}
-            best_books = odds.get("bestBookmakers") or {}
             common = {
                 "schema_version": 1, "retrieved_at": retrieved_at,
                 "league_code": league_code, "fixture_id": str(match.get("id") or ""),
@@ -33,7 +36,7 @@ def snapshot_rows(data, retrieved_at=None):
             for outcome, price in (best.get("doubleChance") or {}).items():
                 if outcome in ("1x", "x2", "12") and valid_price(price):
                     yield {**common, "market": "double_chance", "outcome": outcome,
-                           "price": float(price), "bookmaker": (best_books.get("doubleChance") or {}).get(outcome)}
+                           "price": float(price), "bookmaker": "MELBET"}
 
             for quote in best.get("spreads") or []:
                 if quote.get("team") not in ("home", "away") or not valid_price(quote.get("price")):
@@ -45,10 +48,25 @@ def snapshot_rows(data, retrieved_at=None):
                 if abs(point) > 0.001:
                     continue
                 yield {**common, "market": "spread", "team": quote["team"], "point": point,
-                       "price": float(quote["price"]), "bookmaker": quote.get("bookmaker")}
+                       "price": float(quote["price"]), "bookmaker": "MELBET"}
+
+            for side, price in (best.get("btts") or {}).items():
+                if side in ("yes", "no") and valid_price(price):
+                    yield {**common, "market": "btts", "outcome": side,
+                           "price": float(price), "bookmaker": "MELBET"}
+
+            for quote in best.get("totals") or []:
+                if quote.get("side") not in ("over", "under") or not valid_price(quote.get("price")):
+                    continue
+                try:
+                    point = float(quote.get("point"))
+                except (TypeError, ValueError):
+                    continue
+                yield {**common, "market": "match_total", "side": quote["side"],
+                       "point": point, "price": float(quote["price"]), "bookmaker": "MELBET"}
 
             for quote in best.get("teamTotals") or []:
-                if quote.get("team") not in ("home", "away") or quote.get("side") != "over":
+                if quote.get("team") not in ("home", "away") or quote.get("side") not in ("over", "under"):
                     continue
                 if not valid_price(quote.get("price")):
                     continue
@@ -56,8 +74,8 @@ def snapshot_rows(data, retrieved_at=None):
                     point = float(quote.get("point"))
                 except (TypeError, ValueError):
                     continue
-                yield {**common, "market": "team_total", "team": quote["team"], "side": "over",
-                       "point": point, "price": float(quote["price"]), "bookmaker": quote.get("bookmaker")}
+                yield {**common, "market": "team_total", "team": quote["team"], "side": quote["side"],
+                       "point": point, "price": float(quote["price"]), "bookmaker": "MELBET"}
 
 
 def append_snapshots(input_path, output_path, retrieved_at=None):

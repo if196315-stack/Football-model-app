@@ -13,7 +13,10 @@ BOOKS=("melbet",)
 def norm(v):
     s=unicodedata.normalize("NFKD",str(v or "").lower())
     s="".join(c for c in s if not unicodedata.combining(c))
-    return " ".join(re.sub(r"[^a-z0-9]+"," ",s).split())
+    s=" ".join(re.sub(r"[^a-z0-9]+"," ",s).split())
+    aliases={"man city":"manchester city","man utd":"manchester united",
+             "man united":"manchester united","spurs":"tottenham hotspur"}
+    return aliases.get(s,s)
 
 def sim(a,b):
     a,b=norm(a),norm(b)
@@ -63,8 +66,12 @@ def market_kind(slug,market):
     name=(market.get("name") or {})
     name=(name.get("en") or name.get("ru") or "").lower() if isinstance(name,dict) else str(name).lower()
     if "double_chance" in slug or "double chance" in name:return "dc"
+    if ("both_teams" in slug or "btts" in slug or "both teams to score" in name
+            or "обе команды забьют" in name or "обе забьют" in name):return "btts"
+    if ("total_team" in slug or "team_total" in slug or "team total" in name
+            or "тотал команды" in name or "индивидуальный тотал" in name):return "tt"
+    if ("total" in slug or "тотал" in name) and not ("team" in slug or "команд" in name):return "total"
     if "handicap" in slug or "гандикап" in name or "фора" in name:return "spread"
-    if "total_team" in slug or "team_total" in slug or "тотал команды" in name:return "tt"
     return None
 
 def lines(stake):
@@ -74,14 +81,14 @@ def lines(stake):
         yield {"factor":stake["factor"],"argument":None}
 
 def parse_odds(m):
-    best={"doubleChance":{},"spreads":[],"teamTotals":[]}
-    books_best={"doubleChance":{},"spreads":[],"teamTotals":[]}
+    best={"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
+    books_best={"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
     book_rows=[]
     # Melbet is the single reference bookmaker; never mix other prices.
     melbet=(m.get("oddsBk") or {}).get("melbet")
-    for bk,board in ({"melbet":melbet} if isinstance(melbet,dict) else {}).items():
-        if not isinstance(board,dict):continue
-        row={"key":bk,"title":bk.upper(),"doubleChance":{},"spreads":[],"teamTotals":[]}
+    if isinstance(melbet,dict):
+        bk="melbet"; board=melbet
+        row={"key":bk,"title":bk.upper(),"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
         for slug,market in (board.get("markets") or {}).items():
             if not isinstance(market,dict) or market.get("status")!="open":continue
             kind=market_kind(slug,market)
@@ -93,9 +100,15 @@ def parse_odds(m):
                     if kind=="dc":
                         key={"home_or_draw":"1x","draw_or_away":"x2","home_or_away":"12"}.get(key,key)
                         if key not in ("1x","x2","12"):continue
-                        if price>best["doubleChance"].get(key,0):
-                            best["doubleChance"][key]=price; books_best["doubleChance"][key]=bk.upper()
-                        row["doubleChance"][key]=price
+                        best["doubleChance"][key]=max(price,best["doubleChance"].get(key,0))
+                        books_best["doubleChance"][key]=bk.upper(); row["doubleChance"][key]=price
+                    elif kind=="btts":
+                        side = ("yes" if key in ("yes", "true", "1") or key.endswith("_yes") else
+                                "no" if key in ("no", "false", "2") or key.endswith("_no") else None)
+                        if not side:continue
+                        if price>best["btts"].get(side,0):
+                            best["btts"][side]=price; books_best["btts"][side]=bk.upper()
+                        row["btts"][side]=price
                     elif kind=="spread":
                         side="home" if key in ("handicap_1","w1","home","1") or slug.endswith("_1") else ("away" if key in ("handicap_2","w2","away","2") or slug.endswith("_2") else None)
                         if side is None or arg is None or abs(float(arg))>.001:continue
@@ -106,20 +119,39 @@ def parse_odds(m):
                             best["spreads"].append(q)
                             books_best["spreads"]=[x for x in books_best["spreads"] if x["team"]!=side]+[{"team":side,"point":0.0,"bookmaker":bk.upper()}]
                         row["spreads"].append(q)
-                    else:
-                        side="home" if slug.endswith("_1") else ("away" if slug.endswith("_2") else None)
-                        if side is None or arg is None or key not in ("over","under"):continue
-                        q={"team":side,"point":float(arg),"side":key,"price":price}
-                        old=next((x for x in best["teamTotals"] if x["team"]==side and x["point"]==q["point"] and x["side"]==key),None)
+                    elif kind in ("tt","total"):
+                        side_key = ("over" if key in ("over", "больше") or key.startswith("over_") else
+                                    "under" if key in ("under", "меньше") or key.startswith("under_") else None)
+                        if side_key is None or arg is None:continue
+                        if kind=="tt":
+                            market_name = market.get("name") or {}
+                            market_name = (market_name.get("en") or market_name.get("ru") or "") if isinstance(market_name, dict) else str(market_name)
+                            name_key = re.sub(r"[^a-zа-я0-9]+", " ", market_name.lower()).strip()
+                            team = ("home" if slug.endswith(("_1", "1")) or "home" in slug
+                                    or "home" in name_key or "хозяев" in name_key
+                                    or "team 1" in name_key or "команды 1" in name_key or "команда 1" in name_key else
+                                    "away" if slug.endswith(("_2", "2")) or "away" in slug
+                                    or "away" in name_key or "гостей" in name_key
+                                    or "team 2" in name_key or "команды 2" in name_key or "команда 2" in name_key else None)
+                            if team is None:continue
+                            q={"team":team,"point":float(arg),"side":side_key,"price":price}
+                            target=best["teamTotals"]; row_target=row["teamTotals"]; books_target=books_best["teamTotals"]
+                            identity=lambda x:x.get("team")==team and x.get("point")==q["point"] and x.get("side")==side_key
+                        else:
+                            q={"point":float(arg),"side":side_key,"price":price}
+                            target=best["totals"]; row_target=row["totals"]; books_target=books_best["totals"]
+                            identity=lambda x:x.get("point")==q["point"] and x.get("side")==side_key
+                        old=next((x for x in target if identity(x)),None)
                         if old is None or price>old["price"]:
-                            if old:best["teamTotals"].remove(old)
-                            best["teamTotals"].append(q)
-                            books_best["teamTotals"]=[x for x in books_best["teamTotals"] if not (x["team"]==side and x["point"]==q["point"] and x["side"]==key)]+[{**{k:q[k] for k in ("team","point","side")},"bookmaker":bk.upper()}]
-                        row["teamTotals"].append(q)
-        if any(row[k] for k in ("doubleChance","spreads","teamTotals")):book_rows.append(row)
+                            if old:target.remove(old)
+                            target.append(q)
+                            books_target[:]=[x for x in books_target if not identity(x)]+[{k:q[k] for k in q if k!="price"}|{"bookmaker":bk.upper()}]
+                        row_target.append(q)
+        if any(row[k] for k in ("doubleChance","spreads","teamTotals","totals","btts")):
+            book_rows.append(row)
     best={k:v for k,v in best.items() if v}
     books_best={k:v for k,v in books_best.items() if v}
-    return {"eventId":str(m.get("id") or ""),"updatedAt":datetime.now(timezone.utc).isoformat(),"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
+    return {"eventId":str(m.get("id") or ""),"bookmaker":"MELBET","updatedAt":datetime.now(timezone.utc).isoformat(),"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 def main():
     key=os.getenv("API_SPORT_KEY","").strip()

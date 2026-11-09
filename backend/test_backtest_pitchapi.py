@@ -24,6 +24,22 @@ class PitchApiBacktestTests(unittest.TestCase):
             row("m8", "2024-08-07", "C", "D", 0, 1, 0.4, 1.5),
         ]
 
+    def test_xg_markets_cover_btts_match_totals_and_team_totals_both_sides(self):
+        from update_data import markets
+        prediction = markets(1.4, 0.8)
+        for key in ("bttsYes", "bttsNo", "over15", "under15", "over25", "under25",
+                    "over35", "under35", "homeOver15", "homeUnder15",
+                    "awayOver25", "awayUnder25"):
+            self.assertIn(key, prediction)
+            self.assertGreaterEqual(prediction[key], 0.0)
+            self.assertLessEqual(prediction[key], 1.0)
+        self.assertAlmostEqual(prediction["bttsYes"] + prediction["bttsNo"], 1.0)
+        for line in ("15", "25", "35"):
+            self.assertAlmostEqual(prediction["over" + line] + prediction["under" + line], 1.0)
+        for team in ("home", "away"):
+            for line in ("05", "15", "25", "35"):
+                self.assertAlmostEqual(prediction[f"{team}Over{line}"] + prediction[f"{team}Under{line}"], 1.0)
+
     def test_same_date_results_and_xg_cannot_change_other_prediction(self):
         original = self.sample()
         changed = self.sample()
