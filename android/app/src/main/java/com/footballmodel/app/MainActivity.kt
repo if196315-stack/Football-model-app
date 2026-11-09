@@ -865,7 +865,7 @@ class MainActivity : Activity() {
         }.filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
         val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
         val dcOdds = bestOdds?.optJSONObject("doubleChance")
-        if (dcOdds != null) listOf("1x", "x2", "12").forEach { key ->
+        if (dcOdds != null) listOf("1x", "x2").forEach { key ->
             if (dcOdds.has(key) && !dcOdds.isNull(key) && markets.none { it.key == key })
                 markets.add(BetMarket(key, "Двойной шанс $key"))
         }
