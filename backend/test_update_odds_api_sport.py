@@ -23,24 +23,24 @@ class ApiSportOddsTests(unittest.TestCase):
     def test_parses_btts_match_totals_and_both_team_total_sides_from_melbet_only(self):
         source = {"id": 88, "oddsBk": {
             "melbet": {"markets": {
-                "both_teams_to_score": {"status": "open", "stakes": {
+                "both_teams_to_score": {"status": "open", "stage": "prematch", "stakes": {
                     "yes": {"factor": 1.82}, "no": {"factor": 1.96}
                 }},
-                "total_goals": {"status": "open", "stakes": {
+                "total_goals": {"status": "open", "stage": "prematch", "stakes": {
                     "over": {"lines": [{"argument": 2.5, "factor": 1.91}]},
                     "under": {"lines": [{"argument": 2.5, "factor": 1.95}]}
                 }},
-                "total_team_1": {"status": "open", "stakes": {
+                "total_team_1": {"status": "open", "stage": "prematch", "stakes": {
                     "over": {"lines": [{"argument": 1.5, "factor": 1.88}]},
                     "under": {"lines": [{"argument": 1.5, "factor": 1.92}]}
                 }},
-                "total_team_2": {"status": "open", "stakes": {
+                "total_team_2": {"status": "open", "stage": "prematch", "stakes": {
                     "over": {"lines": [{"argument": 0.5, "factor": 1.7}]},
                     "under": {"lines": [{"argument": 0.5, "factor": 2.1}]}
                 }}
             }},
             "pari": {"markets": {
-                "both_teams_to_score": {"status": "open", "stakes": {"yes": {"factor": 9.99}}}
+                "both_teams_to_score": {"status": "open", "stage": "prematch", "stakes": {"yes": {"factor": 9.99}}}
             }}
         }}
         quote = parse_odds(source)
@@ -56,10 +56,10 @@ class ApiSportOddsTests(unittest.TestCase):
 
     def test_parses_double_chance_and_only_zero_handicap(self):
         source = {"id": 7, "oddsBk": {"melbet": {"markets": {
-            "double_chance": {"status": "open", "stakes": {
+            "double_chance": {"status": "open", "stage": "prematch", "stakes": {
                 "1x": {"factor": 1.3}, "x2": {"factor": 2.7}
             }},
-            "handicap": {"status": "open", "stakes": {
+            "handicap": {"status": "open", "stage": "prematch", "stakes": {
                 "handicap_1": {"lines": [
                     {"argument": 0, "factor": 1.91},
                     {"argument": -0.5, "factor": 2.2}
