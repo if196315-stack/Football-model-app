@@ -1,6 +1,11 @@
 name: Diagnose API-Football odds coverage
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/diagnose-api-football-odds.yml"
   workflow_dispatch:
 
 permissions:
