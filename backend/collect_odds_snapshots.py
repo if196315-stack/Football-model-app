@@ -42,7 +42,7 @@ def snapshot_rows(data, retrieved_at=None):
                     point = float(quote.get("point"))
                 except (TypeError, ValueError):
                     continue
-                if abs(point) < 0.001 or abs(point * 2 - round(point * 2)) > 0.001:
+                if abs(point) > 0.001:
                     continue
                 yield {**common, "market": "spread", "team": quote["team"], "point": point,
                        "price": float(quote["price"]), "bookmaker": quote.get("bookmaker")}
