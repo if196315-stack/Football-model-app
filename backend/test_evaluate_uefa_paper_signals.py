@@ -60,6 +60,18 @@ class UefaPaperSignalTests(unittest.TestCase):
         self.assertEqual(signal["decision"], "WAIT")
         self.assertIn("quote_older_than_5_minutes", signal["reasons"])
 
+    def test_complementary_price_from_different_provider_market_is_rejected(self):
+        over = base_row()
+        under = base_row(market="match_total_under_reference", side="under",
+                         candidate_market=False, reference_only=True,
+                         provider_market_slug="first_half_total_goals",
+                         provider_market_group="first half total goals",
+                         provider_market_name="First Half Total Goals",
+                         price=1.9, model_probability=0.3)
+        signal = evaluate_candidate(over, [over, under])
+        self.assertEqual(signal["decision"], "WAIT")
+        self.assertIn("complementary_price_missing", signal["reasons"])
+
     def test_low_probability_is_rejected(self):
         over = base_row(model_probability=0.55)
         under = base_row(market="match_total_under_reference", side="under",
