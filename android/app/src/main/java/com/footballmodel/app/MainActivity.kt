@@ -59,7 +59,6 @@ class MainActivity : Activity() {
             overScrollMode = View.OVER_SCROLL_NEVER
             isSmoothScrollingEnabled = true
             isVerticalScrollBarEnabled = false
-            descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
