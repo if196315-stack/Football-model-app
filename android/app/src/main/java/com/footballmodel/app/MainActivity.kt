@@ -174,7 +174,8 @@ class MainActivity : Activity() {
             for (i in 0 until spreads.length()) {
                 val line = spreads.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", 0.0)
-                if (kotlin.math.abs(point) < 0.001) continue
+                if (kotlin.math.abs(point) < 0.001 ||
+                    kotlin.math.abs(point * 2.0 - kotlin.math.round(point * 2.0)) > 0.001) continue
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
                 val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
                 addMarketRow(panelOdds, listOf(Triple("$team $signed", oddsText(line,"price"), gold)))
@@ -405,7 +406,8 @@ class MainActivity : Activity() {
         if (spreadLines != null) for (i in 0 until spreadLines.length()) {
             val line = spreadLines.optJSONObject(i) ?: continue
             val point = line.optDouble("point", 0.0)
-            if (kotlin.math.abs(point) < 0.001) continue
+            if (kotlin.math.abs(point) < 0.001 ||
+                kotlin.math.abs(point * 2.0 - kotlin.math.round(point * 2.0)) > 0.001) continue
             val team = line.optString("team")
             val key = "spread:$team:${String.format(Locale.US, "%.1f", point)}"
             val teamName = if (team == "home") m.optString("home") else m.optString("away")
