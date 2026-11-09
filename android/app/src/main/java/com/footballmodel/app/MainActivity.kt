@@ -159,6 +159,27 @@ class MainActivity : Activity() {
                 Triple("П2", oddsText(h2h,"away"), gold)
             ))
         }
+        val dc = best.optJSONObject("doubleChance")
+        if (dc != null) {
+            addText(panelOdds, "ДВОЙНОЙ ШАНС · лучшие цены", 10, true, muted)
+            addMarketRow(panelOdds, listOf(
+                Triple("1X", oddsText(dc,"1x"), gold),
+                Triple("X2", oddsText(dc,"x2"), gold),
+                Triple("12", oddsText(dc,"12"), gold)
+            ))
+        }
+        val spreads = best.optJSONArray("spreads")
+        if (spreads != null && spreads.length() > 0) {
+            addText(panelOdds, "ФОРА · только ненулевые линии", 10, true, muted)
+            for (i in 0 until spreads.length()) {
+                val line = spreads.optJSONObject(i) ?: continue
+                val point = line.optDouble("point", 0.0)
+                if (kotlin.math.abs(point) < 0.001) continue
+                val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
+                val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
+                addMarketRow(panelOdds, listOf(Triple("$team $signed", oddsText(line,"price"), gold)))
+            }
+        }
         val totals = best.optJSONObject("totals")
         if (totals != null) {
             addText(panelOdds, "ТОТАЛ 2.5 · лучшие цены", 10, true, muted)
