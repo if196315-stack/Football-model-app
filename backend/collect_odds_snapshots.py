@@ -51,17 +51,6 @@ def snapshot_rows(data, retrieved_at=None):
                 yield {**common, "market": "spread", "team": quote["team"], "point": point,
                        "price": float(quote["price"]), "bookmaker": quote.get("bookmaker")}
 
-            for quote in best.get("teamTotals") or []:
-                if quote.get("team") not in ("home", "away") or quote.get("side") != "over":
-                    continue
-                if not valid_price(quote.get("price")):
-                    continue
-                try:
-                    point = float(quote.get("point"))
-                except (TypeError, ValueError):
-                    continue
-                yield {**common, "market": "team_total", "team": quote["team"], "side": "over",
-                       "point": point, "price": float(quote["price"]), "bookmaker": quote.get("bookmaker")}
 
             for side, price in (best.get("btts") or {}).items():
                 if side in ("yes", "no") and valid_price(price):
