@@ -36,6 +36,7 @@ on:
       - "backend/test_pitchapi_data_source.py"
       - "backend/update_data_pitchapi.py"
       - "backend/test_update_data_pitchapi.py"
+      - "backend/odds-snapshot-triggers/**"
       - ".github/workflows/audit-pitchapi-coverage.yml"
 
 permissions:
