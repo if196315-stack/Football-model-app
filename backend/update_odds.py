@@ -222,7 +222,7 @@ def convert_event(event):
         compact_best["teamTotals"] = best["teamTotals"]
     best_books = {
         market: {key: value["bookmaker"] for key, value in values.items()}
-        for market, values in best.items() if market != "spreads" and values
+        for market, values in best.items() if market not in ("spreads", "teamTotals") and values
     }
     if best["spreads"]:
         best_books["spreads"] = [
