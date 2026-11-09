@@ -487,7 +487,9 @@ class MainActivity : Activity() {
         spin.adapter = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,markets.map { it.label })
         form.addView(spin)
         fun field(h: String) = EditText(this).apply { hint=h; setSingleLine(true); inputType=InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
-        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки")
+        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки · ровно 5% банка")
+        val suggestedStake = currentBankroll() * 0.05
+        stake.setText(String.format(Locale.US, "%.2f", suggestedStake))
         form.addView(odds); form.addView(stake)
         fun suggestedOdds(marketKey: String): Double? {
             val best = m.optJSONObject("odds")?.optJSONObject("best") ?: return null
@@ -537,7 +539,7 @@ class MainActivity : Activity() {
             dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val o=odds.text.toString().replace(',','.').toDoubleOrNull()
                 val st=stake.text.toString().replace(',','.').toDoubleOrNull()
-                if(o==null || o<=1.0 || st==null || st<=0.0) { Toast.makeText(this,"Проверь коэффициент и сумму",Toast.LENGTH_LONG).show(); return@setOnClickListener }
+                if(o==null || o<=1.0 || st==null || st<=0.0 || kotlin.math.abs(st - currentBankroll() * 0.05) > 0.01) { Toast.makeText(this,"Сумма ставки должна быть ровно 5% текущего банка",Toast.LENGTH_LONG).show(); return@setOnClickListener }
                 val mk=markets[spin.selectedItemPosition]
                 bets.put(JSONObject().apply {
                     put("id",System.currentTimeMillis().toString())
@@ -695,14 +697,38 @@ class MainActivity : Activity() {
         return null
     }
 
+    // Bank = initial bankroll + settled net P/L - stakes reserved on pending bets.
+    private fun currentBankroll(): Double {
+        var bank = 2500.0
+        for (i in 0 until bets.length()) {
+            val b = bets.optJSONObject(i) ?: continue
+            val stake = b.optDouble("stake", 0.0)
+            val odds = b.optDouble("odds", 0.0)
+            when (b.optString("status")) {
+                "WON" -> bank += stake * (odds - 1.0)
+                "LOST" -> bank -= stake
+                "PENDING" -> bank -= stake
+                // PUSH does not change the bankroll.
+            }
+        }
+        return bank.coerceAtLeast(0.0)
+    }
+
     private fun renderBettingDesk(json: JSONObject) {
         addText(matchesContainer, "BETTING DESK · STRATEGY ROOM", 9, true, cyan)
         addText(matchesContainer, "Разбор рекомендованных ставок", 22, true)
         addText(matchesContainer, "Каждая рекомендация содержит обоснование, проверку цены и ограничения модели.", 11, false, muted)
         val target = card()
-        addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 1 000 000 ₽", 10, true, gold)
-        addText(target, "Для роста в 400 раз за год нужен средний сложный рост около 66.7% в месяц. Это математическая цель, не прогноз и не обещание.", 12, true)
+        addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
+        addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
         addText(target, "Не будем повышать риск, догонять проигрыши или ставить ради выполнения календарного плана.", 11, false, muted)
+        val bank = currentBankroll()
+        val stakePlan = bank * 0.05
+        val bankrollCard = card()
+        addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
+        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
+        addText(bankrollCard, "Ставка 5%: " + String.format(Locale.US, "%.2f ₽", stakePlan), 15, true, gold)
+        addText(bankrollCard, "Размер фиксирован: при сохранении ставки сумма пересчитывается от текущего банка. Ожидающие ставки уже зарезервированы.", 10, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -711,6 +737,11 @@ class MainActivity : Activity() {
             for (j in 0 until matches.length()) {
                 val m = matches.optJSONObject(j) ?: continue
                 if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val matchDay = m.optString("utcDate").take(10)
+                val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
+                val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 14) }
+                val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
+                if (matchDay < today || matchDay > endDay) continue
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal") ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
                 val price = topSignalOdds(signal, m) ?: continue
