@@ -126,6 +126,10 @@ def read_market(bookmaker, key, home, away):
             # AH0 / DNB is deliberately excluded.
             if abs(point) < 0.001:
                 continue
+            # The local tracker supports whole- and half-goal settlement only.
+            # Skip quarter lines rather than recording inaccurate full win/loss results.
+            if abs(point * 2 - round(point * 2)) > 0.001:
+                continue
             if norm(name) in (norm(home), norm(away)):
                 out.append({"team": "home" if norm(name) == norm(home) else "away",
                             "point": point, "price": float(price)})
