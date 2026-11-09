@@ -459,10 +459,15 @@ def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15
 
 
 def summarize_report(report: dict) -> dict:
-    """Aggregate coverage counts without treating missing xG as zero."""
+    """Aggregate xG coverage and calendar-integrity anomalies across seasons."""
     listed = finished = inspected = paired = fetch_failures = partial = 0
+    duplicate_ids = duplicate_fixtures = team_outliers = missing_returns = extra_pairings = metadata_errors = 0
+    seasons = 0
+    integrity_findings = []
     for league in report.get("leagues", []):
+        code = league.get("countryCode")
         for season in league.get("seasons", []):
+            seasons += 1
             listed += season.get("listedMatches") or 0
             finished += season.get("finishedMatches") or 0
             inspected += season.get("xgSampleSize") or 0
@@ -474,7 +479,33 @@ def summarize_report(report: dict) -> dict:
                     fetch_failures += 1
                 else:
                     partial += 1
+
+            season_duplicate_ids = len(season.get("duplicateMatchIds") or [])
+            season_duplicate_fixtures = len(season.get("duplicateFixtures") or [])
+            season_team_outliers = len(season.get("teamCountOutliers") or [])
+            season_missing_returns = len(season.get("missingReturnFixtures") or [])
+            season_extra_pairings = len(season.get("extraPairings") or [])
+            season_metadata_errors = (season.get("matchMetadataSummary") or {}).get("errorCount", 0)
+            duplicate_ids += season_duplicate_ids
+            duplicate_fixtures += season_duplicate_fixtures
+            team_outliers += season_team_outliers
+            missing_returns += season_missing_returns
+            extra_pairings += season_extra_pairings
+            metadata_errors += season_metadata_errors
+            if any((season_duplicate_ids, season_duplicate_fixtures, season_team_outliers,
+                    season_missing_returns, season_extra_pairings, season_metadata_errors)):
+                integrity_findings.append({
+                    "league": code,
+                    "season": season.get("season"),
+                    "duplicateMatchIds": season_duplicate_ids,
+                    "duplicateFixtures": season_duplicate_fixtures,
+                    "teamCountOutliers": season_team_outliers,
+                    "missingReturnFixtures": season_missing_returns,
+                    "extraPairings": season_extra_pairings,
+                    "matchMetadataErrors": season_metadata_errors,
+                })
     return {
+        "seasonsAudited": seasons,
         "listedMatches": listed,
         "finishedMatches": finished,
         "xgInspectedMatches": inspected,
@@ -483,6 +514,13 @@ def summarize_report(report: dict) -> dict:
         "shotFetchFailures": fetch_failures,
         "missingOrPartialShotXg": partial,
         "pairedXgCoverageRate": round(paired / inspected, 6) if inspected else None,
+        "duplicateMatchIdCount": duplicate_ids,
+        "duplicateFixtureCount": duplicate_fixtures,
+        "teamCountOutlierCount": team_outliers,
+        "missingReturnFixtureCount": missing_returns,
+        "extraPairingCount": extra_pairings,
+        "matchMetadataErrorCount": metadata_errors,
+        "integrityFindings": integrity_findings,
     }
 
 
