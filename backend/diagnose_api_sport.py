@@ -13,7 +13,8 @@ BASE = "https://api.api-sport.ru/v2"
 USAGE_URL = f"{BASE}/account/usage"
 MATCHES_URL = f"{BASE}/football/matches"
 TIMEOUT = 45
-SAMPLE_SIZE = 10
+SAMPLE_SIZE = 100
+IDENTITY_SAMPLE_SIZE = 20
 
 
 def response_items(payload):
@@ -133,12 +134,17 @@ def main():
     today = datetime.now(timezone.utc).date()
     try:
         model_data = json.loads((__import__("pathlib").Path(__file__).resolve().parents[1] / "docs" / "data.json").read_text(encoding="utf-8"))
-        print("MODEL_FIXTURE_SAMPLE=" + json.dumps(model_fixture_sample(model_data), ensure_ascii=False))
+        model_samples = model_fixture_sample(model_data)
+        print("MODEL_FIXTURE_SAMPLE=" + json.dumps(model_samples, ensure_ascii=False))
     except (OSError, json.JSONDecodeError):
+        model_samples = []
         print("MODEL_FIXTURE_SAMPLE=[]")
+    # Query the date of the model's nearest upcoming fixture, not today's
+    # unrelated API fixtures. This keeps the one-page diagnostic relevant.
+    target_date = (model_samples[0].get("utcDate") if model_samples else None) or today.isoformat()
     params = {
-        "date_from": today.isoformat(),
-        "date_to": (today + timedelta(days=3)).isoformat(),
+        "date_from": target_date,
+        "date_to": target_date,
         "exclude_amateur": "true",
         "view": "odds",
         "with_bk_odds": "true",
@@ -160,8 +166,26 @@ def main():
         if matches_response.headers.get(name) is not None
     }
     print("REQUEST_RATE_LIMIT_HEADERS=" + json.dumps(header_limits, ensure_ascii=False))
+    print(f"TARGET_DATE={target_date}")
     print(f"MATCH_SAMPLE_COUNT={len(matches)} (requested max {SAMPLE_SIZE}; one page only)")
-    print("API_FIXTURE_IDENTITY_SAMPLE=" + json.dumps([fixture_identity_sample(m) for m in matches[:SAMPLE_SIZE]], ensure_ascii=False))
+    identity_rows = []
+    for match in matches[:IDENTITY_SAMPLE_SIZE]:
+        board = ((match.get("oddsBk") or {}).get("melbet") or {})
+        stages = {}
+        prematch_slugs = []
+        for slug, market in (board.get("markets") or {}).items():
+            if not isinstance(market, dict):
+                continue
+            stage = market.get("stage") or "missing"
+            stages[stage] = stages.get(stage, 0) + 1
+            if stage == "prematch" and market.get("status") == "open":
+                prematch_slugs.append(slug)
+        identity_rows.append({
+            **fixture_identity_sample(match),
+            "melbetMarketStages": stages,
+            "openPrematchSlugs": prematch_slugs,
+        })
+    print("API_TARGET_DATE_SAMPLE=" + json.dumps(identity_rows, ensure_ascii=False))
 
     totals = {"matches": 0, "hasMelbetFlag": 0, "melbetBoard": 0,
               "marketSlugs": {}, "openMarketSlugs": {}}
