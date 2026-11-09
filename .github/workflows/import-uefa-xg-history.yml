@@ -1,0 +1,52 @@
+name: Seed UEFA paired xG history
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/import_uefa_xg_artifact.py"
+      - ".github/workflows/import-uefa-xg-history.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: football-data-json-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  seed:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download full UEFA xG diagnostic artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/uefa-xg /tmp/uefa-fixtures
+          gh run download 42680760961 --repo if196315-stack/Football-model-app --name pitchapi-uefa-xg-diagnostic-2 --dir /tmp/uefa-xg
+          gh run download 42678975388 --repo if196315-stack/Football-model-app --name pitchapi-uefa-fixture-history-1 --dir /tmp/uefa-fixtures
+      - name: Build compact paired-xG and score history
+        run: |
+          python backend/import_uefa_xg_artifact.py \
+            --xg-report /tmp/uefa-xg/pitchapi-uefa-xg-diagnostic.json \
+            --fixture-cache /tmp/uefa-fixtures/backend/cache/pitchapi_uefa_fixtures.json \
+            --output artifacts/uefa-xg-history.json
+      - name: Commit reproducible UEFA xG history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/uefa-xg-history.json
+          git diff --cached --quiet || git commit -m "Seed paired UEFA xG history"
+          git pull --rebase origin main
+          git push

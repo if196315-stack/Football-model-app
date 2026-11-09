@@ -3,8 +3,8 @@
 
 The archive stores only the strategy's supported markets and exact line values.
 It records both capture time and the bookmaker board's source-side prematch update
-timestamp; model probabilities remain explicitly unavailable until a live UEFA
-prediction pipeline is connected.
+timestamp and attaches pre-match probabilities from the UEFA xG/Poisson model
+when a paired-xG history is available.
 """
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ from typing import Any
 import requests
 
 from update_odds_api_sport import URL, match_fixture, parse_odds
+from predict_uefa_markets import predict_upcoming
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
@@ -47,22 +48,35 @@ def _row(common: dict, market: str, price: Any, **fields) -> dict | None:
         return None
     candidate_market = fields.pop("candidate_market", True)
     reference_only = fields.pop("reference_only", False)
+    model_probability = fields.pop("model_probability", None)
+    model_push_probability = fields.pop("model_push_probability", None)
+    model_loss_probability = fields.pop("model_loss_probability", None)
+    probability_valid = (
+        isinstance(model_probability, (int, float)) and not isinstance(model_probability, bool)
+        and 0.0 <= float(model_probability) <= 1.0
+    )
     return {
         **common, "market": market, **fields,
         "candidate_market": candidate_market,
         "reference_only": reference_only,
         "price": round(float(price), 6),
-        "model_probability": None,
-        "model_probability_status": "not_available_yet",
+        "model_probability": round(float(model_probability), 8) if probability_valid else None,
+        "model_push_probability": round(float(model_push_probability), 8)
+            if isinstance(model_push_probability, (int, float)) else None,
+        "model_loss_probability": round(float(model_loss_probability), 8)
+            if isinstance(model_loss_probability, (int, float)) else None,
+        "model_probability_status": "available" if probability_valid else "not_available_yet",
     }
 
 
 def snapshot_rows(cache: dict, provider_fixtures: list[dict],
                   captured_at: str | None = None,
-                  diagnostics: dict | None = None) -> list[dict]:
+                  diagnostics: dict | None = None,
+                  predictions: dict | None = None) -> list[dict]:
     captured_at = captured_at or datetime.now(timezone.utc).isoformat()
     rows = []
-    eligible_fixtures = matched_fixtures = betboom_boards = active_prematch_boards = fixtures_with_selected_markets = 0
+    predictions = predictions or {}
+    eligible_fixtures = matched_fixtures = betboom_boards = active_prematch_boards = fixtures_with_selected_markets = matches_with_model_prediction = 0
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
         if league not in ("UCL", "UEL"):
@@ -81,6 +95,10 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         if not source:
             continue
         matched_fixtures += 1
+        prediction = predictions.get(str(fixture_id))
+        if prediction:
+            matches_with_model_prediction += 1
+        model_markets = (prediction or {}).get("markets") or {}
         bookmaker_board = (source.get("oddsBk") or {}).get("betboom") or {}
         if bookmaker_board:
             betboom_boards += 1
@@ -121,13 +139,17 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "kickoff_utc": match.get("date"),
             "home_team": match.get("home"),
             "away_team": match.get("away"),
+            "model_version": (prediction or {}).get("model_version"),
+            "model_prediction_time": (prediction or {}).get("predicted_at"),
+            "model_history_max_date": (prediction or {}).get("history_max_date"),
         }
 
         for outcome in ("1x", "x2", "12"):
             price = (best.get("doubleChance") or {}).get(outcome)
             is_reference = outcome == "12"
             item = _row(common, "double_chance", price, outcome=outcome,
-                        candidate_market=not is_reference, reference_only=is_reference)
+                        candidate_market=not is_reference, reference_only=is_reference,
+                        model_probability=(model_markets.get("double_chance") or {}).get(outcome))
             if item:
                 rows.append(item)
 
@@ -139,7 +161,8 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             is_reference = side == "under"
             market = "match_total_under_reference" if is_reference else "match_total_over"
             row = _row(common, market, item.get("price"), point=float(point), side=side,
-                       candidate_market=not is_reference, reference_only=is_reference)
+                       candidate_market=not is_reference, reference_only=is_reference,
+                       model_probability=((model_markets.get("match_total") or {}).get(side) or {}).get(str(float(point))))
             if row:
                 rows.append(row)
 
@@ -153,13 +176,15 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             is_reference = side == "under"
             market = "team_total_under_reference" if is_reference else "team_total_over"
             row = _row(common, market, item.get("price"), team=team, point=float(point),
-                       side=side, candidate_market=not is_reference, reference_only=is_reference)
+                       side=side, candidate_market=not is_reference, reference_only=is_reference,
+                       model_probability=((((model_markets.get("team_total") or {}).get(team) or {}).get(side) or {}).get(str(float(point)))))
             if row:
                 rows.append(row)
 
         for outcome in ("yes", "no"):
             price = (best.get("btts") or {}).get(outcome)
-            row = _row(common, "btts", price, outcome=outcome)
+            row = _row(common, "btts", price, outcome=outcome,
+                       model_probability=(model_markets.get("btts") or {}).get(outcome))
             if row:
                 rows.append(row)
 
@@ -173,8 +198,12 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
                 continue
             if abs(point) > 0.001:
                 continue
+            handicap_model = (model_markets.get("handicap_zero") or {}).get(item["team"]) or {}
             row = _row(common, "handicap", item.get("price"),
-                       team=item["team"], point=point)
+                       team=item["team"], point=point,
+                       model_probability=handicap_model.get("win"),
+                       model_push_probability=handicap_model.get("push"),
+                       model_loss_probability=handicap_model.get("lose"))
             if row:
                 rows.append(row)
 
@@ -186,6 +215,8 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "matches_with_betboom_board": betboom_boards,
             "matches_with_active_prematch_board": active_prematch_boards,
             "matches_with_selected_markets": fixtures_with_selected_markets,
+            "matches_with_model_prediction": matches_with_model_prediction,
+            "matches_without_model_prediction": max(0, matched_fixtures - matches_with_model_prediction),
         })
     return rows
 
@@ -260,7 +291,13 @@ def main() -> int:
     provider_fixtures = fetch_provider_fixtures(os.environ.get("API_SPORT_KEY", "").strip())
     captured_at = datetime.now(timezone.utc).isoformat()
     diagnostics = {}
-    rows = snapshot_rows(cache, provider_fixtures, captured_at, diagnostics)
+    history_path = ROOT / "artifacts" / "uefa-xg-history.json"
+    predictions = {}
+    if history_path.exists():
+        history = json.loads(history_path.read_text(encoding="utf-8"))
+        predictions = predict_upcoming(history, cache, predicted_at=captured_at)
+    diagnostics["predicted_upcoming_fixtures"] = len(predictions)
+    rows = snapshot_rows(cache, provider_fixtures, captured_at, diagnostics, predictions)
     append_rows(rows, args.output, diagnostics)
     return 0
 
