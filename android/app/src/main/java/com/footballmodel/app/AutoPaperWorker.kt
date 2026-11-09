@@ -8,9 +8,6 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.time.OffsetDateTime
-import java.time.LocalDate
-import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -77,8 +74,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
         val competitions = feed.optJSONArray("competitions") ?: return changed
         val now = System.currentTimeMillis()
-        val zone = ZoneId.systemDefault()
-        val today = LocalDate.now(zone)
         for (ci in 0 until competitions.length()) {
             val competition = competitions.optJSONObject(ci) ?: continue
             val matches = competition.optJSONArray("matches") ?: continue
@@ -86,14 +81,16 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val match = matches.optJSONObject(mi) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
                 val kickoff = parseInstant(match.optString("utcDate")) ?: continue
-                val kickoffDate = kickoff.atZone(zone).toLocalDate()
-                val hours = (kickoff.toEpochMilli() - now) / 3600000.0
+                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                val kickoffDate = dayFormat.format(Date(kickoff))
+                val today = dayFormat.format(Date(now))
+                val hours = (kickoff - now) / 3600000.0
                 if (kickoffDate != today || hours !in 0.0..12.0) continue
 
                 val odds = match.optJSONObject("odds") ?: continue
                 if (!odds.optString("source").contains("BetBoom", true)) continue
-                val quoteTime = parseInstant(odds.optString("updatedAt"))?.toEpochMilli() ?: continue
-                if (quoteTime > now || quoteTime < kickoff.toEpochMilli() - 12L * 60L * 60L * 1000L) continue
+                val quoteTime = parseInstant(odds.optString("updatedAt")) ?: continue
+                if (quoteTime > now || quoteTime < kickoff - 12L * 60L * 60L * 1000L) continue
 
                 val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: if (competition.optString("code") == "UCL" || competition.optString("code") == "UEL") uefaSignal(match) else null
@@ -121,7 +118,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val bank = currentBank(bets)
                 val stake = max(bank * 0.005, 25.0)
                 if (stake > bank * 0.01 + 0.000001) continue
-                val dayKey = kickoffDate.toString()
+                val dayKey = kickoffDate
                 var daily = 0.0
                 for (bi in 0 until bets.length()) {
                     val prior = bets.optJSONObject(bi) ?: continue
@@ -147,7 +144,15 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         return changed
     }
 
-    private fun parseInstant(raw: String) = try { OffsetDateTime.parse(raw.trim()).toInstant() } catch (_: Exception) { null }
+    private fun parseInstant(raw: String): Long? {
+        return try {
+            var normalized = raw.trim().replace(Regex("\\.\\d+"), "")
+            normalized = normalized.replace("T", " ").replace("Z", "+0000")
+                .replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
+            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ", Locale.US).apply { isLenient = false }
+            format.parse(normalized)?.time
+        } catch (_: Exception) { null }
+    }
 
     private fun findMatch(feed: JSONObject, bet: JSONObject): JSONObject? {
         val comps = feed.optJSONArray("competitions") ?: return null
