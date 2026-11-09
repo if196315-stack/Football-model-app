@@ -15,6 +15,19 @@ class OddsMarketParsingTests(unittest.TestCase):
         self.assertFalse(hasattr(update_data, "parquet"))
         self.assertFalse(hasattr(update_data, "history"))
         self.assertFalse(hasattr(update_data, "main"))
+
+    def test_ah0_and_dnb_are_removed_from_archived_predictions(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import update_data
+        prediction = {
+            "dnbHome": 0.6, "dnbAway": 0.4, "ah0Home": 0.6,
+            "strongestSignal": {"market": "Фора 0 хозяев", "side": "Фора 0 · Arsenal"}
+        }
+        update_data.strip_forbidden_market_fields(prediction)
+        self.assertNotIn("dnbHome", prediction)
+        self.assertNotIn("dnbAway", prediction)
+        self.assertNotIn("ah0Home", prediction)
+        self.assertIsNone(prediction["strongestSignal"])
     def test_double_chance_labels(self):
         bookmaker = {"markets": [{"key": "double_chance", "outcomes": [
             {"name": "Home/Draw", "price": 1.35},
