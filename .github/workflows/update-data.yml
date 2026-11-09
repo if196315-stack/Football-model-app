@@ -36,14 +36,10 @@ jobs:
           PITCHAPI_MAX_SHOT_REQUESTS: "5000"
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
-      - name: Refresh base consensus odds via BSD
+      - name: Refresh bookmaker odds via API-Sport
         env:
-          BSD_API_KEY: ${{ secrets.BSD_API_KEY }}
-        run: python backend/update_bsd_odds.py
-      - name: Fill missing bookmaker markets via The Odds API
-        env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-        run: python backend/update_odds.py
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/update_odds_api_sport.py
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"

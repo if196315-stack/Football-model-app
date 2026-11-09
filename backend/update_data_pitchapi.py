@@ -1,6 +1,6 @@
 """PitchAPI-backed production updater for docs/data.json.
 
-The Odds API remains a separate provider; existing quotes are carried forward
+API-Sport is the bookmaker-odds provider; existing quotes are carried forward
 by stable fixture identity (competition, teams, kickoff), not provider ID.
 """
 from __future__ import annotations
@@ -165,10 +165,10 @@ def preserve_odds_by_identity(payload: dict) -> int:
     }
     payload["oddsStatus"] = "ready" if retained else "no_quotes"
     payload["oddsNotice"] = (
-        f"Перенесены прежние котировки The Odds API для {retained} из {eligible} предстоящих матчей; "
+        f"Перенесены прежние котировки API-Sport для {retained} из {eligible} предстоящих матчей; "
         "новые коэффициенты обновляются отдельным заданием."
         if retained else
-        "Котировки из предыдущего снимка не сопоставлены; обновление The Odds API выполняется отдельным заданием."
+        "Котировки из предыдущего снимка не сопоставлены; обновление API-Sport выполняется отдельным заданием."
     )
     return retained
 
@@ -176,7 +176,7 @@ def preserve_odds_by_identity(payload: dict) -> int:
 
 
 def find_odds_event(match: dict, events: list[dict], league: str) -> dict | None:
-    """Match The Odds API events to PitchAPI fixtures, including date-only kickoffs."""
+    """Match API-Sport events to PitchAPI fixtures, including date-only kickoffs."""
     raw_date = str(match.get("utcDate") or "")
     if not raw_date:
         return None
@@ -213,7 +213,7 @@ def find_odds_event(match: dict, events: list[dict], league: str) -> dict | None
 
 
 def refresh_odds_from_api(payload: dict, api_key: str) -> int:
-    """Refresh bookmaker odds from The Odds API without changing the fixture source."""
+    """Refresh bookmaker odds from API-Sport without changing the fixture source."""
     if not api_key:
         return 0
     competitions = {c.get("code"): c for c in payload.get("competitions", [])}
@@ -236,7 +236,7 @@ def refresh_odds_from_api(payload: dict, api_key: str) -> int:
             quota_remaining = response.headers.get("x-requests-remaining", quota_remaining)
             quota_used = response.headers.get("x-requests-used", quota_used)
             if response.status_code == 429:
-                raise RuntimeError("The Odds API rate limit (429)")
+                raise RuntimeError("API-Sport rate limit (429)")
             response.raise_for_status()
             events = response.json()
             for match in competition.get("matches", []):
@@ -281,8 +281,8 @@ def refresh_odds_from_api(payload: dict, api_key: str) -> int:
     payload["oddsCreditsUsed"] = int(quota_used) if str(quota_used or "").isdigit() else None
     payload["oddsStatus"] = "ready" if (updated or retained) else ("partial_error" if errors else "no_quotes")
     payload["oddsNotice"] = (
-        f"Новые котировки The Odds API: {updated}; сохранены прежние: {retained}; без совпадения: {max(0, eligible - matched)}."
-        if (updated or retained) else "The Odds API не вернул подходящих котировок для предстоящих матчей."
+        f"Новые котировки API-Sport: {updated}; сохранены прежние: {retained}; без совпадения: {max(0, eligible - matched)}."
+        if (updated or retained) else "API-Sport не вернул подходящих котировок для предстоящих матчей."
     )
     if errors:
         payload["oddsErrors"] = errors
@@ -325,7 +325,7 @@ def run() -> dict:
 
     payload = {
         "updatedAt": datetime.now(timezone.utc).isoformat(),
-        "source": "PitchAPI (fixtures, results and shot-level xG); The Odds API (bookmaker odds)",
+        "source": "PitchAPI (fixtures, results and shot-level xG); API-Sport (bookmaker odds)",
         "modelVersion": "PitchAPI shot xG · incremental migration",
         "modelConfig": {"window": WINDOW, "halfLife": HALF_LIFE, "shrinkage": SHRINKAGE},
         "xgProvider": "PitchAPI",
@@ -388,9 +388,9 @@ def run() -> dict:
     if os.environ.get("PITCHAPI_REFRESH_ODDS_API", "").strip().lower() in ("1", "true", "yes"):
         odds_updated = refresh_odds_from_api(payload, os.environ.get("ODDS_API_KEY", "").strip())
     if odds_updated:
-        payload["oddsNotice"] = f"Обновлены котировки The Odds API для {odds_updated} матчей."
+        payload["oddsNotice"] = f"Обновлены котировки API-Sport для {odds_updated} матчей."
     elif retained:
-        payload["oddsNotice"] = f"Сохранены ранее полученные котировки для {retained} матчей; новые коэффициенты обновляются отдельно через The Odds API."
+        payload["oddsNotice"] = f"Сохранены ранее полученные котировки для {retained} матчей; новые коэффициенты обновляются отдельно через API-Sport."
     OUT.parent.mkdir(parents=True, exist_ok=True)
     tmp = OUT.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
