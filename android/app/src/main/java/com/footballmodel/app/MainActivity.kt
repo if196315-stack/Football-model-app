@@ -236,7 +236,7 @@ class MainActivity : Activity() {
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
         val best = odds?.optJSONObject("best")
         if (best == null) {
-            addText(parent, "КОЭФФИЦИЕНТЫ MELBET", 9, true, muted)
+            addText(parent, "КОЭФФИЦИЕНТЫ BETBOOM", 9, true, muted)
             addText(parent, "Нет свежих котировок для этого матча", 11, false, muted)
             return
         }
@@ -266,14 +266,14 @@ class MainActivity : Activity() {
                 .filter { validPrice(btts, it.first) }
                 .map { Triple(it.second, oddsText(btts, it.first), gold) }
             if (items.isNotEmpty()) {
-                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · MELBET", 10, true, muted)
+                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · BETBOOM", 10, true, muted)
                 addMarketRow(panelOdds, items)
                 shown += items.size
             }
         }
         val matchTotals = best.optJSONArray("totals")
         if (matchTotals != null && matchTotals.length() > 0) {
-            addText(panelOdds, "ТОТАЛ МАТЧА · MELBET", 10, true, muted)
+            addText(panelOdds, "ТОТАЛ МАТЧА · BETBOOM", 10, true, muted)
             for (i in 0 until matchTotals.length()) {
                 val line = matchTotals.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", Double.NaN)
@@ -294,7 +294,7 @@ class MainActivity : Activity() {
                 val price = line.optDouble("price", Double.NaN)
                 if (!point.isFinite() || !price.isFinite() || price <= 1.0) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ФОРЫ · лучшие цены MELBET", 10, true, muted)
+                    addText(panelOdds, "ФОРЫ · лучшие цены BETBOOM", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Фора 1" else "Фора 2"
@@ -312,7 +312,7 @@ class MainActivity : Activity() {
                 val point = line.optDouble("point", Double.NaN)
                 if (line.optString("side") != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · MELBET", 10, true, muted)
+                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · BETBOOM", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
@@ -362,7 +362,7 @@ class MainActivity : Activity() {
         copy.addView(label("Матчи и прогнозы", 22, true, Color.WHITE))
         copy.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         val features = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "MELBET").forEachIndexed { index, caption ->
+        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "BETBOOM").forEachIndexed { index, caption ->
             val chip = label(caption, 7, true, if (index == 2) gold else accent).apply {
                 gravity = Gravity.CENTER
                 setPadding(dp(5), dp(6), dp(5), dp(6))
@@ -882,19 +882,19 @@ class MainActivity : Activity() {
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
         addText(profile, "Аналитическая платформа футбольных матчей", 11, false, muted)
         addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
-        addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / Melbet", 10, false, muted)
+        addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / BetBoom", 10, false, muted)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
         section("2. ОСНОВНЫЕ РЫНКИ",
             "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nИТБ 1.5 — команда забьёт минимум 2 гола.\nДля ставок доступны только поддерживаемые ненулевые форы.")
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
-            "ОЗ — да/нет: обе команды забьют хотя бы по одному голу или хотя бы одна команда не забьёт.\nВ карточках отображаются только тоталы БОЛЬШЕ: общие и индивидуальные.\nВероятности рассчитываются по xG независимым распределением Пуассона. Котировки доступны только при наличии свежих данных Melbet от API-Sport.")
+            "ОЗ — да/нет: обе команды забьют хотя бы по одному голу или хотя бы одна команда не забьёт.\nВ карточках отображаются только тоталы БОЛЬШЕ: общие и индивидуальные.\nВероятности рассчитываются по xG независимым распределением Пуассона. Котировки доступны только при наличии свежих данных BetBoom от API-Sport.")
         section("4. AI И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В AI показываются матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты и подтверждённой ценой Melbet от 1.50. Сильнейший сигнал выбирается среди поддерживаемых рынков. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
+            "В AI показываются матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты и подтверждённой ценой BetBoom от 1.50. Сильнейший сигнал выбирается среди поддерживаемых рынков. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
         section("5. АНАЛИЗ",
             "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
         section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
-            "PitchAPI — источник расписания, результатов и shot-level xG. API-Sport — источник котировок только Melbet. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты Melbet на момент прогноза и walk-forward проверка.")
+            "PitchAPI — источник расписания, результатов и shot-level xG. API-Sport — источник котировок только BetBoom. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты BetBoom на момент прогноза и walk-forward проверка.")
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
@@ -944,7 +944,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены Melbet и ограничений модели.")
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
         val target = card()
         addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
         addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
@@ -980,7 +980,7 @@ class MainActivity : Activity() {
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
-            addText(empty, "Нужны положительный сигнал и актуальная прематч-котировка Melbet от 1.50. Не подменяем отсутствующие цены котировками других букмекеров.", 11, false, muted)
+            addText(empty, "Нужны положительный сигнал и актуальная прематч-котировка BetBoom от 1.50. Не подменяем отсутствующие цены котировками других букмекеров.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
@@ -995,7 +995,7 @@ class MainActivity : Activity() {
             addText(box, "КАНДИДАТ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
             addText(box, date(m.optString("utcDate")), 10, false, muted)
-            addText(box, "Рынок: ${signal.optString("side")} · Melbet ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
+            addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
             addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
             addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это фильтр для анализа, но не доказательство value относительно букмекера.", 11, false, muted)
@@ -1003,13 +1003,13 @@ class MainActivity : Activity() {
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
             addText(box, "РИСКИ", 10, true, gold)
-            addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в Melbet перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
+            addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
             addText(box, "Это аналитический кандидат, не приказ ставить. При сомнительном преимуществе — NO BET.", 11, true, gold)
             actionButton(box, "＋ Зафиксировать ставку вручную") { showAddBetDialog(m, league) }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "AI отбирает только сигналы с положительным edge и подтверждённой котировкой Melbet от 1.50. ОЗ и тоталы показываются в карточках матчей. Котировки — только API-Sport / Melbet.", 11, false, muted)
+        addText(footer, "AI отбирает только сигналы с положительным edge и подтверждённой котировкой BetBoom от 1.50. ОЗ и тоталы показываются в карточках матчей. Котировки — только API-Sport / BetBoom.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
@@ -1146,7 +1146,7 @@ class MainActivity : Activity() {
         addStadiumBanner(matchesContainer)
         addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
         addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
-        addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ MELBET", 9, true, muted)
+        addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1")
         val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA")
         // League filters already live in the persistent horizontal scroller above the content.
@@ -1288,6 +1288,6 @@ class MainActivity : Activity() {
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
         addText(footer, "Предстоящих матчей: $totalUpcoming  ·  с прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Источники: PitchAPI (матчи и xG) · API-Sport / Melbet (котировки).", 10, false, muted)
+        addText(footer, "Источники: PitchAPI (матчи и xG) · API-Sport / BetBoom (котировки).", 10, false, muted)
     }
 }
