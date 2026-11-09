@@ -141,8 +141,7 @@ class MainActivity : Activity() {
 
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
         val best = odds?.optJSONObject("best")
-        val books = odds?.optJSONArray("bookmakers")
-        if (best == null || books == null || books.length() == 0) {
+        if (best == null) {
             addText(parent, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, muted)
             addText(parent, "Нет свежих котировок для этого матча", 11, false, muted)
             return
@@ -150,40 +149,64 @@ class MainActivity : Activity() {
         val panelOdds = card(parent)
         panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = 18f; setStroke(1, Color.rgb(105, 83, 52)) }
         addText(panelOdds, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, gold)
+        var shown = 0
+        fun validPrice(obj: JSONObject, key: String): Boolean {
+            if (!obj.has(key) || obj.isNull(key)) return false
+            val price = obj.optDouble(key, Double.NaN)
+            return price.isFinite() && price > 1.0
+        }
         val dc = best.optJSONObject("doubleChance")
         if (dc != null) {
-            addText(panelOdds, "ДВОЙНОЙ ШАНС · лучшие цены", 10, true, muted)
-            addMarketRow(panelOdds, listOf(
-                Triple("1X", oddsText(dc,"1x"), gold),
-                Triple("X2", oddsText(dc,"x2"), gold),
-                Triple("12", oddsText(dc,"12"), gold)
-            ))
+            val items = listOf("1x" to "1X", "x2" to "X2", "12" to "12")
+                .filter { validPrice(dc, it.first) }
+                .map { Triple(it.second, oddsText(dc, it.first), gold) }
+            if (items.isNotEmpty()) {
+                addText(panelOdds, "ДВОЙНОЙ ШАНС · лучшие цены", 10, true, muted)
+                addMarketRow(panelOdds, items)
+                shown += items.size
+            }
         }
         val spreads = best.optJSONArray("spreads")
         if (spreads != null && spreads.length() > 0) {
-            addText(panelOdds, "ФОРА · только ненулевые линии", 10, true, muted)
+            var headingShown = false
             for (i in 0 until spreads.length()) {
                 val line = spreads.optJSONObject(i) ?: continue
-                val point = line.optDouble("point", 0.0)
-                if (kotlin.math.abs(point) < 0.001 ||
+                val point = line.optDouble("point", Double.NaN)
+                val price = line.optDouble("price", Double.NaN)
+                if (!point.isFinite() || !price.isFinite() || price <= 1.0 ||
+                    kotlin.math.abs(point) < 0.001 ||
                     kotlin.math.abs(point * 2.0 - kotlin.math.round(point * 2.0)) > 0.001) continue
+                if (!headingShown) {
+                    addText(panelOdds, "ФОРА · только ненулевые линии", 10, true, muted)
+                    headingShown = true
+                }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
                 val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
                 addMarketRow(panelOdds, listOf(Triple("$team $signed", oddsText(line,"price"), gold)))
+                shown++
             }
         }
         val teamTotals = best.optJSONArray("teamTotals")
         if (teamTotals != null && teamTotals.length() > 0) {
-            addText(panelOdds, "ИНДИВИДУАЛЬНЫЙ ТОТАЛ БОЛЬШЕ · ITB", 10, true, muted)
+            var headingShown = false
             for (i in 0 until teamTotals.length()) {
                 val line = teamTotals.optJSONObject(i) ?: continue
-                if (line.optString("side") != "over") continue
+                val price = line.optDouble("price", Double.NaN)
+                val point = line.optDouble("point", Double.NaN)
+                if (line.optString("side") != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                if (!headingShown) {
+                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЙ ТОТАЛ БОЛЬШЕ · ITB", 10, true, muted)
+                    headingShown = true
+                }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
                 addMarketRow(panelOdds, listOf(Triple(
-                    "$team БОЛЬШЕ ${fmt(line.optDouble("point"))}",
-                    oddsText(line, "price"), gold
+                    "$team БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold
                 )))
+                shown++
             }
+        }
+        if (shown == 0) {
+            addText(panelOdds, "Источник пока не вернул котировки по нужным рынкам", 11, false, muted)
         }
         addText(panelOdds, "Обновлено: " + odds.optString("updatedAt","—").replace("T"," ").take(16) + " UTC", 9, false, muted)
     }
@@ -578,10 +601,14 @@ class MainActivity : Activity() {
     private fun renderDay(json: JSONObject) {
         addText(matchesContainer, "DAILY SIGNAL FILTER", 9, true, cyan)
         addText(matchesContainer, "Ставки дня", 22, true)
-        addText(matchesContainer, "Матчи на сегодня с положительным отклонением модели от исторической базы. Сначала самые сильные сигналы.", 11, false, muted)
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
-            timeZone = java.util.TimeZone.getTimeZone("UTC")
-        }.format(java.util.Date())
+        addText(matchesContainer, "Матчи на сегодня и ближайшие 7 дней с положительным отклонением модели от исторической базы. Сначала самые сильные сигналы.", 11, false, muted)
+        val utc = java.util.TimeZone.getTimeZone("UTC")
+        val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
+        val today = dayFormat.format(java.util.Date())
+        val endCalendar = java.util.Calendar.getInstance(utc).apply {
+            add(java.util.Calendar.DAY_OF_YEAR, 7)
+        }
+        val endDate = dayFormat.format(endCalendar.time)
         val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -590,7 +617,7 @@ class MainActivity : Activity() {
             for (j in 0 until matches.length()) {
                 val m = matches.optJSONObject(j) ?: continue
                 if (m.optString("status") !in listOf("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED")) continue
-                if (!m.optString("utcDate").startsWith(today)) continue
+                val matchDay = m.optString("utcDate").take(10)\n                if (matchDay < today || matchDay > endDate) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
@@ -600,13 +627,13 @@ class MainActivity : Activity() {
         }
         val sorted = items.sortedByDescending { it.third.optDouble("edgePp") }
         val summary = card()
-        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ СЕГОДНЯ", 9, true, accent)
+        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ · 7 ДНЕЙ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
         addText(summary, "Только матчи с рассчитанным прогнозом и положительным отклонением от исторической базы. Это фильтр модели, не рекомендация ставить.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
-            addText(empty, "На сегодня нет матчей с положительным сильнейшим сигналом модели.", 13, true)
-            addText(empty, "Матчи без прогноза, без надёжной исторической базы или без положительного отклонения сюда не попадают.", 11, false, muted)
+            addText(empty, "В ближайшие 7 дней нет матчей с положительным сильнейшим сигналом модели.", 13, true)
+            addText(empty, "Сюда попадают только матчи с полноценным прогнозом, достаточной исторической базой и положительным отклонением модели.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
