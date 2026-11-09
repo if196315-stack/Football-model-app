@@ -13,7 +13,10 @@ BOOKS=("melbet",)
 def norm(v):
     s=unicodedata.normalize("NFKD",str(v or "").lower())
     s="".join(c for c in s if not unicodedata.combining(c))
-    return " ".join(re.sub(r"[^a-z0-9]+"," ",s).split())
+    s=" ".join(re.sub(r"[^a-z0-9]+"," ",s).split())
+    aliases={"man city":"manchester city","man utd":"manchester united",
+             "man united":"manchester united","spurs":"tottenham hotspur"}
+    return aliases.get(s,s)
 
 def sim(a,b):
     a,b=norm(a),norm(b)
