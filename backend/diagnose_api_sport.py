@@ -162,14 +162,47 @@ def main():
         "date_from": target_date,
         "date_to": target_date,
         "exclude_amateur": "true",
-        "page": 1,
-        "page_size": SAMPLE_SIZE,
+        "page_size": 500,
         "sort": "asc",
     }
-    fixture_response = session.get(MATCHES_URL, params=fixture_params, timeout=TIMEOUT)
-    fixture_response.raise_for_status()
-    fixture_payload = fixture_response.json()
-    fixture_matches = response_items(fixture_payload)
+    # The date can contain far more than the first 100 global fixtures.
+    # Scan a hard-bounded five pages so early leagues do not hide model leagues.
+    fixture_matches = []
+    for page in range(1, 6):
+        page_params = {**fixture_params, "page": page}
+        fixture_response = session.get(MATCHES_URL, params=page_params, timeout=TIMEOUT)
+        fixture_response.raise_for_status()
+        page_matches = response_items(fixture_response.json())
+        fixture_matches.extend(page_matches)
+        if len(page_matches) < fixture_params["page_size"]:
+            break
+
+    def team_key(value):
+        import re
+        return re.sub(r"[^a-z0-9]", "", str(value or "").lower())
+
+    model_pairs = [
+        (team_key(item.get("home")), team_key(item.get("away")),
+         item.get("home"), item.get("away"))
+        for item in model_samples
+    ]
+    matched_rows = []
+    for match in fixture_matches:
+        identity = fixture_identity_sample(match)
+        api_home, api_away = team_key(identity.get("home")), team_key(identity.get("away"))
+        for home_key, away_key, home_name, away_name in model_pairs:
+            if (home_key and away_key and
+                (home_key in api_home or api_home in home_key) and
+                (away_key in api_away or api_away in away_key)):
+                flags = match.get("hasBkOdds") or {}
+                matched_rows.append({
+                    **identity,
+                    "modelHome": home_name,
+                    "modelAway": away_name,
+                    "hasMelbetOdds": flags.get("melbet") if isinstance(flags, dict) else None,
+                })
+                break
+
     fixture_rows = []
     for match in fixture_matches[:IDENTITY_SAMPLE_SIZE]:
         flags = match.get("hasBkOdds") or {}
@@ -177,9 +210,9 @@ def main():
             **fixture_identity_sample(match),
             "hasMelbetOdds": flags.get("melbet") if isinstance(flags, dict) else None,
         })
-    print(f"FIXTURE_ONLY_COUNT={len(fixture_matches)} (requested max {SAMPLE_SIZE}; one page only)")
+    print(f"FIXTURE_ONLY_SCANNED={len(fixture_matches)} (maximum 2500; five pages)")
     print("FIXTURE_ONLY_SAMPLE=" + json.dumps(fixture_rows, ensure_ascii=False))
-
+    print("MODEL_FIXTURE_MATCHES_IN_API=" + json.dumps(matched_rows, ensure_ascii=False))
     matches_response = session.get(MATCHES_URL, params=params, timeout=TIMEOUT)
     matches_response.raise_for_status()
     payload = matches_response.json()
