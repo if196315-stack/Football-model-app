@@ -165,7 +165,7 @@ def normalize_match(match: dict, league_code: str, league: dict, season: str) ->
 
 
 def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CACHE_PATH,
-                    pause_seconds: float = 0.12, max_shot_requests: int = 250) -> dict:
+                    pause_seconds: float = 0.12, max_shot_requests: int = 5000) -> dict:
     """Refresh fixture/result listings and fetch missing finished-match shot xG.
 
     Existing shot results are reused. A failed shot request is left retryable
@@ -281,7 +281,7 @@ def main() -> int:
     key = os.environ.get("PITCHAPI_API_KEY", "").strip()
     if not key:
         raise SystemExit("Set PITCHAPI_API_KEY in the environment")
-    limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "250"))
+    limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "5000"))
     result = refresh_history(key, max_shot_requests=limit)
     print(json.dumps({"provider": "PitchAPI", **result["summary"]}, ensure_ascii=False))
     if result["errors"]:
