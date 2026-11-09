@@ -126,10 +126,11 @@ def parse_odds(m):
                         if kind=="tt":
                             market_name = market.get("name") or {}
                             market_name = (market_name.get("en") or market_name.get("ru") or "") if isinstance(market_name, dict) else str(market_name)
+                            name_key = re.sub(r"[^a-zа-я0-9]+", " ", market_name.lower()).strip()
                             team = ("home" if slug.endswith(("_1", "1")) or "home" in slug
-                                    or re.search(r"\\b(home|team\\s*1|команд[аы]?\\s*1)\\b", market_name.lower()) else
+                                    or "team 1" in name_key or "команды 1" in name_key or "команда 1" in name_key else
                                     "away" if slug.endswith(("_2", "2")) or "away" in slug
-                                    or re.search(r"\\b(away|team\\s*2|команд[аы]?\\s*2)\\b", market_name.lower()) else None)
+                                    or "team 2" in name_key or "команды 2" in name_key or "команда 2" in name_key else None)
                             if team is None:continue
                             q={"team":team,"point":float(arg),"side":side_key,"price":price}
                             target=best["teamTotals"]; row_target=row["teamTotals"]; books_target=books_best["teamTotals"]
