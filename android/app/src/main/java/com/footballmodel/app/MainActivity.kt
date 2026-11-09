@@ -617,7 +617,8 @@ class MainActivity : Activity() {
             for (j in 0 until matches.length()) {
                 val m = matches.optJSONObject(j) ?: continue
                 if (m.optString("status") !in listOf("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED")) continue
-                val matchDay = m.optString("utcDate").take(10)\n                if (matchDay < today || matchDay > endDate) continue
+                val matchDay = m.optString("utcDate").take(10)
+                if (matchDay < today || matchDay > endDate) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
