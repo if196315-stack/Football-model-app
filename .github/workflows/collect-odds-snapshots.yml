@@ -18,7 +18,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependency
         run: pip install requests
-      - name: Collect current 1X2 reference snapshots
+      - name: Collect current 1X2, double-chance and handicap snapshots
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: |
@@ -29,7 +29,7 @@ jobs:
       - name: Upload odds archive
         uses: actions/upload-artifact@v4
         with:
-          name: prospective-odds-snapshots
+          name: prospective-multi-market-odds-snapshots
           path: artifacts/odds-snapshots.jsonl
           if-no-files-found: error
           retention-days: 90
