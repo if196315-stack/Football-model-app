@@ -171,6 +171,37 @@ def extract_champ_fixtures(payload: Any, limit: int = 20) -> tuple[int, list[dic
     return len(games), sample
 
 
+def find_champ_matches(payload: Any, targets: list[dict]) -> list[dict]:
+    """Match known fixtures to GetChampZip event IDs using exact team names."""
+    value = unwrap_value(payload)
+    if isinstance(value, list):
+        value = value[0] if value and isinstance(value[0], dict) else {}
+    games = value.get("G") if isinstance(value, dict) else None
+    if not isinstance(games, list):
+        return []
+    wanted = {
+        (str(item["home"]).strip().casefold(), str(item["away"]).strip().casefold())
+        for item in targets
+    }
+    found = []
+    for game in games:
+        if not isinstance(game, dict):
+            continue
+        pair = (
+            str(game.get("O1") or game.get("O1E") or "").strip().casefold(),
+            str(game.get("O2") or game.get("O2E") or "").strip().casefold(),
+        )
+        if pair in wanted:
+            found.append({
+                "id": game.get("I"),
+                "home": game.get("O1") or game.get("O1E"),
+                "away": game.get("O2") or game.get("O2E"),
+                "start": game.get("S"),
+                "leagueId": game.get("LI"),
+            })
+    return found
+
+
 def request_json(session: requests.Session, endpoint: str, params: dict,
                  referer: str) -> tuple[int, str, Any, str]:
     session.headers["referer"] = referer
@@ -257,6 +288,26 @@ def main() -> None:
             "sample": sample,
             "bodyPreview": body[:200] if not isinstance(payload, (dict, list)) else None,
         }, ensure_ascii=False))
+        discovered = find_champ_matches(payload, EVENTS)
+        discovered_details = []
+        for item in discovered:
+            discovered_event = {
+                "id": item["id"], "home": item["home"], "away": item["away"]
+            }
+            detail_params = {**BASE_PARAMS, "id": str(item["id"])}
+            detail_referer = (
+                "https://melbet.mobi/en/line/football/88637-england-premier-league/"
+                f'{item["id"]}-event'
+            )
+            detail_status, detail_type, detail_payload, detail_body = request_json(
+                session, "GetGameZip", detail_params, detail_referer
+            )
+            discovered_details.append(summarize_response(
+                discovered_event, detail_status, detail_type,
+                payload=detail_payload, text_body=detail_body
+            ))
+        print("MELBET_DISCOVERED_EVENT_IDS=" + json.dumps(discovered, ensure_ascii=False))
+        print("MELBET_DISCOVERED_EVENT_DETAILS=" + json.dumps(discovered_details, ensure_ascii=False))
     except requests.RequestException as exc:
         print("MELBET_EPL_FIXTURES=" + json.dumps({
             "requestError": type(exc).__name__, "message": str(exc)[:240]
