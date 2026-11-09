@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds_api_sport import parse_odds, match_fixture, sim, betboom_market_diagnostics
+from update_odds_api_sport import parse_odds, match_fixture, sim, betboom_market_diagnostics, is_in_date_window
 
 
 class ApiSportOddsTests(unittest.TestCase):
@@ -181,6 +181,19 @@ class ApiSportOddsTests(unittest.TestCase):
                          {(2.5, "over", 1.91), (2.5, "under", 1.95)})
         self.assertNotIn("doubleChance", quote["best"])
 
+
+
+    def test_odds_eligibility_is_limited_to_requested_30_day_window(self):
+        from datetime import date
+        self.assertTrue(is_in_date_window(
+            {"utcDate": "2026-11-20", "home": "A", "away": "B"},
+            date(2026, 11, 9), date(2026, 12, 9)))
+        self.assertFalse(is_in_date_window(
+            {"utcDate": "2027-01-20", "home": "A", "away": "B"},
+            date(2026, 11, 9), date(2026, 12, 9)))
+        self.assertFalse(is_in_date_window(
+            {"utcDate": "2026-11-08", "home": "A", "away": "B"},
+            date(2026, 11, 9), date(2026, 12, 9)))
 
     def test_matches_date_only_model_fixture_on_same_calendar_day(self):
         target = {"utcDate": "2026-11-21", "home": "Manchester City", "away": "Fulham"}
