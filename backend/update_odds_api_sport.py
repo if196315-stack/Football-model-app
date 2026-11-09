@@ -116,7 +116,7 @@ def market_kind(slug,market):
         or ("away_team" in slug and any(token in slug for token in ("goal", "total", "score")))
     )
     team_total_name = any(token in name for token in (
-        "team total", "team goals", "team goal", "home team", "away team",
+        "team total", "team goals", "team goal", "home team goals", "away team goals",
         "goals by team", "total goals by", "individual total",
         "тотал команды", "индивидуальный тотал", "итб команды",
         "голы команды", "гол команды",
