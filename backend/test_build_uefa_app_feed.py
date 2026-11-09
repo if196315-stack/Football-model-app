@@ -8,7 +8,7 @@ from build_uefa_app_feed import build_feed, build_odds
 class BuildUefaAppFeedTests(unittest.TestCase):
     def test_build_odds_uses_only_fresh_full_time_betboom_rows(self):
         rows = [
-            {"captured_at": "2026-11-10T10:00:00+00:00", "freshness_status": "fresh",
+            {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T10:00:00+00:00", "freshness_status": "fresh",
              "bookmaker_update_age_seconds": 20, "market_parser_version": "betboom-fulltime-v2",
              "market": "team_total_over", "team": "home", "point": 1.5, "side": "over", "price": 1.9},
             {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:45:00+00:00", "freshness_status": "stale",
