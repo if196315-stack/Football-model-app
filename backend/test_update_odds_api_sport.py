@@ -54,6 +54,23 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
         self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "BETBOOM")
 
+    def test_parses_itb_when_provider_uses_line_in_outcome_name(self):
+        source = {"id": 102, "oddsBk": {"betboom": {"markets": {
+            "team_total_home_goals": {"status": "open", "stage": "prematch", "stakes": {
+                "Over 1.5": {"lines": [{"argument": 1.5, "factor": 1.87}]},
+                "Under 1.5": {"lines": [{"argument": 1.5, "factor": 1.94}]}
+            }},
+            "total_team_2": {"status": "open", "stage": "prematch", "stakes": {
+                "over_0_5": {"lines": [{"argument": 0.5, "factor": 1.73}]}
+            }}
+        }}}}
+        best = parse_odds(source)["best"]
+        self.assertIn({"team": "home", "point": 1.5, "side": "over", "price": 1.87},
+                      best["teamTotals"])
+        self.assertIn({"team": "away", "point": 0.5, "side": "over", "price": 1.73},
+                      best["teamTotals"])
+        self.assertFalse(any(x["side"] == "under" for x in best["teamTotals"]))
+
     def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
         source = {"id": 101, "oddsBk": {"betboom": {"markets": {
             "total_goals": {"status": "open", "stage": "prematch", "stakes": {
