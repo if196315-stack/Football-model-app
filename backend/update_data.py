@@ -29,7 +29,7 @@ def key(s):
     ignored={"fc","afc","cf","sc","ac","club","football","the","de"," del","cd","ud","sd","fk","sk","sv","vfl","tsv","1"}
     return " ".join(x for x in value.split() if x not in ignored)
 
-# Common provider/Openplay aliases. Keys and values are normalized by key().
+# Cross-provider club-name aliases. Keys and values are normalized by key().
 ALIASES={
     "eng":{
         "man utd":"manchester united","man united":"manchester united",
