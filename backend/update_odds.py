@@ -90,7 +90,7 @@ def read_market(bookmaker, key, home, away):
     market = next((x for x in bookmaker.get("markets", []) if x.get("key") == key), None)
     if not market:
         return None
-    out = [] if key == "spreads" else {}
+    out = [] if key in ("spreads", "team_totals") else {}
     for outcome in market.get("outcomes", []):
         name = str(outcome.get("name", ""))
         price = outcome.get("price")
@@ -119,6 +119,21 @@ def read_market(bookmaker, key, home, away):
             label = name.strip().lower()
             if label in ("yes", "no"):
                 out[label] = float(price)
+        elif key == "team_totals":
+            point = outcome.get("point")
+            description = str(outcome.get("description") or "")
+            if point is None:
+                continue
+            try:
+                point = float(point)
+            except (TypeError, ValueError):
+                continue
+            team = "home" if similarity(description, home) >= 0.86 else (
+                "away" if similarity(description, away) >= 0.86 else None
+            )
+            side = name.strip().lower()
+            if team and side in ("over", "under"):
+                out.append({"team": team, "point": point, "side": side, "price": float(price)})
         elif key == "spreads":
             point = outcome.get("point")
             if point is None:
@@ -163,7 +178,7 @@ def event_for_match(match, events, league):
 
 def convert_event(event):
     books = []
-    best = {"h2h": {}, "totals": {}, "doubleChance": {}, "btts": {}, "spreads": []}
+    best = {"h2h": {}, "totals": {}, "doubleChance": {}, "btts": {}, "spreads": [], "teamTotals": []}
     for raw in event.get("bookmakers", []):
         markets = {
             "h2h": read_market(raw, "h2h", event.get("home_team", ""), event.get("away_team", "")) or {},
@@ -171,6 +186,7 @@ def convert_event(event):
             "doubleChance": read_market(raw, "double_chance", event.get("home_team", ""), event.get("away_team", "")) or {},
             "btts": read_market(raw, "btts", event.get("home_team", ""), event.get("away_team", "")) or {},
             "spreads": read_market(raw, "spreads", event.get("home_team", ""), event.get("away_team", "")) or [],
+            "teamTotals": read_market(raw, "team_totals", event.get("home_team", ""), event.get("away_team", "")) or [],
         }
         item = {
             "key": raw.get("key"), "title": raw.get("title"),
@@ -186,20 +202,24 @@ def convert_event(event):
                     best[market_key][outcome] = {
                         "price": price, "bookmaker": raw.get("title", raw.get("key", ""))
                     }
-        for quote in markets["spreads"]:
-            candidate = {**quote, "bookmaker": raw.get("title", raw.get("key", ""))}
-            old = next((x for x in best["spreads"]
-                        if x["team"] == candidate["team"] and abs(x["point"] - candidate["point"]) < 0.001), None)
-            if old is None:
-                best["spreads"].append(candidate)
-            elif candidate["price"] > old["price"]:
-                old.update(candidate)
+        for list_market in ("spreads", "teamTotals"):
+            for quote in markets[list_market]:
+                candidate = {**quote, "bookmaker": raw.get("title", raw.get("key", ""))}
+                identity = ("team", "point") if list_market == "spreads" else ("team", "point", "side")
+                old = next((x for x in best[list_market]
+                            if all(x.get(k) == candidate.get(k) for k in identity)), None)
+                if old is None:
+                    best[list_market].append(candidate)
+                elif candidate["price"] > old["price"]:
+                    old.update(candidate)
     compact_best = {
         market: {key: value["price"] for key, value in values.items()}
         for market, values in best.items() if market != "spreads" and values
     }
     if best["spreads"]:
         compact_best["spreads"] = best["spreads"]
+    if best["teamTotals"]:
+        compact_best["teamTotals"] = best["teamTotals"]
     best_books = {
         market: {key: value["bookmaker"] for key, value in values.items()}
         for market, values in best.items() if market != "spreads" and values
@@ -208,6 +228,11 @@ def convert_event(event):
         best_books["spreads"] = [
             {"team": x["team"], "point": x["point"], "bookmaker": x["bookmaker"]}
             for x in best["spreads"]
+        ]
+    if best["teamTotals"]:
+        best_books["teamTotals"] = [
+            {"team": x["team"], "point": x["point"], "side": x["side"], "bookmaker": x["bookmaker"]}
+            for x in best["teamTotals"]
         ]
     return {
         "eventId": event.get("id"),
@@ -254,7 +279,7 @@ def main():
                 params={
                     "apiKey": api_key,
                     "regions": "eu",
-                    "markets": "h2h,totals,spreads,double_chance,btts",
+                    "markets": "h2h,totals,spreads,double_chance,btts,team_totals",
                     "oddsFormat": "decimal",
                     "dateFormat": "iso",
                 },
