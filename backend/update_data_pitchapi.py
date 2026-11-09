@@ -229,7 +229,7 @@ def refresh_odds_from_api(payload: dict, api_key: str) -> int:
         try:
             response = requests.get(
                 f"{ODDS_BASE_URL}/{sport}/odds",
-                params={"apiKey": api_key, "regions": "eu", "markets": "h2h,totals",
+                params={"apiKey": api_key, "regions": "eu", "markets": "h2h,totals,spreads,double_chance,btts",
                         "oddsFormat": "decimal", "dateFormat": "iso"},
                 timeout=35,
             )
