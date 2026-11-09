@@ -241293,59 +241293,62 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-09T12:43:40.981929+00:00",
+  "oddsUpdatedAt": "2026-11-09T12:48:23.679437+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsCoverage": {
-    "eligible": 829,
-    "matched": 65,
-    "updated": 63,
+    "eligible": 0,
+    "matched": 0,
+    "updated": 0,
     "retained": 0,
-    "notMatched": 764,
+    "notMatched": 0,
     "byLeague": {
       "PL": {
-        "eligible": 280,
-        "matched": 20,
-        "updated": 20,
+        "eligible": 0,
+        "matched": 0,
+        "updated": 0,
         "retained": 0,
-        "notMatched": 260
+        "notMatched": 0
       },
       "PD": {
-        "eligible": 260,
-        "matched": 14,
-        "updated": 14,
+        "eligible": 0,
+        "matched": 0,
+        "updated": 0,
         "retained": 0,
-        "notMatched": 246
+        "notMatched": 0
       },
       "SA": {
-        "eligible": 270,
-        "matched": 16,
-        "updated": 16,
+        "eligible": 0,
+        "matched": 0,
+        "updated": 0,
         "retained": 0,
-        "notMatched": 254
+        "notMatched": 0
       },
       "BL1": {
-        "eligible": 18,
-        "matched": 14,
-        "updated": 13,
+        "eligible": 0,
+        "matched": 0,
+        "updated": 0,
         "retained": 0,
-        "notMatched": 4
+        "notMatched": 0
       },
       "FL1": {
-        "eligible": 1,
-        "matched": 1,
+        "eligible": 0,
+        "matched": 0,
         "updated": 0,
         "retained": 0,
         "notMatched": 0
       }
     }
   },
-  "oddsStatus": "ready",
-  "oddsNotice": "Новые котировки по рынкам модели: 63; сохранены прежние: 0; матчи без сопоставления: 764.",
+  "oddsStatus": "partial_error",
+  "oddsNotice": "The Odds API не вернул котировок по рынкам модели для сопоставленных матчей.",
   "bsdOddsUpdatedAt": "2026-11-09T12:43:20.276704+00:00",
   "bsdOddsUpdated": 0,
   "oddsErrors": [
-    "BL1: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_germany_bundesliga/events/98415e21c147d701bd81e70b1af0f3a7/odds?apiKey=ca07a7fbaf656cb545abae4",
-    "FL1: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_france_ligue_one/events/5dcc9d2b0da87770a4f49e924275be39/odds?apiKey=ca07a7fbaf656cb545abae4fe"
+    "PL: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_epl/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h&oddsFormat=decimal&dat",
+    "PD: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_spain_la_liga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h&oddsFormat=d",
+    "SA: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_italy_serie_a/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h&oddsFormat=d",
+    "BL1: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_germany_bundesliga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h&oddsFor",
+    "FL1: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_france_ligue_one/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h&oddsForma"
   ]
 }
