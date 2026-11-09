@@ -280,8 +280,8 @@ class MainActivity : Activity() {
                 val price = line.optDouble("price", Double.NaN)
                 val side = line.optString("side")
                 if (!point.isFinite() || side !in listOf("over", "under") || !price.isFinite() || price <= 1.0) continue
-                if (side != "over") continue
-                addMarketRow(panelOdds, listOf(Triple("БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
+                val sideLabel = if (side == "over") "БОЛЬШЕ" else "МЕНЬШЕ"
+                addMarketRow(panelOdds, listOf(Triple("$sideLabel ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
         }
@@ -310,13 +310,15 @@ class MainActivity : Activity() {
                 val line = teamTotals.optJSONObject(i) ?: continue
                 val price = line.optDouble("price", Double.NaN)
                 val point = line.optDouble("point", Double.NaN)
-                if (line.optString("side") != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                val side = line.optString("side")
+                if (side !in listOf("over", "under") || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
                     addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · BETBOOM", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
-                addMarketRow(panelOdds, listOf(Triple("$team БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
+                val sideLabel = if (side == "over") "БОЛЬШЕ" else "МЕНЬШЕ"
+                addMarketRow(panelOdds, listOf(Triple("$team $sideLabel ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
         }
