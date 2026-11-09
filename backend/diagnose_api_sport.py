@@ -1,4 +1,4 @@
-"""Read-only API-Sport quota and Melbet market diagnostics.
+"""Read-only API-Sport quota and BetBoom market diagnostics.
 
 This script never writes model data or odds snapshots and never prints credentials.
 It performs one quota request and one bounded football matches request.
@@ -42,16 +42,16 @@ def exact_fixture_odds_summary(payload):
     match = exact_match_payload(payload)
     flags = match.get("hasBkOdds") or {}
     books = match.get("oddsBk") or {}
-    melbet = books.get("melbet") if isinstance(books, dict) else None
-    markets = market_summary(melbet) if isinstance(melbet, dict) else []
+    betboom = books.get("betboom") if isinstance(books, dict) else None
+    markets = market_summary(betboom) if isinstance(betboom, dict) else []
     return {
         "id": match.get("id"),
         "home": (match.get("homeTeam") or {}).get("name"),
         "away": (match.get("awayTeam") or {}).get("name"),
         "hasBkOdds": flags,
         "bookmakerBoards": sorted(books.keys()) if isinstance(books, dict) else [],
-        "melbetBoard": isinstance(melbet, dict),
-        "melbetMarkets": markets,
+        "betboomBoard": isinstance(betboom, dict),
+        "betboomMarkets": markets,
     }
 
 
@@ -177,14 +177,14 @@ def main():
         "with_bk_odds": "true",
         "has_bk_odds": "true",
         "odds_stage": "all",
-        "bookmaker_ids": "melbet",
+        "bookmaker_ids": "betboom",
         "page": 1,
         "page_size": SAMPLE_SIZE,
         "sort": "asc",
     }
     # First inspect fixture availability without bookmaker filters. A zero
     # result here means the upstream fixture feed has not published this date;
-    # it must not be misdiagnosed as missing Melbet prices.
+    # it must not be misdiagnosed as missing BetBoom prices.
     fixture_params = {
         "date_from": target_date,
         "date_to": target_date,
@@ -226,7 +226,7 @@ def main():
                     **identity,
                     "modelHome": home_name,
                     "modelAway": away_name,
-                    "hasMelbetOdds": flags.get("melbet") if isinstance(flags, dict) else None,
+                    "hasBetBoomOdds": flags.get("betboom") if isinstance(flags, dict) else None,
                 })
                 break
 
@@ -235,14 +235,14 @@ def main():
         flags = match.get("hasBkOdds") or {}
         fixture_rows.append({
             **fixture_identity_sample(match),
-            "hasMelbetOdds": flags.get("melbet") if isinstance(flags, dict) else None,
+            "hasBetBoomOdds": flags.get("betboom") if isinstance(flags, dict) else None,
         })
     print(f"FIXTURE_ONLY_SCANNED={len(fixture_matches)} (maximum 2500; five pages)")
     print("FIXTURE_ONLY_SAMPLE=" + json.dumps(fixture_rows, ensure_ascii=False))
     print("MODEL_FIXTURE_MATCHES_IN_API=" + json.dumps(matched_rows, ensure_ascii=False))
 
     # Fetch each exact model fixture by ID, without a bookmaker filter, to
-    # distinguish missing Melbet from missing odds payload / other book boards.
+    # distinguish missing BetBoom from missing odds payload / other book boards.
     exact_rows = []
     for row in matched_rows:
         fixture_id = row.get("id")
@@ -271,7 +271,7 @@ def main():
     print(f"MATCH_SAMPLE_COUNT={len(matches)} (requested max {SAMPLE_SIZE}; one page only)")
     identity_rows = []
     for match in matches[:IDENTITY_SAMPLE_SIZE]:
-        board = ((match.get("oddsBk") or {}).get("melbet") or {})
+        board = ((match.get("oddsBk") or {}).get("betboom") or {})
         stages = {}
         prematch_slugs = []
         for slug, market in (board.get("markets") or {}).items():
@@ -283,30 +283,30 @@ def main():
                 prematch_slugs.append(slug)
         identity_rows.append({
             **fixture_identity_sample(match),
-            "melbetMarketStages": stages,
+            "betboomMarketStages": stages,
             "openPrematchSlugs": prematch_slugs,
         })
     print("API_TARGET_DATE_SAMPLE=" + json.dumps(identity_rows, ensure_ascii=False))
 
-    totals = {"matches": 0, "hasMelbetFlag": 0, "melbetBoard": 0,
+    totals = {"matches": 0, "hasBetBoomFlag": 0, "betboomBoard": 0,
               "marketSlugs": {}, "openMarketSlugs": {}}
     for match in matches[:SAMPLE_SIZE]:
         totals["matches"] += 1
         flags = match.get("hasBkOdds") or {}
-        if isinstance(flags, dict) and flags.get("melbet") is True:
-            totals["hasMelbetFlag"] += 1
+        if isinstance(flags, dict) and flags.get("betboom") is True:
+            totals["hasBetBoomFlag"] += 1
         books = match.get("oddsBk") or {}
-        board = books.get("melbet") if isinstance(books, dict) else None
+        board = books.get("betboom") if isinstance(books, dict) else None
         if not isinstance(board, dict):
             print("MATCH=" + json.dumps({
                 "id": match.get("id"),
                 "home": (match.get("homeTeam") or {}).get("name"),
                 "away": (match.get("awayTeam") or {}).get("name"),
-                "hasBkOddsMelbet": flags.get("melbet") if isinstance(flags, dict) else None,
-                "melbetBoard": False,
+                "hasBkOddsBetBoom": flags.get("betboom") if isinstance(flags, dict) else None,
+                "betboomBoard": False,
             }, ensure_ascii=False))
             continue
-        totals["melbetBoard"] += 1
+        totals["betboomBoard"] += 1
         markets = market_summary(board)
         for market in markets:
             totals["marketSlugs"][market["slug"]] = totals["marketSlugs"].get(market["slug"], 0) + 1
@@ -316,7 +316,7 @@ def main():
             "id": match.get("id"),
             "home": (match.get("homeTeam") or {}).get("name"),
             "away": (match.get("awayTeam") or {}).get("name"),
-            "hasBkOddsMelbet": flags.get("melbet") if isinstance(flags, dict) else None,
+            "hasBkOddsBetBoom": flags.get("betboom") if isinstance(flags, dict) else None,
             "boardUpdatedAt": board.get("updatedAt"),
             "isBettingActiveByStage": board.get("isBettingActiveByStage"),
             "markets": markets,
