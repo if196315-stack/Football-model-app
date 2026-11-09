@@ -1234,7 +1234,8 @@ class MainActivity : Activity() {
                 }
                 val odds = match.optJSONObject("odds") ?: continue
                 if (!odds.optString("bookmaker").equals("BETBOOM", ignoreCase = true)) continue
-                val quoteStamp = odds.optString("bookmakerUpdatedAt").ifBlank { odds.optString("updatedAt") }
+                val bookmakerStamp = odds.optString("bookmakerUpdatedAt").takeUnless { it.isBlank() || it == "null" }
+                val quoteStamp = bookmakerStamp ?: odds.optString("updatedAt")
                 if (quoteStamp.isBlank() || quoteStamp == "null") continue
                 val seenKey = "quote_" + matchId.hashCode()
                 val previousStamp = autoPaperPrefs.getString(seenKey, null)
@@ -1254,7 +1255,7 @@ class MainActivity : Activity() {
 
                 val leagueCode = competition.optString("code")
                 val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: if (leagueCode == "UCL" || leagueCode == "UEL") uefaPaperSignal(match) else null
+                    ?: (if (leagueCode == "UCL" || leagueCode == "UEL") uefaPaperSignal(match) else null)
                     ?: continue
                 val side = signal.optString("side")
                 if (side.isBlank() || side.equals("ОЗ НЕТ", ignoreCase = true) ||
@@ -1295,9 +1296,10 @@ class MainActivity : Activity() {
                         localDayFormat.format(java.util.Date(placedAt)) == today) existing.optDouble("stake", 0.0)
                     else 0.0
                 }
+                val dailyRiskBase = bank + todayExposure
                 if (stake > bank * 0.01 + 0.000001 ||
                     matchExposure + stake > bank * 0.01 + 0.000001 ||
-                    todayExposure + stake > bank * 0.02 + 0.000001) continue
+                    todayExposure + stake > dailyRiskBase * 0.02 + 0.000001) continue
 
                 val bet = JSONObject().apply {
                     put("id", "AUTO-" + matchId.hashCode() + "-" + marketKey)
