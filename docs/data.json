@@ -22064,7 +22064,7 @@
           "odds": {
             "eventId": "16363661",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:43.341342+00:00",
+            "updatedAt": "2026-11-09T19:27:19.357725+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -22250,7 +22250,7 @@
           "odds": {
             "eventId": "16363658",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:43.459051+00:00",
+            "updatedAt": "2026-11-09T19:27:19.445155+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -22466,7 +22466,7 @@
           "odds": {
             "eventId": "16363655",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:43.583498+00:00",
+            "updatedAt": "2026-11-09T19:27:19.538667+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -22652,7 +22652,7 @@
           "odds": {
             "eventId": "16363654",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:43.691546+00:00",
+            "updatedAt": "2026-11-09T19:27:19.618606+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -22868,7 +22868,7 @@
           "odds": {
             "eventId": "16363657",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:43.794344+00:00",
+            "updatedAt": "2026-11-09T19:27:19.694598+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -23054,7 +23054,7 @@
           "odds": {
             "eventId": "16363663",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:43.912969+00:00",
+            "updatedAt": "2026-11-09T19:27:19.782774+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -23270,7 +23270,7 @@
           "odds": {
             "eventId": "16363662",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:44.021887+00:00",
+            "updatedAt": "2026-11-09T19:27:19.863334+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -23456,7 +23456,7 @@
           "odds": {
             "eventId": "16363659",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:44.125558+00:00",
+            "updatedAt": "2026-11-09T19:27:19.941132+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -23672,7 +23672,7 @@
           "odds": {
             "eventId": "16363660",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:44.222977+00:00",
+            "updatedAt": "2026-11-09T19:27:20.013950+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -23888,7 +23888,7 @@
           "odds": {
             "eventId": "16363656",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:44.236857+00:00",
+            "updatedAt": "2026-11-09T19:27:20.024879+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -54391,7 +54391,7 @@
           "odds": {
             "eventId": "16421112",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:45.681173+00:00",
+            "updatedAt": "2026-11-09T19:27:21.108156+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -54577,7 +54577,7 @@
           "odds": {
             "eventId": "16421111",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:45.813093+00:00",
+            "updatedAt": "2026-11-09T19:27:21.206288+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -54793,7 +54793,7 @@
           "odds": {
             "eventId": "16421119",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:45.922159+00:00",
+            "updatedAt": "2026-11-09T19:27:21.286576+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -55009,7 +55009,7 @@
           "odds": {
             "eventId": "16421125",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:46.023506+00:00",
+            "updatedAt": "2026-11-09T19:27:21.359761+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -55225,7 +55225,7 @@
           "odds": {
             "eventId": "16421116",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:46.132802+00:00",
+            "updatedAt": "2026-11-09T19:27:21.439494+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -55376,7 +55376,7 @@
           "odds": {
             "eventId": "16421113",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:46.221693+00:00",
+            "updatedAt": "2026-11-09T19:27:21.504148+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -55412,7 +55412,7 @@
                 ],
                 "btts": {
                   "yes": 1.53,
-                  "no": 2.36
+                  "no": 2.35
                 }
               }
             ],
@@ -55446,7 +55446,7 @@
               ],
               "btts": {
                 "yes": 1.53,
-                "no": 2.36
+                "no": 2.35
               }
             },
             "bestBookmakers": {
@@ -55508,7 +55508,7 @@
           "odds": {
             "eventId": "16421117",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:46.406464+00:00",
+            "updatedAt": "2026-11-09T19:27:21.638992+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -55724,7 +55724,7 @@
           "odds": {
             "eventId": "16421115",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:46.501330+00:00",
+            "updatedAt": "2026-11-09T19:27:21.707106+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -55940,7 +55940,7 @@
           "odds": {
             "eventId": "16421118",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:46.515014+00:00",
+            "updatedAt": "2026-11-09T19:27:21.717664+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -86405,7 +86405,7 @@
           "odds": {
             "eventId": "16285092",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:47.807047+00:00",
+            "updatedAt": "2026-11-09T19:27:22.748644+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -86591,7 +86591,7 @@
           "odds": {
             "eventId": "16285089",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:47.895558+00:00",
+            "updatedAt": "2026-11-09T19:27:22.811574+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -86777,7 +86777,7 @@
           "odds": {
             "eventId": "16285095",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:47.979322+00:00",
+            "updatedAt": "2026-11-09T19:27:22.871112+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -86993,7 +86993,7 @@
           "odds": {
             "eventId": "16285096",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:48.069238+00:00",
+            "updatedAt": "2026-11-09T19:27:22.935153+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -87209,7 +87209,7 @@
           "odds": {
             "eventId": "16285091",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:48.159448+00:00",
+            "updatedAt": "2026-11-09T19:27:22.993252+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -87425,7 +87425,7 @@
           "odds": {
             "eventId": "16285090",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:48.248184+00:00",
+            "updatedAt": "2026-11-09T19:27:23.051304+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -87641,7 +87641,7 @@
           "odds": {
             "eventId": "16285094",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:48.327608+00:00",
+            "updatedAt": "2026-11-09T19:27:23.109172+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -87857,7 +87857,7 @@
           "odds": {
             "eventId": "16285098",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:48.408884+00:00",
+            "updatedAt": "2026-11-09T19:27:23.167490+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -88043,7 +88043,7 @@
           "odds": {
             "eventId": "16285088",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:48.488469+00:00",
+            "updatedAt": "2026-11-09T19:27:23.223992+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -88229,7 +88229,7 @@
           "odds": {
             "eventId": "16285093",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:48.502343+00:00",
+            "updatedAt": "2026-11-09T19:27:23.234535+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -115305,7 +115305,7 @@
           "odds": {
             "eventId": "16434097",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:49.813690+00:00",
+            "updatedAt": "2026-11-09T19:27:24.270002+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -115396,7 +115396,7 @@
           "odds": {
             "eventId": "16434098",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:49.926299+00:00",
+            "updatedAt": "2026-11-09T19:27:24.351669+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -115547,7 +115547,7 @@
           "odds": {
             "eventId": "16434103",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:50.065208+00:00",
+            "updatedAt": "2026-11-09T19:27:24.454895+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -115763,7 +115763,7 @@
           "odds": {
             "eventId": "16434102",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:50.182323+00:00",
+            "updatedAt": "2026-11-09T19:27:24.541177+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -115919,7 +115919,7 @@
           "odds": {
             "eventId": "16434106",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:50.279460+00:00",
+            "updatedAt": "2026-11-09T19:27:24.612289+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -116135,7 +116135,7 @@
           "odds": {
             "eventId": "16434105",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:50.387742+00:00",
+            "updatedAt": "2026-11-09T19:27:24.692039+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -116321,7 +116321,7 @@
           "odds": {
             "eventId": "16434109",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:50.497804+00:00",
+            "updatedAt": "2026-11-09T19:27:24.772853+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -116537,7 +116537,7 @@
           "odds": {
             "eventId": "16434104",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:50.581625+00:00",
+            "updatedAt": "2026-11-09T19:27:24.834537+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -116693,7 +116693,7 @@
           "odds": {
             "eventId": "16434107",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:50.678661+00:00",
+            "updatedAt": "2026-11-09T19:27:24.905834+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -143222,7 +143222,7 @@
           "odds": {
             "eventId": "16311019",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:51.732708+00:00",
+            "updatedAt": "2026-11-09T19:27:25.760670+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -143479,7 +143479,7 @@
           "odds": {
             "eventId": "16311015",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:51.935378+00:00",
+            "updatedAt": "2026-11-09T19:27:25.906724+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -143695,7 +143695,7 @@
           "odds": {
             "eventId": "16311011",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:52.025489+00:00",
+            "updatedAt": "2026-11-09T19:27:25.971054+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -143963,7 +143963,7 @@
           "odds": {
             "eventId": "16311017",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T18:45:52.285609+00:00",
+            "updatedAt": "2026-11-09T19:27:26.159622+00:00",
             "bookmakers": [
               {
                 "key": "betboom",
@@ -204842,7 +204842,7 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-09T18:45:53.458972+00:00",
+  "oddsUpdatedAt": "2026-11-09T19:27:27.077204+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsCoverage": {
