@@ -887,10 +887,10 @@ class MainActivity : Activity() {
                 val today = dayFormat.format(java.util.Date(now))
                 if (dayFormat.format(java.util.Date(kickoff)) != today) continue
                 val odds = match.optJSONObject("odds") ?: continue
-                val quoteAge = currentBookmakerQuoteAgeSeconds(odds) ?: continue
-                if (quoteAge < 0.0 || quoteAge > 300.0) continue
-                val quoteUpdatedAt = now - (quoteAge * 1000.0).toLong()
-                if (quoteUpdatedAt < kickoff - 12L * 60L * 60L * 1000L) continue
+                val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
+                // Do not reintroduce the removed five-minute cutoff: any actual BetBoom quote
+                // updated in the final 12h window is eligible when a new feed snapshot arrives.
+                if (quoteUpdatedAt < kickoff - 12L * 60L * 60L * 1000L || quoteUpdatedAt > now) continue
                 val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaPaperSignal(match) else null
                     ?: continue
@@ -1113,7 +1113,7 @@ class MainActivity : Activity() {
             when(b.optString("status")) {
                 "WON"->{wins++;turnover+=st;profit+=st*(o-1);payout+=st*o}
                 "LOST"->{losses++;turnover+=st;profit-=st}
-                "PUSH"->{pushes++;payout+=st}
+                "PUSH"->{pushes++;turnover+=st;payout+=st}
                 else->pending++
             }
         }
@@ -1125,7 +1125,7 @@ class MainActivity : Activity() {
         addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
         addText(sum,"ОБЩИЙ ROI · все бумажные ставки",10,true,cyan)
         addText(sum,"ROI = чистый результат / рассчитанный оборот. Возвраты и ожидающие ставки не входят.",10,false,muted)
-        var aiTurnover=0.0; var aiProfit=0.0; var aiWins=0; var aiLosses=0; var aiPending=0
+        var aiTurnover=0.0; var aiProfit=0.0; var aiWins=0; var aiLosses=0; var aiPushes=0; var aiPending=0
         for(i in 0 until bets.length()) {
             val b=bets.optJSONObject(i) ?: continue
             if(b.optString("source")!="AI_AUTO") continue
@@ -1133,12 +1133,13 @@ class MainActivity : Activity() {
             when(b.optString("status")) {
                 "WON"->{aiWins++;aiTurnover+=st;aiProfit+=st*(o-1.0)}
                 "LOST"->{aiLosses++;aiTurnover+=st;aiProfit-=st}
+                "PUSH"->{aiPushes++;aiTurnover+=st}
                 "PENDING"->aiPending++
             }
         }
         val ai=card()
         addText(ai,"AI · АВТОМАТИЧЕСКИЕ БУМАЖНЫЕ СТАВКИ",10,true,accent)
-        addText(ai,"Ставок: "+(aiWins+aiLosses+aiPending)+" · выигрыш: "+aiWins+" · проигрыш: "+aiLosses+" · ожидают: "+aiPending,12,true)
+        addText(ai,"Ставок: "+(aiWins+aiLosses+aiPushes+aiPending)+" · выигрыш: "+aiWins+" · проигрыш: "+aiLosses+" · возврат: "+aiPushes+" · ожидают: "+aiPending,12,true)
         addText(ai,"Чистый результат: "+(if(aiProfit>=0) "+" else "")+fmt(aiProfit)+" ₽ · оборот: "+fmt(aiTurnover)+" ₽",12,true)
         addText(ai,"AI ROI: "+(if(aiTurnover>0.0) String.format(Locale.US,"%.1f%%",aiProfit/aiTurnover*100.0) else "—"),18,true,if(aiProfit>=0) accent else Color.RED)
         addText(ai,"Учитываются только ставки, автоматически открытые из AI. Ожидающие и возвраты не входят в оборот.",10,false,muted)
