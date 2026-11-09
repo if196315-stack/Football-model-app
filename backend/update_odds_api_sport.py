@@ -8,7 +8,7 @@ import requests
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/"docs"/"data.json"
 URL="https://api.api-sport.ru/v2/football/matches"
-BOOKS=("melbet","pari","marathon","betboom","pinnacle")
+BOOKS=("melbet",)
 
 def norm(v):
     s=unicodedata.normalize("NFKD",str(v or "").lower())
@@ -57,7 +57,7 @@ def market_kind(slug,market):
 
 def lines(stake):
     for x in stake.get("lines") or []:
-        if isinstance(x.get("factor"),(int,float)) and x["factor"]>1:yield x
+        if not x.get("suspended") and isinstance(x.get("factor"),(int,float)) and x["factor"]>1:yield x
     if isinstance(stake.get("factor"),(int,float)) and stake["factor"]>1:
         yield {"factor":stake["factor"],"argument":None}
 
@@ -65,7 +65,9 @@ def parse_odds(m):
     best={"doubleChance":{},"spreads":[],"teamTotals":[]}
     books_best={"doubleChance":{},"spreads":[],"teamTotals":[]}
     book_rows=[]
-    for bk,board in (m.get("oddsBk") or {}).items():
+    # Melbet is the single reference bookmaker; never mix other prices.
+    melbet=(m.get("oddsBk") or {}).get("melbet")
+    for bk,board in ({"melbet":melbet} if isinstance(melbet,dict) else {}).items():
         if not isinstance(board,dict):continue
         row={"key":bk,"title":bk.upper(),"doubleChance":{},"spreads":[],"teamTotals":[]}
         for slug,market in (board.get("markets") or {}).items():
@@ -120,18 +122,21 @@ def main():
     for comp in data.get("competitions",[]):
         for match in comp.get("matches",[]):
             if match.get("status") not in ("SCHEDULED","TIMED","IN_PLAY","PAUSED"):continue
-            eligible+=1;source=match_fixture(match,fixtures)
-            if not source:
-                if match.get("odds"):retained+=1
-                continue
+            eligible+=1
+            # Clear legacy-provider prices. Never label stale prices as Melbet.
+            match.pop("odds",None)
+            source=match_fixture(match,fixtures)
+            if not source:continue
             matched+=1;quote=parse_odds(source)
-            if quote["best"]:match["odds"]=quote;updated+=1
-            elif match.get("odds"):retained+=1
-    data["oddsProvider"]="API-Sport"
+            if quote["best"]:
+                match["odds"]=quote
+                updated+=1
+    data["oddsProvider"]="API-Sport / Melbet"
+    data["oddsBookmaker"]="melbet"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
-    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"retained":retained,"notMatched":eligible-matched}
-    data["oddsStatus"]="ready" if updated or retained else "no_quotes"
-    data["oddsNotice"]=f"API-Sport: обновлены коэффициенты {updated} матчей; сохранены прежние {retained}." if updated or retained else "API-Sport не вернул подходящие котировки."
+    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"noMelbetQuotes":matched-updated,"notMatched":eligible-matched}
+    data["oddsStatus"]="ready" if updated else "no_quotes"
+    data["oddsNotice"]=f"Melbet: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки Melbet."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({"provider":"API-Sport","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"retained":retained}))
 
