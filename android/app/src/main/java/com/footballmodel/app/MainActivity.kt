@@ -176,16 +176,32 @@ class MainActivity : Activity() {
             maxLines = 2
             includeFontPadding = false
         }
-        val versus = label("VS", 9, true, gold).apply {
+        val homeBlock = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(dp(9), dp(5), dp(9), dp(5))
-            background = rounded(Color.rgb(37, 43, 53), 10)
         }
-        row.addView(homeName, LinearLayout.LayoutParams(0, -2, 1f))
+        homeBlock.addView(teamCrest(home, Color.rgb(35, 112, 132)), LinearLayout.LayoutParams(dp(44), dp(44)))
+        homeBlock.addView(homeName)
+        val awayBlock = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+        }
+        awayBlock.addView(teamCrest(away, Color.rgb(119, 77, 91)), LinearLayout.LayoutParams(dp(44), dp(44)))
+        awayBlock.addView(awayName)
+        val versus = label("VS", 10, true, gold).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(11), dp(7), dp(11), dp(7))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(43, 48, 58))
+                cornerRadius = dp(18).toFloat()
+                setStroke(dp(1), Color.rgb(114, 91, 54))
+            }
+        }
+        row.addView(homeBlock, LinearLayout.LayoutParams(0, -2, 1f))
         row.addView(versus, LinearLayout.LayoutParams(-2, -2).apply {
-            setMargins(dp(7), 0, dp(7), 0)
+            setMargins(dp(8), 0, dp(8), 0)
         })
-        row.addView(awayName, LinearLayout.LayoutParams(0, -2, 1f))
+        row.addView(awayBlock, LinearLayout.LayoutParams(0, -2, 1f))
         parent.addView(row, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(2)
             bottomMargin = dp(2)
@@ -304,6 +320,51 @@ class MainActivity : Activity() {
     private fun oddsText(obj: JSONObject, key: String): String =
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
+    private fun teamCrest(team: String, tint: Int): TextView {
+        val initials = team.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+            .take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString("")
+            .ifBlank { "FC" }
+        return label(initials, 14, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(tint, Color.rgb(17, 31, 49))).apply {
+                shape = GradientDrawable.OVAL
+                setStroke(dp(2), Color.rgb(91, 190, 174))
+            }
+            elevation = dp(3).toFloat()
+        }
+    }
+
+    private fun addStadiumBanner(parent: LinearLayout) {
+        val banner = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(18), dp(15), dp(15), dp(15))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(5, 39, 61), Color.rgb(8, 23, 42), Color.rgb(10, 54, 57))).apply {
+                cornerRadius = dp(22).toFloat()
+                setStroke(dp(1), Color.rgb(35, 111, 137))
+            }
+            elevation = dp(3).toFloat()
+        }
+        val copy = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        copy.addView(label("IQ MATCH  /  MATCH CENTER", 9, true, gold))
+        copy.addView(label("Матчи и прогнозы", 22, true, Color.WHITE))
+        copy.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
+        banner.addView(copy, LinearLayout.LayoutParams(0, -2, 1f))
+        val ball = label("⚽", 54, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            setShadowLayer(dp(10).toFloat(), 0f, 0f, Color.rgb(30, 161, 197))
+        }
+        banner.addView(ball, LinearLayout.LayoutParams(dp(76), dp(76)))
+        val lp = LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(10)
+            bottomMargin = dp(8)
+        }
+        parent.addView(banner, lp)
+    }
+
     private fun addMarketTitle(parent: LinearLayout, symbol: String, title: String) {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -414,7 +475,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "ГЛАВНАЯ", "desk" to "AI", "history" to "БАНК", "stats" to "СТАТИСТИКА", "help" to "ПРОФИЛЬ")
+        val items = listOf("matches" to "⌂\nГЛАВНАЯ", "desk" to "✧\nAI", "history" to "▤\nБАНК", "stats" to "▥\nСТАТИСТИКА", "help" to "♙\nПРОФИЛЬ")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -1028,6 +1089,7 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
+        addStadiumBanner(matchesContainer)
         val homeHero = card()
         homeHero.setPadding(dp(18), dp(18), dp(18), dp(18))
         homeHero.background = GradientDrawable(
@@ -1119,8 +1181,10 @@ class MainActivity : Activity() {
                 isClickable = true
                 isFocusable = true
             }
-            heading.addView(label(league.optString("name"), 16, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
-            heading.addView(label("${upcoming.size} матчей", 11, false, muted))
+            val flag = when (leagueCode) { "PL" -> "🏴"; "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
+            heading.addView(label(flag, 20, true, Color.WHITE), LinearLayout.LayoutParams(dp(30), -2).apply { rightMargin = dp(8) })
+            heading.addView(label(league.optString("name"), 14, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+            heading.addView(label("${upcoming.size} матчей", 10, false, muted))
             val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, accent)
             heading.addView(expandIcon)
             heading.setOnClickListener {
