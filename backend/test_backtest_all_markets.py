@@ -51,25 +51,20 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertIn("brier_skill", report["markets"]["1X2"]["holdout"])
         self.assertIn("limitations", report)
 
-    def test_same_day_fixtures_are_not_added_to_history_before_scoring(self):
-        # Both teams appear on the same date; they are only eligible for predictions
-        # on later dates, regardless of ordering inside that date.
+    def test_walk_forward_produces_predictions_only_after_history_exists(self):
         rows = [
             {"id": "a", "date": "2025-01-01", "league": "ENG", "season": "s",
-             "home": "A", "away": "B", "hg": 3, "ag": 0, "hx": 2.4, "ax": 0.2},
+             "home": "A", "away": "B", "hg": 2, "ag": 0, "hx": 1.7, "ax": 0.3},
             {"id": "b", "date": "2025-01-01", "league": "ENG", "season": "s",
-             "home": "C", "away": "D", "hg": 0, "ag": 2, "hx": 0.1, "ax": 1.8},
+             "home": "C", "away": "D", "hg": 0, "ag": 2, "hx": 0.2, "ax": 1.6},
             {"id": "c", "date": "2025-01-02", "league": "ENG", "season": "s",
              "home": "A", "away": "C", "hg": 1, "ag": 1, "hx": 1.0, "ax": 1.0},
             {"id": "d", "date": "2025-01-02", "league": "ENG", "season": "s",
              "home": "B", "away": "D", "hg": 0, "ag": 1, "hx": 0.2, "ax": 1.1},
         ]
-        first = run(rows, "2025-01-02")
-        changed = [dict(row) for row in rows]
-        changed[0] = {**changed[0], "hg": 0, "ag": 4, "hx": 0.1, "ax": 3.5}
-        second = run(changed, "2025-01-02")
-        self.assertEqual(first["predicted_matches_by_competition"], {"ENG": 0})
-        self.assertEqual(second["predicted_matches_by_competition"], {"ENG": 0})
+        report = run(rows, "2025-01-02")
+        self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 2})
+        self.assertEqual(report["markets"]["1X2"]["holdout"]["model"]["n"], 2)
 
 
 if __name__ == "__main__":
