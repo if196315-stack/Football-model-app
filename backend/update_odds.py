@@ -185,7 +185,7 @@ def read_market(bookmaker, key, home, away):
             side = name.strip().lower()
             if team and side in ("over", "under"):
                 out.append({"team": team, "point": point, "side": side, "price": float(price)})
-        elif key == "spreads":
+        elif key in ("spreads", "alternate_spreads"):
             point = outcome.get("point")
             if point is None:
                 continue
@@ -291,7 +291,7 @@ def convert_event(event):
     }
 
 
-MODEL_MARKETS = ("double_chance", "spreads", "team_totals")
+MODEL_MARKETS = ("double_chance", "spreads", "alternate_spreads", "team_totals")
 
 
 def has_model_market(quote):
