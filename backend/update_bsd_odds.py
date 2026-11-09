@@ -150,7 +150,7 @@ def main():
                 for market, values in quote["best"].items():
                     merged["best"].setdefault(market, {}).update(values)
                     merged["bestBookmakers"].setdefault(market, {}).update(quote["bestBookmakers"][market])
-                merged["bookmakers"] = list(old.get("bookmakers") or []) + quote["bookmakers"]
+                # Keep one current BSD consensus entry per fixture across scheduled runs.\n                other_books = [book for book in (old.get("bookmakers") or [])\n                               if book.get("key") != "bsd_consensus"]\n                merged["bookmakers"] = other_books + quote["bookmakers"]
                 merged["eventId"] = old.get("eventId") or quote["eventId"]
                 merged["updatedAt"] = quote["updatedAt"]
                 match["odds"] = merged
