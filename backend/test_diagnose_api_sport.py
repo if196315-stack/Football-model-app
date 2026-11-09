@@ -22,6 +22,21 @@ class DiagnosticHelpersTests(unittest.TestCase):
         self.assertEqual(response_items({"matches": [{"id": 2}]}), [{"id": 2}])
         self.assertEqual(response_items({"unexpected": []}), [])
 
+    def test_exact_fixture_odds_summary_reports_bookmakers_and_melbet_markets(self):
+        from diagnose_api_sport import exact_fixture_odds_summary
+        result = exact_fixture_odds_summary({"data": {
+            "id": 12,
+            "homeTeam": {"name": "Home"},
+            "awayTeam": {"name": "Away"},
+            "hasBkOdds": {"melbet": False, "pari": True},
+            "oddsBk": {"pari": {"markets": {}}}
+        }})
+        self.assertEqual(result["id"], 12)
+        self.assertEqual(result["hasBkOdds"]["pari"], True)
+        self.assertEqual(result["bookmakerBoards"], ["pari"])
+        self.assertFalse(result["melbetBoard"])
+        self.assertEqual(result["melbetMarkets"], [])
+
     def test_market_summary_preserves_market_lines_and_status(self):
         result = market_summary({"markets": {
             "total": {"name": {"en": "Total"}, "status": "open", "stage": "prematch", "isBettingActiveByStage": {"prematch": True},
