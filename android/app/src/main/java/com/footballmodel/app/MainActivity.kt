@@ -304,6 +304,46 @@ class MainActivity : Activity() {
     private fun oddsText(obj: JSONObject, key: String): String =
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
+    private fun addMarketTitle(parent: LinearLayout, symbol: String, title: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(7))
+        }
+        val icon = label(symbol, 17, true, gold).apply {
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 0)
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(29, 67, 69))
+                cornerRadius = dp(11).toFloat()
+                setStroke(dp(1), Color.rgb(66, 131, 116))
+            }
+        }
+        row.addView(icon, LinearLayout.LayoutParams(dp(34), dp(34)).apply { rightMargin = dp(10) })
+        row.addView(label(title, 10, true, accent), LinearLayout.LayoutParams(0, -2, 1f))
+        parent.addView(row)
+    }
+
+    private fun addTeamMarketTitle(parent: LinearLayout, team: String, side: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(8), 0, dp(2))
+        }
+        val crest = label(side, 11, true, gold).apply {
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 0)
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(42, 49, 60))
+                cornerRadius = dp(18).toFloat()
+                setStroke(dp(1), Color.rgb(112, 91, 58))
+            }
+        }
+        row.addView(crest, LinearLayout.LayoutParams(dp(28), dp(28)).apply { rightMargin = dp(9) })
+        row.addView(label(team, 11, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+        parent.addView(row)
+    }
+
     // Compact two-column market grid: four team totals remain readable on phone screens.
     private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>, labelColor: Int = Color.rgb(177, 198, 207)) {
         items.chunked(2).forEach { pair ->
@@ -1124,7 +1164,7 @@ class MainActivity : Activity() {
                     }
                     val mainMarkets = card(box)
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
-                    addText(mainMarkets, "✦  ОСНОВНЫЕ ИСХОДЫ", 10, true, accent)
+                    addMarketTitle(mainMarkets, "◈", "ОСНОВНЫЕ ИСХОДЫ")
                     addMarketRow(mainMarkets, listOf(Triple("1X · хозяева или ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости или ничья", pct(pred, "x2"), Color.WHITE)))
                     addText(mainMarkets, "ПОБЕДА / НИЧЬЯ", 9, true, muted)
                     addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
@@ -1134,14 +1174,17 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
-                    val individualTotals = card(mainMarkets)
+
+                    // Individual totals are a sibling market card, not a card nested inside the main outcomes.
+                    val individualTotals = card(box)
                     individualTotals.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply {
                         cornerRadius = dp(20).toFloat()
                         setStroke(dp(1), Color.rgb(45, 102, 91))
                     }
-                    addText(individualTotals, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 10, true, accent)
-                    for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
-                        addText(individualTotals, teamName, 10, true, Color.WHITE)
+                    addMarketTitle(individualTotals, "⚽", "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ")
+                    for ((teamIndex, team) in listOf("home" to m.optString("home"), "away" to m.optString("away")).withIndex()) {
+                        val (teamKey, teamName) = team
+                        addTeamMarketTitle(individualTotals, teamName, if (teamIndex == 0) "1" else "2")
                         addMarketRow(individualTotals, listOf(
                             Triple("ИТБ 0.5", pct(pred, "${teamKey}Over05"), Color.WHITE),
                             Triple("ИТБ 1.5", pct(pred, "${teamKey}Over15"), Color.WHITE),
