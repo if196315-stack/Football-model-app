@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Append immutable snapshots of model-used best odds from docs/data.json.
+"""Append immutable Melbet odds snapshots from docs/data.json.
 
-No external API calls are made here. Run after BSD and The Odds API refreshes.
+No external API calls are made here. Run after the API-Sport refresh.
 """
 import argparse
 import json
