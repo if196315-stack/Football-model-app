@@ -139,6 +139,17 @@ class MainActivity : Activity() {
         loadData()
     }
 
+    private fun countryFlagView(flag: String): View =
+        label(flag, 15, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            setPadding(0, 0, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(dp(30), dp(20)).apply {
+                rightMargin = dp(8)
+            }
+            contentDescription = "Флаг страны"
+        }
+
     private fun englandFlagView(): View = object : View(this) {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         override fun onDraw(canvas: Canvas) {
@@ -1272,7 +1283,7 @@ class MainActivity : Activity() {
                 heading.addView(englandFlagView())
             } else {
                 val flag = when (leagueCode) { "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
-                heading.addView(label(flag, 20, true, Color.WHITE), LinearLayout.LayoutParams(dp(30), -2).apply { rightMargin = dp(8) })
+                heading.addView(countryFlagView(flag))
             }
             heading.addView(label(league.optString("name"), 14, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
             heading.addView(label("${upcoming.size} матчей", 10, false, muted))
