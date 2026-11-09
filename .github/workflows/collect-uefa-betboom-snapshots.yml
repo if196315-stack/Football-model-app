@@ -59,6 +59,8 @@ jobs:
         run: python backend/collect_uefa_betboom_snapshots.py
       - name: Evaluate paper-only BET WAIT REJECT signals
         run: python backend/evaluate_uefa_paper_signals.py
+      - name: Settle paper bets whose matches have finished
+        run: python backend/settle_uefa_paper_bets.py
       - name: Commit immutable UEFA odds history
         run: |
           git config user.name "github-actions[bot]"
@@ -74,6 +76,9 @@ jobs:
           fi
           if [ -f artifacts/uefa-paper-bets.jsonl ]; then
             git add artifacts/uefa-paper-bets.jsonl
+          fi
+          if [ -f artifacts/uefa-paper-settlements.jsonl ]; then
+            git add artifacts/uefa-paper-settlements.jsonl
           fi
           git diff --cached --quiet || git commit -m "Capture UEFA BetBoom odds snapshots"
           git pull --rebase origin main
