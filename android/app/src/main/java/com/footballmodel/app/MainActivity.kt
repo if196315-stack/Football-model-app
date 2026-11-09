@@ -1134,14 +1134,19 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
+                    val individualTotals = card(mainMarkets)
+                    individualTotals.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply {
+                        cornerRadius = dp(20).toFloat()
+                        setStroke(dp(1), Color.rgb(45, 102, 91))
+                    }
+                    addText(individualTotals, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 10, true, accent)
                     for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
-                        addText(mainMarkets, "ИТБ · $teamName", 9, true, muted)
-                        addMarketRow(mainMarkets, listOf(
-                            Triple("0.5: Б", pct(pred, "${teamKey}Over05"), Color.WHITE),
-                            Triple("1.5: Б", pct(pred, "${teamKey}Over15"), Color.WHITE),
-                            Triple("2.5: Б", pct(pred, "${teamKey}Over25"), Color.WHITE),
-                            Triple("3.5: Б", pct(pred, "${teamKey}Over35"), Color.WHITE)
+                        addText(individualTotals, teamName, 10, true, Color.WHITE)
+                        addMarketRow(individualTotals, listOf(
+                            Triple("ИТБ 0.5", pct(pred, "${teamKey}Over05"), Color.WHITE),
+                            Triple("ИТБ 1.5", pct(pred, "${teamKey}Over15"), Color.WHITE),
+                            Triple("ИТБ 2.5", pct(pred, "${teamKey}Over25"), Color.WHITE),
+                            Triple("ИТБ 3.5", pct(pred, "${teamKey}Over35"), Color.WHITE)
                         ), labelColor = Color.WHITE)
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
