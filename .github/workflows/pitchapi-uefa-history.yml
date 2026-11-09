@@ -1,0 +1,44 @@
+name: PitchAPI UEFA fixture history
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pitchapi-uefa-fixture-history
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore incremental UEFA fixture cache
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_uefa_fixtures.json
+          key: pitchapi-uefa-fixtures-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pitchapi-uefa-fixtures-v1-${{ runner.os }}-
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Refresh UEFA fixtures and results only
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/refresh_pitchapi_uefa_fixtures.py
+      - name: Upload fixture history and report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-uefa-fixture-history-${{ github.run_number }}
+          path: |
+            backend/cache/pitchapi_uefa_fixtures.json
+            pitchapi-uefa-history-report.json
+          if-no-files-found: warn
+          retention-days: 14
