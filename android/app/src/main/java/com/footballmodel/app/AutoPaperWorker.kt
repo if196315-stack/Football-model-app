@@ -74,6 +74,14 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
         val competitions = feed.optJSONArray("competitions") ?: return changed
         val now = System.currentTimeMillis()
+        val currentBank = currentBank(bets)
+        val storedHigh = settings.getString("paper_high_watermark", null)?.toDoubleOrNull()
+        val highWater = max(storedHigh ?: currentBank, currentBank)
+        if (storedHigh == null || highWater > storedHigh) settings.edit().putString("paper_high_watermark", highWater.toString()).commit()
+        val drawdown = if (highWater > 0.0) (highWater - currentBank) / highWater else 0.0
+        if (drawdown >= 0.10) settings.edit().putBoolean("paper_auto_stopped", true).commit()
+        val autoStopped = settings.getBoolean("paper_auto_stopped", false)
+        val drawdownPaused = drawdown >= 0.05
         for (ci in 0 until competitions.length()) {
             val competition = competitions.optJSONObject(ci) ?: continue
             val matches = competition.optJSONArray("matches") ?: continue
@@ -113,7 +121,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                         duplicate = true; break
                     }
                 }
-                if (duplicate) continue
+                if (duplicate || autoStopped || drawdownPaused) continue
 
                 val bank = currentBank(bets)
                 val stake = max(bank * 0.005, 25.0)
