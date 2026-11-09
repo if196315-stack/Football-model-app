@@ -70,6 +70,7 @@ def market_summary(board):
             "name": market.get("name"),
             "status": market.get("status"),
             "stage": market.get("stage"),
+            "isBettingActiveByStage": market.get("isBettingActiveByStage"),
             "outcomes": outcomes,
         })
     return result
@@ -88,7 +89,7 @@ def main():
     usage_payload = usage_response.json()
     print("ACCOUNT_USAGE=" + json.dumps(quota_summary(usage_payload), ensure_ascii=False))
 
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
     params = {
         "date_from": today.isoformat(),
         "date_to": (today + timedelta(days=3)).isoformat(),
@@ -145,6 +146,7 @@ def main():
             "away": (match.get("awayTeam") or {}).get("name"),
             "hasBkOddsMelbet": flags.get("melbet") if isinstance(flags, dict) else None,
             "boardUpdatedAt": board.get("updatedAt"),
+            "isBettingActiveByStage": board.get("isBettingActiveByStage"),
             "markets": markets,
         }, ensure_ascii=False))
 
