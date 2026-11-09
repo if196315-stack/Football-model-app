@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T10:48:06.993033+00:00",
+  "updatedAt": "2026-11-09T11:36:23.595985+00:00",
   "source": "PitchAPI (fixtures, results and shot-level xG); The Odds API (bookmaker odds)",
   "modelVersion": "PitchAPI shot xG · incremental migration",
   "modelConfig": {
@@ -11,7 +11,7 @@
   "xgHistoryMatches": 4324,
   "xgHistoryPairedMatches": 4324,
   "xgHistoryPending": 4409,
-  "xgUpdatedAt": "2026-11-09T10:48:06.321915+00:00",
+  "xgUpdatedAt": "2026-11-09T11:36:22.516175+00:00",
   "status": "ready",
   "notice": "Прогнозы доступны для 904 предстоящих матчей; в истории 4324 матчей с парным xG, ожидают xG: 4409.",
   "dataWarning": "Прогнозы строятся только на завершённых матчах с парным xG PitchAPI. Отсутствующий xG не заменяется нулём.",
@@ -200163,9 +200163,16 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-09T10:48:21.631489+00:00",
+  "oddsUpdatedAt": "2026-11-09T11:36:43.059037+00:00",
   "oddsCreditsRemaining": 322,
   "oddsCreditsUsed": 178,
+  "oddsErrors": [
+    "PL: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_epl/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Ctotals%2Cspr",
+    "PD: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_spain_la_liga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Cto",
+    "SA: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_italy_serie_a/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Cto",
+    "BL1: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_germany_bundesliga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h",
+    "FL1: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_france_ligue_one/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2"
+  ],
   "oddsCoverage": {
     "eligible": 0,
     "matched": 0,
@@ -200212,11 +200219,6 @@
   },
   "oddsStatus": "partial_error",
   "oddsNotice": "На момент последнего обновления подходящих коэффициентов не найдено.",
-  "oddsErrors": [
-    "PL: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_epl/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Ctotals%2Cspr",
-    "PD: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_spain_la_liga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Cto",
-    "SA: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_italy_serie_a/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Cto",
-    "BL1: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_germany_bundesliga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h",
-    "FL1: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_france_ligue_one/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2"
-  ]
+  "bsdOddsUpdatedAt": "2026-11-09T11:36:37.266834+00:00",
+  "bsdOddsUpdated": 0
 }
