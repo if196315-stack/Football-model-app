@@ -115,6 +115,10 @@ def read_market(bookmaker, key, home, away):
             label = re.sub(r"[^a-z]+", "", name.lower()).replace("home", "1").replace("draw", "x").replace("away", "2")
             if label in ("1x", "x2", "12"):
                 out[label] = float(price)
+        elif key == "btts":
+            label = name.strip().lower()
+            if label in ("yes", "no"):
+                out[label] = float(price)
         elif key == "spreads":
             point = outcome.get("point")
             if point is None:
@@ -159,12 +163,13 @@ def event_for_match(match, events, league):
 
 def convert_event(event):
     books = []
-    best = {"h2h": {}, "totals": {}, "doubleChance": {}, "spreads": []}
+    best = {"h2h": {}, "totals": {}, "doubleChance": {}, "btts": {}, "spreads": []}
     for raw in event.get("bookmakers", []):
         markets = {
             "h2h": read_market(raw, "h2h", event.get("home_team", ""), event.get("away_team", "")) or {},
             "totals": read_market(raw, "totals", event.get("home_team", ""), event.get("away_team", "")) or {},
             "doubleChance": read_market(raw, "double_chance", event.get("home_team", ""), event.get("away_team", "")) or {},
+            "btts": read_market(raw, "btts", event.get("home_team", ""), event.get("away_team", "")) or {},
             "spreads": read_market(raw, "spreads", event.get("home_team", ""), event.get("away_team", "")) or [],
         }
         item = {
@@ -174,7 +179,7 @@ def convert_event(event):
         }
         if any(markets.values()):
             books.append(item)
-        for market_key in ("h2h", "totals", "doubleChance"):
+        for market_key in ("h2h", "totals", "doubleChance", "btts"):
             for outcome, price in markets[market_key].items():
                 old = best[market_key].get(outcome)
                 if old is None or price > old["price"]:
@@ -249,7 +254,7 @@ def main():
                 params={
                     "apiKey": api_key,
                     "regions": "eu",
-                    "markets": "h2h,totals,spreads,double_chance",
+                    "markets": "h2h,totals,spreads,double_chance,btts",
                     "oddsFormat": "decimal",
                     "dateFormat": "iso",
                 },
