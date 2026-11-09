@@ -193,12 +193,8 @@ def read_market(bookmaker, key, home, away):
                 point = float(point)
             except (TypeError, ValueError):
                 continue
-            # AH0 / DNB is deliberately excluded.
-            if abs(point) < 0.001:
-                continue
-            # The local tracker supports whole- and half-goal settlement only.
-            # Skip quarter lines rather than recording inaccurate full win/loss results.
-            if abs(point * 2 - round(point * 2)) > 0.001:
+            # Betting Desk publishes only level handicap (0) for either team.
+            if abs(point) > 0.001:
                 continue
             if norm(name) in (norm(home), norm(away)):
                 out.append({"team": "home" if norm(name) == norm(home) else "away",
@@ -304,7 +300,7 @@ def has_model_market(quote):
     if any(isinstance(price, (int, float)) and price > 1 for price in dc.values()):
         return True
     for row in best.get("spreads") or []:
-        if isinstance(row.get("price"), (int, float)) and row["price"] > 1 and abs(float(row.get("point", 0))) > 0.001:
+        if isinstance(row.get("price"), (int, float)) and row["price"] > 1 and abs(float(row.get("point", 0))) < 0.001:
             return True
     for row in best.get("teamTotals") or []:
         if row.get("side") == "over" and isinstance(row.get("price"), (int, float)) and row["price"] > 1:
