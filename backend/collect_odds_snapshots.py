@@ -67,7 +67,7 @@ def append_snapshots(input_path, output_path, retrieved_at=None):
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("a", encoding="utf-8") as handle:
         for row in rows:
-            handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\\n")
+            handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
     summary = {"retrieved_at": retrieved_at or datetime.now(timezone.utc).isoformat(),
                "records_appended": len(rows), "archive": str(output)}
     print(json.dumps(summary, ensure_ascii=False))
