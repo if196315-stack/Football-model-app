@@ -966,7 +966,7 @@ class MainActivity : Activity() {
         }
         // Keep league filters in a horizontal scroller so they never squeeze on narrow phones.
         leagueBar.parent?.let { (it as? android.view.ViewGroup)?.removeView(leagueBar) }
-        matchesContainer.addView(leagueScroll, 0)
+        matchesContainer.addView(leagueScroll)
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
                 text = names[index]
