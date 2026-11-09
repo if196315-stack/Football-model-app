@@ -98,7 +98,8 @@ def parse_odds(m):
                         best["doubleChance"][key]=max(price,best["doubleChance"].get(key,0))
                         books_best["doubleChance"][key]=bk.upper(); row["doubleChance"][key]=price
                     elif kind=="btts":
-                        side={"yes":"yes","true":"yes","1":"yes","no":"no","false":"no","2":"no"}.get(key)
+                        side = ("yes" if key in ("yes", "true", "1") or key.endswith("_yes") else
+                                "no" if key in ("no", "false", "2") or key.endswith("_no") else None)
                         if not side:continue
                         if price>best["btts"].get(side,0):
                             best["btts"][side]=price; books_best["btts"][side]=bk.upper()
@@ -114,10 +115,12 @@ def parse_odds(m):
                             books_best["spreads"]=[x for x in books_best["spreads"] if x["team"]!=side]+[{"team":side,"point":0.0,"bookmaker":bk.upper()}]
                         row["spreads"].append(q)
                     elif kind in ("tt","total"):
-                        side_key={"over":"over","under":"under","больше":"over","меньше":"under"}.get(key)
+                        side_key = ("over" if key in ("over", "больше") or key.startswith("over_") else
+                                    "under" if key in ("under", "меньше") or key.startswith("under_") else None)
                         if side_key is None or arg is None:continue
                         if kind=="tt":
-                            team="home" if slug.endswith("_1") or slug.endswith("1") else ("away" if slug.endswith("_2") or slug.endswith("2") else None)
+                            team = ("home" if slug.endswith(("_1", "1")) or "home" in slug else
+                                    "away" if slug.endswith(("_2", "2")) or "away" in slug else None)
                             if team is None:continue
                             q={"team":team,"point":float(arg),"side":side_key,"price":price}
                             target=best["teamTotals"]; row_target=row["teamTotals"]; books_target=books_best["teamTotals"]
