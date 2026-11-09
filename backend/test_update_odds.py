@@ -69,9 +69,9 @@ class OddsMarketParsingTests(unittest.TestCase):
                 update_data.OUT = old_out
     def test_double_chance_labels(self):
         bookmaker = {"markets": [{"key": "double_chance", "outcomes": [
-            {"name": "Home/Draw", "price": 1.35},
-            {"name": "Draw/Away", "price": 1.65},
-            {"name": "Home/Away", "price": 1.25},
+            {"name": "Home or Draw", "price": 1.35},
+            {"name": "Draw or Away", "price": 1.65},
+            {"name": "Home or Away", "price": 1.25},
         ]}]}
         self.assertEqual(read_market(bookmaker, "double_chance", "Arsenal", "Chelsea"),
                          {"1x": 1.35, "x2": 1.65, "12": 1.25})
