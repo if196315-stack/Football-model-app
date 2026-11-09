@@ -109,8 +109,19 @@ def market_kind(slug,market):
     if "double_chance" in slug or "double chance" in name:return "dc"
     if ("both_teams" in slug or "btts" in slug or "both teams to score" in name
             or "обе команды забьют" in name or "обе забьют" in name):return "btts"
-    if ("total_team" in slug or "team_total" in slug or "team total" in name
-            or "тотал команды" in name or "индивидуальный тотал" in name):return "tt"
+    team_total_slug = (
+        "total_team" in slug or "team_total" in slug
+        or ("team" in slug and any(token in slug for token in ("goal", "total", "score", "over", "under")))
+        or ("home_team" in slug and any(token in slug for token in ("goal", "total", "score")))
+        or ("away_team" in slug and any(token in slug for token in ("goal", "total", "score")))
+    )
+    team_total_name = any(token in name for token in (
+        "team total", "team goals", "team goal", "home team", "away team",
+        "goals by team", "total goals by", "individual total",
+        "тотал команды", "индивидуальный тотал", "итб команды",
+        "голы команды", "гол команды",
+    ))
+    if team_total_slug or team_total_name:return "tt"
     if ("total" in slug or "тотал" in name) and not ("team" in slug or "команд" in name):return "total"
     if "handicap" in slug or "гандикап" in name or "фора" in name:return "spread"
     return None
