@@ -825,6 +825,18 @@ class MainActivity : Activity() {
     }
 
 
+    private fun parseFeedTimeMillis(raw: String): Long? {
+        return try {
+            val value = raw.trim().take(19)
+            if (value.length != 19) return null
+            val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+                isLenient = false
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            format.parse(value)?.time
+        } catch (_: Exception) { null }
+    }
+
     private fun marketKeyForAutoSignal(signal: JSONObject, match: JSONObject): String? {
         val side = signal.optString("side")
         if (side == "1X") return "1x"
@@ -885,7 +897,7 @@ class MainActivity : Activity() {
                 if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, match) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
-                val edge = signal.optDouble("edgePp", Double.NaN)
+                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0
                 val ev = probability * price - 1.0
                 if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
                 val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
@@ -903,9 +915,10 @@ class MainActivity : Activity() {
                 var dailyExposure = 0.0
                 for (k in 0 until bets.length()) {
                     val prior = bets.optJSONObject(k) ?: continue
-                    if (prior.optString("date").take(10) == localDay &&
+                    if ((prior.optString("betDay").ifBlank { prior.optString("date").take(10) } == localDay) &&
                         prior.optString("status") in listOf("PENDING", "WON", "LOST")) dailyExposure += prior.optDouble("stake", 0.0)
                 }
+                if (dailyExposure + stake > bank * 0.02 + 0.000001) continue
                 bets.put(JSONObject()
                     .put("id", id)
                     .put("source", "AI_AUTO")
@@ -913,6 +926,7 @@ class MainActivity : Activity() {
                     .put("matchId", matchId)
                     .put("league", competition.optString("name"))
                     .put("date", match.optString("utcDate"))
+                    .put("betDay", localDay)
                     .put("home", match.optString("home"))
                     .put("away", match.optString("away"))
                     .put("market", signal.optString("side"))
