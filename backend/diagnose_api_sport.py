@@ -28,6 +28,33 @@ def response_items(payload):
     return []
 
 
+def exact_match_payload(payload):
+    if isinstance(payload, dict):
+        for key in ("match", "data", "result"):
+            value = payload.get(key)
+            if isinstance(value, dict):
+                return value
+        return payload
+    return {}
+
+
+def exact_fixture_odds_summary(payload):
+    match = exact_match_payload(payload)
+    flags = match.get("hasBkOdds") or {}
+    books = match.get("oddsBk") or {}
+    melbet = books.get("melbet") if isinstance(books, dict) else None
+    markets = market_summary(melbet) if isinstance(melbet, dict) else []
+    return {
+        "id": match.get("id"),
+        "home": (match.get("homeTeam") or {}).get("name"),
+        "away": (match.get("awayTeam") or {}).get("name"),
+        "hasBkOdds": flags,
+        "bookmakerBoards": sorted(books.keys()) if isinstance(books, dict) else [],
+        "melbetBoard": isinstance(melbet, dict),
+        "melbetMarkets": markets,
+    }
+
+
 def quota_summary(payload):
     usage = payload.get("usage") or {}
     if not isinstance(usage, dict):
@@ -213,6 +240,22 @@ def main():
     print(f"FIXTURE_ONLY_SCANNED={len(fixture_matches)} (maximum 2500; five pages)")
     print("FIXTURE_ONLY_SAMPLE=" + json.dumps(fixture_rows, ensure_ascii=False))
     print("MODEL_FIXTURE_MATCHES_IN_API=" + json.dumps(matched_rows, ensure_ascii=False))
+
+    # Fetch each exact model fixture by ID, without a bookmaker filter, to
+    # distinguish missing Melbet from missing odds payload / other book boards.
+    exact_rows = []
+    for row in matched_rows:
+        fixture_id = row.get("id")
+        if fixture_id is None:
+            continue
+        exact_response = session.get(
+            f"{MATCHES_URL}/{fixture_id}",
+            params={"with_bk_odds": "true"},
+            timeout=TIMEOUT,
+        )
+        exact_response.raise_for_status()
+        exact_rows.append(exact_fixture_odds_summary(exact_response.json()))
+    print("EXACT_MODEL_FIXTURE_ODDS=" + json.dumps(exact_rows, ensure_ascii=False))
     matches_response = session.get(MATCHES_URL, params=params, timeout=TIMEOUT)
     matches_response.raise_for_status()
     payload = matches_response.json()
