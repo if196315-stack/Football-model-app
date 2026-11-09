@@ -100,8 +100,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val quoteTime = parseInstant(odds.optString("updatedAt")) ?: continue
                 if (quoteTime > now || quoteTime < kickoff - 12L * 60L * 60L * 1000L) continue
 
-                val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: if (competition.optString("code") == "UCL" || competition.optString("code") == "UEL") uefaSignal(match) else null
+                val signal = (match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                    ?: if (competition.optString("code") == "UCL" || competition.optString("code") == "UEL") uefaSignal(match) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
                 val price = priceFor(signal, match) ?: continue
