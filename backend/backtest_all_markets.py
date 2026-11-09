@@ -8,6 +8,7 @@ not a betting-edge or ROI backtest.
 """
 from __future__ import annotations
 import argparse, csv, json, math
+import numpy as np
 from collections import defaultdict
 from pathlib import Path
 from backtest_pitchapi import WINDOW, HALF_LIFE, SHRINKAGE, poisson, team_strength
@@ -146,42 +147,36 @@ def fit_vector_scaling(train_rows, market, min_n=100):
     if len(train_rows) < min_n:
         return {"available": False, "reason": "insufficient_training_rows",
                 "train_n": len(train_rows), "classes": list(classes)}
-    bias = [0.0] * len(classes)
-    log_temperature = 0.0
-    examples = []
+    matrix, labels = [], []
     for row in train_rows:
         raw = row["model"]
         probs = raw if isinstance(raw, dict) else {"0": 1.0 - float(raw), "1": float(raw)}
-        logits = [math.log(max(1e-8, min(1.0, float(probs[label])))) for label in classes]
-        examples.append((logits, classes.index(str(row["actual"]))))
+        matrix.append([math.log(max(1e-8, min(1.0, float(probs[label]))))
+                       for label in classes])
+        labels.append(classes.index(str(row["actual"])))
+    x = np.asarray(matrix, dtype=float)
+    y = np.asarray(labels, dtype=int)
+    bias = np.zeros(len(classes), dtype=float)
+    log_temperature = 0.0
+    learning_rate = 0.04
+    one_hot = np.eye(len(classes), dtype=float)[y]
     # Multinomial vector scaling: log(p)/T + class bias. L2 regularization
     # keeps small-sample class offsets from becoming extreme.
-    learning_rate = 0.04
-    for _ in range(700):
-        grad_bias = [0.0] * len(classes)
-        grad_log_t = 0.0
+    for _ in range(250):
         inv_t = math.exp(-log_temperature)
-        for logits, actual_index in examples:
-            z = [logits[i] * inv_t + bias[i] for i in range(len(classes))]
-            peak = max(z)
-            exp_z = [math.exp(max(-60.0, value - peak)) for value in z]
-            total = sum(exp_z)
-            q = [value / total for value in exp_z]
-            for i in range(len(classes)):
-                error = q[i] - (1.0 if i == actual_index else 0.0)
-                grad_bias[i] += error
-                grad_log_t += error * (-logits[i] * inv_t)
-        scale = 1.0 / len(examples)
-        for i in range(len(classes)):
-            grad_bias[i] = grad_bias[i] * scale + 0.01 * bias[i]
-            bias[i] -= learning_rate * grad_bias[i]
-        grad_log_t = grad_log_t * scale + 0.01 * log_temperature
-        log_temperature -= learning_rate * grad_log_t
-        log_temperature = max(-2.0, min(2.0, log_temperature))
+        z = x * inv_t + bias
+        z -= np.max(z, axis=1, keepdims=True)
+        exp_z = np.exp(np.clip(z, -60.0, 0.0))
+        q = exp_z / np.sum(exp_z, axis=1, keepdims=True)
+        error = q - one_hot
+        grad_bias = np.mean(error, axis=0) + 0.01 * bias
+        grad_log_t = float(np.mean(np.sum(error * (-x * inv_t), axis=1))
+                           + 0.01 * log_temperature)
+        bias -= learning_rate * grad_bias
+        log_temperature = max(-2.0, min(2.0, log_temperature - learning_rate * grad_log_t))
     return {"available": True, "train_n": len(train_rows),
             "classes": list(classes), "temperature": math.exp(log_temperature),
-            "bias": {label: bias[i] for i, label in enumerate(classes)}}
-
+            "bias": {label: float(bias[i]) for i, label in enumerate(classes)}}
 
 def apply_vector_scaling(row, params):
     raw = row["model"]
