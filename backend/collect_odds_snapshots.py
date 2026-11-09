@@ -160,7 +160,7 @@ def collect(input_path, output_path, api_key, session=requests):
     for code, sport in SPORTS.items():
         competition = competitions.get(code)
         if not competition:
-            stats[code] = {"eligible": 0, "matched": 0, "with_1x2": 0}
+            stats[code] = {"eligible": 0, "matched": 0, "with_1x2": 0, "with_strategy_markets": 0, "with_btts": 0}
             continue
         fixtures = [
             item for item in competition.get("matches", [])
@@ -212,6 +212,7 @@ def collect(input_path, output_path, api_key, session=requests):
                 "matched": matched,
                 "with_1x2": with_odds,
                 "with_strategy_markets": sum(1 for row in rows if row["league_code"] == code and any(book["double_chance"] or book["spreads"] for book in row["bookmakers"])),
+                "with_btts": sum(1 for row in rows if row["league_code"] == code and any(book["btts"] for book in row["bookmakers"])),
             }
         except Exception as exc:
             # Do not include request URLs or parameters, which may contain the key.
