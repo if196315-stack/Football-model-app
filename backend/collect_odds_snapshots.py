@@ -19,12 +19,11 @@ def snapshot_rows(data, retrieved_at=None):
         league_code = competition.get("code")
         for match in competition.get("matches", []):
             odds = match.get("odds") or {}
-            # The production archive is strictly Melbet-only. Do not append
-            # legacy snapshots from previous bookmaker providers.
-            if str(odds.get("bookmaker") or data.get("oddsBookmaker") or "").lower() != "melbet":
+            # Trust only the bookmaker marker attached to this exact match.
+            # A file-level marker must never relabel stale mixed-book prices.
+            if str(odds.get("bookmaker") or "").lower() != "melbet":
                 continue
             best = odds.get("best") or {}
-            best_books = odds.get("bestBookmakers") or {}
             common = {
                 "schema_version": 1, "retrieved_at": retrieved_at,
                 "league_code": league_code, "fixture_id": str(match.get("id") or ""),
@@ -50,7 +49,6 @@ def snapshot_rows(data, retrieved_at=None):
                     continue
                 yield {**common, "market": "spread", "team": quote["team"], "point": point,
                        "price": float(quote["price"]), "bookmaker": "MELBET"}
-
 
             for side, price in (best.get("btts") or {}).items():
                 if side in ("yes", "no") and valid_price(price):
