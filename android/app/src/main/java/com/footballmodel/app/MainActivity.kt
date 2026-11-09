@@ -142,7 +142,7 @@ class MainActivity : Activity() {
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
         val best = odds?.optJSONObject("best")
         if (best == null) {
-            addText(parent, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, muted)
+            addText(parent, "КОЭФФИЦИЕНТЫ MELBET", 9, true, muted)
             addText(parent, "Нет свежих котировок для этого матча", 11, false, muted)
             return
         }
@@ -392,7 +392,17 @@ class MainActivity : Activity() {
         collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h,a -> h + a >= 3 })
-        collect("bttsYes", "Обе забьют · обе команды минимум по 1 голу", { h,a -> h >= 1 && a >= 1 })
+        collect("bttsYes", "ОЗ — да", { h,a -> h >= 1 && a >= 1 })
+        collect("bttsNo", "ОЗ — нет", { h,a -> h == 0 || a == 0 })
+        collect("over15", "ТБ 1.5", { h,a -> h+a >= 2 })
+        collect("under15", "ТМ 1.5", { h,a -> h+a <= 1 })
+        collect("under25", "ТМ 2.5", { h,a -> h+a <= 2 })
+        collect("over35", "ТБ 3.5", { h,a -> h+a >= 4 })
+        collect("under35", "ТМ 3.5", { h,a -> h+a <= 3 })
+        collect("homeUnder15", "ИТМ 1.5 · хозяева", { h,_ -> h <= 1 })
+        collect("awayUnder15", "ИТМ 1.5 · гости", { _,a -> a <= 1 })
+        collect("homeOver25", "ИТБ 2.5 · хозяева", { h,_ -> h >= 3 })
+        collect("awayOver25", "ИТБ 2.5 · гости", { _,a -> a >= 3 })
         if (metrics.isEmpty()) {
             val empty = card()
             addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
