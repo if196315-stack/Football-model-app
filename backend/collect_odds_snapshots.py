@@ -19,6 +19,10 @@ def snapshot_rows(data, retrieved_at=None):
         league_code = competition.get("code")
         for match in competition.get("matches", []):
             odds = match.get("odds") or {}
+            # The production archive is strictly Melbet-only. Do not append
+            # legacy snapshots from previous bookmaker providers.
+            if str(odds.get("bookmaker") or data.get("oddsBookmaker") or "").lower() != "melbet":
+                continue
             best = odds.get("best") or {}
             best_books = odds.get("bestBookmakers") or {}
             common = {
@@ -58,6 +62,33 @@ def snapshot_rows(data, retrieved_at=None):
                     continue
                 yield {**common, "market": "team_total", "team": quote["team"], "side": "over",
                        "point": point, "price": float(quote["price"]), "bookmaker": quote.get("bookmaker")}
+
+            for side, price in (best.get("btts") or {}).items():
+                if side in ("yes", "no") and valid_price(price):
+                    yield {**common, "market": "btts", "outcome": side,
+                           "price": float(price), "bookmaker": "MELBET"}
+
+            for quote in best.get("totals") or []:
+                if quote.get("side") not in ("over", "under") or not valid_price(quote.get("price")):
+                    continue
+                try:
+                    point = float(quote.get("point"))
+                except (TypeError, ValueError):
+                    continue
+                yield {**common, "market": "match_total", "side": quote["side"],
+                       "point": point, "price": float(quote["price"]), "bookmaker": "MELBET"}
+
+            for quote in best.get("teamTotals") or []:
+                if quote.get("team") not in ("home", "away") or quote.get("side") not in ("over", "under"):
+                    continue
+                if not valid_price(quote.get("price")):
+                    continue
+                try:
+                    point = float(quote.get("point"))
+                except (TypeError, ValueError):
+                    continue
+                yield {**common, "market": "team_total", "team": quote["team"], "side": quote["side"],
+                       "point": point, "price": float(quote["price"]), "bookmaker": "MELBET"}
 
 
 def append_snapshots(input_path, output_path, retrieved_at=None):
