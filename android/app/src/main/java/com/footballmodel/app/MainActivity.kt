@@ -63,18 +63,12 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        val crest = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(Color.rgb(104, 82, 43), Color.rgb(39, 37, 34))).apply {
-                cornerRadius = dp(17).toFloat()
-                setStroke(dp(1), Color.rgb(177, 137, 65))
-            }
-            addView(label("🏆", 22, true, gold).apply { gravity = Gravity.CENTER })
-            addView(label("IQ", 8, true, Color.WHITE).apply { gravity = Gravity.CENTER })
+        val crest = ImageView(this).apply {
+            setImageResource(R.drawable.ic_launcher)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            contentDescription = "IQ Match"
         }
-        top.addView(crest, LinearLayout.LayoutParams(dp(54), dp(54)).apply { rightMargin = dp(12) })
+        top.addView(crest, LinearLayout.LayoutParams(dp(56), dp(56)).apply { rightMargin = dp(11) })
         val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         brand.addView(label("IQ MATCH", 24, true, Color.WHITE))
         brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
@@ -164,6 +158,38 @@ class MainActivity : Activity() {
 
     private fun addText(box: LinearLayout, value: String, size: Int = 13, bold: Boolean = false, color: Int = Color.WHITE) {
         box.addView(label(value, size, bold, color))
+    }
+
+    private fun addMatchup(parent: LinearLayout, home: String, away: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(2), dp(7), dp(2), dp(7))
+        }
+        val homeName = label(home, 14, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            maxLines = 2
+            includeFontPadding = false
+        }
+        val awayName = label(away, 14, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            maxLines = 2
+            includeFontPadding = false
+        }
+        val versus = label("VS", 9, true, gold).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(9), dp(5), dp(9), dp(5))
+            background = rounded(Color.rgb(37, 43, 53), 10)
+        }
+        row.addView(homeName, LinearLayout.LayoutParams(0, -2, 1f))
+        row.addView(versus, LinearLayout.LayoutParams(-2, -2).apply {
+            setMargins(dp(7), 0, dp(7), 0)
+        })
+        row.addView(awayName, LinearLayout.LayoutParams(0, -2, 1f))
+        parent.addView(row, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(2)
+            bottomMargin = dp(2)
+        })
     }
 
     // Shared premium title panel for every secondary screen.
@@ -1075,7 +1101,7 @@ class MainActivity : Activity() {
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
                 addText(box, date(m.optString("utcDate")), 11, true, accent)
-                addText(box, m.optString("home") + "   —   " + m.optString("away"), 15, true)
+                addMatchup(box, m.optString("home"), m.optString("away"))
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
                     addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
