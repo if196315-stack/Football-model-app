@@ -32,6 +32,16 @@ class PitchApiUpdaterTests(unittest.TestCase):
                            "status": "finished", "date": "2024-01-01T12:00:00Z",
                            "home": "A", "away": "B", "homeScore": 1,
                            "awayScore": 0, "homeXg": 1.0, "awayXg": 0.2},
+            "germany_awarded_season_finished": {"id": "germany_good", "leagueCode": "GER", "season": "2024/25",
+                        "status": "finished", "date": "2025-02-02T12:00:00Z",
+                        "home": "Bayern München", "away": "Mainz 05", "homeScore": 3,
+                        "awayScore": 0, "homeXg": 2.1, "awayXg": 0.3,
+                        "hasPlayoff": False},
+            "germany_awarded_fixture": {"id": "germany_awarded", "leagueCode": "GER", "season": "2024/25",
+                        "status": "awarded", "date": "2024-12-14T14:30:00Z",
+                        "home": "Union Berlin", "away": "Bochum", "homeScore": 0,
+                        "awayScore": 2, "homeXg": None, "awayXg": None,
+                        "hasPlayoff": False},
             "playoff": {"id": "playoff", "leagueCode": "ITA", "season": "2024/25",
                         "status": "finished", "date": "2025-02-01T12:00:00Z",
                         "home": "C", "away": "D", "homeScore": 1,
@@ -47,8 +57,9 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertEqual(len(history), 2)
         self.assertIsNone(history.date.dt.tz)
         self.assertIsNone(results.date.dt.tz)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(set(history.team), {"Arsenal", "Chelsea"})
+        self.assertEqual(len(results), 2)
+        self.assertEqual(set(history.team), {"Arsenal", "Chelsea", "Bayern München", "Mainz 05"})
+        self.assertNotIn("germany_awarded", set(history.match_id))
         self.assertAlmostEqual(base["eng", "home"], 1.4)
         self.assertAlmostEqual(base["eng", "away"], 0.4)
 
