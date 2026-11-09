@@ -13,7 +13,9 @@ def base_row(**overrides):
         "fixture_id": "fixture-1", "provider_event_id": "provider-1",
         "league_code": "UCL", "season": "2026/2027",
         "kickoff_utc": "2026-11-24", "home_team": "Home", "away_team": "Away",
-        "market": "match_total_over", "point": 2.5, "side": "over",
+        "market": "match_total_over", "market_parser_version": "betboom-fulltime-v2",
+        "provider_market_slug": "total_goals", "provider_market_group": "total goals",
+        "provider_market_name": "Total Goals", "point": 2.5, "side": "over",
         "candidate_market": True, "reference_only": False,
         "price": 1.9, "model_probability": 0.7,
         "model_probability_status": "available",
@@ -38,6 +40,7 @@ class UefaPaperSignalTests(unittest.TestCase):
         self.assertAlmostEqual(signal["edge"], 0.2, places=8)
         self.assertAlmostEqual(signal["expected_value"], 0.33, places=8)
         self.assertEqual(signal["edge_method"], "two_way_overround_removed")
+        self.assertEqual(signal["provider_market_group"], "total goals")
         self.assertTrue(signal["paper_only"])
 
     def test_double_chance_uses_conservative_raw_implied_edge(self):
@@ -89,6 +92,11 @@ class UefaPaperSignalTests(unittest.TestCase):
             self.assertIn('"signal_id": "first"', rows[0])
             again = append_unique_paper_bets([first, second], path)
             self.assertEqual(again["unique_paper_bets_added"], 0)
+
+    def test_legacy_snapshots_without_parser_version_are_ignored(self):
+        legacy = base_row()
+        legacy.pop("market_parser_version")
+        self.assertEqual(build_signals([legacy]), [])
 
     def test_append_is_idempotent_and_ignores_reference_rows(self):
         over = base_row()
