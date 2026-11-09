@@ -361,6 +361,40 @@ def main():
     report = run(rows, args.holdout_from)
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    calibration_global = {}
+    calibration_by_competition = {}
+    for market, metrics in report["markets"].items():
+        cal = metrics["calibration_global"]
+        holdout_metrics = cal.get("holdout")
+        raw_metrics = cal.get("raw_holdout")
+        calibration_global[market] = {
+            "train_n": cal["calibrator"]["train_n"],
+            "holdout_n": holdout_metrics["n"] if holdout_metrics else 0,
+            "raw_brier": raw_metrics["brier"] if raw_metrics else None,
+            "calibrated_brier": holdout_metrics["brier"] if holdout_metrics else None,
+            "brier_delta_vs_raw": cal["brier_delta_vs_raw"],
+            "raw_log_loss": raw_metrics["log_loss"] if raw_metrics else None,
+            "calibrated_log_loss": holdout_metrics["log_loss"] if holdout_metrics else None,
+            "log_loss_delta_vs_raw": cal["log_loss_delta_vs_raw"],
+        }
+        for league, league_cal in metrics["calibration_by_competition"].items():
+            target = calibration_by_competition.setdefault(league, {"markets_tested": 0, "markets_brier_improved": 0,
+                                                                       "brier_delta_sum": 0.0, "log_loss_delta_sum": 0.0})
+            if league_cal.get("holdout"):
+                target["markets_tested"] += 1
+                delta_b = league_cal.get("brier_delta_vs_raw")
+                delta_l = league_cal.get("log_loss_delta_vs_raw")
+                if delta_b is not None:
+                    target["brier_delta_sum"] += delta_b
+                    target["markets_brier_improved"] += int(delta_b > 0)
+                if delta_l is not None:
+                    target["log_loss_delta_sum"] += delta_l
+    for league, values in calibration_by_competition.items():
+        n = values.pop("markets_tested")
+        values["markets_tested"] = n
+        values["mean_brier_delta_vs_raw"] = values.pop("brier_delta_sum") / n if n else None
+        values["mean_log_loss_delta_vs_raw"] = values.pop("log_loss_delta_sum") / n if n else None
+
     print(json.dumps({
         "input_matches": report["input_matches"],
         "input_matches_by_competition": report["input_matches_by_competition"],
@@ -369,6 +403,8 @@ def main():
             market: metrics["holdout"]["model"]["n"] if metrics["holdout"] else 0
             for market, metrics in report["markets"].items()
         },
+        "calibration_global": calibration_global,
+        "calibration_by_competition": calibration_by_competition,
     }, ensure_ascii=False))
 
 
