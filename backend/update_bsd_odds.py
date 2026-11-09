@@ -85,7 +85,11 @@ def make_quote(event, payload):
     odds = payload.get("odds") or {}
     markets = {
         "h2h": {"home": odds.get("home_win"), "draw": odds.get("draw"), "away": odds.get("away_win")},
-        "totals": {\n            "over15": odds.get("over_15_goals"), "under15": odds.get("under_15_goals"),\n            "over25": odds.get("over_25_goals"), "under25": odds.get("under_25_goals"),\n            "over35": odds.get("over_35_goals"), "under35": odds.get("under_35_goals"),\n        },
+        "totals": {
+            "over15": odds.get("over_15_goals"), "under15": odds.get("under_15_goals"),
+            "over25": odds.get("over_25_goals"), "under25": odds.get("under_25_goals"),
+            "over35": odds.get("over_35_goals"), "under35": odds.get("under_35_goals"),
+        },
         "btts": {"yes": odds.get("btts_yes"), "no": odds.get("btts_no")},
     }
     best = {}
