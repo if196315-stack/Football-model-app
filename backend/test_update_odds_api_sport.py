@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds_api_sport import parse_odds, match_fixture, sim
+from update_odds_api_sport import parse_odds, match_fixture, sim, betboom_market_diagnostics
 
 
 class ApiSportOddsTests(unittest.TestCase):
@@ -208,6 +208,38 @@ class ApiSportOddsTests(unittest.TestCase):
             "awayTeam": {"name": "Fulham"},
         }
         self.assertIs(match_fixture(target, [candidate]), candidate)
+
+
+    def test_team_total_diagnostics_identify_unclassified_team_markets(self):
+        source = {"id": 501, "oddsBk": {"betboom": {"markets": {
+            "total_team_1": {"status": "open", "stage": "prematch", "stakes": {
+                "over": {"lines": [{"argument": 1.5, "factor": 1.8}]}
+            }},
+            "team_goals_home": {"name": {"en": "Home Team Goals"},
+                "status": "open", "stage": "prematch", "stakes": {
+                    "Over 1.5": {"lines": [{"argument": 1.5, "factor": 1.9}]}
+                }},
+        }}}}
+        report = betboom_market_diagnostics([source])
+        self.assertEqual(report["team_total_markets_classified"], 1)
+        self.assertEqual(report["team_like_markets_not_classified"], 1)
+        self.assertEqual(report["parsed_team_total_quotes"], 1)
+        self.assertIn("team_goals_home", report["market_examples"])
+
+    def test_team_total_diagnostics_count_raw_but_closed_and_half_time_separately(self):
+        source = {"id": 502, "oddsBk": {"betboom": {"markets": {
+            "total_team_1": {"status": "closed", "stage": "prematch", "stakes": {
+                "over": {"lines": [{"argument": 1.5, "factor": 1.8}]}
+            }},
+            "first_half_total_team_2": {"status": "open", "stage": "prematch", "stakes": {
+                "over": {"lines": [{"argument": 0.5, "factor": 1.9}]}
+            }},
+        }}}}
+        report = betboom_market_diagnostics([source])
+        self.assertEqual(report["team_total_markets_classified"], 2)
+        self.assertEqual(report["team_total_markets_open_prematch"], 1)
+        self.assertEqual(report["team_total_markets_fulltime"], 1)
+        self.assertEqual(report["team_total_markets_active_fulltime"], 0)
 
 
 if __name__ == "__main__":
