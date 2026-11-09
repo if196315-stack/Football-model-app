@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds import read_market, convert_event, merge_quote
+from update_odds import read_market, convert_event, merge_quote\nfrom update_bsd_odds import make_quote
 
 
 class OddsMarketParsingTests(unittest.TestCase):
@@ -179,6 +179,20 @@ class OddsMarketParsingTests(unittest.TestCase):
         self.assertEqual(len(merged["best"]["teamTotals"]), 1)
         self.assertEqual(merged["eventId"], "bsd-event")
         self.assertEqual(len(merged["bookmakers"]), 2)
+
+    def test_bsd_quote_includes_all_documented_match_total_lines(self):
+        quote = make_quote({"id": 42}, {"odds": {
+            "home_win": 2.1, "draw": 3.2, "away_win": 3.5,
+            "over_15_goals": 1.2, "under_15_goals": 4.5,
+            "over_25_goals": 1.8, "under_25_goals": 2.0,
+            "over_35_goals": 2.7, "under_35_goals": 1.4,
+            "btts_yes": 1.7, "btts_no": 2.1,
+        }})
+        self.assertEqual(quote["best"]["totals"], {
+            "over15": 1.2, "under15": 4.5, "over25": 1.8,
+            "under25": 2.0, "over35": 2.7, "under35": 1.4,
+        })
+        self.assertEqual(quote["bestBookmakers"]["totals"]["over35"], "BSD consensus")
 
 if __name__ == "__main__":
     unittest.main()
