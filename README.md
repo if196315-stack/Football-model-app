@@ -1,26 +1,42 @@
 # Football Model App
 
-Android client and scheduled data pipeline for the frozen Openplay v1.3 football model.
+Android client and scheduled football-data pipeline.
 
-## Model contract
-- Five competitions: ENG, ESP, ITA, GER, FRA.
-- Frozen parameters: all-match team history, last 30 matches, half-life 12, shrinkage 3.
-- Independent Poisson score model.
-- Predictions must be generated before updating history for matches on the same date.
-- Openplay xG is the only xG source. Football-data.org is used for fixtures/results only.
-- No odds, ROI, or betting recommendations are provided.
-- If a team cannot be mapped reliably to an Openplay team ID, or current-season xG is absent, do not fabricate a prediction.
+## Data sources
 
-Openplay data attribution: **openplay (Noah Bair)**, CC-BY 4.0.
+- **PitchAPI** supplies fixtures, results and shot-level expected goals (xG).
+- **The Odds API** supplies bookmaker prices where supported by the event and bookmaker.
+- No Openplay or Football-Data.org integration is used by the active pipeline.
 
-## Setup
-1. In GitHub: Settings → Secrets and variables → Actions → New repository secret.
-2. Add `FOOTBALL_DATA_TOKEN` with your Football-Data.org token. Never commit the token.
-3. Enable GitHub Pages from the `main` branch, folder `/docs`.
-4. Run the workflow **Update football data** from Actions.
-5. Build the Android app from the `android/` folder using Android Studio.
+The production updater is `.github/workflows/update-data.yml`. After deployment to `main`, it refreshes PitchAPI data and then bookmaker odds every six hours. The odds refresh is a separate step in the same workflow so the two providers remain independently configured. A single production workflow avoids duplicate scheduled odds requests.
 
-The Android app reads `docs/data.json` from this repository's GitHub Pages URL. Until Pages is enabled and the first successful workflow completes, it shows a data-unavailable message.
+## Model and data rules
 
-## Important current limitation
-The published Openplay v0.1.0 snapshot covers seasons through 2025/26 and is not a live xG feed. The app must display the snapshot date and must not label historical xG forecasts as fresh 2026/27 predictions.
+- Competitions: ENG, ESP, ITA, GER, FRA.
+- The forecasting model uses historical team data and independent Poisson score probabilities.
+- Predictions are generated chronologically; matches on the same date must not leak results into one another.
+- Missing xG remains missing. The pipeline does not impute or fabricate xG values.
+- Historical backtests use a clean cohort with paired, non-null xG and report forecast metrics. Those metrics are not betting ROI.
+- The app displays 1X2 reference prices, supported double-chance and non-zero handicap prices, and available totals/BTTS observations.
+- AH0 / Draw No Bet is excluded. ITB/team-total bookmaker prices are not shown unless the provider actually returns that market; current tested coverage did not confirm it.
+- Odds availability varies by match and bookmaker. Missing prices must remain missing, not be inferred.
+- The app does not place bets automatically. Bet-tracker entries and manually entered stakes remain local to the Android device.
+
+## GitHub setup
+
+1. Add repository secrets under **Settings → Secrets and variables → Actions**:
+   - `PITCHAPI_API_KEY`
+   - `ODDS_API_KEY`
+2. Enable GitHub Pages from the `main` branch, folder `/docs`.
+3. Run **Update football data** from Actions for a manual refresh, or let the six-hour schedule run.
+4. Build the Android app from the `android/` folder using Android Studio, or use the APK artifact from the build workflow.
+
+The Android app reads `docs/data.json` from the repository's GitHub Pages URL. Until Pages is enabled and a successful data update is published, it may show a data-unavailable message.
+
+## Quota-conscious diagnostics
+
+The prospective odds-snapshot and market-probe workflow is manual-dispatch only because it consumes The Odds API quota. Do not run it for routine code changes. The regular production workflow refreshes only the configured supported markets.
+
+## Migration and validation
+
+PitchAPI coverage audits, clean-cohort exports, and chronological backtests are available as GitHub Actions workflows. The CI unit-test job runs the backend regression suite. The migration preview is branch-only and does not publish production data.
