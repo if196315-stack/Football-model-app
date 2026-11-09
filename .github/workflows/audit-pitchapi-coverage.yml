@@ -95,9 +95,9 @@ jobs:
 
   pitchapi-audit:
     needs: unit-tests
-    # Manual dispatch may run a sample or a full-history audit. Pushes run the
-    # expensive audit only when the commit explicitly carries the marker.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[full-history-audit]'))
+    # Manual dispatch may run a sample or a full-history audit. Pushes run an
+    # explicitly authorized sample or full-history audit only with a marker.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (contains(github.event.head_commit.message, '[sample-audit]') || contains(github.event.head_commit.message, '[full-history-audit]')))
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
