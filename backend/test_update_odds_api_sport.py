@@ -1,3 +1,4 @@
+import copy
 import sys
 import unittest
 from pathlib import Path
@@ -66,7 +67,7 @@ class ApiSportOddsTests(unittest.TestCase):
                 "handicap_2": {"lines": [{"argument": 0, "factor": 1.95}]}
             }}
         }}}}
-        source["oddsBk"]["pari"] = source["oddsBk"]["melbet"]
+        source["oddsBk"]["pari"] = copy.deepcopy(source["oddsBk"]["melbet"])
         source["oddsBk"]["pari"]["markets"]["double_chance"]["stakes"]["1x"]["factor"] = 9.99
         quote = parse_odds(source)
         self.assertEqual(quote["best"]["doubleChance"], {"1x": 1.3, "x2": 2.7})
