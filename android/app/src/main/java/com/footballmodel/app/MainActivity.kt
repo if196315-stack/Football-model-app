@@ -237,8 +237,7 @@ class MainActivity : Activity() {
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
     private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>) {
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        items.forEach { item ->
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }        items.forEach { item ->
             val tile = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(11, 10, 11, 10)
@@ -293,7 +292,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "МАТЧИ", "day" to "TOP", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
+        val items = listOf("matches" to "МАТЧИ", "day" to "TOP", "desk" to "BETTING DESK", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -477,8 +476,7 @@ class MainActivity : Activity() {
             val team = line.optString("team")
             val key = "spread:$team:${String.format(Locale.US, "%.1f", point)}"
             val teamName = if (team == "home") m.optString("home") else m.optString("away")
-            val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
-            markets.add(BetMarket(key, "Фора $teamName $signed"))
+            val signed = if (point > 0) "+${fmt(point)}" else fmt(point)            markets.add(BetMarket(key, "Фора $teamName $signed"))
         }
         if (markets.isEmpty()) return
         val form = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(20,8,20,0) }
@@ -695,6 +693,65 @@ class MainActivity : Activity() {
         return null
     }
 
+    private fun renderBettingDesk(json: JSONObject) {
+        addText(matchesContainer, "BETTING DESK · STRATEGY ROOM", 9, true, cyan)
+        addText(matchesContainer, "Разбор рекомендованных ставок", 22, true)
+        addText(matchesContainer, "Каждый кандидат проходит проверку модели, исторической базы и реальной котировки Melbet. Объяснение показывает, почему рынок выбран и какие есть ограничения.", 11, false, muted)
+        val target = card()
+        addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 1 000 000 ₽", 10, true, gold)
+        addText(target, "Рост в 400 раз за 12 месяцев требует около 66.7% сложного роста каждый месяц. Это математический ориентир, не прогноз и не обещание.", 12, true)
+        addText(target, "Мы не будем увеличивать риск, догонять проигрыши или выдавать обязательный план ставок. Сохранность банка важнее срока.", 11, false, muted)
+        val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
+        val leagues = json.optJSONArray("competitions")
+        if (leagues != null) for (i in 0 until leagues.length()) {
+            val league = leagues.optJSONObject(i) ?: continue
+            val matches = league.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val m = matches.optJSONObject(j) ?: continue
+                if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal") ?: continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
+                val price = topSignalOdds(signal, m) ?: continue
+                if (price < 1.50) continue
+                candidates.add(Triple(m, league.optString("name"), signal))
+            }
+        }
+        val sorted = candidates.sortedByDescending { it.third.optDouble("edgePp") }
+        if (sorted.isEmpty()) {
+            val empty = card()
+            addText(empty, "Сейчас нет подтверждённых рекомендаций.", 15, true, gold)
+            addText(empty, "Нужны одновременно положительный сигнал, коэффициент Melbet от 1.50 и актуальные прематч-котировки. Не подменяем отсутствующие цены котировками других букмекеров.", 11, false, muted)
+            return
+        }
+        sorted.forEachIndexed { index, item ->
+            val (m, league, signal) = item
+            val p = signal.optDouble("modelProbability", Double.NaN)
+            val baseline = signal.optDouble("baselineProbability", Double.NaN)
+            val edge = signal.optDouble("edgePp", Double.NaN)
+            val odds = topSignalOdds(signal, m) ?: return@forEachIndexed
+            val implied = 1.0 / odds
+            val ev = p * odds - 1.0
+            val box = card()
+            addText(box, "КАНДИДАТ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
+            addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
+            addText(box, date(m.optString("utcDate")), 10, false, muted)
+            addText(box, "Рынок: ${signal.optString("side")} · Melbet ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
+            addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
+            addText(box, "Модель оценивает вероятность в ${String.format(Locale.US, "%.1f", p * 100)}%. Историческая база для этого сигнала — ${String.format(Locale.US, "%.1f", baseline * 100)}% на выборке из ${signal.optInt("baselineMatches")} матчей.", 11, false, Color.WHITE)
+            addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это причина вынести матч на проверку, но не доказательство преимущества над линией букмекера.", 11, false, muted)
+            addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
+            addText(box, "Вероятность безубыточности по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}% на единицу ставки.", 11, false, Color.WHITE)
+            addText(box, "EV рассчитано как p × коэффициент − 1, без поправки на маржу и ошибку калибровки. Не считать его гарантированной доходностью.", 10, false, muted)
+            addText(box, "РИСКИ И ОГРАНИЧЕНИЯ", 10, true, gold)
+            addText(box, "Историческая частота может не отражать текущую силу команд; выборка и модель могут ошибаться. Проверь фактический коэффициент в Melbet непосредственно перед ставкой. Если он ниже 1.50 или заметно хуже указанного — пропускаем.", 11, false, muted)
+            addText(box, "Рекомендация не является приказом ставить. При отсутствии уверенного Value — NO BET.", 11, true, gold)
+            actionButton(box, "＋ Зафиксировать ставку вручную") { showAddBetDialog(m, league) }
+        }
+        val footer = card()
+        addText(footer, "ПРАВИЛО DESK", 10, true, accent)
+        addText(footer, "TOP остаётся ограничен ITB 1.5, точной нулевой форой и Double Chance. ОЗ и тоталы доступны в карточках матчей, но не добавляются в TOP. Источник котировок — только API-Sport / Melbet.", 11, false, muted)
+    }
+
     private fun renderDay(json: JSONObject) {
         addText(matchesContainer, "DAILY SIGNAL FILTER", 9, true, cyan)
         addText(matchesContainer, "Ставки дня", 22, true)
@@ -717,8 +774,7 @@ class MainActivity : Activity() {
                 val matchDay = m.optString("utcDate").take(10)
                 if (matchDay < today || matchDay > endDate) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
-                val signal = prediction.optJSONObject("strongestSignal") ?: continue
-                val edge = signal.optDouble("edgePp", 0.0)
+                val signal = prediction.optJSONObject("strongestSignal") ?: continue                val edge = signal.optDouble("edgePp", 0.0)
                 if (signal.optBoolean("noPositiveSignal") || edge <= 0.0) continue
                 // Require a real quote for the exact strongest side, at decimal odds >= 1.50.
                 if (topSignalOdds(signal, m) == null) continue
@@ -804,6 +860,11 @@ class MainActivity : Activity() {
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
             renderDay(json)
+            return
+        }
+        if (currentTab == "desk") {
+            leagueBar.visibility = View.GONE
+            renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
