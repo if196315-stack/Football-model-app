@@ -66,8 +66,10 @@ def market_kind(slug,market):
     name=(market.get("name") or {})
     name=(name.get("en") or name.get("ru") or "").lower() if isinstance(name,dict) else str(name).lower()
     if "double_chance" in slug or "double chance" in name:return "dc"
-    if "both_teams" in slug or "btts" in slug or "обе команды забьют" in name or "обе забьют" in name:return "btts"
-    if ("total_team" in slug or "team_total" in slug or "тотал команды" in name or "индивидуальный тотал" in name):return "tt"
+    if ("both_teams" in slug or "btts" in slug or "both teams to score" in name
+            or "обе команды забьют" in name or "обе забьют" in name):return "btts"
+    if ("total_team" in slug or "team_total" in slug or "team total" in name
+            or "тотал команды" in name or "индивидуальный тотал" in name):return "tt"
     if ("total" in slug or "тотал" in name) and not ("team" in slug or "команд" in name):return "total"
     if "handicap" in slug or "гандикап" in name or "фора" in name:return "spread"
     return None
@@ -122,8 +124,12 @@ def parse_odds(m):
                                     "under" if key in ("under", "меньше") or key.startswith("under_") else None)
                         if side_key is None or arg is None:continue
                         if kind=="tt":
-                            team = ("home" if slug.endswith(("_1", "1")) or "home" in slug else
-                                    "away" if slug.endswith(("_2", "2")) or "away" in slug else None)
+                            market_name = market.get("name") or {}
+                            market_name = (market_name.get("en") or market_name.get("ru") or "") if isinstance(market_name, dict) else str(market_name)
+                            team = ("home" if slug.endswith(("_1", "1")) or "home" in slug
+                                    or re.search(r"\\b(home|team\\s*1|команд[аы]?\\s*1)\\b", market_name.lower()) else
+                                    "away" if slug.endswith(("_2", "2")) or "away" in slug
+                                    or re.search(r"\\b(away|team\\s*2|команд[аы]?\\s*2)\\b", market_name.lower()) else None)
                             if team is None:continue
                             q={"team":team,"point":float(arg),"side":side_key,"price":price}
                             target=best["teamTotals"]; row_target=row["teamTotals"]; books_target=books_best["teamTotals"]
