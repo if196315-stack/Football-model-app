@@ -90,7 +90,7 @@ def read_market(bookmaker, key, home, away):
     market = next((x for x in bookmaker.get("markets", []) if x.get("key") == key), None)
     if not market:
         return None
-    out = {}
+    out = [] if key == "spreads" else {}
     for outcome in market.get("outcomes", []):
         name = str(outcome.get("name", ""))
         price = outcome.get("price")
