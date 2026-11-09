@@ -1,52 +1,60 @@
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 from collect_odds_snapshots import append_snapshots, snapshot_rows
 
 
 class OddsSnapshotTests(unittest.TestCase):
     def sample(self):
-        return {"oddsBookmaker": "melbet", "competitions": [{"code": "PL", "matches": [{
-            "id": 123, "utcDate": "2026-11-10T17:30:00Z",
+        return {"competitions": [{"code": "PL", "matches": [{
+            "id": "fixture-1", "utcDate": "2026-11-20T19:00:00Z",
             "home": "Arsenal", "away": "Chelsea",
             "odds": {
-                "bookmaker": "MELBET",
-                "best": {
+                "bookmaker": "BETBOOM",
+                "updatedAt": "2026-11-10T10:00:00+00:00",
+                "bookmakerUpdatedAt": "2026-11-10T09:59:50+00:00",
+                "bookmakerUpdateAgeSeconds": 10,
+                "freshnessStatus": "fresh",
+                "bookmakers": [{
+                    "key": "betboom", "title": "BETBOOM",
                     "doubleChance": {"1x": 1.31, "x2": 1.88, "12": 1.29},
                     "spreads": [
-                        {"team": "home", "point": 0, "price": 2.1, "bookmaker": "MELBET"},
-                        {"team": "away", "point": 0, "price": 1.9, "bookmaker": "MELBET"},
+                        {"team": "home", "point": 0, "price": 2.1,
+                         "market_slug": "dnb_home", "market_group": "draw no bet"},
+                        {"team": "away", "point": 0, "price": 1.9,
+                         "market_slug": "dnb_away", "market_group": "draw no bet"},
                     ],
                     "teamTotals": [
-                        {"team": "home", "point": 1.5, "side": "over", "price": 1.82, "bookmaker": "MELBET"},
-                        {"team": "away", "point": 1.5, "side": "under", "price": 2.0, "bookmaker": "MELBET"},
+                        {"team": "home", "point": 1.5, "side": "over", "price": 1.82,
+                         "market_slug": "home_tt_over", "market_group": "home team total"},
+                        {"team": "away", "point": 1.5, "side": "under", "price": 2.0,
+                         "market_slug": "away_tt_under", "market_group": "away team total"},
                     ],
                     "btts": {"yes": 1.85, "no": 1.95},
                     "totals": [
-                        {"point": 2.5, "side": "over", "price": 1.91},
-                        {"point": 2.5, "side": "under", "price": 1.99},
+                        {"point": 2.5, "side": "over", "price": 1.91,
+                         "market_slug": "total_over", "market_group": "total goals"},
+                        {"point": 2.5, "side": "under", "price": 1.99,
+                         "market_slug": "total_under", "market_group": "total goals"},
                     ],
-                },
-                "bestBookmakers": {"doubleChance": {"1x": "MELBET"}}
+                }]
             }
         }]}]}
 
-    def test_only_strategy_markets_are_snapshotted(self):
+    def test_only_supported_betboom_markets_are_snapshotted(self):
         rows = list(snapshot_rows(self.sample(), "2026-11-09T12:00:00+00:00"))
         self.assertEqual(len(rows), 11)
         self.assertEqual({row["market"] for row in rows},
-                         {"double_chance", "spread", "team_total", "match_total", "btts"})
+                         {"double_chance", "handicap", "team_total", "match_total", "btts"})
         self.assertTrue(any(row.get("side") == "under" and row["market"] == "team_total" for row in rows))
         self.assertTrue(any(row.get("side") == "under" and row["market"] == "match_total" for row in rows))
-        spread_rows = [row for row in rows if row["market"] == "spread"]
+        spread_rows = [row for row in rows if row["market"] == "handicap"]
         self.assertEqual(len(spread_rows), 2)
         self.assertTrue(all(abs(row["point"]) < 0.001 for row in spread_rows))
-        self.assertTrue(all(row["retrieved_at"] == "2026-11-09T12:00:00+00:00" for row in rows))
-        self.assertTrue(all(row["bookmaker"] == "MELBET" for row in rows))
+        self.assertTrue(all(row["captured_at"] == "2026-11-09T12:00:00+00:00" for row in rows))
+        self.assertTrue(all(row["bookmaker"] == "BETBOOM" for row in rows))
 
     def test_append_preserves_prior_history(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -59,15 +67,14 @@ class OddsSnapshotTests(unittest.TestCase):
             self.assertEqual(second["records_appended"], 11)
             lines = archive.read_text(encoding="utf-8").splitlines()
             self.assertEqual(len(lines), 22)
-            self.assertNotEqual(json.loads(lines[0])["retrieved_at"],
-                                json.loads(lines[-1])["retrieved_at"])
+            self.assertNotEqual(json.loads(lines[0])["captured_at"],
+                                json.loads(lines[-1])["captured_at"])
 
-    def test_legacy_non_melbet_quotes_are_not_archived(self):
+    def test_legacy_non_betboom_quotes_are_not_archived(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "data.json"
             archive = Path(tmp) / "history.jsonl"
             data = self.sample()
-            data["oddsBookmaker"] = "melbet"
             data["competitions"][0]["matches"][0]["odds"]["bookmaker"] = "legacy-mixed-books"
             source.write_text(json.dumps(data), encoding="utf-8")
             result = append_snapshots(source, archive, "2026-11-09T12:00:00+00:00")
