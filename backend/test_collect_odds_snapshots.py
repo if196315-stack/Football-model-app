@@ -84,6 +84,10 @@ class OddsSnapshotTests(unittest.TestCase):
                         {"name": "Draw/Away", "price": 1.65},
                         {"name": "Home/Away", "price": 1.25},
                     ]},
+                    {"key": "btts", "outcomes": [
+                        {"name": "Yes", "price": 1.72},
+                        {"name": "No", "price": 2.08},
+                    ]},
                     {"key": "spreads", "outcomes": [
                         {"name": "Arsenal", "point": 0, "price": 1.9},
                         {"name": "Arsenal", "point": -1.5, "price": 2.2},
@@ -97,6 +101,7 @@ class OddsSnapshotTests(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual([x["price"] for x in result[0]["outcomes"]], [2.1, 3.4, 3.8])
         self.assertEqual({x["outcome"] for x in result[0]["double_chance"]}, {"1x", "x2", "12"})
+        self.assertEqual({x["outcome"] for x in result[0]["btts"]}, {"yes", "no"})
         self.assertEqual(result[0]["spreads"], [
             {"team": "home", "point": -1.5, "price": 2.2},
             {"team": "away", "point": 1.5, "price": 1.7},
@@ -166,12 +171,13 @@ class OddsSnapshotTests(unittest.TestCase):
             rows = [json.loads(line) for line in output_path.read_text(encoding="utf-8").splitlines()]
 
         self.assertEqual(len(FakeSession.calls), 1)
-        self.assertEqual(FakeSession.calls[0][1]["markets"], "h2h,spreads,double_chance")
+        self.assertEqual(FakeSession.calls[0][1]["markets"], "h2h,spreads,double_chance,btts")
         self.assertEqual(summary["records_written"], 1)
         self.assertEqual(summary["by_league"]["PL"]["with_1x2"], 1)
         self.assertEqual(summary["by_league"]["PL"]["with_strategy_markets"], 1)
         self.assertEqual(rows[0]["schema_version"], 2)
         self.assertEqual(rows[0]["bookmakers"][0]["double_chance"][0]["outcome"], "1x")
+        self.assertEqual({x["outcome"] for x in rows[0]["bookmakers"][0]["btts"]}, {"yes", "no"})
         self.assertEqual(rows[0]["bookmakers"][0]["spreads"], [
             {"team": "home", "point": -0.5, "price": 2.0}
         ])
