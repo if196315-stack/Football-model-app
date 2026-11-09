@@ -952,7 +952,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "Ставки и купоны", "Все подтверждённые вручную купоны · фактический коэффициент можно исправить.")
+        screenHeader("BET TRACKER", "История ставок", "Записанные ставки и их результаты.")
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             if (b.optString("marketKey") == "COUPON") {
@@ -996,7 +996,7 @@ class MainActivity : Activity() {
         addText(sum,"Выплаты: "+fmt(payout)+" · чистый результат: "+(if(profit>=0)"+" else "")+fmt(profit),12,true,if(profit>=0)accent else Color.RED)
         addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
         addText(sum,"ROI = чистый результат / сумма выигравших и проигравших ставок. Возвраты и ожидающие ставки не входят.",10,false,muted)
-        if(bets.length()==0) { val e=card(); addText(e,"На вкладке «Линия» выбери исход в карточке матча и добавь его в купон.",12,false,muted); return }
+        if(bets.length()==0) { val e=card(); addText(e,"Записанных ставок пока нет.",12,false,muted); return }
         for(i in bets.length()-1 downTo 0) { val b=bets.optJSONObject(i) ?: continue; val box=card()
             val st=b.optString("status")
             val status=when(st){"WON"->"ВЫИГРЫШ";"LOST"->"ПРОИГРЫШ";"PUSH"->"ВОЗВРАТ";else->"НЕ РАССЧИТАНА"}
@@ -1236,13 +1236,19 @@ class MainActivity : Activity() {
         val baseStake = bank * 0.005
         val maxStake = bank * 0.01
         val minimumBookmakerStake = 25.0
-        val stakePlan = if (baseStake >= minimumBookmakerStake) baseStake else minimumBookmakerStake
-        val canMeetMinimum = stakePlan <= maxStake + 0.000001
+        val minimumFitsRiskLimit = minimumBookmakerStake <= maxStake + 0.000001
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
-        addText(bankrollCard, if (canMeetMinimum) "Ставка с учётом минимума 25 ₽: ${fmt(stakePlan)} ₽" else "Минимум букмекера 25 ₽ превышает лимит 1% банка", 15, true, if (canMeetMinimum) gold else Color.RED)
-        addText(bankrollCard, "Базовая ставка стратегии — 0,5% (${fmt(baseStake)} ₽); диапазон 0,25–1%, лимит на матч 1%, на день 2%. Минимум букмекера не меняет лимиты: если 25 ₽ выше 1% банка, ставку пропускаем.", 10, false, muted)
+        addText(bankrollCard, "Базовая ставка стратегии 0,5%: ${fmt(baseStake)} ₽", 15, true, gold)
+        addText(bankrollCard, "Минимум букмекера: 25 ₽ · верхний лимит 1% банка: ${fmt(maxStake)} ₽.", 10, false, muted)
+        val minimumStakeNote = when {
+            !minimumFitsRiskLimit -> "25 ₽ превышают лимит 1% банка. По стратегии такую ставку делать нельзя — пропусти её."
+            minimumBookmakerStake > baseStake -> "25 ₽ выше базовой ставки 0,5%. Не округляем автоматически: 25 ₽ составляют ${String.format(Locale.US, "%.2f%%", minimumBookmakerStake / bank * 100.0)} банка и используют повышенный риск вплоть до лимита 1%."
+            else -> "Минимум букмекера не выше базовой ставки стратегии."
+        }
+        addText(bankrollCard, minimumStakeNote, 10, true, if (minimumFitsRiskLimit) gold else Color.RED)
+        addText(bankrollCard, "Стратегия без изменений: базовый риск 0,5%; диапазон 0,25–1%; лимит на матч 1%, на день 2%.", 10, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
