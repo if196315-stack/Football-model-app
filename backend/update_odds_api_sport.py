@@ -142,11 +142,11 @@ def parse_odds(m):
                                     or "away" in name_key or "гостей" in name_key
                                     or "team 2" in name_key or "команды 2" in name_key or "команда 2" in name_key else None)
                             if team is None:continue
-                            q={"team":team,"point":float(arg),"side":side_key,"price":price}
+                            q={"team":team,"point":point,"side":side_key,"price":price}
                             target=best["teamTotals"]; row_target=row["teamTotals"]; books_target=books_best["teamTotals"]
                             identity=lambda x:x.get("team")==team and x.get("point")==q["point"] and x.get("side")==side_key
                         else:
-                            q={"point":float(arg),"side":side_key,"price":price}
+                            q={"point":point,"side":side_key,"price":price}
                             target=best["totals"]; row_target=row["totals"]; books_target=books_best["totals"]
                             identity=lambda x:x.get("point")==q["point"] and x.get("side")==side_key
                         old=next((x for x in target if identity(x)),None)
