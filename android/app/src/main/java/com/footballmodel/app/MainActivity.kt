@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.text.InputType
 import android.os.Bundle
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -135,6 +137,26 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+    }
+
+    private fun englandFlagView(): View = object : View(this) {
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+            val w = width.toFloat()
+            val h = height.toFloat()
+            paint.color = Color.WHITE
+            canvas.drawRect(0f, 0f, w, h, paint)
+            paint.color = Color.rgb(206, 17, 38)
+            val vertical = w * 0.22f
+            val horizontal = h * 0.34f
+            canvas.drawRect((w - vertical) / 2f, 0f, (w + vertical) / 2f, h, paint)
+            canvas.drawRect(0f, (h - horizontal) / 2f, w, (h + horizontal) / 2f, paint)
+        }
+    }.apply {
+        setWillNotDraw(false)
+        layoutParams = LinearLayout.LayoutParams(dp(30), dp(20)).apply { rightMargin = dp(8) }
+        contentDescription = "Флаг Англии"
     }
 
     private fun label(value: String, size: Int, bold: Boolean = false, color: Int = Color.WHITE): TextView =
@@ -279,7 +301,7 @@ class MainActivity : Activity() {
                 val point = line.optDouble("point", Double.NaN)
                 val price = line.optDouble("price", Double.NaN)
                 val side = line.optString("side")
-                if (!point.isFinite() || side != "over" || !price.isFinite() || price <= 1.0) continue
+                // Показываем котировки тоталов только для БОЛЬШЕ; UNDER не выводим ни для матча, ни для команд.\n                if (!point.isFinite() || !side.equals("over", ignoreCase = true) || !price.isFinite() || price <= 1.0) continue
                 addMarketRow(panelOdds, listOf(Triple("БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
@@ -310,7 +332,7 @@ class MainActivity : Activity() {
                 val price = line.optDouble("price", Double.NaN)
                 val point = line.optDouble("point", Double.NaN)
                 val side = line.optString("side")
-                if (side != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                // Индивидуальные UNDER-котировки скрыты; в карточке остаются только OVER.\n                if (!side.equals("over", ignoreCase = true) || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
                     addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · BETBOOM", 10, true, muted)
                     headingShown = true
@@ -945,6 +967,11 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        val pendingBets = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "PENDING" }
+        val betsCountCard = card()
+        addText(betsCountCard, "СТАВКИ", 10, true, cyan)
+        addText(betsCountCard, bets.length().toString(), 26, true, Color.WHITE)
+        addText(betsCountCard, "Всего зафиксировано · ожидают результата: $pendingBets", 11, false, muted)
         val target = card()
         addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
         addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
@@ -1203,8 +1230,12 @@ class MainActivity : Activity() {
                 isClickable = true
                 isFocusable = true
             }
-            val flag = when (leagueCode) { "PL" -> "🏴"; "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
-            heading.addView(label(flag, 20, true, Color.WHITE), LinearLayout.LayoutParams(dp(30), -2).apply { rightMargin = dp(8) })
+            if (leagueCode == "PL") {
+                heading.addView(englandFlagView())
+            } else {
+                val flag = when (leagueCode) { "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
+                heading.addView(label(flag, 20, true, Color.WHITE), LinearLayout.LayoutParams(dp(30), -2).apply { rightMargin = dp(8) })
+            }
             heading.addView(label(league.optString("name"), 14, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
             heading.addView(label("${upcoming.size} матчей", 10, false, muted))
             val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, accent)
