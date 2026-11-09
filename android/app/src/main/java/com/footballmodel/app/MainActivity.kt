@@ -1228,7 +1228,7 @@ class MainActivity : Activity() {
         addText(sum,"Выплаты: "+fmt(payout)+" · чистый результат: "+(if(profit>=0)"+" else "")+fmt(profit),12,true,if(profit>=0)accent else Color.RED)
         addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
         addText(sum,"ROI = чистый результат / сумма выигравших и проигравших ставок. Возвраты и ожидающие ставки не входят.",10,false,muted)
-        if(bets.length()==0) { val e=card(); addText(e,"На вкладке «Матчи» нажми «Добавить ставку» в карточке игры.",12,false,muted); return }
+        if(bets.length()==0) { val e=card(); addText(e,"На вкладке «Линия» выбери исход в карточке матча и добавь его в купон.",12,false,muted); return }
         for(i in bets.length()-1 downTo 0) { val b=bets.optJSONObject(i) ?: continue; val box=card()
             val st=b.optString("status")
             val status=when(st){"WON"->"ВЫИГРЫШ";"LOST"->"ПРОИГРЫШ";"PUSH"->"ВОЗВРАТ";else->"НЕ РАССЧИТАНА"}
@@ -1534,7 +1534,7 @@ class MainActivity : Activity() {
             addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability") * 100)}% · база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}%", 11, false, muted)
             addText(box, "Историческая выборка: ${signal.optInt("baselineMatches")} матчей до даты игры", 10, false, muted)
             renderOdds(box, m.optJSONObject("odds"))
-            actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, leagueName) }
+            actionButton(box, "＋ В купон") { showAddBetDialog(m, leagueName) }
         }
         val note = card()
         addText(note, "ВАЖНО", 10, true, gold)
