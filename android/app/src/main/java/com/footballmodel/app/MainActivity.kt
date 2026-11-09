@@ -19,6 +19,8 @@ import org.json.JSONObject
 import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.zip.GZIPInputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.concurrent.thread
@@ -44,6 +46,9 @@ class MainActivity : Activity() {
     private var data: JSONObject? = null
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
+    private val feedCache by lazy { getSharedPreferences("feed_cache_v1", MODE_PRIVATE) }
+    private val loadInProgress = AtomicBoolean(false)
+    @Volatile private var lastPayload: String? = null
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
@@ -140,6 +145,16 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        // Мгновенный старт: показываем последний успешный снимок до сетевого обновления.
+        feedCache.getString("merged_json", null)?.let { cached ->
+            try {
+                data = JSONObject(cached)
+                lastPayload = cached
+                render()
+            } catch (_: Exception) {
+                feedCache.edit().remove("merged_json").apply()
+            }
+        }
         // Показываем рабочую оболочку сразу, не дожидаясь сети.
         renderTabs()
         leagueBar.visibility = View.VISIBLE
@@ -552,29 +567,54 @@ class MainActivity : Activity() {
         }.format(parsed)
     } catch (_: Exception) { raw.replace("T", " ").take(16) }
 
+    // Conditional HTTP requests avoid downloading identical JSON on every 30-second refresh.
+    // The last good response is retained locally and used when the network is unavailable.
+    private fun fetchFeed(url: String, cacheKey: String, required: Boolean): String? {
+        val cached = feedCache.getString(cacheKey, null)
+        val etag = feedCache.getString("${cacheKey}_etag", null)
+        var conn: HttpURLConnection? = null
+        try {
+            conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 8000
+                readTimeout = 12000
+                instanceFollowRedirects = true
+                useCaches = true
+                setRequestProperty("Accept-Encoding", "gzip")
+                setRequestProperty("User-Agent", "IQMatch-Android")
+                if (!etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
+            }
+            val code = conn.responseCode
+            if (code == HttpURLConnection.HTTP_NOT_MODIFIED && cached != null) return cached
+            if (code !in 200..299) throw IllegalStateException("HTTP $code")
+            val stream = if (conn.contentEncoding.equals("gzip", true)) GZIPInputStream(conn.inputStream) else conn.inputStream
+            val body = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val editor = feedCache.edit().putString(cacheKey, body)
+            conn.getHeaderField("ETag")?.let { editor.putString("${cacheKey}_etag", it) }
+            editor.apply()
+            return body
+        } catch (e: Exception) {
+            if (cached != null) return cached
+            if (required) throw e
+            return null
+        } finally {
+            conn?.disconnect()
+        }
+    }
+
     private fun loadData() {
-        statusView.text = "Обновляю данные…"
+        if (!loadInProgress.compareAndSet(false, true)) return
+        statusView.text = if (data == null) "Загружаю данные…" else "Проверяю обновления…"
         refreshButton.isEnabled = false
-        thread {
+        thread(name = "iq-match-feed-refresh") {
             try {
-                val conn = (URL(dataUrl).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 20000
-                    readTimeout = 20000
-                    setRequestProperty("Cache-Control", "no-cache")
-                }
-                if (conn.responseCode !in 200..299) throw IllegalStateException("HTTP ${conn.responseCode}")
-                val body = conn.inputStream.bufferedReader().use { it.readText() }
-                conn.disconnect()
+                val body = fetchFeed(dataUrl, "domestic_json", true)
+                    ?: throw IllegalStateException("Основной фид недоступен")
                 val json = JSONObject(body)
-                // UEFA competitions are published as a separate isolated feed.
-                try {
-                    val uefaConn = (URL(uefaDataUrl).openConnection() as HttpURLConnection).apply {
-                        connectTimeout = 10000
-                        readTimeout = 10000
-                        setRequestProperty("Cache-Control", "no-cache")
-                    }
-                    if (uefaConn.responseCode in 200..299) {
-                        val uefa = JSONObject(uefaConn.inputStream.bufferedReader().use { it.readText() })
+                // UEFA is optional and independently cached: its outage cannot block domestic leagues.
+                val uefaBody = fetchFeed(uefaDataUrl, "uefa_json", false)
+                if (!uefaBody.isNullOrBlank()) {
+                    try {
+                        val uefa = JSONObject(uefaBody)
                         val target = json.optJSONArray("competitions") ?: JSONArray().also { json.put("competitions", it) }
                         val extra = uefa.optJSONArray("competitions")
                         if (extra != null) for (i in 0 until extra.length()) {
@@ -587,22 +627,32 @@ class MainActivity : Activity() {
                                 target.put(competition)
                             }
                         }
+                    } catch (_: Exception) {
+                        // Keep the valid domestic feed if UEFA data is malformed.
                     }
-                    uefaConn.disconnect()
-                } catch (_: Exception) {
-                    // Domestic feed remains usable if the isolated UEFA feed is temporarily unavailable.
                 }
+                val payload = json.toString()
+                feedCache.edit().putString("merged_json", payload).apply()
                 runOnUiThread {
-                    data = json
-                    tabViewCache.clear()
-                    renderedKey = null
+                    val changed = payload != lastPayload
+                    if (changed) {
+                        data = json
+                        lastPayload = payload
+                        tabViewCache.clear()
+                        renderedKey = null
+                        render()
+                    } else {
+                        statusView.text = "●  Данные актуальны · без изменений"
+                    }
                     refreshButton.isEnabled = true
-                    render()
+                    loadInProgress.set(false)
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    statusView.text = "Нет соединения · ${e.message ?: "проверьте интернет"}"
+                    statusView.text = if (data != null) "Нет сети · показаны последние данные" else
+                        "Нет соединения · ${e.message ?: "проверьте интернет"}"
                     refreshButton.isEnabled = true
+                    loadInProgress.set(false)
                 }
             }
         }
@@ -1079,14 +1129,14 @@ class MainActivity : Activity() {
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
         val side = signal.optString("side")
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
+        fun acceptable(value: Double) = value.isFinite() && value >= 1.50
         if (side == "1X" || side == "X2") {
             val dc = best.optJSONObject("doubleChance") ?: return null
-            val key = if (side == "1X") "1x" else "x2"
-            val price = dc.optDouble(key, Double.NaN)
-            return price.takeIf { it.isFinite() && it >= 1.50 }
+            return dc.optDouble(if (side == "1X") "1x" else "x2", Double.NaN).takeIf { acceptable(it) }
         }
-        if (side.startsWith("ИТБ 1.5 · ")) {
-            val teamName = side.substringAfter("ИТБ 1.5 · ").trim()
+        if (side.startsWith("ИТБ ")) {
+            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
+            val teamName = side.substringAfter("·", "").trim()
             val team = when (teamName) {
                 match.optString("home") -> "home"
                 match.optString("away") -> "away"
@@ -1095,14 +1145,68 @@ class MainActivity : Activity() {
             val rows = best.optJSONArray("teamTotals") ?: return null
             for (i in 0 until rows.length()) {
                 val row = rows.optJSONObject(i) ?: continue
-                val point = row.optDouble("point", Double.NaN)
+                val line = row.optDouble("point", Double.NaN)
                 val price = row.optDouble("price", Double.NaN)
-                if (row.optString("team") == team && row.optString("side") == "over" &&
-                    point.isFinite() && kotlin.math.abs(point - 1.5) < 0.001 &&
-                    price.isFinite() && price >= 1.50) return price
+                if (row.optString("team") == team && row.optString("side") == "over" && line.isFinite() && kotlin.math.abs(line - point) < 0.001 && acceptable(price)) return price
             }
         }
+        if (side.startsWith("ТБ ")) {
+            val point = side.removePrefix("ТБ ").trim().toDoubleOrNull() ?: return null
+            val rows = best.optJSONArray("totals") ?: return null
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                val line = row.optDouble("point", Double.NaN)
+                val price = row.optDouble("price", Double.NaN)
+                if (row.optString("side") == "over" && line.isFinite() && kotlin.math.abs(line - point) < 0.001 && acceptable(price)) return price
+            }
+        }
+        if (side == "ОЗ ДА" || side == "ОЗ НЕТ") {
+            val btts = best.optJSONObject("btts") ?: return null
+            return btts.optDouble(if (side == "ОЗ ДА") "yes" else "no", Double.NaN).takeIf { acceptable(it) }
+        }
         return null
+    }
+
+    private fun uefaPaperSignal(match: JSONObject): JSONObject? {
+        val rows = match.optJSONArray("paperSignals") ?: return null
+        val candidates = mutableListOf<JSONObject>()
+        for (i in 0 until rows.length()) {
+            val row = rows.optJSONObject(i) ?: continue
+            val side = when (row.optString("market")) {
+                "double_chance" -> when (row.optString("outcome")) { "1x" -> "1X"; "x2" -> "X2"; else -> "" }
+                "match_total_over" -> "ТБ " + row.optDouble("point").toString()
+                "team_total_over" -> {
+                    val team = when (row.optString("team")) {
+                        "home" -> match.optString("home")
+                        "away" -> match.optString("away")
+                        else -> ""
+                    }
+                    "ИТБ " + row.optDouble("point").toString() + " · " + team
+                }
+                "btts" -> when (row.optString("outcome")) { "yes" -> "ОЗ ДА"; "no" -> "ОЗ НЕТ"; else -> "" }
+                else -> ""
+            }
+            if (side.isBlank()) continue
+            val probability = row.optDouble("model_probability", Double.NaN)
+            val signal = JSONObject().apply {
+                put("side", side)
+                put("modelProbability", probability)
+                put("baselineProbability", probability - row.optDouble("edge", 0.0))
+                put("edgePp", row.optDouble("edge", 0.0) * 100.0)
+                put("baselineMatches", 0)
+                put("paperSignalId", row.optString("signal_id"))
+                put("paperOnly", true)
+            }
+            val price = topSignalOdds(signal, match) ?: continue
+            val odds = match.optJSONObject("odds")
+            val age = odds?.optDouble("bookmakerUpdateAgeSeconds", Double.NaN) ?: Double.NaN
+            val fresh = odds?.optString("freshnessStatus") == "fresh" && age.isFinite() && age in 0.0..300.0
+            if (fresh && probability.isFinite() && probability >= 0.60 && probability - 1.0 / price >= 0.05 && probability * price - 1.0 >= 0.05) candidates.add(signal)
+        }
+        return candidates.maxByOrNull {
+            val price = topSignalOdds(it, match) ?: 0.0
+            it.optDouble("modelProbability") * price - 1.0
+        }
     }
 
     // Bank = initial bankroll + settled net P/L - stakes reserved on pending bets.
@@ -1134,12 +1238,12 @@ class MainActivity : Activity() {
         addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
         addText(target, "Не будем повышать риск, догонять проигрыши или ставить ради выполнения календарного плана.", 11, false, muted)
         val bank = currentBankroll()
-        val stakePlan = bank * 0.05
+        val stakePlan = bank * 0.005
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
-        addText(bankrollCard, "Ставка 5%: " + String.format(Locale.US, "%.2f ₽", stakePlan), 15, true, gold)
-        addText(bankrollCard, "Размер фиксирован: при сохранении ставки сумма пересчитывается от текущего банка. Ожидающие ставки уже зарезервированы.", 10, false, muted)
+        addText(bankrollCard, "Базовая ставка 0,5%: " + String.format(Locale.US, "%.2f ₽", stakePlan), 15, true, gold)
+        addText(bankrollCard, "Базовый размер по стратегии. Допустимый диапазон 0,25–1%; лимит на матч 1%, на день 2%.", 10, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -1153,7 +1257,9 @@ class MainActivity : Activity() {
                 val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 14) }
                 val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
                 if (matchDay < today || matchDay > endDay) continue
-                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal") ?: continue
+                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                    ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
+                    ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
@@ -1344,8 +1450,8 @@ class MainActivity : Activity() {
         addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
         addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
         addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
-        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1")
-        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA")
+        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL")
+        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL")
         // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
