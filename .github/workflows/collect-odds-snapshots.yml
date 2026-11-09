@@ -1,13 +1,6 @@
 name: Collect prospective bookmaker odds snapshots
 
 on:
-  push:
-    branches:
-      - feature/pitchapi-data-source
-    paths:
-      - ".github/workflows/collect-odds-snapshots.yml"
-      - "backend/collect_odds_snapshots.py"
-      - "backend/probe_odds_markets.py"
   workflow_dispatch:
 
 permissions:
