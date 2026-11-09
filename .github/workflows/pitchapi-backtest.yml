@@ -1,4 +1,5 @@
 name: PitchAPI seven-competition all-market backtest
+# Dedicated full-history run; restores the existing feature-branch PitchAPI cache.
 
 on:
   workflow_dispatch:
