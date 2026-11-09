@@ -24,13 +24,15 @@ class DiagnosticHelpersTests(unittest.TestCase):
 
     def test_market_summary_preserves_market_lines_and_status(self):
         result = market_summary({"markets": {
-            "total": {"name": {"en": "Total"}, "status": "open", "stage": "prematch",
+            "total": {"name": {"en": "Total"}, "status": "open", "stage": "prematch", "isBettingActiveByStage": {"prematch": True},
                       "stakes": {"over": {"lines": [
                           {"argument": 2.5, "factor": 1.91, "suspended": False}
                       ]}}}
         }})
         self.assertEqual(result[0]["slug"], "total")
         self.assertEqual(result[0]["status"], "open")
+        self.assertEqual(result[0]["stage"], "prematch")
+        self.assertEqual(result[0]["isBettingActiveByStage"], {"prematch": True})
         self.assertEqual(result[0]["outcomes"]["over"][0]["argument"], 2.5)
         self.assertEqual(result[0]["outcomes"]["over"][0]["factor"], 1.91)
 
