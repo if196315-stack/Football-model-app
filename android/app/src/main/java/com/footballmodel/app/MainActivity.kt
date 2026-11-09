@@ -292,7 +292,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "МАТЧИ", "day" to "TOP", "desk" to "BETTING DESK", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
+        val items = listOf("matches" to "МАТЧИ", "desk" to "AI", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -714,7 +714,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        addText(matchesContainer, "BETTING DESK · STRATEGY ROOM", 9, true, cyan)
+        addText(matchesContainer, "AI · FOOTBALL INTELLIGENCE", 9, true, cyan)
         addText(matchesContainer, "Разбор рекомендованных ставок", 22, true)
         addText(matchesContainer, "Каждая рекомендация содержит обоснование, проверку цены и ограничения модели.", 11, false, muted)
         val target = card()
