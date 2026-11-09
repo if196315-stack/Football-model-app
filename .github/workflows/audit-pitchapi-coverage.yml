@@ -30,6 +30,8 @@ on:
       - "backend/test_backtest_pitchapi.py"
       - "backend/collect_odds_snapshots.py"
       - "backend/test_collect_odds_snapshots.py"
+      - "backend/update_odds.py"
+      - "backend/test_update_odds.py"
       - "backend/pitchapi_data_source.py"
       - "backend/test_pitchapi_data_source.py"
       - "backend/update_data_pitchapi.py"
