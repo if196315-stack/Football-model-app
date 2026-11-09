@@ -186,8 +186,8 @@ class MainActivity : Activity() {
                 val price = line.optDouble("price", Double.NaN)
                 val side = line.optString("side")
                 if (!point.isFinite() || side !in listOf("over", "under") || !price.isFinite() || price <= 1.0) continue
-                val label = if (side == "over") "БОЛЬШЕ" else "МЕНЬШЕ"
-                addMarketRow(panelOdds, listOf(Triple("$label ${fmt(point)}", oddsText(line, "price"), gold)))
+                if (side != "over") continue
+                addMarketRow(panelOdds, listOf(Triple("БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
         }
@@ -198,13 +198,14 @@ class MainActivity : Activity() {
                 val line = spreads.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", Double.NaN)
                 val price = line.optDouble("price", Double.NaN)
-                if (!point.isFinite() || kotlin.math.abs(point) > 0.001 || !price.isFinite() || price <= 1.0) continue
+                if (!point.isFinite() || !price.isFinite() || price <= 1.0) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ФОРА 0 · лучшие цены", 10, true, muted)
+                    addText(panelOdds, "ФОРЫ · лучшие цены MELBET", 10, true, muted)
                     headingShown = true
                 }
-                val team = if (line.optString("team") == "home") "Фора 1 (0)" else "Фора 2 (0)"
-                addMarketRow(panelOdds, listOf(Triple(team, oddsText(line,"price"), gold)))
+                val team = if (line.optString("team") == "home") "Фора 1" else "Фора 2"
+                val signedPoint = if (point > 0) "+${fmt(point)}" else fmt(point)
+                addMarketRow(panelOdds, listOf(Triple("$team ($signedPoint)", oddsText(line,"price"), gold)))
                 shown++
             }
         }
@@ -215,15 +216,13 @@ class MainActivity : Activity() {
                 val line = teamTotals.optJSONObject(i) ?: continue
                 val price = line.optDouble("price", Double.NaN)
                 val point = line.optDouble("point", Double.NaN)
-                if (line.optString("side") !in listOf("over", "under") || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                if (line.optString("side") != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
                     addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · MELBET", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
-                addMarketRow(panelOdds, listOf(Triple(
-                    "$team ${if (line.optString("side") == "over") "БОЛЬШЕ" else "МЕНЬШЕ"} ${fmt(point)}", oddsText(line, "price"), gold
-                )))
+                addMarketRow(panelOdds, listOf(Triple("$team БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
         }
@@ -1002,16 +1001,9 @@ class MainActivity : Activity() {
                 if (pred == null) {
                     addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
                 } else {
-                    val mainMarkets = card(box)
-                    mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = 20f; setStroke(1, Color.rgb(45, 102, 91)) }
-                    addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ", 10, true, accent)
-                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
-                    addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
-                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 12, true, Color.WHITE)
-                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
                     val signal = pred.optJSONObject("strongestSignal")
                     val signalBox = card(box)
-                    signalBox.background = rounded(Color.rgb(24, 37, 58), 17)
+                    signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(32, 55, 66), Color.rgb(17, 34, 52))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(67, 137, 119)) }
                     addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, gold)
                     if (signal == null) {
                         addText(signalBox, "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
@@ -1025,19 +1017,27 @@ class MainActivity : Activity() {
                         addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
                         addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
                     }
-                    addText(box, "ВНУТРЕННИЕ ВЕРОЯТНОСТИ ИСХОДА", 10, true, muted)
+                    val mainMarkets = card(box)
+                    mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
+                    addText(mainMarkets, "✦  ОСНОВНЫЕ ИСХОДЫ", 10, true, accent)
+                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева или ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости или ничья", pct(pred, "x2"), Color.WHITE)))
+                    addText(mainMarkets, "ПОБЕДА / НИЧЬЯ", 9, true, muted)
+                    addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
+                    addText(mainMarkets, "ГОЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
+                    addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 11, false, Color.WHITE)
+                    addText(box, "ДОПОЛНИТЕЛЬНЫЕ ВЕРОЯТНОСТИ", 10, true, muted)
                     addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
                     addText(box, "НОВЫЕ РЫНКИ · ВЕРОЯТНОСТИ МОДЕЛИ", 10, true, cyan)
                     addText(box, "ОЗ: да ${pct(pred, "bttsYes")} · нет ${pct(pred, "bttsNo")}", 11, false, muted)
-                    for (line in listOf("15", "25", "35")) {
-                        val label = when (line) { "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
-                        addText(box, "Тотал $label: Б ${pct(pred, "over$line")} · М ${pct(pred, "under$line")}", 11, false, muted)
-                    }
                     for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
                         addText(box, "ИТ ${teamName}", 10, true, muted)
                         for (line in listOf("05", "15", "25", "35")) {
                             val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
-                            addText(box, "$label: Б ${pct(pred, "${teamKey}Over$line")} · М ${pct(pred, "${teamKey}Under$line")}", 11, false, muted)
+                            addText(box, "$label: Б ${pct(pred, "${teamKey}Over$line")}", 11, false, muted)
                         }
                     }
                     addText(box, "Ожидаемые голы  ${String.format(Locale.US, "%.2f : %.2f", pred.optDouble("expectedHomeGoals"), pred.optDouble("expectedAwayGoals"))}", 12, true)
