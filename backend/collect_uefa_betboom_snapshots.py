@@ -27,6 +27,7 @@ ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
 LOOKAHEAD_DAYS = 30
+MARKET_PARSER_VERSION = "betboom-fulltime-v2"
 
 
 def valid_price(value: Any) -> bool:
@@ -134,6 +135,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "freshness_status": freshness_status,
             "source": "API-Sport",
             "bookmaker": "BETBOOM",
+            "market_parser_version": MARKET_PARSER_VERSION,
             "league_code": league,
             "season": match.get("season"),
             "fixture_id": str(fixture_id),
@@ -164,7 +166,10 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             market = "match_total_under_reference" if is_reference else "match_total_over"
             row = _row(common, market, item.get("price"), point=float(point), side=side,
                        candidate_market=not is_reference, reference_only=is_reference,
-                       model_probability=((model_markets.get("match_total") or {}).get(side) or {}).get(str(float(point))))
+                       model_probability=((model_markets.get("match_total") or {}).get(side) or {}).get(str(float(point))),
+                       provider_market_slug=item.get("market_slug"),
+                       provider_market_group=item.get("market_group"),
+                       provider_market_name=item.get("market_name"))
             if row:
                 rows.append(row)
 
@@ -179,7 +184,10 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             market = "team_total_under_reference" if is_reference else "team_total_over"
             row = _row(common, market, item.get("price"), team=team, point=float(point),
                        side=side, candidate_market=not is_reference, reference_only=is_reference,
-                       model_probability=((((model_markets.get("team_total") or {}).get(team) or {}).get(side) or {}).get(str(float(point)))))
+                       model_probability=((((model_markets.get("team_total") or {}).get(team) or {}).get(side) or {}).get(str(float(point)))),
+                       provider_market_slug=item.get("market_slug"),
+                       provider_market_group=item.get("market_group"),
+                       provider_market_name=item.get("market_name"))
             if row:
                 rows.append(row)
 
@@ -205,7 +213,10 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
                        team=item["team"], point=point,
                        model_probability=handicap_model.get("win"),
                        model_push_probability=handicap_model.get("push"),
-                       model_loss_probability=handicap_model.get("lose"))
+                       model_loss_probability=handicap_model.get("lose"),
+                       provider_market_slug=item.get("market_slug"),
+                       provider_market_group=item.get("market_group"),
+                       provider_market_name=item.get("market_name"))
             if row:
                 rows.append(row)
 
