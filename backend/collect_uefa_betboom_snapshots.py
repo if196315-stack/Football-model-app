@@ -31,6 +31,15 @@ def valid_price(value: Any) -> bool:
             and 1.0 < float(value) < 1000.0)
 
 
+def _board_timestamp(book: dict) -> str | None:
+    by_stage = book.get("updatedAtByStage") or {}
+    raw = by_stage.get("prematch") or book.get("updatedAt")
+    try:
+        return datetime.fromtimestamp(int(raw) / 1000, tz=timezone.utc).isoformat()
+    except (TypeError, ValueError, OverflowError, OSError):
+        return None
+
+
 def _row(common: dict, market: str, price: Any, **fields) -> dict | None:
     if not valid_price(price):
         return None
@@ -62,11 +71,31 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         source = match_fixture(target, provider_fixtures)
         if not source:
             continue
+        bookmaker_board = (source.get("oddsBk") or {}).get("betboom") or {}
+        active_by_stage = bookmaker_board.get("isBettingActiveByStage") or {}
+        if active_by_stage.get("prematch") is False:
+            continue
+        board_updated_at = _board_timestamp(bookmaker_board)
+        try:
+            board_age_seconds = (
+                datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
+                - datetime.fromisoformat(board_updated_at.replace("Z", "+00:00"))
+            ).total_seconds() if board_updated_at else None
+        except ValueError:
+            board_age_seconds = None
+        freshness_status = (
+            "unknown" if board_age_seconds is None else
+            "clock_skew" if board_age_seconds < 0 else
+            "fresh" if board_age_seconds <= 300 else "stale"
+        )
         quote = parse_odds(source)
         best = quote.get("best") or {}
         common = {
             "schema_version": 1,
             "captured_at": captured_at,
+            "bookmaker_updated_at": board_updated_at,
+            "bookmaker_update_age_seconds": round(board_age_seconds, 3) if board_age_seconds is not None else None,
+            "freshness_status": freshness_status,
             "source": "API-Sport",
             "bookmaker": "BETBOOM",
             "league_code": league,
