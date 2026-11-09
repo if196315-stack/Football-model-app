@@ -166,6 +166,31 @@ class MainActivity : Activity() {
                 shown += items.size
             }
         }
+        val btts = best.optJSONObject("btts")
+        if (btts != null) {
+            val items = listOf("yes" to "ОЗ — да", "no" to "ОЗ — нет")
+                .filter { validPrice(btts, it.first) }
+                .map { Triple(it.second, oddsText(btts, it.first), gold) }
+            if (items.isNotEmpty()) {
+                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · MELBET", 10, true, muted)
+                addMarketRow(panelOdds, items)
+                shown += items.size
+            }
+        }
+        val matchTotals = best.optJSONArray("totals")
+        if (matchTotals != null && matchTotals.length() > 0) {
+            addText(panelOdds, "ТОТАЛ МАТЧА · MELBET", 10, true, muted)
+            for (i in 0 until matchTotals.length()) {
+                val line = matchTotals.optJSONObject(i) ?: continue
+                val point = line.optDouble("point", Double.NaN)
+                val price = line.optDouble("price", Double.NaN)
+                val side = line.optString("side")
+                if (!point.isFinite() || side !in listOf("over", "under") || !price.isFinite() || price <= 1.0) continue
+                val label = if (side == "over") "БОЛЬШЕ" else "МЕНЬШЕ"
+                addMarketRow(panelOdds, listOf(Triple("$label ${fmt(point)}", oddsText(line, "price"), gold)))
+                shown++
+            }
+        }
         val spreads = best.optJSONArray("spreads")
         if (spreads != null && spreads.length() > 0) {
             var headingShown = false
@@ -190,14 +215,14 @@ class MainActivity : Activity() {
                 val line = teamTotals.optJSONObject(i) ?: continue
                 val price = line.optDouble("price", Double.NaN)
                 val point = line.optDouble("point", Double.NaN)
-                if (line.optString("side") != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                if (line.optString("side") !in listOf("over", "under") || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
                     addText(panelOdds, "ИНДИВИДУАЛЬНЫЙ ТОТАЛ БОЛЬШЕ · ITB", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
                 addMarketRow(panelOdds, listOf(Triple(
-                    "$team БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold
+                    "$team ${if (line.optString("side") == "over") "БОЛЬШЕ" else "МЕНЬШЕ"} ${fmt(point)}", oddsText(line, "price"), gold
                 )))
                 shown++
             }
