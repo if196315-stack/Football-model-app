@@ -1,0 +1,39 @@
+{
+  "provider": "PitchAPI",
+  "input_cache": "backend/cache/pitchapi_history.json",
+  "output_csv": "artifacts/pitchapi-clean-candidate.csv",
+  "sha256": "2868d2b069cc52e8c85086ed4d89715177652024a103a6bb0702d21792ff15aa",
+  "rows": 8338,
+  "unique_match_ids": 8338,
+  "paired_xg_rows": 8338,
+  "excluded_seasons": [
+    [
+      "ESP",
+      "2023/2024"
+    ],
+    [
+      "ESP",
+      "2023/24"
+    ],
+    [
+      "GER",
+      "2024/2025"
+    ],
+    [
+      "GER",
+      "2024/25"
+    ],
+    [
+      "ITA",
+      "2022/2023"
+    ],
+    [
+      "ITA",
+      "2022/23"
+    ]
+  ],
+  "excluded_match_ids": [
+    "m_3ir3kE"
+  ],
+  "xg_policy": "Paired non-null shot-level PitchAPI xG only; missing values are never imputed."
+}
