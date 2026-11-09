@@ -1052,14 +1052,14 @@ class MainActivity : Activity() {
             val matchViolation = matchIds.any { matchId ->
                 val exposure = (0 until bets.length()).sumOf { k ->
                     val b = bets.optJSONObject(k)
-                    if (b?.optString("status") == "PENDING" && existingTouchesMatch(b, matchId)) b.optDouble("stake") else 0.0
+                    if (b != null && b.optString("status") == "PENDING" && existingTouchesMatch(b, matchId)) b.optDouble("stake") else 0.0
                 }
                 exposure + stake > bank * 0.01
             }
             val dailyViolation = days.any { day ->
                 val exposure = (0 until bets.length()).sumOf { k ->
                     val b = bets.optJSONObject(k)
-                    if (b?.optString("status") == "PENDING" && existingTouchesDay(b, day)) b.optDouble("stake") else 0.0
+                    if (b != null && b.optString("status") == "PENDING" && existingTouchesDay(b, day)) b.optDouble("stake") else 0.0
                 }
                 exposure + stake > bank * 0.02
             }
