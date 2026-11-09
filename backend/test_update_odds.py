@@ -57,7 +57,8 @@ class OddsMarketParsingTests(unittest.TestCase):
                 "home": "Home", "away": "Away", "prediction": new_prediction
             }]}]}
             try:
-                archive = update_data.update_prediction_archive(payload)
+                update_data.update_prediction_archive(payload)
+                archive = payload["predictionArchive"]
                 for match_id in ("old-id", "new-id"):
                     prediction = archive["matches"][match_id]["prediction"]
                     self.assertFalse(any(k in prediction for k in (
