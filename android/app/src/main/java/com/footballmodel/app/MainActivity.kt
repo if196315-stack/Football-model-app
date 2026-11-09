@@ -639,6 +639,7 @@ class MainActivity : Activity() {
                     if (changed) {
                         data = json
                         lastPayload = payload
+                        autoOpenPaperBets(json)
                         tabViewCache.clear()
                         renderedKey = null
                         render()
@@ -1171,6 +1172,165 @@ class MainActivity : Activity() {
         }
     }
 
+    private val autoPaperPrefs by lazy { getSharedPreferences("auto_paper_quotes_v1", MODE_PRIVATE) }
+
+    private fun parseIsoTimestampMillis(rawValue: String): Long? {
+        val raw = rawValue.trim()
+        if (raw.isBlank()) return null
+        return try {
+            var normalized = raw.replace(Regex("\\.\\d+"), "")
+            normalized = normalized.replace("T", " ").replace("Z", "+0000")
+                .replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ", Locale.US).apply { isLenient = false }
+                .parse(normalized)?.time
+        } catch (_: Exception) { null }
+    }
+
+    private fun paperMarketKey(side: String, match: JSONObject): String? {
+        when (side) {
+            "1X" -> return "1x"
+            "X2" -> return "x2"
+            "ОЗ ДА" -> return "bttsYes"
+            "ОЗ НЕТ" -> return null
+        }
+        Regex("ТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.let { found ->
+            val tenths = ((found.groupValues[1].toDoubleOrNull() ?: return null) * 10.0).toInt()
+            return "over$tenths"
+        }
+        Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.let { found ->
+            val line = found.groupValues[1].toDoubleOrNull() ?: return null
+            val teamName = side.substringAfter("·", "").trim()
+            val teamPrefix = when (teamName) {
+                match.optString("home") -> "homeOver"
+                match.optString("away") -> "awayOver"
+                else -> return null
+            }
+            return teamPrefix + (line * 10.0).toInt()
+        }
+        return null
+    }
+
+    // Open a local paper bet only on a newly observed BetBoom quote update, on match day,
+    // and no earlier than 12 hours before kickoff. A quote timestamp is consumed once.
+    private fun autoOpenPaperBets(json: JSONObject) {
+        val competitions = json.optJSONArray("competitions") ?: return
+        val now = System.currentTimeMillis()
+        val localDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val today = localDayFormat.format(java.util.Date(now))
+        val twelveHoursMs = 12L * 60L * 60L * 1000L
+        val seenEditor = autoPaperPrefs.edit()
+        var seenChanged = false
+        var opened = 0
+
+        for (i in 0 until competitions.length()) {
+            val competition = competitions.optJSONObject(i) ?: continue
+            val leagueName = competition.optString("name")
+            val matches = competition.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val match = matches.optJSONObject(j) ?: continue
+                if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val matchId = match.optString("id").ifBlank {
+                    match.optString("utcDate") + "|" + match.optString("home") + "|" + match.optString("away")
+                }
+                val odds = match.optJSONObject("odds") ?: continue
+                if (!odds.optString("bookmaker").equals("BETBOOM", ignoreCase = true)) continue
+                val quoteStamp = odds.optString("bookmakerUpdatedAt").ifBlank { odds.optString("updatedAt") }
+                if (quoteStamp.isBlank() || quoteStamp == "null") continue
+                val seenKey = "quote_" + matchId.hashCode()
+                val previousStamp = autoPaperPrefs.getString(seenKey, null)
+                if (previousStamp == quoteStamp) continue
+
+                // Save the observed timestamp even when outside the window: an old quote
+                // must not become a new bet merely because the clock later enters the window.
+                seenEditor.putString(seenKey, quoteStamp)
+                seenChanged = true
+
+                val kickoff = parseIsoTimestampMillis(match.optString("utcDate")) ?: continue
+                if (localDayFormat.format(java.util.Date(kickoff)) != today) continue
+                val untilKickoff = kickoff - now
+                if (untilKickoff < 0L || untilKickoff > twelveHoursMs) continue
+                val quoteTime = parseIsoTimestampMillis(quoteStamp) ?: continue
+                if (quoteTime > now + 60_000L) continue
+
+                val leagueCode = competition.optString("code")
+                val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                    ?: if (leagueCode == "UCL" || leagueCode == "UEL") uefaPaperSignal(match) else null
+                    ?: continue
+                val side = signal.optString("side")
+                if (side.isBlank() || side.equals("ОЗ НЕТ", ignoreCase = true) ||
+                    signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp", 0.0) <= 0.0) continue
+                val oddsPrice = topSignalOdds(signal, match) ?: continue
+                if (oddsPrice < 1.50) continue
+                val probability = signal.optDouble("modelProbability", Double.NaN)
+                val edge = signal.optDouble("edgePp", Double.NaN)
+                val ev = probability * oddsPrice - 1.0
+                val qualifies = if (signal.optBoolean("paperOnly")) {
+                    probability.isFinite() && probability >= 0.60 && edge.isFinite() && edge >= 5.0 && ev >= 0.05
+                } else {
+                    val impliedEdge = probability - 1.0 / oddsPrice
+                    probability.isFinite() && probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+                }
+                if (!qualifies) continue
+                val marketKey = paperMarketKey(side, match) ?: continue
+
+                val duplicate = (0 until bets.length()).any { index ->
+                    val existing = bets.optJSONObject(index) ?: return@any false
+                    existing.optString("matchId") == matchId && existing.optString("marketKey") == marketKey
+                }
+                if (duplicate) continue
+
+                val bank = currentBankroll()
+                if (bank <= 0.0) continue
+                val stake = maxOf(bank * 0.005, 25.0)
+                val matchExposure = (0 until bets.length()).sumOf { index ->
+                    val existing = bets.optJSONObject(index) ?: return@sumOf 0.0
+                    if (existing.optString("matchId") == matchId &&
+                        existing.optString("status") in listOf("PENDING", "WON", "LOST")) existing.optDouble("stake", 0.0)
+                    else 0.0
+                }
+                val todayExposure = (0 until bets.length()).sumOf { index ->
+                    val existing = bets.optJSONObject(index) ?: return@sumOf 0.0
+                    val placedAt = existing.optLong("placedAt", 0L)
+                    if (existing.optBoolean("autoPaper") && placedAt > 0L &&
+                        localDayFormat.format(java.util.Date(placedAt)) == today) existing.optDouble("stake", 0.0)
+                    else 0.0
+                }
+                if (stake > bank * 0.01 + 0.000001 ||
+                    matchExposure + stake > bank * 0.01 + 0.000001 ||
+                    todayExposure + stake > bank * 0.02 + 0.000001) continue
+
+                val bet = JSONObject().apply {
+                    put("id", "AUTO-" + matchId.hashCode() + "-" + marketKey)
+                    put("matchId", matchId)
+                    put("league", leagueName)
+                    put("date", match.optString("utcDate"))
+                    put("home", match.optString("home"))
+                    put("away", match.optString("away"))
+                    put("market", side)
+                    put("marketKey", marketKey)
+                    put("odds", oddsPrice)
+                    put("stake", stake)
+                    put("probability", probability)
+                    put("edgePp", edge)
+                    put("expectedValue", ev)
+                    put("status", "PENDING")
+                    put("matchStatus", "SCHEDULED")
+                    put("placedAt", now)
+                    put("quoteUpdatedAt", quoteStamp)
+                    put("autoPaper", true)
+                    if (signal.has("paperSignalId")) put("paperSignalId", signal.optString("paperSignalId"))
+                }
+                bets.put(bet)
+                opened++
+            }
+        }
+        if (seenChanged) seenEditor.apply()
+        if (opened > 0) {
+            saveBets()
+            Toast.makeText(this, "AI автоматически открыл бумажных ставок: $opened", Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "2500")
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 2500.0
 
@@ -1220,7 +1380,12 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Автоматические бумажные ставки открываются по новому обновлению BetBoom только в день матча, не ранее чем за 12 часов до начала.")
+        val autoCount = (0 until bets.length()).count { bets.optJSONObject(it)?.optBoolean("autoPaper") == true }
+        val autoCard = card()
+        addText(autoCard, "АВТОМАТИЧЕСКИЙ PAPER-РЕЖИМ", 10, true, accent)
+        addText(autoCard, "Открыто AI-ставок: $autoCount", 15, true, Color.WHITE)
+        addText(autoCard, "Новые записи создаются после изменения времени обновления котировки. Повторная запись того же рынка матча блокируется.", 10, false, muted)
         val pendingBets = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "PENDING" }
         val betsCountCard = card()
         addText(betsCountCard, "СТАВКИ", 10, true, cyan)
@@ -1324,7 +1489,7 @@ class MainActivity : Activity() {
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
-            addText(box, "Купон не отправляется букмекеру автоматически. Сверь цену в приложении BetBoom, исправь её при необходимости и только затем подтверди фиксацию.", 11, true, gold)
+            addText(box, "Бумажная ставка фиксируется AI автоматически после нового обновления котировки в день матча (за 0–12 часов до начала). Реальные ставки не размещаются.", 11, true, gold)
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
