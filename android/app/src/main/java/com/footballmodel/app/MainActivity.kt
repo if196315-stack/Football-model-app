@@ -915,6 +915,14 @@ class MainActivity : Activity() {
                 if (before != existing.optString("status")) changed = true
             }
         }
+        val currentBankForRisk = currentBankroll()
+        val storedHigh = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull()
+        val highWater = maxOf(storedHigh ?: currentBankForRisk, currentBankForRisk)
+        if (storedHigh == null || highWater > storedHigh) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
+        val drawdown = if (highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
+        if (drawdown >= 0.10) settingsPrefs.edit().putBoolean("paper_auto_stopped", true).apply()
+        val autoStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
+        val drawdownPaused = drawdown >= 0.05
         val competitions = json.optJSONArray("competitions")
         if (competitions != null) for (i in 0 until competitions.length()) {
             val competition = competitions.optJSONObject(i) ?: continue
@@ -954,7 +962,7 @@ class MainActivity : Activity() {
                         break
                     }
                 }
-                if (duplicate) continue
+                if (duplicate || autoStopped || drawdownPaused) continue
                 val bank = currentBankroll()
                 val stake = maxOf(bank * 0.005, 25.0)
                 if (stake > bank * 0.01 + 0.000001) continue
