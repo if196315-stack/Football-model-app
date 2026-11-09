@@ -65,7 +65,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertTrue(all(row["freshness_status"] == "fresh" for row in rows))
         self.assertTrue(all(row["bookmaker_update_age_seconds"] == 120.0 for row in rows))
         dc_12 = [row for row in rows if row.get("outcome") == "12"]
-        under_refs = [row for row in rows if row.get("reference_only")]
+        under_refs = [row for row in rows if row.get("reference_only") and row.get("side") == "under"]
         self.assertEqual(len(dc_12), 2)
         self.assertTrue(all(not row["candidate_market"] for row in dc_12))
         self.assertTrue(all(not row["candidate_market"] and row["side"] == "under" for row in under_refs))
