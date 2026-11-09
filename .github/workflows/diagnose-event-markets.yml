@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/diagnose-event-markets.yml"
+      - "backend/diagnose_event_markets.py"
 
 permissions:
   contents: read
@@ -18,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install requests
-      - name: Inspect one upcoming event per league
+      - name: Probe actual double-chance prices for one upcoming event per league
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python backend/diagnose_event_markets.py
