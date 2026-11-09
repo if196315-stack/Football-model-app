@@ -10,15 +10,15 @@ from collect_odds_snapshots import append_snapshots, snapshot_rows
 
 class OddsSnapshotTests(unittest.TestCase):
     def sample(self):
-        return {"competitions": [{"code": "PL", "matches": [{
+        return {"oddsBookmaker": "melbet", "competitions": [{"code": "PL", "matches": [{
             "id": 123, "utcDate": "2026-11-10T17:30:00Z",
             "home": "Arsenal", "away": "Chelsea",
             "odds": {
                 "best": {
                     "doubleChance": {"1x": 1.31, "x2": 1.88, "12": 1.29},
                     "spreads": [
-                        {"team": "home", "point": 0, "price": 2.1, "bookmaker": "Book A"},
-                        {"team": "away", "point": 0, "price": 1.9, "bookmaker": "Book B"},
+                        {"team": "home", "point": 0, "price": 2.1, "bookmaker": "MELBET"},
+                        {"team": "away", "point": 0, "price": 1.9, "bookmaker": "MELBET"},
                     ],
                     "teamTotals": [
                         {"team": "home", "point": 1.5, "side": "over", "price": 1.82, "bookmaker": "MELBET"},
