@@ -131,10 +131,13 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertTrue(rows)
         self.assertTrue(all(row["model_probability_status"] == "available" for row in rows))
         self.assertTrue(all(row["model_version"] == "uefa-xg-poisson-v1" for row in rows))
+        self.assertTrue(all(row["market_parser_version"] == "betboom-fulltime-v2" for row in rows))
         dc = next(row for row in rows if row["market"] == "double_chance" and row["outcome"] == "1x")
         self.assertEqual(dc["model_probability"], 0.65)
         over = next(row for row in rows if row["market"] == "match_total_over" and row["point"] == 2.5)
         self.assertEqual(over["model_probability"], 0.70)
+        self.assertEqual(over["provider_market_group"], "total_goals")
+        self.assertEqual(over["provider_market_slug"], "total_goals")
         self.assertEqual(diagnostics["matches_with_model_prediction"], 1)
 
     def test_empty_provider_data_produces_no_snapshots(self):

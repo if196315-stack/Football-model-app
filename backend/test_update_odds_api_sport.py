@@ -65,14 +65,17 @@ class ApiSportOddsTests(unittest.TestCase):
             }}
         }}}}
         best = parse_odds(source)["best"]
-        self.assertIn({"team": "home", "point": 1.5, "side": "over", "price": 1.87},
-                      best["teamTotals"])
-        self.assertIn({"team": "away", "point": 0.5, "side": "over", "price": 1.73},
-                      best["teamTotals"])
+        self.assertTrue(any(x["team"] == "home" and x["point"] == 1.5
+                            and x["side"] == "over" and x["price"] == 1.87
+                            for x in best["teamTotals"]))
+        self.assertTrue(any(x["team"] == "away" and x["point"] == 0.5
+                            and x["side"] == "over" and x["price"] == 1.73
+                            for x in best["teamTotals"]))
         # The parser keeps both sides in its raw quote payload; the app's
         # display layer filters teamTotals to OVER only.
-        self.assertIn({"team": "home", "point": 1.5, "side": "under", "price": 1.94},
-                      best["teamTotals"])
+        self.assertTrue(any(x["team"] == "home" and x["point"] == 1.5
+                            and x["side"] == "under" and x["price"] == 1.94
+                            for x in best["teamTotals"]))
 
     def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
         source = {"id": 101, "oddsBk": {"betboom": {"markets": {
@@ -104,6 +107,25 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual({x["point"] for x in best["totals"]}, {1.5, 2.5, 3.5})
         self.assertEqual({x["side"] for x in best["totals"]}, {"over", "under"})
         self.assertEqual({x["point"] for x in best["teamTotals"]}, {0.5, 1.5, 2.5, 3.5})
+
+    def test_excludes_first_half_totals_and_preserves_market_group(self):
+        source = {"id": 301, "oddsBk": {"betboom": {"markets": {
+            "first_half_total_goals": {"name": {"en": "First Half Total Goals"},
+                                       "status": "open", "stage": "prematch", "stakes": {
+                "over": {"lines": [{"argument": 1.5, "factor": 1.15}]},
+                "under": {"lines": [{"argument": 1.5, "factor": 5.5}]}
+            }},
+            "total_goals": {"name": {"en": "Total Goals"},
+                            "status": "open", "stage": "prematch", "stakes": {
+                "over": {"lines": [{"argument": 1.5, "factor": 1.4}]},
+                "under": {"lines": [{"argument": 1.5, "factor": 2.8}]}
+            }}
+        }}}}
+        best = parse_odds(source)["best"]
+        self.assertEqual(len(best["totals"]), 2)
+        self.assertEqual({x["price"] for x in best["totals"]}, {1.4, 2.8})
+        self.assertEqual({x["market_group"] for x in best["totals"]}, {"total goals"})
+        self.assertEqual({x["market_slug"] for x in best["totals"]}, {"total_goals"})
 
     def test_parses_double_chance_and_only_zero_handicap(self):
         source = {"id": 7, "oddsBk": {"betboom": {"markets": {

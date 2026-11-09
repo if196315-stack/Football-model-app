@@ -33,12 +33,16 @@ def _market_pair(row: dict, rows: list[dict]) -> dict | None:
     if market == "match_total_over":
         opposite_market = "match_total_under_reference"
         return next((x for x in rows if x.get("market") == opposite_market
-                     and x.get("point") == row.get("point")), None)
+                     and x.get("point") == row.get("point")
+                     and x.get("provider_market_group") == row.get("provider_market_group")
+                     and x.get("provider_market_group")), None)
     if market == "team_total_over":
         opposite_market = "team_total_under_reference"
         return next((x for x in rows if x.get("market") == opposite_market
                      and x.get("team") == row.get("team")
-                     and x.get("point") == row.get("point")), None)
+                     and x.get("point") == row.get("point")
+                     and x.get("provider_market_group") == row.get("provider_market_group")
+                     and x.get("provider_market_group")), None)
     if market == "btts":
         opposite = "no" if row.get("outcome") == "yes" else "yes"
         return next((x for x in rows if x.get("market") == "btts"
@@ -47,7 +51,8 @@ def _market_pair(row: dict, rows: list[dict]) -> dict | None:
         opposite = "away" if row.get("team") == "home" else "home"
         return next((x for x in rows if x.get("market") == "handicap"
                      and x.get("team") == opposite
-                     and x.get("point") == row.get("point")), None)
+                     and x.get("point") == row.get("point")
+                     and x.get("provider_market_group") == row.get("provider_market_group")), None)
     return None
 
 
@@ -123,7 +128,7 @@ def evaluate_candidate(row: dict, snapshot_rows: list[dict]) -> dict:
         decision = "BET"
 
     identity = "|".join(str(row.get(key) or "") for key in (
-        "fixture_id", "captured_at", "market", "point", "team", "outcome", "price"
+        "fixture_id", "captured_at", "market", "provider_market_group", "point", "team", "outcome", "price"
     ))
     signal_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:20]
     return {
@@ -137,6 +142,10 @@ def evaluate_candidate(row: dict, snapshot_rows: list[dict]) -> dict:
         "home_team": row.get("home_team"),
         "away_team": row.get("away_team"),
         "market": row.get("market"),
+        "market_parser_version": row.get("market_parser_version"),
+        "provider_market_slug": row.get("provider_market_slug"),
+        "provider_market_group": row.get("provider_market_group"),
+        "provider_market_name": row.get("provider_market_name"),
         "point": row.get("point"),
         "team": row.get("team"),
         "outcome": row.get("outcome"),
@@ -179,6 +188,8 @@ def build_signals(odds_rows: list[dict]) -> list[dict]:
         for row in snapshot:
             if row.get("candidate_market") is not True or row.get("reference_only") is True:
                 continue
+            if row.get("market_parser_version") != "betboom-fulltime-v2":
+                continue
             if row.get("market") not in (
                 "double_chance", "match_total_over", "team_total_over", "btts", "handicap"
             ):
@@ -218,6 +229,7 @@ def _paper_bet_key(row: dict) -> tuple:
         str(row.get("fixture_id") or ""),
         str(row.get("market") or ""),
         str(row.get("point") or ""),
+        str(row.get("provider_market_group") or ""),
         str(row.get("team") or ""),
         str(row.get("outcome") or ""),
     )
