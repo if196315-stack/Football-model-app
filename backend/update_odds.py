@@ -214,7 +214,7 @@ def convert_event(event):
                     old.update(candidate)
     compact_best = {
         market: {key: value["price"] for key, value in values.items()}
-        for market, values in best.items() if market != "spreads" and values
+        for market, values in best.items() if market not in ("spreads", "teamTotals") and values
     }
     if best["spreads"]:
         compact_best["spreads"] = best["spreads"]
