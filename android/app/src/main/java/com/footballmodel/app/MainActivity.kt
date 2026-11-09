@@ -923,9 +923,50 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
-        addText(matchesContainer, "ВЫБЕРИТЕ ЛИГУ", 9, true, muted)
+        val homeHero = card()
+        homeHero.setPadding(dp(18), dp(18), dp(18), dp(18))
+        homeHero.background = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(Color.rgb(25, 62, 67), Color.rgb(15, 35, 54), Color.rgb(12, 25, 43))
+        ).apply {
+            cornerRadius = dp(24).toFloat()
+            setStroke(dp(1), Color.rgb(57, 112, 105))
+        }
+        addText(homeHero, "IQ MATCH  /  MATCH CENTER", 9, true, gold)
+        addText(homeHero, "Матчи и прогнозы", 23, true, Color.WHITE)
+        addText(homeHero, "Футбольная аналитика на основе статистики, xG и исторических данных.", 11, false, Color.rgb(190, 207, 221))
+        val featureRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "MELBET").forEachIndexed { index, caption ->
+            val chip = label(caption, 8, true, if (index == 2) gold else accent).apply {
+                gravity = Gravity.CENTER
+                setPadding(dp(8), dp(7), dp(8), dp(7))
+                background = GradientDrawable().apply {
+                    setColor(Color.argb(42, 4, 12, 22))
+                    cornerRadius = dp(9).toFloat()
+                    setStroke(dp(1), Color.rgb(59, 91, 103))
+                }
+            }
+            featureRow.addView(chip, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                setMargins(dp(2), dp(8), dp(2), dp(2))
+            })
+        }
+        homeHero.addView(featureRow)
+        addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
+        addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
+        addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ MELBET", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1")
         val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA")
+        val leagueScroll = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            overScrollMode = View.OVER_SCROLL_NEVER
+            addView(leagueBar)
+        }
+        // Keep league filters in a horizontal scroller so they never squeeze on narrow phones.
+        leagueBar.parent?.let { (it as? android.view.ViewGroup)?.removeView(leagueBar) }
+        matchesContainer.addView(leagueScroll, 0)
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
                 text = names[index]
