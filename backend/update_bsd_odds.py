@@ -48,18 +48,27 @@ def get_json(session, path, params=None):
 
 
 def match_event(match, events):
+    raw_kickoff = str(match.get("utcDate", ""))
     try:
-        kickoff = datetime.fromisoformat(str(match.get("utcDate", "")).replace("Z", "+00:00"))
+        kickoff = datetime.fromisoformat(raw_kickoff.replace("Z", "+00:00"))
+        if kickoff.tzinfo is None:
+            kickoff = kickoff.replace(tzinfo=timezone.utc)
     except ValueError:
         return None
+    date_only = "T" not in raw_kickoff
     ranked = []
     for event in events:
         raw_date = event.get("event_date") or event.get("date") or event.get("kickoff")
         try:
             event_date = datetime.fromisoformat(str(raw_date).replace("Z", "+00:00"))
+            if event_date.tzinfo is None:
+                event_date = event_date.replace(tzinfo=timezone.utc)
         except (TypeError, ValueError):
             continue
-        if abs((event_date - kickoff).total_seconds()) > 18 * 3600:
+        if date_only:
+            if event_date.date() != kickoff.date():
+                continue
+        elif abs((event_date - kickoff).total_seconds()) > 18 * 3600:
             continue
         home = event.get("home_team") or event.get("home") or ""
         away = event.get("away_team") or event.get("away") or ""
