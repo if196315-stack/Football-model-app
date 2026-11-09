@@ -52,6 +52,16 @@ class OddsSnapshotTests(unittest.TestCase):
             self.assertNotEqual(json.loads(lines[0])["retrieved_at"],
                                 json.loads(lines[-1])["retrieved_at"])
 
+    def test_empty_snapshot_does_not_create_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "data.json"
+            archive = Path(tmp) / "history.jsonl"
+            source.write_text(json.dumps({"competitions": []}), encoding="utf-8")
+            result = append_snapshots(source, archive, "2026-11-09T12:00:00+00:00")
+            self.assertEqual(result["records_appended"], 0)
+            self.assertFalse(result["archive_written"])
+            self.assertFalse(archive.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
