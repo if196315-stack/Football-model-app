@@ -1,6 +1,5 @@
-import unittest
-
 from datetime import datetime, timezone
+import unittest
 
 from build_uefa_app_feed import build_feed, build_odds
 
@@ -22,7 +21,8 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertIsNotNone(odds)
         self.assertEqual(odds["best"]["teamTotals"][0]["price"], 1.9)
         self.assertEqual(odds["best"]["btts"], {})
-        stale = build_odds([rows[0]], datetime(2026, 11, 10, 10, 10, 0, tzinfo=timezone.utc))\n        self.assertIsNone(stale)
+        stale = build_odds([rows[0]], datetime(2026, 11, 10, 10, 10, 0, tzinfo=timezone.utc))
+        self.assertIsNone(stale)
 
     def test_feed_contains_two_separate_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
