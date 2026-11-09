@@ -46,9 +46,21 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     if (bet.optString("source") == "AI_AUTO" && bet.optString("status") == "PENDING") pendingAuto++
                 }
             }
+            settings.edit()
+                .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
+                .putString("paper_worker_last_status", "SUCCESS")
+                .putString("paper_worker_last_message", "Проверка выполнена; новых изменений: $changed")
+                .putInt("paper_worker_total_bets", totalBets)
+                .putInt("paper_worker_pending_auto", pendingAuto)
+                .commit()
             Log.i(TAG, "Auto-paper worker succeeded; changed=$changed totalBets=$totalBets pendingAuto=$pendingAuto elapsedMs=${System.currentTimeMillis() - startedAt}")
             Result.success()
         } catch (error: Exception) {
+            settings.edit()
+                .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
+                .putString("paper_worker_last_status", "ERROR")
+                .putString("paper_worker_last_message", error.javaClass.simpleName + ": " + (error.message ?: "unknown").take(180))
+                .commit()
             Log.w(TAG, "Auto-paper worker failed; retrying", error)
             Result.retry()
         }
