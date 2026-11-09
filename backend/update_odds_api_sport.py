@@ -215,7 +215,22 @@ def parse_odds(m):
             book_rows.append(row)
     best={k:v for k,v in best.items() if v}
     books_best={k:v for k,v in books_best.items() if v}
-    return {"eventId":str(m.get("id") or ""),"bookmaker":"BETBOOM","updatedAt":datetime.now(timezone.utc).isoformat(),"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
+    board_updated_at = None
+    board_age_seconds = None
+    if isinstance(betboom, dict):
+        raw_updated = (betboom.get("updatedAtByStage") or {}).get("prematch") or betboom.get("updatedAt")
+        try:
+            board_updated_at = datetime.fromtimestamp(int(raw_updated) / 1000, tz=timezone.utc).isoformat()
+            board_age_seconds = (datetime.now(timezone.utc) - datetime.fromtimestamp(int(raw_updated) / 1000, tz=timezone.utc)).total_seconds()
+        except (TypeError, ValueError, OverflowError, OSError):
+            board_updated_at = None
+    freshness = "fresh" if board_age_seconds is not None and 0 <= board_age_seconds <= 300 else (
+        "stale" if board_age_seconds is not None else "unknown"
+    )
+    return {"eventId":str(m.get("id") or ""),"bookmaker":"BETBOOM",
+            "updatedAt":board_updated_at or datetime.now(timezone.utc).isoformat(),
+            "bookmakerUpdatedAt":board_updated_at,"bookmakerUpdateAgeSeconds":round(board_age_seconds,3) if board_age_seconds is not None else None,
+            "freshnessStatus":freshness,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 def main():
     key=os.getenv("API_SPORT_KEY","").strip()

@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.text.InputType
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -23,6 +25,7 @@ import kotlin.concurrent.thread
 
 class MainActivity : Activity() {
     private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
+    private val uefaDataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json"
     private val bg = Color.rgb(7, 13, 25)
     private val panel = Color.rgb(17, 29, 47)
     private val surface = Color.rgb(23, 39, 61)
@@ -47,6 +50,13 @@ class MainActivity : Activity() {
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
     private var renderedKey: String? = null
+    private val liveRefreshHandler = Handler(Looper.getMainLooper())
+    private val liveRefreshTask = object : Runnable {
+        override fun run() {
+            if (refreshButton.isEnabled && currentTab in listOf("matches", "history")) loadData()
+            liveRefreshHandler.postDelayed(this, 30_000)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,6 +147,17 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        liveRefreshHandler.removeCallbacks(liveRefreshTask)
+        liveRefreshHandler.postDelayed(liveRefreshTask, 30_000)
+    }
+
+    override fun onPause() {
+        liveRefreshHandler.removeCallbacks(liveRefreshTask)
+        super.onPause()
     }
 
     private fun countryFlagView(flag: String): View =
@@ -545,6 +566,32 @@ class MainActivity : Activity() {
                 val body = conn.inputStream.bufferedReader().use { it.readText() }
                 conn.disconnect()
                 val json = JSONObject(body)
+                // UEFA competitions are published as a separate isolated feed.
+                try {
+                    val uefaConn = (URL(uefaDataUrl).openConnection() as HttpURLConnection).apply {
+                        connectTimeout = 10000
+                        readTimeout = 10000
+                        setRequestProperty("Cache-Control", "no-cache")
+                    }
+                    if (uefaConn.responseCode in 200..299) {
+                        val uefa = JSONObject(uefaConn.inputStream.bufferedReader().use { it.readText() })
+                        val target = json.optJSONArray("competitions") ?: JSONArray().also { json.put("competitions", it) }
+                        val extra = uefa.optJSONArray("competitions")
+                        if (extra != null) for (i in 0 until extra.length()) {
+                            val competition = extra.optJSONObject(i) ?: continue
+                            val code = competition.optString("code")
+                            if (code == "UCL" || code == "UEL") {
+                                for (j in target.length() - 1 downTo 0) {
+                                    if (target.optJSONObject(j)?.optString("code") == code) target.remove(j)
+                                }
+                                target.put(competition)
+                            }
+                        }
+                    }
+                    uefaConn.disconnect()
+                } catch (_: Exception) {
+                    // Domestic feed remains usable if the isolated UEFA feed is temporarily unavailable.
+                }
                 runOnUiThread {
                     data = json
                     tabViewCache.clear()
@@ -785,8 +832,8 @@ class MainActivity : Activity() {
         spin.adapter = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,markets.map { it.label })
         form.addView(spin)
         fun field(h: String) = EditText(this).apply { hint=h; setSingleLine(true); inputType=InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
-        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки · ровно 5% банка")
-        val suggestedStake = currentBankroll() * 0.05
+        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки · 0.25–1% доступного банка")
+        val suggestedStake = currentBankroll() * 0.005
         stake.setText(String.format(Locale.US, "%.2f", suggestedStake))
         form.addView(odds); form.addView(stake)
         fun suggestedOdds(marketKey: String): Double? {
@@ -837,7 +884,22 @@ class MainActivity : Activity() {
             dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val o=odds.text.toString().replace(',','.').toDoubleOrNull()
                 val st=stake.text.toString().replace(',','.').toDoubleOrNull()
-                if(o==null || o<=1.0 || st==null || st<=0.0 || kotlin.math.abs(st - currentBankroll() * 0.05) > 0.01) { Toast.makeText(this,"Сумма ставки должна быть ровно 5% текущего банка",Toast.LENGTH_LONG).show(); return@setOnClickListener }
+                val bankNow = currentBankroll()
+                val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
+                val matchExposure = (0 until bets.length()).sumOf { idx ->
+                    val existing = bets.optJSONObject(idx)
+                    if (existing?.optString("status") == "PENDING" && existing.optString("matchId") == matchId) existing.optDouble("stake") else 0.0
+                }
+                val today = m.optString("utcDate").take(10)
+                val dailyExposure = (0 until bets.length()).sumOf { idx ->
+                    val existing = bets.optJSONObject(idx)
+                    if (existing?.optString("status") == "PENDING" && existing.optString("date").take(10) == today) existing.optDouble("stake") else 0.0
+                }
+                if(o==null || o<=1.0 || st==null || st < bankNow*0.0025 || st > bankNow*0.01 ||
+                    matchExposure + st > bankNow*0.01 || dailyExposure + st > bankNow*0.02) {
+                    Toast.makeText(this,"Ставка: 0.25–1% банка; лимит на матч 1%, на день 2%.",Toast.LENGTH_LONG).show()
+                    return@setOnClickListener
+                }
                 val mk=markets[spin.selectedItemPosition]
                 bets.put(JSONObject().apply {
                     put("id",System.currentTimeMillis().toString())
@@ -896,11 +958,50 @@ class MainActivity : Activity() {
         b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a")
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
+    private fun showEditBetOddsDialog(b: JSONObject) {
+        val field = EditText(this).apply {
+            hint = "Фактический коэффициент"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setSingleLine(true)
+            setText(String.format(Locale.US, "%.2f", b.optDouble("odds")))
+            setSelection(text.length)
+        }
+        AlertDialog.Builder(this).setTitle("Изменить коэффициент")
+            .setMessage("Введи коэффициент, по которому купон действительно принят букмекером.")
+            .setView(field).setNegativeButton("Отмена", null)
+            .setPositiveButton("Сохранить", null).create().also { dialog ->
+                dialog.setOnShowListener {
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        val value = field.text.toString().replace(',', '.').toDoubleOrNull()
+                        if (value == null || !value.isFinite() || value <= 1.0) {
+                            Toast.makeText(this, "Проверь коэффициент", Toast.LENGTH_SHORT).show()
+                            return@setOnClickListener
+                        }
+                        b.put("odds", value)
+                        b.put("oddsEditedAt", System.currentTimeMillis())
+                        saveBets()
+                        dialog.dismiss()
+                        render()
+                    }
+                }
+            }.show()
+    }
+
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "История ставок", "Личная история на этом устройстве · коэффициенты вводятся вручную.")
+        screenHeader("BET TRACKER", "Ставки и купоны", "Все подтверждённые вручную купоны · фактический коэффициент можно исправить.")
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue; val m=findMatch(j,b)
-            if(m!=null && b.optString("status")=="PENDING") { settleBet(b,m); if(b.optString("status")!="PENDING") changed=true }
+            if(m!=null) {
+                val matchStatus = m.optString("status")
+                val score = if (!m.isNull("homeScore") && !m.isNull("awayScore")) "${m.optInt("homeScore")}:${m.optInt("awayScore")}" else ""
+                if (score.isNotEmpty() && b.optString("score") != score) { b.put("score", score); changed=true }
+                if (matchStatus.isNotEmpty() && b.optString("matchStatus") != matchStatus) { b.put("matchStatus", matchStatus); changed=true }
+                if(b.optString("status")=="PENDING") {
+                    val before = b.optString("status")
+                    settleBet(b,m)
+                    if(b.optString("status") != before) changed=true
+                }
+            }
         }
         if(changed) saveBets()
         var stakeAll=0.0; var turnover=0.0; var profit=0.0; var payout=0.0
@@ -916,7 +1017,7 @@ class MainActivity : Activity() {
         }
         val sum=card()
         addText(sum,"СТАТИСТИКА СТАВОК",10,true,accent)
-        addText(sum,"Всего: "+bets.length()+" · выиграно: "+wins+" · проиграно: "+losses+" · возврат: "+pushes+" · ожидают: "+pending,12,true)
+        addText(sum,"Всего: "+bets.length()+" · выигрыш: "+wins+" · проигрыш: "+losses+" · возврат: "+pushes+" · не рассчитаны: "+pending,12,true)
         addText(sum,"Сумма ставок: "+fmt(stakeAll),13,true)
         addText(sum,"Выплаты: "+fmt(payout)+" · чистый результат: "+(if(profit>=0)"+" else "")+fmt(profit),12,true,if(profit>=0)accent else Color.RED)
         addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
@@ -924,13 +1025,20 @@ class MainActivity : Activity() {
         if(bets.length()==0) { val e=card(); addText(e,"На вкладке «Матчи» нажми «Добавить ставку» в карточке игры.",12,false,muted); return }
         for(i in bets.length()-1 downTo 0) { val b=bets.optJSONObject(i) ?: continue; val box=card()
             val st=b.optString("status")
-            val status=when(st){"WON"->"ВЫИГРЫШ";"LOST"->"ПРОИГРЫШ";"PUSH"->"ВОЗВРАТ";else->"ОЖИДАЕТ"}
+            val status=when(st){"WON"->"ВЫИГРЫШ";"LOST"->"ПРОИГРЫШ";"PUSH"->"ВОЗВРАТ";else->"НЕ РАССЧИТАНА"}
             val col=when(st){"WON"->accent;"LOST"->Color.RED;else->Color.YELLOW}
             addText(box,b.optString("league")+" · "+date(b.optString("date")),10,false,muted)
             addText(box,b.optString("home")+" — "+b.optString("away"),15,true)
             addText(box,b.optString("market")+" · кэф "+fmt(b.optDouble("odds")),12,true,accent)
             addText(box,"Ставка: "+fmt(b.optDouble("stake"))+" · модель: "+String.format(Locale.getDefault(),"%.1f%%",b.optDouble("probability")*100),11,false,muted)
-            addText(box,status+(if(b.has("score"))" · счёт "+b.optString("score") else ""),12,true,col)
+            val liveStatus = when(b.optString("matchStatus")) {
+                "IN_PLAY", "LIVE", "PAUSED" -> " · LIVE"
+                "FINISHED" -> " · ФИНАЛ"
+                "SCHEDULED", "TIMED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
+                else -> ""
+            }
+            addText(box,status+liveStatus+(if(b.has("score"))" · счёт "+b.optString("score") else ""),12,true,col)
+            if(st=="PENDING") actionButton(box,"Изменить фактический коэффициент") { showEditBetOddsDialog(b) }
             if(st=="WON") addText(box,"Чистая прибыль: +"+fmt(b.optDouble("stake")*(b.optDouble("odds")-1)),12,true,accent)
             if(st=="LOST") addText(box,"Убыток: −"+fmt(b.optDouble("stake")),12,true,col)
             if(st=="PUSH") addText(box,"Возврат: "+fmt(b.optDouble("stake")),12,true,accent)
@@ -1052,7 +1160,21 @@ class MainActivity : Activity() {
                 candidates.add(Triple(m, league.optString("name"), signal))
             }
         }
-        val sorted = candidates.sortedByDescending { it.third.optDouble("edgePp") }
+        val sorted = candidates.filter { item ->
+            val m = item.first
+            val signal = item.third
+            val price = topSignalOdds(signal, m) ?: return@filter false
+            val probability = signal.optDouble("modelProbability", Double.NaN)
+            val odds = m.optJSONObject("odds")
+            val age = odds?.optDouble("bookmakerUpdateAgeSeconds", Double.NaN) ?: Double.NaN
+            val fresh = odds?.optString("freshnessStatus") == "fresh" && age.isFinite() && age in 0.0..300.0
+            val impliedEdge = probability - 1.0 / price
+            val ev = probability * price - 1.0
+            fresh && probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+        }.sortedByDescending {
+            val price = topSignalOdds(it.third, it.first) ?: 0.0
+            it.third.optDouble("modelProbability") * price - 1.0
+        }
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
@@ -1080,8 +1202,8 @@ class MainActivity : Activity() {
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
-            addText(box, "Это аналитический кандидат, не приказ ставить. При сомнительном преимуществе — NO BET.", 11, true, gold)
-            actionButton(box, "＋ Зафиксировать ставку вручную") { showAddBetDialog(m, league) }
+            addText(box, "Купон не отправляется букмекеру автоматически. Сверь цену в приложении BetBoom, исправь её при необходимости и только затем подтверди фиксацию.", 11, true, gold)
+            actionButton(box, "Проверить коэффициент и подготовить купон") { showAddBetDialog(m, league) }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
@@ -1118,9 +1240,9 @@ class MainActivity : Activity() {
         }
         val sorted = items.sortedByDescending { it.third.optDouble("edgePp") }
         val summary = card()
-        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ · КЭФ ОТ 1.50", 9, true, accent)
+        addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · КУПОНЫ К ПОДТВЕРЖДЕНИЮ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(summary, "Только матчи с рассчитанным прогнозом и положительным отклонением от исторической базы. Это фильтр модели, не рекомендация ставить.", 11, false, muted)
+        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5%, свежая цена BetBoom не старше 5 минут. Каждый купон требует твоей проверки и подтверждения.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)
@@ -1259,8 +1381,12 @@ class MainActivity : Activity() {
                 val m = matches.getJSONObject(j)
                 // Do not show fixtures without a complete model prediction.
                 // A scheduled match with insufficient paired xG/history stays out of the app.
-                if (m.optString("status") in listOf("SCHEDULED", "TIMED") &&
-                    m.optJSONObject("prediction") != null) {
+                val matchStatus = m.optString("status")
+                val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
+                val hasTrackedBet = (0 until bets.length()).any { bets.optJSONObject(it)?.optString("matchId") == matchId }
+                if ((matchStatus in listOf("SCHEDULED", "TIMED") && m.optJSONObject("prediction") != null) ||
+                    (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) ||
+                    (matchStatus == "FINISHED" && hasTrackedBet)) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
@@ -1313,6 +1439,17 @@ class MainActivity : Activity() {
                 }
                 addText(box, "✦  MATCH FIXTURE  ·  ${date(m.optString("utcDate"))}", 9, true, accent)
                 addMatchup(box, m.optString("home"), m.optString("away"))
+                val scoreAvailable = !m.isNull("homeScore") && !m.isNull("awayScore")
+                val scoreText = if (scoreAvailable) " · ${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else ""
+                val matchStatusLabel = when(m.optString("status")) {
+                    "IN_PLAY", "LIVE" -> "● LIVE"
+                    "PAUSED" -> "ПЕРЕРЫВ"
+                    "FINISHED" -> "МАТЧ ЗАВЕРШЁН"
+                    "SCHEDULED", "TIMED" -> "ЕЩЁ НЕ НАЧАЛСЯ"
+                    else -> m.optString("status")
+                }
+                addText(box, matchStatusLabel + scoreText, 12, true,
+                    if (m.optString("status") in listOf("IN_PLAY", "LIVE")) accent else muted)
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
                     if ((m.optJSONArray("paperSignals")?.length() ?: 0) > 0) {
