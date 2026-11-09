@@ -941,8 +941,8 @@ class MainActivity : Activity() {
                 // Do not reintroduce the removed five-minute cutoff: any actual BetBoom quote
                 // updated in the final 12h window is eligible when a new feed snapshot arrives.
                 if (quoteUpdatedAt < kickoff - 12L * 60L * 60L * 1000L || quoteUpdatedAt > now) continue
-                val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaPaperSignal(match) else null
+                val signal = (match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                    ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaPaperSignal(match) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, match) ?: continue
