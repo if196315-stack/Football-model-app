@@ -77,6 +77,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
     rows = []
     predictions = predictions or {}
     eligible_fixtures = matched_fixtures = betboom_boards = active_prematch_boards = fixtures_with_selected_markets = matches_with_model_prediction = 0
+    model_predictions_by_league = Counter()
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
         if league not in ("UCL", "UEL"):
@@ -98,6 +99,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         prediction = predictions.get(str(fixture_id))
         if prediction:
             matches_with_model_prediction += 1
+            model_predictions_by_league[league] += 1
         model_markets = (prediction or {}).get("markets") or {}
         bookmaker_board = (source.get("oddsBk") or {}).get("betboom") or {}
         if bookmaker_board:
@@ -217,6 +219,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "matches_with_selected_markets": fixtures_with_selected_markets,
             "matches_with_model_prediction": matches_with_model_prediction,
             "matches_without_model_prediction": max(0, matched_fixtures - matches_with_model_prediction),
+            "model_predictions_by_competition": dict(sorted(model_predictions_by_league.items())),
         })
     return rows
 
@@ -283,6 +286,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fixture-cache", default=str(FIXTURE_CACHE))
     parser.add_argument("--output", default=str(ARCHIVE))
+    parser.add_argument("--xg-history", default="artifacts/uefa-xg-history.json")
     args = parser.parse_args()
     cache_path = Path(args.fixture_cache)
     if not cache_path.exists():
@@ -291,7 +295,7 @@ def main() -> int:
     provider_fixtures = fetch_provider_fixtures(os.environ.get("API_SPORT_KEY", "").strip())
     captured_at = datetime.now(timezone.utc).isoformat()
     diagnostics = {}
-    history_path = ROOT / "artifacts" / "uefa-xg-history.json"
+    history_path = ROOT / args.xg_history
     predictions = {}
     if history_path.exists():
         history = json.loads(history_path.read_text(encoding="utf-8"))
