@@ -3,9 +3,10 @@ from unittest.mock import patch
 
 import pandas as pd
 
+from update_data import markets
+
 from update_data_pitchapi import (
     app_status, build_model_frames, find_odds_event, fixture_identity, preserve_odds_by_identity,
-    markets,
 )
 
 
