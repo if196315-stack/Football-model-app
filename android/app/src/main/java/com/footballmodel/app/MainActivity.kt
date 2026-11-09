@@ -1226,13 +1226,13 @@ class MainActivity : Activity() {
         addText(betsCountCard, "СТАВКИ", 10, true, cyan)
         addText(betsCountCard, bets.length().toString(), 26, true, Color.WHITE)
         addText(betsCountCard, "Всего зафиксировано · ожидают результата: $pendingBets", 11, false, muted)
+        val bank = currentBankroll()
         val target = card()
         val goal = targetBankroll()
         val progress = (bank / goal * 100.0).coerceIn(0.0, 100.0)
         addText(target, "ЦЕЛЬ БАНКА · ${fmt(initialBankroll())} ₽ → ${fmt(goal)} ₽", 10, true, gold)
         addText(target, "Прогресс: ${String.format(Locale.US, "%.1f%%", progress)} · осталось ${fmt((goal - bank).coerceAtLeast(0.0))} ₽", 12, true)
         addText(target, "Цель — ориентир, не прогноз и не повод повышать риск или догонять проигрыши. Стратегия отбора сигналов не зависит от цели.", 11, false, muted)
-        val bank = currentBankroll()
         val baseStake = bank * 0.005
         val maxStake = bank * 0.01
         val minimumBookmakerStake = 25.0
