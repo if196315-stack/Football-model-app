@@ -316,7 +316,7 @@ def run() -> dict:
     api_key = os.environ.get("PITCHAPI_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError("PITCHAPI_API_KEY is not configured")
-    shot_limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "500"))
+    shot_limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "5000"))
     refreshed = refresh_history(api_key, max_shot_requests=shot_limit)
     cache = refreshed["cache"]
     s, base, results = build_model_frames(cache)
