@@ -52,7 +52,7 @@ class MainActivity : Activity() {
         val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true; clipToPadding = false; setPadding(0, 0, 0, 18); overScrollMode = View.OVER_SCROLL_NEVER }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(18, 46, 18, 34)
+            setPadding(16, 34, 16, 28)
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
         scroll.addView(root)
@@ -63,8 +63,8 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        brand.addView(label("MATCHIQ", 23, true, Color.WHITE))
-        brand.addView(label("FOOTBALL ANALYTICS  ·  MODEL 1.3", 9, true, cyan))
+        brand.addView(label("IQ Match", 25, true, Color.WHITE))
+        brand.addView(label("SMART FOOTBALL INTELLIGENCE", 9, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
         refreshButton = Button(this).apply {
             text = "↻"
@@ -88,7 +88,7 @@ class MainActivity : Activity() {
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 72).apply { topMargin = 14; bottomMargin = 12 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 64).apply { topMargin = 12; bottomMargin = 14 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -126,8 +126,8 @@ class MainActivity : Activity() {
     private fun card(parent: LinearLayout = matchesContainer): LinearLayout {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(17), dp(18), dp(17))
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(22, 39, 61), Color.rgb(13, 27, 45))).apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), Color.rgb(43, 68, 91)) }
+            setPadding(dp(16), dp(15), dp(16), dp(15))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), Color.rgb(34, 57, 78)) }
             elevation = dp(2).toFloat()
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
@@ -292,7 +292,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "МАТЧИ", "desk" to "AI", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
+        val items = listOf("matches" to "ГЛАВНАЯ", "desk" to "AI", "history" to "БАНК", "stats" to "СТАТИСТИКА", "help" to "ПРОФИЛЬ")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -345,7 +345,7 @@ class MainActivity : Activity() {
 
     private fun renderStats(json: JSONObject) {
         addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
-        addText(matchesContainer, "Качество прогнозов", 22, true)
+        addText(matchesContainer, "Статистика и точность модели", 22, true)
         addText(matchesContainer, "Здесь учитываются только прогнозы, зафиксированные до начала матча. После финального счёта результат добавляется к архиву; исходный прогноз не пересчитывается.", 11, false, muted)
         data class BandRow(val label: String, val n: Int, val hits: Int)
         data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
@@ -715,7 +715,7 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         addText(matchesContainer, "AI · MATCH INTELLIGENCE", 9, true, cyan)
-        addText(matchesContainer, "Разбор рекомендованных ставок", 22, true)
+        addText(matchesContainer, "AI-аналитика и сигналы", 22, true)
         addText(matchesContainer, "Каждая рекомендация содержит обоснование, проверку цены и ограничения модели.", 11, false, muted)
         val target = card()
         addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
@@ -780,7 +780,7 @@ class MainActivity : Activity() {
             actionButton(box, "＋ Зафиксировать ставку вручную") { showAddBetDialog(m, league) }
         }
         val footer = card()
-        addText(footer, "ПРАВИЛА DESK", 10, true, accent)
+        addText(footer, "ПРАВИЛА AI", 10, true, accent)
         addText(footer, "TOP: только ITB 1.5, точная нулевая фора и Double Chance. ОЗ и тоталы остаются в карточках матчей вне TOP. Котировки — только API-Sport / Melbet.", 11, false, muted)
     }
 
