@@ -1,14 +1,14 @@
-"""Read-only probe of MelBet's public pre-match event feed.
+"""Read-only probe of MelBet's public pre-match event feed and league discovery.
 
-This diagnostic uses public match URLs/event IDs only. It never writes model
-files or snapshots and never prints credentials or cookies.
+This diagnostic uses public match IDs only. It never writes model files or
+snapshots and never prints credentials or cookies.
 """
 import json
 from typing import Any
 
 import requests
 
-BASE_URL = "https://melbet.mobi/service-api/LineFeed/GetGameZip"
+BASE_URL = "https://melbet.mobi/service-api/LineFeed"
 TIMEOUT = 30
 EVENTS = [
     {"id": 385744564, "home": "Manchester City", "away": "Fulham"},
@@ -64,17 +64,6 @@ def collect_market_rows(value: Any, limit: int = 20) -> tuple[int, list[dict]]:
     return len(rows), [compact_market(row) for row in rows[:limit]]
 
 
-def catalog_preview(event_obj: dict, limit: int = 40) -> list[dict]:
-    catalog = event_obj.get("MEC")
-    if not isinstance(catalog, list):
-        return []
-    fields = ("I", "G", "GS", "T", "N", "Name", "EN", "RU", "L", "P", "B")
-    return [
-        {key: item.get(key) for key in fields if key in item}
-        for item in catalog[:limit] if isinstance(item, dict)
-    ]
-
-
 def market_group_summary(value: Any, limit: int = 220) -> dict:
     rows = iter_market_rows(value)
     counts: dict[str, int] = {}
@@ -125,12 +114,72 @@ def summarize_response(event: dict, status: int, content_type: str,
         "sourceAway": event_obj.get("O2") or event_obj.get("O2E"),
         "marketRecordsFound": market_count,
         "marketSample": market_sample,
-        "marketCatalogPreview": catalog_preview(event_obj),
         **market_group_summary(value),
     }
     if not isinstance(payload, (dict, list)) and text_body:
         result["bodyPreview"] = text_body[:300]
     return result
+
+
+def extract_football_leagues(payload: Any) -> list[dict]:
+    """Extract MelBet football leagues from GetSportsZip's Value[].L[]."""
+    value = unwrap_value(payload)
+    if not isinstance(value, list):
+        return []
+    leagues = []
+    for sport in value:
+        if not isinstance(sport, dict) or int(sport.get("I") or 0) != 1:
+            continue
+        for league in sport.get("L") or []:
+            if not isinstance(league, dict):
+                continue
+            try:
+                league_id = int(league.get("LI") or 0)
+                game_count = int(league.get("GC") or 0)
+            except (TypeError, ValueError):
+                continue
+            if league_id and game_count > 0:
+                leagues.append({
+                    "id": league_id,
+                    "name": league.get("L") or "",
+                    "games": game_count,
+                })
+    return sorted(leagues, key=lambda item: item["games"], reverse=True)
+
+
+def extract_champ_fixtures(payload: Any, limit: int = 20) -> tuple[int, list[dict]]:
+    """Extract event identity sample from GetChampZip's Value.G[]."""
+    value = unwrap_value(payload)
+    if isinstance(value, list):
+        value = value[0] if value and isinstance(value[0], dict) else {}
+    games = value.get("G") if isinstance(value, dict) else None
+    if not isinstance(games, list):
+        return 0, []
+    sample = []
+    for game in games[:limit]:
+        if not isinstance(game, dict):
+            continue
+        sample.append({
+            "id": game.get("I"),
+            "home": game.get("O1") or game.get("O1E"),
+            "away": game.get("O2") or game.get("O2E"),
+            "start": game.get("S"),
+            "leagueId": game.get("LI"),
+            "league": game.get("L"),
+            "hasMarkets": bool(game.get("E") or game.get("AE")),
+        })
+    return len(games), sample
+
+
+def request_json(session: requests.Session, endpoint: str, params: dict,
+                 referer: str) -> tuple[int, str, Any, str]:
+    session.headers["referer"] = referer
+    response = session.get(f"{BASE_URL}/{endpoint}", params=params, timeout=TIMEOUT)
+    try:
+        payload = response.json()
+    except (ValueError, json.JSONDecodeError):
+        payload = None
+    return response.status_code, response.headers.get("content-type", ""), payload, response.text
 
 
 def main() -> None:
@@ -150,19 +199,16 @@ def main() -> None:
     rows = []
     for event in EVENTS:
         params = {**BASE_PARAMS, "id": str(event["id"])}
-        session.headers["referer"] = (
+        referer = (
             "https://melbet.mobi/en/line/football/88637-england-premier-league/"
             f'{event["id"]}-event'
         )
         try:
-            response = session.get(BASE_URL, params=params, timeout=TIMEOUT)
-            try:
-                payload = response.json()
-            except (ValueError, json.JSONDecodeError):
-                payload = None
+            status, content_type, payload, body = request_json(
+                session, "GetGameZip", params, referer
+            )
             rows.append(summarize_response(
-                event, response.status_code, response.headers.get("content-type", ""),
-                payload=payload, text_body=response.text,
+                event, status, content_type, payload=payload, text_body=body
             ))
         except requests.RequestException as exc:
             rows.append({
@@ -172,6 +218,50 @@ def main() -> None:
                 "message": str(exc)[:240],
             })
     print("MELBET_DIRECT_FEED=" + json.dumps(rows, ensure_ascii=False))
+
+    try:
+        params = {key: value for key, value in BASE_PARAMS.items()
+                  if key not in ("isSubGames", "grMode")}
+        params["top"] = "false"
+        status, content_type, payload, body = request_json(
+            session, "GetSportsZip", params, "https://melbet.mobi/en/line/football"
+        )
+        leagues = extract_football_leagues(payload)
+        print("MELBET_FOOTBALL_LEAGUES=" + json.dumps({
+            "httpStatus": status,
+            "contentType": content_type,
+            "success": payload.get("Success") if isinstance(payload, dict) else None,
+            "count": len(leagues),
+            "topLeagues": leagues[:80],
+            "bodyPreview": body[:200] if not isinstance(payload, (dict, list)) else None,
+        }, ensure_ascii=False))
+    except requests.RequestException as exc:
+        print("MELBET_FOOTBALL_LEAGUES=" + json.dumps({
+            "requestError": type(exc).__name__, "message": str(exc)[:240]
+        }))
+
+    try:
+        params = {**BASE_PARAMS, "champ": "88637", "top": "false"}
+        params.pop("isSubGames", None)
+        params.pop("grMode", None)
+        status, content_type, payload, body = request_json(
+            session, "GetChampZip", params,
+            "https://melbet.mobi/en/line/football/88637-england-premier-league"
+        )
+        count, sample = extract_champ_fixtures(payload)
+        print("MELBET_EPL_FIXTURES=" + json.dumps({
+            "httpStatus": status,
+            "contentType": content_type,
+            "success": payload.get("Success") if isinstance(payload, dict) else None,
+            "count": count,
+            "sample": sample,
+            "bodyPreview": body[:200] if not isinstance(payload, (dict, list)) else None,
+        }, ensure_ascii=False))
+    except requests.RequestException as exc:
+        print("MELBET_EPL_FIXTURES=" + json.dumps({
+            "requestError": type(exc).__name__, "message": str(exc)[:240]
+        }))
+
     print("DIAGNOSTIC_DONE=read_only; no model files or snapshots changed")
 
 
