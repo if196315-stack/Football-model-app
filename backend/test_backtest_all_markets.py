@@ -51,7 +51,8 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertIn("brier_skill", report["markets"]["1X2"]["holdout"])
         self.assertIn("limitations", report)
         self.assertIn("calibration_global", report["markets"]["1X2"])
-        self.assertTrue(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
+        self.assertEqual(report["markets"]["1X2"]["calibration_global"]["calibrator"]["train_n"], 6)
+        self.assertFalse(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
         self.assertIn("ENG", report["markets"]["1X2"]["calibration_by_competition"])
 
     def test_walk_forward_produces_predictions_only_after_history_exists(self):
