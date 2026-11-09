@@ -2,11 +2,16 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from refresh_pitchapi_uefa_fixtures import refresh_uefa_fixtures, load_cache
+import requests
+from refresh_pitchapi_uefa_fixtures import refresh_uefa_fixtures, load_cache, fetch
 
 
 class Response:
+    status_code = 200
+    headers = {}
+
     def __init__(self, data):
         self.data = data
 
@@ -77,6 +82,39 @@ class UefaFixtureHistoryTests(unittest.TestCase):
                 {(params["season"], params["status"]) for params in requests},
                 {("2025/2026", "all"), ("2026/2027", "all")},
             )
+
+    def test_upcoming_only_refresh_requests_only_latest_season(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            session = FakeSession()
+            result = refresh_uefa_fixtures(
+                "test-key", session=session, cache_path=Path(tmp) / "cache.json",
+                report_path=Path(tmp) / "report.json", pause_seconds=0, upcoming_only=True,
+            )
+            requests_made = [params for url, params in session.calls if "/matches" in url]
+            self.assertEqual(len(requests_made), 2)
+            self.assertEqual({params["season"] for params in requests_made}, {"2026/2027"})
+            self.assertTrue(result["report"]["upcomingSeasonOnly"])
+
+    def test_fetch_retries_transient_521_response(self):
+        class FlakySession:
+            calls = 0
+
+            def get(self, url, params=None, **kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    class BadResponse:
+                        status_code = 521
+                        headers = {}
+                        def raise_for_status(self):
+                            raise requests.HTTPError("521 origin unavailable")
+                    return BadResponse()
+                return Response({"leagues": []})
+
+        session = FlakySession()
+        with patch("refresh_pitchapi_uefa_fixtures.time.sleep", return_value=None):
+            data = fetch(session, "/leagues", "test-key")
+        self.assertEqual(data, {"leagues": []})
+        self.assertEqual(session.calls, 2)
 
     def test_missing_api_key_fails_before_network_call(self):
         with self.assertRaises(ValueError):

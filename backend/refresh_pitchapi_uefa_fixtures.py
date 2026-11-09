@@ -29,15 +29,31 @@ TARGETS = {
 
 
 def fetch(session: Any, path: str, api_key: str, params: dict | None = None) -> Any:
-    response = session.get(
-        f"{BASE_URL}{path}", params=params or {},
-        headers={"X-API-KEY": api_key}, timeout=TIMEOUT,
-    )
-    response.raise_for_status()
-    body = response.json()
-    if not isinstance(body, dict) or "data" not in body or "error" in body:
-        raise ValueError(f"Unexpected PitchAPI response for {path}")
-    return body["data"]
+    retryable = {429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
+    for attempt in range(4):
+        try:
+            response = session.get(
+                f"{BASE_URL}{path}", params=params or {},
+                headers={"X-API-KEY": api_key}, timeout=TIMEOUT,
+            )
+            if response.status_code in retryable and attempt < 3:
+                retry_after = response.headers.get("Retry-After")
+                try:
+                    delay = min(60, max(1, int(retry_after))) if retry_after else 2 ** attempt
+                except (TypeError, ValueError):
+                    delay = 2 ** attempt
+                time.sleep(delay)
+                continue
+            response.raise_for_status()
+            body = response.json()
+            if not isinstance(body, dict) or "data" not in body or "error" in body:
+                raise ValueError(f"Unexpected PitchAPI response for {path}")
+            return body["data"]
+        except requests.RequestException:
+            if attempt == 3:
+                raise
+            time.sleep(2 ** attempt)
+    raise RuntimeError(f"PitchAPI retry loop exhausted for {path}")
 
 
 def season_value(value: Any) -> str | None:
