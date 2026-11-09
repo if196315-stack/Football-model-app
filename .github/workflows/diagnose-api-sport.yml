@@ -3,7 +3,7 @@ name: Diagnose API-Sport quota and BetBoom markets
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/betting-desk-analysis]
     paths:
       - 'backend/diagnose_api_sport.py'
       - '.github/workflows/diagnose-api-sport.yml'
