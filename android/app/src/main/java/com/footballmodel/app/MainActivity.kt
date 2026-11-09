@@ -1023,20 +1023,19 @@ class MainActivity : Activity() {
                     addMarketRow(mainMarkets, listOf(Triple("1X · хозяева или ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости или ничья", pct(pred, "x2"), Color.WHITE)))
                     addText(mainMarkets, "ПОБЕДА / НИЧЬЯ", 9, true, muted)
                     addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
+                    addText(mainMarkets, "ОБЕ ЗАБЬЮТ", 9, true, muted)
+                    addText(mainMarkets, "ОЗ: ДА ${pct(pred, "bttsYes")}     НЕТ ${pct(pred, "bttsNo")}", 11, true, Color.WHITE)
                     addText(mainMarkets, "ГОЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
                     addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 11, false, Color.WHITE)
-                    addText(box, "ДОПОЛНИТЕЛЬНЫЕ ВЕРОЯТНОСТИ", 10, true, muted)
-                    addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
-                    addText(box, "НОВЫЕ РЫНКИ · ВЕРОЯТНОСТИ МОДЕЛИ", 10, true, cyan)
-                    addText(box, "ОЗ: да ${pct(pred, "bttsYes")} · нет ${pct(pred, "bttsNo")}", 11, false, muted)
+                    addText(box, "ДОПОЛНИТЕЛЬНЫЕ ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · БОЛЬШЕ", 10, true, cyan)
                     for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
                         addText(box, "ИТ ${teamName}", 10, true, muted)
-                        for (line in listOf("05", "15", "25", "35")) {
-                            val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
+                        for (line in listOf("05", "25", "35")) {
+                            val label = when (line) { "05" -> "0.5"; "25" -> "2.5"; else -> "3.5" }
                             addText(box, "$label: Б ${pct(pred, "${teamKey}Over$line")}", 11, false, muted)
                         }
                     }
