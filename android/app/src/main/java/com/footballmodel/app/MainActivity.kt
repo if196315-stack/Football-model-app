@@ -183,10 +183,10 @@ class MainActivity : Activity() {
         }
         val totals = best.optJSONObject("totals")
         if (totals != null) {
-            addText(panelOdds, "ТОТАЛ 2.5 · лучшие цены", 10, true, muted)
+            addText(panelOdds, "ТОТАЛ 2.5 · ТОЛЬКО НАБЛЮДЕНИЕ", 10, true, muted)
             addMarketRow(panelOdds, listOf(
-                Triple("БОЛЬШЕ", oddsText(totals,"over25"), gold),
-                Triple("МЕНЬШЕ", oddsText(totals,"under25"), gold)
+                Triple("БОЛЬШЕ", oddsText(totals,"over25"), muted),
+                Triple("МЕНЬШЕ", oddsText(totals,"under25"), muted)
             ))
         }
         val btts = best.optJSONObject("btts")
