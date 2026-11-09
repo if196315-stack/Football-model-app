@@ -250,7 +250,7 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
     counts = Counter()
     examples = {}
     window_start = window_start or datetime.now(timezone.utc).date()
-    window_end = window_end or (window_start + timedelta(days=14))
+    window_end = window_end or (window_start + timedelta(days=30))
     window_fixtures = 0
     window_active_team_markets = 0
     window_active_fulltime_team_markets = 0
@@ -280,7 +280,9 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
             name = market_label(market)
             kind = market_kind(slug, market)
             active = market.get("status") == "open" and market.get("stage") == "prematch"
-            team_hint = bool(re.search(r"team|individual|total_team|team_total|итб|индивидуальн|тотал команды|команд", f"{slug} {name}", re.I))
+            team_hint = kind != "btts" and bool(re.search(
+                r"team|individual|total_team|team_total|итб|индивидуальн|тотал команды|команд",
+                f"{slug} {name}", re.I))
             if kind == "tt":
                 counts["team_total_markets_classified"] += 1
                 if in_window and active:
@@ -348,7 +350,7 @@ def main():
     if not key:raise RuntimeError("API_SPORT_KEY missing from GitHub Secrets")
     data=json.loads(DATA.read_text(encoding="utf-8"))
     today=datetime.now(timezone.utc).date()
-    params={"date_from":today.isoformat(),"date_to":(today+timedelta(days=14)).isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
+    params={"date_from":today.isoformat(),"date_to":(today+timedelta(days=30)).isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
     session=requests.Session();session.headers.update({"Authorization":key})
     # API pages are capped at 500 fixtures; walk every page in the 14-day window.
     params["page"]=1
@@ -408,7 +410,7 @@ def main():
                                  "away": (source.get("awayTeam") or {}).get("name")},
                     "team_totals": team_total_quotes[:8],
                 })
-    market_diagnostics = betboom_market_diagnostics(fixtures, today, today + timedelta(days=14))
+    market_diagnostics = betboom_market_diagnostics(fixtures, today, today + timedelta(days=30))
     data["oddsProvider"]="API-Sport / BetBoom"
     data["oddsBookmaker"]="betboom"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
