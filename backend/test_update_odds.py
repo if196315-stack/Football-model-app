@@ -3,7 +3,8 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds import read_market, convert_event, merge_quote\nfrom update_bsd_odds import make_quote
+from update_odds import read_market, convert_event, merge_quote
+from update_bsd_odds import make_quote
 
 
 class OddsMarketParsingTests(unittest.TestCase):
