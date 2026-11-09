@@ -6,6 +6,7 @@ on:
       - feature/pitchapi-data-source
     paths:
       - 'backend/update_data_pitchapi.py'
+      - 'backend/update_data.py'
       - 'backend/pitchapi_data_source.py'
       - '.github/workflows/pitchapi-preview.yml'
   workflow_dispatch:
