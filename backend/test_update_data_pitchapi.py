@@ -172,12 +172,16 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertNotIn("dnbHome", probabilities)
         self.assertNotIn("dnbAway", probabilities)
         self.assertNotIn("ah0Home", probabilities)
+        self.assertNotIn("ah0Away", probabilities)
+        self.assertFalse(any(key.lower().startswith("dnb") for key in probabilities))
         from update_data import strongest_signal
         prediction = {**probabilities, "homeOver15": 0.6, "awayOver15": 0.4}
         baseline = {"1x": 0.5, "x2": 0.5, "homeOver15": 0.5, "awayOver15": 0.5, "matches": 200}
         signal = strongest_signal(prediction, baseline, "Home", "Away")
         self.assertNotIn("Фора 0", signal["market"])
         self.assertNotIn("Фора 0", signal["side"])
+        self.assertNotIn("dnbHome", signal["market"])
+        self.assertNotIn("dnbAway", signal["market"])
 
 
 if __name__ == "__main__":
