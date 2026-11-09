@@ -1315,7 +1315,11 @@ class MainActivity : Activity() {
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
-                    addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
+                    if ((m.optJSONArray("paperSignals")?.length() ?: 0) > 0) {
+                        addText(box, "Матч завершён · исторический сигнал модели ниже", 11, false, muted)
+                    } else {
+                        addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
+                    }
                 } else {
                     val signal = pred.optJSONObject("strongestSignal")
                     val signalBox = card(box)
