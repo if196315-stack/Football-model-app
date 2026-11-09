@@ -80,9 +80,9 @@ class OddsSnapshotTests(unittest.TestCase):
                         {"name": "Chelsea", "price": 3.8},
                     ]},
                     {"key": "double_chance", "outcomes": [
-                        {"name": "Home/Draw", "price": 1.35},
-                        {"name": "Draw/Away", "price": 1.65},
-                        {"name": "Home/Away", "price": 1.25},
+                        {"name": "Home or Draw", "price": 1.35},
+                        {"name": "Draw or Away", "price": 1.65},
+                        {"name": "Home or Away", "price": 1.25},
                     ]},
                     {"key": "btts", "outcomes": [
                         {"name": "Yes", "price": 1.72},
@@ -127,9 +127,9 @@ class OddsSnapshotTests(unittest.TestCase):
                         {"name": "Chelsea FC", "price": 3.8},
                     ]},
                     {"key": "double_chance", "outcomes": [
-                        {"name": "Home/Draw", "price": 1.35},
-                        {"name": "Draw/Away", "price": 1.65},
-                        {"name": "Home/Away", "price": 1.25},
+                        {"name": "Home or Draw", "price": 1.35},
+                        {"name": "Draw or Away", "price": 1.65},
+                        {"name": "Home or Away", "price": 1.25},
                     ]},
                     {"key": "spreads", "outcomes": [
                         {"name": "Arsenal FC", "point": 0, "price": 1.9},
