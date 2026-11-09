@@ -49,7 +49,8 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
             "pl-1": fixture("pl-1", "PL"),
             "ucl-finished": {**fixture("ucl-finished", "UCL"), "status": "finished"},
         }}
-        rows = snapshot_rows(cache, [source], "2026-11-10T12:00:00+00:00")
+        diagnostics = {}
+        rows = snapshot_rows(cache, [source], "2026-11-10T12:00:00+00:00", diagnostics)
         self.assertEqual(len(rows), 2 * 2 + 2 * 2 + 2 * 2 + 2 * 2)  # DC, totals, ITB, BTTS for two UEFA fixtures
         self.assertEqual({row["league_code"] for row in rows}, {"UCL", "UEL"})
         self.assertEqual({row["market"] for row in rows},
@@ -62,6 +63,12 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertFalse(any(row.get("outcome") == "12" for row in rows))
         self.assertFalse(any(row.get("side") == "under" for row in rows))
         self.assertFalse(any(row.get("point") == 2.75 for row in rows))
+        self.assertEqual(diagnostics["eligible_uefa_upcoming_fixtures_in_cache"], 2)
+        self.assertEqual(diagnostics["api_sport_provider_fixtures"], 1)
+        self.assertEqual(diagnostics["matched_pitchapi_fixtures"], 2)
+        self.assertEqual(diagnostics["matches_with_betboom_board"], 2)
+        self.assertEqual(diagnostics["matches_with_active_prematch_board"], 2)
+        self.assertEqual(diagnostics["matches_with_selected_markets"], 2)
 
     def test_empty_provider_data_produces_no_snapshots(self):
         cache = {"matches": {"1": {
