@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from diagnose_api_sport import market_summary, quota_summary, response_items
+from diagnose_api_sport import fixture_identity_sample, market_summary, model_fixture_sample, quota_summary, response_items
 
 
 class DiagnosticHelpersTests(unittest.TestCase):
@@ -35,6 +35,29 @@ class DiagnosticHelpersTests(unittest.TestCase):
         self.assertEqual(result[0]["isBettingActiveByStage"], {"prematch": True})
         self.assertEqual(result[0]["outcomes"]["over"][0]["argument"], 2.5)
         self.assertEqual(result[0]["outcomes"]["over"][0]["factor"], 1.91)
+
+
+    def test_fixture_identity_sample_includes_timestamp_and_team_names(self):
+        sample = fixture_identity_sample({
+            "id": 7, "startTimestamp": 1794178800000, "dateEvent": "2026-11-09",
+            "homeTeam": {"name": "Home", "translations": {"en": "Home FC"}},
+            "awayTeam": {"name": "Away"}
+        })
+        self.assertEqual(sample["startTimestamp"], 1794178800000)
+        self.assertEqual(sample["homeTranslations"], {"en": "Home FC"})
+        self.assertEqual(sample["away"], "Away")
+
+    def test_model_fixture_sample_is_bounded_and_includes_identity(self):
+        from datetime import datetime, timezone
+        today = datetime.now(timezone.utc).date().isoformat()
+        sample = model_fixture_sample({"competitions": [{
+            "code": "PL", "matches": [{
+                "id": 123, "utcDate": today + "T19:00:00Z",
+                "home": "Home FC", "away": "Away FC", "status": "SCHEDULED"
+            }]
+        }]})
+        self.assertEqual(sample[0]["competition"], "PL")
+        self.assertEqual(sample[0]["home"], "Home FC")
 
 
 if __name__ == "__main__":
