@@ -79,7 +79,7 @@ The full market/line-level scores, including OVER 3.5 and higher team totals, ar
 
 ## Interpretation and next decisions
 
-1. **Keep DC 1X / X2 in the candidate set for further paper testing.** Both beat the constant-frequency Brier reference in the pooled holdout and in each competition.
+1. **Keep DC 1X / X2 in the candidate set for further paper testing.** Both beat the chronological expanding-frequency Brier reference in the pooled holdout and in each competition.
 2. **Keep match OVER 2.5 and home ITB OVER 1.5 as research candidates, not approved bets.** Their holdout scores are modestly better than baseline; the UEL OVER 2.5 P≥60% hit rate is only 60.0%.
 3. **Do not promote BTTS based on this test.** The overall score improvement is very small and the P≥60% BTTS YES subset underperforms its average predicted probability.
 4. **Do not use higher ITB lines or OVER 3.5 as a rule yet.** The qualifying subsets are too small or empty.
