@@ -149,7 +149,7 @@ def read_market(bookmaker, key, home, away):
         elif key == "double_chance":
             # The Odds API names outcomes with actual team names, e.g.
             # "Fulham or Draw", not only generic "Home or Draw" labels.
-            parts = re.split(r"\\s+or\\s+", name.strip(), flags=re.IGNORECASE)
+            parts = re.split(r"\s+or\s+", name.strip(), flags=re.IGNORECASE)
             if len(parts) == 2:
                 draw_part = next((part for part in parts if norm(part) in ("draw", "tie")), None)
                 team_parts = [part for part in parts if part is not draw_part]
