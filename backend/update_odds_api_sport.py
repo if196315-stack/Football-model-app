@@ -196,13 +196,13 @@ def main():
             if quote["best"]:
                 match["odds"]=quote
                 updated+=1
-    data["oddsProvider"]="API-Sport / Melbet"
+    data["oddsProvider"]="API-Sport / BetBoom"
     data["oddsBookmaker"]="betboom"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
-    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"noMelbetQuotes":matched-updated,"notMatched":eligible-matched}
+    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched}
     data["oddsStatus"]="ready" if updated else "no_quotes"
-    data["oddsNotice"]=f"Melbet: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки Melbet."
+    data["oddsNotice"]=f"BetBoom: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки BetBoom."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"provider":"API-Sport / Melbet","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noMelbetQuotes":matched-updated,"notMatched":eligible-matched}))
+    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched}))
 
 if __name__=="__main__":main()
