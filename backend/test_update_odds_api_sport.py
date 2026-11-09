@@ -54,6 +54,37 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
         self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "BETBOOM")
 
+    def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
+        source = {"id": 101, "oddsBk": {"betboom": {"markets": {
+            "total_goals": {"status": "open", "stage": "prematch", "stakes": {
+                "over": {"lines": [
+                    {"argument": 1.5, "factor": 1.7},
+                    {"argument": 2.5, "factor": 1.9},
+                    {"argument": 3.5, "factor": 2.1},
+                    {"argument": 2.75, "factor": 2.0}
+                ]},
+                "under": {"lines": [
+                    {"argument": 1.5, "factor": 2.2},
+                    {"argument": 2.5, "factor": 1.9},
+                    {"argument": 3.5, "factor": 1.7},
+                    {"argument": 2.75, "factor": 1.8}
+                ]}
+            }},
+            "total_team_1": {"status": "open", "stage": "prematch", "stakes": {
+                "over": {"lines": [
+                    {"argument": 0.5, "factor": 1.2},
+                    {"argument": 1.5, "factor": 1.8},
+                    {"argument": 2.5, "factor": 2.4},
+                    {"argument": 3.5, "factor": 3.2},
+                    {"argument": 1.75, "factor": 2.0}
+                ]}
+            }}
+        }}}}
+        best = parse_odds(source)["best"]
+        self.assertEqual({x["point"] for x in best["totals"]}, {1.5, 2.5, 3.5})
+        self.assertEqual({x["side"] for x in best["totals"]}, {"over", "under"})
+        self.assertEqual({x["point"] for x in best["teamTotals"]}, {0.5, 1.5, 2.5, 3.5})
+
     def test_parses_double_chance_and_only_zero_handicap(self):
         source = {"id": 7, "oddsBk": {"betboom": {"markets": {
             "double_chance": {"status": "open", "stage": "prematch", "stakes": {

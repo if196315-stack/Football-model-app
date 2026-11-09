@@ -1,6 +1,7 @@
 name: Backend odds tests
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "backend/**"

@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.text.InputType
 import android.os.Bundle
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -135,6 +137,26 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+    }
+
+    private fun englandFlagView(): View = object : View(this) {
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+            val w = width.toFloat()
+            val h = height.toFloat()
+            paint.color = Color.WHITE
+            canvas.drawRect(0f, 0f, w, h, paint)
+            paint.color = Color.rgb(206, 17, 38)
+            val vertical = w * 0.22f
+            val horizontal = h * 0.34f
+            canvas.drawRect((w - vertical) / 2f, 0f, (w + vertical) / 2f, h, paint)
+            canvas.drawRect(0f, (h - horizontal) / 2f, w, (h + horizontal) / 2f, paint)
+        }
+    }.apply {
+        setWillNotDraw(false)
+        layoutParams = LinearLayout.LayoutParams(dp(30), dp(20)).apply { rightMargin = dp(8) }
+        contentDescription = "Флаг Англии"
     }
 
     private fun label(value: String, size: Int, bold: Boolean = false, color: Int = Color.WHITE): TextView =
@@ -279,8 +301,7 @@ class MainActivity : Activity() {
                 val point = line.optDouble("point", Double.NaN)
                 val price = line.optDouble("price", Double.NaN)
                 val side = line.optString("side")
-                if (!point.isFinite() || side !in listOf("over", "under") || !price.isFinite() || price <= 1.0) continue
-                if (side != "over") continue
+                // Показываем котировки тоталов только для БОЛЬШЕ; UNDER не выводим ни для матча, ни для команд.\n                if (!point.isFinite() || !side.equals("over", ignoreCase = true) || !price.isFinite() || price <= 1.0) continue
                 addMarketRow(panelOdds, listOf(Triple("БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
@@ -310,7 +331,8 @@ class MainActivity : Activity() {
                 val line = teamTotals.optJSONObject(i) ?: continue
                 val price = line.optDouble("price", Double.NaN)
                 val point = line.optDouble("point", Double.NaN)
-                if (line.optString("side") != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                val side = line.optString("side")
+                // Индивидуальные UNDER-котировки скрыты; в карточке остаются только OVER.\n                if (!side.equals("over", ignoreCase = true) || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
                     addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · BETBOOM", 10, true, muted)
                     headingShown = true
@@ -652,12 +674,50 @@ class MainActivity : Activity() {
         addText(explainer, "Диапазон — это уверенность в выбранной стороне: max(p, 1−p). Например, вероятность события 28% означает прогноз на противоположный исход с уверенностью 72% и попадёт в диапазон 70–79%. В каждом диапазоне показаны верные прогнозы / все прогнозы. Brier Score и Log Loss: чем ниже, тем лучше. Попадания не равны доходности.", 11, false, muted)
         val footer = card()
         addText(footer, "Учитываются только неизменяемые прогнозы, зафиксированные до начала матча. Старые пересчитываемые прогнозы в эту статистику не включены.", 10, false, muted)
+
+        // IQ MATCH Strategy v1.0 — постоянно доступная памятка с правилами отбора и риска.
+        val strategyIntro = card()
+        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.0", 10, true, accent)
+        addText(strategyIntro, "СТРОГИЙ ОТБОР · УМЕРЕННЫЙ РИСК · ОГРАНИЧЕННЫЙ ЗАПУСК", 13, true, Color.WHITE)
+        addText(strategyIntro, "Ставка допускается только после проверки данных, вероятности, value и риска. Если хотя бы один обязательный фильтр не пройден — WAIT или REJECT. Отсутствие ставки является полноценным решением.", 11, false, muted)
+
+        val strategyFilters = card()
+        addText(strategyFilters, "1. ФИЛЬТРЫ ДОПУСКА", 11, true, accent)
+        addText(strategyFilters, "Данные: матч сопоставлен однозначно; котировка только BetBoom через API-Sport; возраст котировки не более 5 минут; точное совпадение рынка, стороны и линии; нет критических пропусков.", 11, false, Color.WHITE)
+        addText(strategyFilters, "Сигнал A: вероятность модели ≥ 60%; преимущество над break-even ≥ 5 п.п.; EV ≥ +5%; модель проверена на данном типе рынка; сигнал устойчив к небольшим изменениям предположений.", 11, false, Color.WHITE)
+        addText(strategyFilters, "B = WAIT: интересный сигнал, но не хватает подтверждений или данных. C = REJECT: отрицательное/недостаточное value, плохие данные или неприемлемый риск.", 11, false, muted)
+
+        val strategyValue = card()
+        addText(strategyValue, "2. VALUE И EV", 11, true, accent)
+        addText(strategyValue, "Break-even probability = 1 / коэффициент. EV = вероятность модели × коэффициент − 1. Для BET стартовый минимум EV — +5%, а преимущество над break-even — не менее 5 процентных пунктов. Высокая вероятность сама по себе не означает выгодную ставку.", 11, false, Color.WHITE)
+        addText(strategyValue, "Пример: вероятность 60%, коэффициент 1.90 → break-even 52.63%, EV +14%. Пример иллюстративный; калибровка модели и фактическая цена обязательны.", 10, false, muted)
+
+        val strategyRisk = card()
+        addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
+        addText(strategyRisk, "Базовая ставка — 0.5% текущего банка; сниженная — 0.25%; максимум — 1% на одну ставку. Суммарно на матч — не более 1%; дневная экспозиция — не более 2%. Коррелированные ставки считаются совместно.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
+
+        val strategyMarkets = card()
+        addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
+        addText(strategyMarkets, "Только BetBoom через API-Sport. Допускать только рынки с точной загруженной ценой и соответствующей вероятностью модели: Double Chance 1X/X2, Match Total OVER, Team Total OVER, BTTS YES/NO. Форы — только при наличии точной линии и коэффициента. 1X2 не допускать без корректной загрузки цены. UNDER не показывать в текущем пользовательском сценарии.", 11, false, Color.WHITE)
+        addText(strategyMarkets, "Нельзя подставлять коэффициенты другого букмекера, угадывать отсутствующую цену или сравнивать разные линии.", 10, false, muted)
+
+        val strategyTesting = card()
+        addText(strategyTesting, "5. ТЕСТИРОВАНИЕ И ДОПУСК К ЗАПУСКУ", 11, true, accent)
+        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных BetBoom котировках без реальных ставок. Этап 4 — ограниченный запуск с 0.25–0.5% банка. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
+        addText(strategyTesting, "Стартовые ориентиры: ≥500 исторических сигналов и ≥500 paper-сигналов; желательно ≥150–200 наблюдений на оцениваемый рынок. Эти объёмы не гарантируют статистическую надёжность: показывать доверительные интервалы и учитывать неопределённость.", 11, false, muted)
+
+        val strategyMetrics = card()
+        addText(strategyMetrics, "6. ЧТО КОНТРОЛИРОВАТЬ В STATS", 11, true, accent)
+        addText(strategyMetrics, "ROI, Yield, CLV, максимальная просадка, Brier Score, Log Loss, калибровка вероятностей, win rate, EV по каждому рынку и причины REJECT/WAIT. Win rate не является главным критерием. Сохранять все сигналы, включая отклонённые, коэффициент на момент решения и версию стратегии.", 11, false, Color.WHITE)
+        addText(strategyMetrics, "Пороговые значения — стартовая конфигурация для проверки, а не доказанное преимущество и не гарантия прибыли. Изменения правил должны получать новую версию и проверяться на независимых данных.", 10, false, muted)
     }
 
 
     private fun saveBets() {
         betPrefs.edit().putString("bets", bets.toString()).apply()
         tabViewCache.remove("history|ALL")
+        tabViewCache.remove("desk|ALL")
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
         val b = Button(this).apply {
@@ -945,6 +1005,11 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        val pendingBets = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "PENDING" }
+        val betsCountCard = card()
+        addText(betsCountCard, "СТАВКИ", 10, true, cyan)
+        addText(betsCountCard, bets.length().toString(), 26, true, Color.WHITE)
+        addText(betsCountCard, "Всего зафиксировано · ожидают результата: $pendingBets", 11, false, muted)
         val target = card()
         addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
         addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
@@ -1143,7 +1208,6 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
-        addStadiumBanner(matchesContainer)
         addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
         addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
         addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
@@ -1204,8 +1268,12 @@ class MainActivity : Activity() {
                 isClickable = true
                 isFocusable = true
             }
-            val flag = when (leagueCode) { "PL" -> "🏴"; "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
-            heading.addView(label(flag, 20, true, Color.WHITE), LinearLayout.LayoutParams(dp(30), -2).apply { rightMargin = dp(8) })
+            if (leagueCode == "PL") {
+                heading.addView(englandFlagView())
+            } else {
+                val flag = when (leagueCode) { "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
+                heading.addView(label(flag, 20, true, Color.WHITE), LinearLayout.LayoutParams(dp(30), -2).apply { rightMargin = dp(8) })
+            }
             heading.addView(label(league.optString("name"), 14, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
             heading.addView(label("${upcoming.size} матчей", 10, false, muted))
             val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, accent)
@@ -1257,28 +1325,54 @@ class MainActivity : Activity() {
                     val mainMarkets = card(box)
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
                     addMarketTitle(mainMarkets, "◈", "ОСНОВНЫЕ ИСХОДЫ")
-                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева или ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости или ничья", pct(pred, "x2"), Color.WHITE)))
-                    addText(mainMarkets, "ПОБЕДА / НИЧЬЯ", 9, true, muted)
-                    addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
-                    addText(mainMarkets, "ОБЕ ЗАБЬЮТ", 9, true, muted)
-                    addText(mainMarkets, "ОЗ: ДА ${pct(pred, "bttsYes")}     НЕТ ${pct(pred, "bttsNo")}", 11, true, Color.WHITE)
-                    addText(mainMarkets, "ГОЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
-                    addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
+                    val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
+                    fun quote(key: String): String {
+                        val dc = bestOdds?.optJSONObject("doubleChance")
+                        val btts = bestOdds?.optJSONObject("btts")
+                        val value = when {
+                            key in listOf("1x", "x2", "12") -> dc?.optDouble(key, Double.NaN)
+                            key == "bttsYes" -> btts?.optDouble("yes", Double.NaN)
+                            key == "bttsNo" -> btts?.optDouble("no", Double.NaN)
+                            else -> null
+                        }
+                        return if (value != null && value.isFinite() && value > 1.0) String.format(Locale.US, "%.2f", value) else "—"
+                    }
 
+                    fun totalQuote(point: Double, side: String, team: String? = null): String {
+                        val rows = bestOdds?.optJSONArray(if (team == null) "totals" else "teamTotals") ?: return "—"
+                        for (i in 0 until rows.length()) {
+                            val row = rows.optJSONObject(i) ?: continue
+                            val rowPoint = row.optDouble("point", Double.NaN)
+                            val rowPrice = row.optDouble("price", Double.NaN)
+                            if (row.optString("side").equals(side, ignoreCase = true) &&
+                                (team == null || row.optString("team") == team) &&
+                                rowPoint.isFinite() && kotlin.math.abs(rowPoint - point) < 0.001 &&
+                                rowPrice.isFinite() && rowPrice > 1.0) {
+                                return String.format(Locale.US, "%.2f", rowPrice)
+                            }
+                        }
+                        return "—"
+                    }
+                    addText(mainMarkets, "1X · ${pct(pred, "1x")} · кэф ${quote("1x")}       X2 · ${pct(pred, "x2")} · кэф ${quote("x2")}", 12, true, Color.WHITE)
+                    addText(mainMarkets, "ПОБЕДА / НИЧЬЯ · без котировок в текущем фиде", 9, true, muted)
+                    addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
+                    addText(mainMarkets, "ОБЕ КОМАНДЫ ЗАБЬЮТ", 9, true, muted)
+                    addText(mainMarkets, "ОЗ: ДА ${pct(pred, "bttsYes")} · кэф ${quote("bttsYes")}     НЕТ ${pct(pred, "bttsNo")} · кэф ${quote("bttsNo")}", 11, true, Color.WHITE)
+                    addText(mainMarkets, "ТОТАЛ МАТЧА", 9, true, muted)
+                    for ((line, key) in listOf(1.5 to "over15", 2.5 to "over25", 3.5 to "over35")) {
+                        addText(mainMarkets, "ТБ ${fmt(line)}: ${pct(pred, key)} · кэф ${totalQuote(line, "over")}", 11, false, Color.WHITE)
+                    }
                     addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 9, true, muted)
-                    for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
+                    for ((teamKey, teamName, sideKey) in listOf(Triple("home", m.optString("home"), "home"), Triple("away", m.optString("away"), "away"))) {
                         addText(mainMarkets, teamName, 11, true, accent)
-                        addText(mainMarkets, "ИТБ 0.5: ${pct(pred, "${teamKey}Over05")}", 11, false, Color.WHITE)
-                        addText(mainMarkets, "ИТБ 1.5: ${pct(pred, "${teamKey}Over15")}", 11, false, Color.WHITE)
-                        addText(mainMarkets, "ИТБ 2.5: ${pct(pred, "${teamKey}Over25")}", 11, false, Color.WHITE)
-                        addText(mainMarkets, "ИТБ 3.5: ${pct(pred, "${teamKey}Over35")}", 11, false, Color.WHITE)
+                        for ((line, suffix) in listOf(0.5 to "05", 1.5 to "15", 2.5 to "25", 3.5 to "35")) {
+                            val probKey = "${teamKey}Over${suffix}"
+                            addText(mainMarkets, "ИТБ ${fmt(line)}: ${pct(pred, probKey)} · кэф ${totalQuote(line, "over", sideKey)}", 11, false, Color.WHITE)
+                        }
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
 
-                    renderOdds(box, m.optJSONObject("odds"))
                     actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
                 }
             }
