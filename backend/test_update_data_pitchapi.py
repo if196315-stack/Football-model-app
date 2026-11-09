@@ -184,5 +184,31 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertNotIn("dnbAway", signal["market"])
 
 
+    def test_optional_odds_refresh_requests_full_supported_market_set(self):
+        from update_data_pitchapi import refresh_odds_from_api
+        class Response:
+            headers = {"x-requests-remaining": "100", "x-requests-used": "5"}
+            status_code = 200
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return []
+
+        payload = {"competitions": [
+            {"code": code, "matches": []}
+            for code in ("PL", "PD", "SA", "BL1", "FL1")
+        ]}
+        with patch("update_data_pitchapi.requests.get", return_value=Response()) as get, \
+             patch("update_data_pitchapi.time.sleep"):
+            self.assertEqual(refresh_odds_from_api(payload, "test-key"), 0)
+
+        self.assertEqual(get.call_count, 5)
+        for call in get.call_args_list:
+            self.assertEqual(
+                call.kwargs["params"]["markets"],
+                "h2h,totals,spreads,double_chance,btts",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
