@@ -136,7 +136,7 @@ def parse_odds(m):
             book_rows.append(row)
     best={k:v for k,v in best.items() if v}
     books_best={k:v for k,v in books_best.items() if v}
-    return {"eventId":str(m.get("id") or ""),"updatedAt":datetime.now(timezone.utc).isoformat(),"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
+    return {"eventId":str(m.get("id") or ""),"bookmaker":"MELBET","updatedAt":datetime.now(timezone.utc).isoformat(),"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 def main():
     key=os.getenv("API_SPORT_KEY","").strip()
