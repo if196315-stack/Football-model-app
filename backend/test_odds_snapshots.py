@@ -17,7 +17,7 @@ class OddsSnapshotTests(unittest.TestCase):
                 "best": {
                     "doubleChance": {"1x": 1.31, "x2": 1.88, "12": 1.29},
                     "spreads": [
-                        {"team": "home", "point": -0.5, "price": 2.1, "bookmaker": "Book A"},
+                        {"team": "home", "point": 0, "price": 2.1, "bookmaker": "Book A"},
                         {"team": "away", "point": 0, "price": 1.9, "bookmaker": "Book B"},
                     ],
                     "teamTotals": [
@@ -35,7 +35,9 @@ class OddsSnapshotTests(unittest.TestCase):
         self.assertEqual({row["market"] for row in rows},
                          {"double_chance", "spread", "team_total"})
         self.assertFalse(any(row.get("side") == "under" for row in rows))
-        self.assertFalse(any(row.get("point") == 0 for row in rows))
+        spread_rows = [row for row in rows if row["market"] == "spread"]
+        self.assertEqual(len(spread_rows), 2)
+        self.assertTrue(all(abs(row["point"]) < 0.001 for row in spread_rows))
         self.assertTrue(all(row["retrieved_at"] == "2026-11-09T12:00:00+00:00" for row in rows))
 
     def test_append_preserves_prior_history(self):
