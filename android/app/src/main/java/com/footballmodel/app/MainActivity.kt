@@ -1259,28 +1259,53 @@ class MainActivity : Activity() {
                     val mainMarkets = card(box)
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
                     addMarketTitle(mainMarkets, "◈", "ОСНОВНЫЕ ИСХОДЫ")
-                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева или ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости или ничья", pct(pred, "x2"), Color.WHITE)))
-                    addText(mainMarkets, "ПОБЕДА / НИЧЬЯ", 9, true, muted)
+                    val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
+                    fun quote(key: String): String {
+                        val dc = bestOdds?.optJSONObject("doubleChance")
+                        val btts = bestOdds?.optJSONObject("btts")
+                        val value = when {
+                            key in listOf("1x", "x2", "12") -> dc?.optDouble(key, Double.NaN)
+                            key == "bttsYes" -> btts?.optDouble("yes", Double.NaN)
+                            key == "bttsNo" -> btts?.optDouble("no", Double.NaN)
+                            else -> null
+                        }
+                        return if (value != null && value.isFinite() && value > 1.0) String.format(Locale.US, "%.2f", value) else "—"
+                    }
+                    fun totalQuote(point: Double, side: String, team: String? = null): String {
+                        val arr = bestOdds?.optJSONArray(if (team == null) "totals" else "teamTotals") ?: return "—"
+                        for (i in 0 until arr.length()) {
+                            val line = arr.optJSONObject(i) ?: continue
+                            if (kotlin.math.abs(line.optDouble("point", -999.0) - point) > 0.001) continue
+                            if (line.optString("side") != side) continue
+                            if (team != null && line.optString("team") != team) continue
+                            val price = line.optDouble("price", Double.NaN)
+                            if (price.isFinite() && price > 1.0) return String.format(Locale.US, "%.2f", price)
+                        }
+                        return "—"
+                    }
+                    addMarketRow(mainMarkets, listOf(
+                        Triple("1X · ${pct(pred, "1x")}  |  кэф ${quote("1x")}", "", Color.WHITE),
+                        Triple("X2 · ${pct(pred, "x2")}  |  кэф ${quote("x2")}", "", Color.WHITE)
+                    ))
+                    addText(mainMarkets, "ПОБЕДА / НИЧЬЯ · без котировок в текущем фиде", 9, true, muted)
                     addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
-                    addText(mainMarkets, "ОБЕ ЗАБЬЮТ", 9, true, muted)
-                    addText(mainMarkets, "ОЗ: ДА ${pct(pred, "bttsYes")}     НЕТ ${pct(pred, "bttsNo")}", 11, true, Color.WHITE)
-                    addText(mainMarkets, "ГОЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
-                    addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
-
+                    addText(mainMarkets, "ОБЕ КОМАНДЫ ЗАБЬЮТ", 9, true, muted)
+                    addText(mainMarkets, "ОЗ: ДА ${pct(pred, "bttsYes")} · кэф ${quote("bttsYes")}     НЕТ ${pct(pred, "bttsNo")} · кэф ${quote("bttsNo")}", 11, true, Color.WHITE)
+                    addText(mainMarkets, "ТОТАЛ МАТЧА", 9, true, muted)
+                    for ((line, key) in listOf(1.5 to "over15", 2.5 to "over25", 3.5 to "over35")) {
+                        addText(mainMarkets, "ТБ ${fmt(line)}: ${pct(pred, key)} · кэф ${totalQuote(line, "over")}   |   ТМ: кэф ${totalQuote(line, "under")}", 11, false, Color.WHITE)
+                    }
                     addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 9, true, muted)
-                    for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
+                    for ((teamKey, teamName, sideKey) in listOf(Triple("home", m.optString("home"), "home"), Triple("away", m.optString("away"), "away"))) {
                         addText(mainMarkets, teamName, 11, true, accent)
-                        addText(mainMarkets, "ИТБ 0.5: ${pct(pred, "${teamKey}Over05")}", 11, false, Color.WHITE)
-                        addText(mainMarkets, "ИТБ 1.5: ${pct(pred, "${teamKey}Over15")}", 11, false, Color.WHITE)
-                        addText(mainMarkets, "ИТБ 2.5: ${pct(pred, "${teamKey}Over25")}", 11, false, Color.WHITE)
-                        addText(mainMarkets, "ИТБ 3.5: ${pct(pred, "${teamKey}Over35")}", 11, false, Color.WHITE)
+                        for ((line, suffix) in listOf(0.5 to "05", 1.5 to "15", 2.5 to "25", 3.5 to "35")) {
+                            val probKey = "${teamKey}Over${suffix}"
+                            addText(mainMarkets, "ИТБ ${fmt(line)}: ${pct(pred, probKey)} · кэф ${totalQuote(line, "over", sideKey)}   |   ИТМ: кэф ${totalQuote(line, "under", sideKey)}", 11, false, Color.WHITE)
+                        }
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
 
-                    renderOdds(box, m.optJSONObject("odds"))
                     actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
                 }
             }
