@@ -1076,18 +1076,18 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
+                    for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
+                        addText(mainMarkets, "ИТБ · $teamName", 10, true, accent)
+                        addMarketRow(mainMarkets, listOf(
+                            Triple("0.5: Б", pct(pred, "${teamKey}Over05"), Color.WHITE),
+                            Triple("1.5: Б", pct(pred, "${teamKey}Over15"), Color.WHITE),
+                            Triple("2.5: Б", pct(pred, "${teamKey}Over25"), Color.WHITE),
+                            Triple("3.5: Б", pct(pred, "${teamKey}Over35"), Color.WHITE)
+                        ))
+                    }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
-                    addText(box, "ДОПОЛНИТЕЛЬНЫЕ ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · БОЛЬШЕ", 10, true, cyan)
-                    for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
-                        addText(box, "ИТ ${teamName}", 10, true, muted)
-                        for (line in listOf("05", "25", "35")) {
-                            val label = when (line) { "05" -> "0.5"; "25" -> "2.5"; else -> "3.5" }
-                            addText(box, "$label: Б ${pct(pred, "${teamKey}Over$line")}", 11, false, muted)
-                        }
-                    }
 
                     renderOdds(box, m.optJSONObject("odds"))
                     actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
