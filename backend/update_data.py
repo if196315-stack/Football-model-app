@@ -199,7 +199,7 @@ def strongest_signal(pred, baseline, home, away):
 
 def predict(c,home,away,st,base,names,matches,target_date):
     hn=match_name(home,names.get(c,[]),c); an=match_name(away,names.get(c,[]),c)
-    if not hn or not an:return None,"Не удалось надёжно сопоставить команды с Openplay"
+    if not hn or not an:return None,"Не удалось надёжно сопоставить команды с историей xG"
     hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
     lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
