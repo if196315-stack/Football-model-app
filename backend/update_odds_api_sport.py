@@ -233,18 +233,34 @@ def parse_odds(m):
             "freshnessStatus":freshness,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 
-def betboom_market_diagnostics(fixtures):
+def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
     """Explain whether BetBoom publishes team totals and whether our parser sees them."""
     from collections import Counter
     counts = Counter()
     examples = {}
+    window_start = window_start or datetime.now(timezone.utc).date()
+    window_end = window_end or (window_start + timedelta(days=14))
+    window_fixtures = 0
+    window_active_team_markets = 0
+    window_active_fulltime_team_markets = 0
+    window_parsed_team_total_quotes = 0
     for fixture in fixtures:
+        stamp = fixture.get("startTimestamp")
+        try:
+            fixture_date = datetime.fromtimestamp(float(stamp) / 1000, tz=timezone.utc).date()
+        except (TypeError, ValueError, OSError, OverflowError):
+            fixture_date = None
+        in_window = fixture_date is not None and window_start <= fixture_date <= window_end
+        if in_window:
+            window_fixtures += 1
         board = (fixture.get("oddsBk") or {}).get("betboom") or {}
         if not isinstance(board, dict):
             continue
         counts["fixtures_with_betboom_board"] += 1
         parsed = parse_odds(fixture).get("best") or {}
         counts["parsed_team_total_quotes"] += len(parsed.get("teamTotals") or [])
+        if in_window:
+            window_parsed_team_total_quotes += len(parsed.get("teamTotals") or [])
         for slug, market in (board.get("markets") or {}).items():
             if not isinstance(market, dict):
                 continue
@@ -254,6 +270,10 @@ def betboom_market_diagnostics(fixtures):
             team_hint = bool(re.search(r"team|individual|total_team|team_total|итб|индивидуальн|тотал команды|команд", f"{slug} {name}", re.I))
             if kind == "tt":
                 counts["team_total_markets_classified"] += 1
+                if in_window and active:
+                    window_active_team_markets += 1
+                if in_window and active and is_supported_full_time_market(slug, market):
+                    window_active_fulltime_team_markets += 1
                 if active:
                     counts["team_total_markets_open_prematch"] += 1
                 if is_supported_full_time_market(slug, market):
@@ -265,7 +285,8 @@ def betboom_market_diagnostics(fixtures):
             if kind == "tt" or team_hint:
                 entry = examples.setdefault(str(slug), {
                     "name": name, "kind": kind, "status": market.get("status"),
-                    "stage": market.get("stage"), "stakes": {},
+                    "stage": market.get("stage"), "stakes": {}, "fixture_date": str(fixture_date) if fixture_date else None,
+                    "fixture_league": fixture.get("league") or fixture.get("leagueName") or fixture.get("competition"),
                 })
                 for outcome, stake in (market.get("stakes") or {}).items():
                     if not isinstance(stake, dict):
@@ -355,7 +376,7 @@ def main():
                                  "away": (source.get("awayTeam") or {}).get("name")},
                     "team_totals": team_total_quotes[:8],
                 })
-    market_diagnostics = betboom_market_diagnostics(fixtures)
+    market_diagnostics = betboom_market_diagnostics(fixtures, today, today + timedelta(days=14))
     data["oddsProvider"]="API-Sport / BetBoom"
     data["oddsBookmaker"]="betboom"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
