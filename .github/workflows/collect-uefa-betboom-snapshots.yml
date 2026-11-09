@@ -57,6 +57,8 @@ jobs:
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/collect_uefa_betboom_snapshots.py
+      - name: Evaluate paper-only BET WAIT REJECT signals
+        run: python backend/evaluate_uefa_paper_signals.py
       - name: Commit immutable UEFA odds history
         run: |
           git config user.name "github-actions[bot]"
@@ -66,6 +68,9 @@ jobs:
           fi
           if [ -f artifacts/uefa-xg-history.json ]; then
             git add artifacts/uefa-xg-history.json
+          fi
+          if [ -f artifacts/uefa-paper-signals.jsonl ]; then
+            git add artifacts/uefa-paper-signals.jsonl
           fi
           git diff --cached --quiet || git commit -m "Capture UEFA BetBoom odds snapshots"
           git pull --rebase origin main
