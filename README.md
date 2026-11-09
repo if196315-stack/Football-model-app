@@ -13,7 +13,7 @@ The production updater is `.github/workflows/update-data.yml`. After deployment 
 ## Model and data rules
 
 - Competitions: ENG, ESP, ITA, GER, FRA.
-- The forecasting model uses historical team data and independent Poisson score probabilities.
+- The forecasting model uses the last 30 team matches, half-life 12 and shrinkage 3, with independent Poisson score probabilities.
 - Predictions are generated chronologically; matches on the same date must not leak results into one another.
 - Missing xG remains missing. The pipeline does not impute or fabricate xG values.
 - Historical backtests use a clean cohort with paired, non-null xG and report forecast metrics. Those metrics are not betting ROI.
