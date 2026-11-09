@@ -171,10 +171,10 @@ def markets(lh,la):
             if y>=1:ao05+=p
             if y>=2:ao15+=p
             if y>=3:ao25+=p
-    return {"1":p1,"x":px,"2":p2,"1x":p1+px,"x2":px+p2,"dnbHome":p1/max(1e-12,p1+p2),"dnbAway":p2/max(1e-12,p1+p2),
+    return {"1":p1,"x":px,"2":p2,"1x":p1+px,"x2":px+p2,
       "over15":ov15,"over25":ov25,"over35":ov35,"under25":1-ov25,"bttsYes":btts,"bttsNo":1-btts,
       "homeOver05":ho05,"homeOver15":ho15,"homeOver25":ho25,"awayOver05":ao05,"awayOver15":ao15,"awayOver25":ao25,
-      "ah0Home":p1/max(1e-12,p1+p2),"ahMinus05Home":p1,"ahPlus05Home":p1+px,"expectedHomeGoals":lh,"expectedAwayGoals":la}
+      "ahMinus05Home":p1,"ahPlus05Home":p1+px,"expectedHomeGoals":lh,"expectedAwayGoals":la}
 
 def historical_baselines(matches, comp, target_date):
     g=matches[(matches.comp==comp)&(matches.date<pd.Timestamp(target_date))]
@@ -184,16 +184,12 @@ def historical_baselines(matches, comp, target_date):
     home_w=int((hs>aw).sum()); away_w=int((aw>hs).sum())
     def rate(count,total): return (count+1.0)/(total+2.0)
     return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
-      "dnbHome":rate(home_w,home_w+away_w) if home_w+away_w else 0.5,
-      "dnbAway":rate(away_w,home_w+away_w) if home_w+away_w else 0.5,
       "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
 
 def strongest_signal(pred, baseline, home, away):
     if not baseline:return None
     candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
-      ("Фора 0 хозяев","Фора 0 хозяев","dnbHome",f"Фора 0 · {home}",f"Фора 0 · {away}"),
-      ("Фора 0 гостей","Фора 0 гостей","dnbAway",f"Фора 0 · {away}",f"Фора 0 · {home}"),
       ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15",f"ИТБ 1.5 · {home}",f"ИТМ 1.5 · {home}"),
       ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15",f"ИТБ 1.5 · {away}",f"ИТМ 1.5 · {away}")]
     best=None
