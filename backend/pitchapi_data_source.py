@@ -223,7 +223,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
         # Empty/partial shot feeds must not consume the request budget on every
         # scheduled preview run. Retry unresolved matches after a 7-day cooldown.
         attempted_at = row.get("xgAttemptedAt") or row.get("xgFetchedAt")
-        if attempted_at:
+        if attempted_at and os.environ.get("PITCHAPI_RETRY_UNRESOLVED", "").strip().casefold() not in {"1", "true", "yes"}:
             try:
                 attempted = datetime.fromisoformat(str(attempted_at).replace("Z", "+00:00"))
                 if attempted.tzinfo is None:
