@@ -90,7 +90,8 @@ def parse_odds(m):
         bk="melbet"; board=melbet
         row={"key":bk,"title":bk.upper(),"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
         for slug,market in (board.get("markets") or {}).items():
-            if not isinstance(market,dict) or market.get("status")!="open":continue
+            if (not isinstance(market,dict) or market.get("status")!="open"
+                    or market.get("stage")!="prematch"):continue
             kind=market_kind(slug,market)
             if not kind:continue
             for outcome,stake in (market.get("stakes") or {}).items():
