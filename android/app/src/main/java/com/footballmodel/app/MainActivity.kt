@@ -900,6 +900,10 @@ class MainActivity : Activity() {
     // Open only after a changed odds/feed snapshot, on match day,
     // with kickoff within 12 hours and a BetBoom quote updated inside that window.
     private fun processAutoPaperBets(json: JSONObject) {
+        synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
+    }
+
+    private fun processAutoPaperBetsUnlocked(json: JSONObject) {
         val now = System.currentTimeMillis()
         var changed = false
         for (i in 0 until bets.length()) {
