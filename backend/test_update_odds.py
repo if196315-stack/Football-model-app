@@ -1,4 +1,3 @@
-import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -8,14 +7,14 @@ from update_odds import read_market, convert_event
 
 
 class OddsMarketParsingTests(unittest.TestCase):
-    def test_legacy_updater_is_disabled_but_model_core_imports(self):
+    def test_shared_model_core_has_no_legacy_provider_ingestion(self):
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import update_data
         self.assertEqual(update_data.WINDOW, 30)
-        script = Path(__file__).with_name("update_data.py")
-        result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("legacy", result.stderr.lower())
+        self.assertTrue(callable(update_data.predict))
+        self.assertFalse(hasattr(update_data, "parquet"))
+        self.assertFalse(hasattr(update_data, "history"))
+        self.assertFalse(hasattr(update_data, "main"))
     def test_double_chance_labels(self):
         bookmaker = {"markets": [{"key": "double_chance", "outcomes": [
             {"name": "Home/Draw", "price": 1.35},
