@@ -945,7 +945,7 @@ class MainActivity : Activity() {
                 val mk=markets[spin.selectedItemPosition]
                 val duplicate = (0 until coupon.length()).any { index ->
                     val existing = coupon.optJSONObject(index)
-                    existing?.optString("matchId") == matchId && existing.optString("marketKey") == mk.key
+                    existing != null && existing.optString("matchId") == matchId && existing.optString("marketKey") == mk.key
                 }
                 if (duplicate) {
                     Toast.makeText(this, "Этот исход уже есть в купоне", Toast.LENGTH_SHORT).show()
