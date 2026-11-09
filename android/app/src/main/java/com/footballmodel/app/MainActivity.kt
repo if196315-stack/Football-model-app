@@ -19,6 +19,8 @@ import org.json.JSONObject
 import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.zip.GZIPInputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.concurrent.thread
@@ -44,6 +46,9 @@ class MainActivity : Activity() {
     private var data: JSONObject? = null
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
+    private val feedCache by lazy { getSharedPreferences("feed_cache_v1", MODE_PRIVATE) }
+    private val loadInProgress = AtomicBoolean(false)
+    @Volatile private var lastPayload: String? = null
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
@@ -140,6 +145,16 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        // Мгновенный старт: показываем последний успешный снимок до сетевого обновления.
+        feedCache.getString("merged_json", null)?.let { cached ->
+            try {
+                data = JSONObject(cached)
+                lastPayload = cached
+                render()
+            } catch (_: Exception) {
+                feedCache.edit().remove("merged_json").apply()
+            }
+        }
         // Показываем рабочую оболочку сразу, не дожидаясь сети.
         renderTabs()
         leagueBar.visibility = View.VISIBLE
@@ -552,29 +567,54 @@ class MainActivity : Activity() {
         }.format(parsed)
     } catch (_: Exception) { raw.replace("T", " ").take(16) }
 
+    // Conditional HTTP requests avoid downloading identical JSON on every 30-second refresh.
+    // The last good response is retained locally and used when the network is unavailable.
+    private fun fetchFeed(url: String, cacheKey: String, required: Boolean): String? {
+        val cached = feedCache.getString(cacheKey, null)
+        val etag = feedCache.getString("${cacheKey}_etag", null)
+        var conn: HttpURLConnection? = null
+        try {
+            conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 8000
+                readTimeout = 12000
+                instanceFollowRedirects = true
+                useCaches = true
+                setRequestProperty("Accept-Encoding", "gzip")
+                setRequestProperty("User-Agent", "IQMatch-Android")
+                if (!etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
+            }
+            val code = conn.responseCode
+            if (code == HttpURLConnection.HTTP_NOT_MODIFIED && cached != null) return cached
+            if (code !in 200..299) throw IllegalStateException("HTTP $code")
+            val stream = if (conn.contentEncoding.equals("gzip", true)) GZIPInputStream(conn.inputStream) else conn.inputStream
+            val body = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val editor = feedCache.edit().putString(cacheKey, body)
+            conn.getHeaderField("ETag")?.let { editor.putString("${cacheKey}_etag", it) }
+            editor.apply()
+            return body
+        } catch (e: Exception) {
+            if (cached != null) return cached
+            if (required) throw e
+            return null
+        } finally {
+            conn?.disconnect()
+        }
+    }
+
     private fun loadData() {
-        statusView.text = "Обновляю данные…"
+        if (!loadInProgress.compareAndSet(false, true)) return
+        statusView.text = if (data == null) "Загружаю данные…" else "Проверяю обновления…"
         refreshButton.isEnabled = false
-        thread {
+        thread(name = "iq-match-feed-refresh") {
             try {
-                val conn = (URL(dataUrl).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 20000
-                    readTimeout = 20000
-                    setRequestProperty("Cache-Control", "no-cache")
-                }
-                if (conn.responseCode !in 200..299) throw IllegalStateException("HTTP ${conn.responseCode}")
-                val body = conn.inputStream.bufferedReader().use { it.readText() }
-                conn.disconnect()
+                val body = fetchFeed(dataUrl, "domestic_json", true)
+                    ?: throw IllegalStateException("Основной фид недоступен")
                 val json = JSONObject(body)
-                // UEFA competitions are published as a separate isolated feed.
-                try {
-                    val uefaConn = (URL(uefaDataUrl).openConnection() as HttpURLConnection).apply {
-                        connectTimeout = 10000
-                        readTimeout = 10000
-                        setRequestProperty("Cache-Control", "no-cache")
-                    }
-                    if (uefaConn.responseCode in 200..299) {
-                        val uefa = JSONObject(uefaConn.inputStream.bufferedReader().use { it.readText() })
+                // UEFA is optional and independently cached: its outage cannot block domestic leagues.
+                val uefaBody = fetchFeed(uefaDataUrl, "uefa_json", false)
+                if (!uefaBody.isNullOrBlank()) {
+                    try {
+                        val uefa = JSONObject(uefaBody)
                         val target = json.optJSONArray("competitions") ?: JSONArray().also { json.put("competitions", it) }
                         val extra = uefa.optJSONArray("competitions")
                         if (extra != null) for (i in 0 until extra.length()) {
@@ -587,22 +627,32 @@ class MainActivity : Activity() {
                                 target.put(competition)
                             }
                         }
+                    } catch (_: Exception) {
+                        // Keep the valid domestic feed if UEFA data is malformed.
                     }
-                    uefaConn.disconnect()
-                } catch (_: Exception) {
-                    // Domestic feed remains usable if the isolated UEFA feed is temporarily unavailable.
                 }
+                val payload = json.toString()
+                feedCache.edit().putString("merged_json", payload).apply()
                 runOnUiThread {
-                    data = json
-                    tabViewCache.clear()
-                    renderedKey = null
+                    val changed = payload != lastPayload
+                    if (changed) {
+                        data = json
+                        lastPayload = payload
+                        tabViewCache.clear()
+                        renderedKey = null
+                        render()
+                    } else {
+                        statusView.text = "●  Данные актуальны · без изменений"
+                    }
                     refreshButton.isEnabled = true
-                    render()
+                    loadInProgress.set(false)
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    statusView.text = "Нет соединения · ${e.message ?: "проверьте интернет"}"
+                    statusView.text = if (data != null) "Нет сети · показаны последние данные" else
+                        "Нет соединения · ${e.message ?: "проверьте интернет"}"
                     refreshButton.isEnabled = true
+                    loadInProgress.set(false)
                 }
             }
         }
@@ -1134,12 +1184,12 @@ class MainActivity : Activity() {
         addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
         addText(target, "Не будем повышать риск, догонять проигрыши или ставить ради выполнения календарного плана.", 11, false, muted)
         val bank = currentBankroll()
-        val stakePlan = bank * 0.05
+        val stakePlan = bank * 0.005
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
-        addText(bankrollCard, "Ставка 5%: " + String.format(Locale.US, "%.2f ₽", stakePlan), 15, true, gold)
-        addText(bankrollCard, "Размер фиксирован: при сохранении ставки сумма пересчитывается от текущего банка. Ожидающие ставки уже зарезервированы.", 10, false, muted)
+        addText(bankrollCard, "Базовая ставка 0,5%: " + String.format(Locale.US, "%.2f ₽", stakePlan), 15, true, gold)
+        addText(bankrollCard, "Базовый размер по стратегии. Допустимый диапазон 0,25–1%; лимит на матч 1%, на день 2%.", 10, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
