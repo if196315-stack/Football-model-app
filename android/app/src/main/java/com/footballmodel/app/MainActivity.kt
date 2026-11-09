@@ -1286,7 +1286,7 @@ class MainActivity : Activity() {
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 || signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
                 candidates.add(Triple(m, league.optString("name"), signal))
@@ -1297,11 +1297,15 @@ class MainActivity : Activity() {
             val signal = item.third
             val price = topSignalOdds(signal, m) ?: return@filter false
             val probability = signal.optDouble("modelProbability", Double.NaN)
-            val odds = m.optJSONObject("odds")
             val fresh = hasFreshBookmakerQuote(m)
-            val impliedEdge = probability - 1.0 / price
             val ev = probability * price - 1.0
-            fresh && probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+            if (signal.optBoolean("paperOnly")) {
+                // UEFA edge is already de-vigged by the server evaluator.
+                fresh && probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
+            } else {
+                val impliedEdge = probability - 1.0 / price
+                fresh && probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+            }
         }.sortedByDescending {
             val price = topSignalOdds(it.third, it.first) ?: 0.0
             it.third.optDouble("modelProbability") * price - 1.0
