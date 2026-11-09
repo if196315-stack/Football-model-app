@@ -100,6 +100,7 @@ def extract_snapshot_markets(event):
         key = bookmaker.get("key")
         h2h = h2h_by_book.get(key)
         double_chance = []
+        btts = []
         spreads = []
         for market in bookmaker.get("markets", []):
             market_key = market.get("key")
@@ -113,6 +114,10 @@ def extract_snapshot_markets(event):
                     label = label.replace("home", "1").replace("draw", "x").replace("away", "2")
                     if label in ("1x", "x2", "12"):
                         double_chance.append({"outcome": label, "price": float(price)})
+                elif market_key == "btts":
+                    label = name.strip().lower()
+                    if label in ("yes", "no"):
+                        btts.append({"outcome": label, "price": float(price)})
                 elif market_key == "spreads":
                     point = outcome.get("point")
                     try:
@@ -130,7 +135,7 @@ def extract_snapshot_markets(event):
                     else:
                         continue
                     spreads.append({"team": team, "point": point, "price": float(price)})
-        if h2h or double_chance or spreads:
+        if h2h or double_chance or btts or spreads:
             bookmakers.append({
                 "key": key,
                 "title": bookmaker.get("title"),
@@ -138,6 +143,7 @@ def extract_snapshot_markets(event):
                 # Keep the original 1X2 field for existing archive readers.
                 "outcomes": h2h["outcomes"] if h2h else [],
                 "double_chance": double_chance,
+                "btts": btts,
                 "spreads": spreads,
             })
     return bookmakers
@@ -167,7 +173,7 @@ def collect(input_path, output_path, api_key, session=requests):
                 params={
                     "apiKey": api_key,
                     "regions": "eu",
-                    "markets": "h2h,spreads,double_chance",
+                    "markets": "h2h,spreads,double_chance,btts",
                     "oddsFormat": "decimal",
                     "dateFormat": "iso",
                 },
