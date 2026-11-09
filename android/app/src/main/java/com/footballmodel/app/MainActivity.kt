@@ -173,16 +173,13 @@ class MainActivity : Activity() {
                 val line = spreads.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", Double.NaN)
                 val price = line.optDouble("price", Double.NaN)
-                if (!point.isFinite() || !price.isFinite() || price <= 1.0 ||
-                    kotlin.math.abs(point) < 0.001 ||
-                    kotlin.math.abs(point * 2.0 - kotlin.math.round(point * 2.0)) > 0.001) continue
+                if (!point.isFinite() || kotlin.math.abs(point) > 0.001 || !price.isFinite() || price <= 1.0) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ФОРА · только ненулевые линии", 10, true, muted)
+                    addText(panelOdds, "ФОРА 0 · лучшие цены", 10, true, muted)
                     headingShown = true
                 }
-                val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
-                val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
-                addMarketRow(panelOdds, listOf(Triple("$team $signed", oddsText(line,"price"), gold)))
+                val team = if (line.optString("team") == "home") "Фора 1 (0)" else "Фора 2 (0)"
+                addMarketRow(panelOdds, listOf(Triple(team, oddsText(line,"price"), gold)))
                 shown++
             }
         }
