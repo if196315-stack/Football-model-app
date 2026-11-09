@@ -591,7 +591,7 @@ class MainActivity : Activity() {
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
             "ТБ 2.5 — в матче будет минимум 3 гола.\nОбе забьют (BTTS) — каждая команда забьёт минимум 1 гол.\nЭти рынки отображаются в карточках и оцениваются в разделе «Анализ», но пока не участвуют в выборе сильнейшего сигнала и списке TOP.")
         section("4. TOP И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В TOP попадают матчи на сегодня и ближайшие 7 дней с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
+            "В TOP попадают матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
         section("5. АНАЛИЗ",
             "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
         section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
@@ -606,7 +606,7 @@ class MainActivity : Activity() {
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
         val endCalendar = java.util.Calendar.getInstance(utc).apply {
-            add(java.util.Calendar.DAY_OF_YEAR, 7)
+            add(java.util.Calendar.DAY_OF_YEAR, 14)
         }
         val endDate = dayFormat.format(endCalendar.time)
         val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
@@ -628,12 +628,12 @@ class MainActivity : Activity() {
         }
         val sorted = items.sortedByDescending { it.third.optDouble("edgePp") }
         val summary = card()
-        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ · 7 ДНЕЙ", 9, true, accent)
+        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ · 14 ДНЕЙ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
         addText(summary, "Только матчи с рассчитанным прогнозом и положительным отклонением от исторической базы. Это фильтр модели, не рекомендация ставить.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
-            addText(empty, "В ближайшие 7 дней нет матчей с положительным сильнейшим сигналом модели.", 13, true)
+            addText(empty, "В ближайшие 14 дней нет матчей с положительным сильнейшим сигналом модели.", 13, true)
             addText(empty, "Сюда попадают только матчи с полноценным прогнозом, достаточной исторической базой и положительным отклонением модели.", 11, false, muted)
             return
         }
