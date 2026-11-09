@@ -150,3 +150,5 @@ jobs:
           path: artifacts/odds-snapshots.jsonl
           if-no-files-found: error
           retention-days: 90
+
+# Full-history runs are invoked only with the explicit [full-history-audit] commit marker.
