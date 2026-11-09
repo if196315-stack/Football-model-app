@@ -90,7 +90,7 @@ def read_market(bookmaker, key, home, away):
     market = next((x for x in bookmaker.get("markets", []) if x.get("key") == key), None)
     if not market:
         return None
-    out = [] if key == "spreads" else {}
+    out = [] if key in ("spreads", "team_totals") else {}
     for outcome in market.get("outcomes", []):
         name = str(outcome.get("name", ""))
         price = outcome.get("price")
@@ -119,6 +119,21 @@ def read_market(bookmaker, key, home, away):
             label = name.strip().lower()
             if label in ("yes", "no"):
                 out[label] = float(price)
+        elif key == "team_totals":
+            point = outcome.get("point")
+            description = str(outcome.get("description") or "")
+            if point is None:
+                continue
+            try:
+                point = float(point)
+            except (TypeError, ValueError):
+                continue
+            team = "home" if similarity(description, home) >= 0.86 else (
+                "away" if similarity(description, away) >= 0.86 else None
+            )
+            side = name.strip().lower()
+            if team and side in ("over", "under"):
+                out.append({"team": team, "point": point, "side": side, "price": float(price)})
         elif key == "spreads":
             point = outcome.get("point")
             if point is None:
@@ -163,7 +178,7 @@ def event_for_match(match, events, league):
 
 def convert_event(event):
     books = []
-    best = {"h2h": {}, "totals": {}, "doubleChance": {}, "btts": {}, "spreads": []}
+    best = {"h2h": {}, "totals": {}, "doubleChance": {}, "btts": {}, "spreads": [], "teamTotals": []}
     for raw in event.get("bookmakers", []):
         markets = {
             "h2h": read_market(raw, "h2h", event.get("home_team", ""), event.get("away_team", "")) or {},
@@ -171,6 +186,7 @@ def convert_event(event):
             "doubleChance": read_market(raw, "double_chance", event.get("home_team", ""), event.get("away_team", "")) or {},
             "btts": read_market(raw, "btts", event.get("home_team", ""), event.get("away_team", "")) or {},
             "spreads": read_market(raw, "spreads", event.get("home_team", ""), event.get("away_team", "")) or [],
+            "teamTotals": read_market(raw, "team_totals", event.get("home_team", ""), event.get("away_team", "")) or [],
         }
         item = {
             "key": raw.get("key"), "title": raw.get("title"),
@@ -186,28 +202,37 @@ def convert_event(event):
                     best[market_key][outcome] = {
                         "price": price, "bookmaker": raw.get("title", raw.get("key", ""))
                     }
-        for quote in markets["spreads"]:
-            candidate = {**quote, "bookmaker": raw.get("title", raw.get("key", ""))}
-            old = next((x for x in best["spreads"]
-                        if x["team"] == candidate["team"] and abs(x["point"] - candidate["point"]) < 0.001), None)
-            if old is None:
-                best["spreads"].append(candidate)
-            elif candidate["price"] > old["price"]:
-                old.update(candidate)
+        for list_market in ("spreads", "teamTotals"):
+            for quote in markets[list_market]:
+                candidate = {**quote, "bookmaker": raw.get("title", raw.get("key", ""))}
+                identity = ("team", "point") if list_market == "spreads" else ("team", "point", "side")
+                old = next((x for x in best[list_market]
+                            if all(x.get(k) == candidate.get(k) for k in identity)), None)
+                if old is None:
+                    best[list_market].append(candidate)
+                elif candidate["price"] > old["price"]:
+                    old.update(candidate)
     compact_best = {
         market: {key: value["price"] for key, value in values.items()}
-        for market, values in best.items() if market != "spreads" and values
+        for market, values in best.items() if market not in ("spreads", "teamTotals") and values
     }
     if best["spreads"]:
         compact_best["spreads"] = best["spreads"]
+    if best["teamTotals"]:
+        compact_best["teamTotals"] = best["teamTotals"]
     best_books = {
         market: {key: value["bookmaker"] for key, value in values.items()}
-        for market, values in best.items() if market != "spreads" and values
+        for market, values in best.items() if market not in ("spreads", "teamTotals") and values
     }
     if best["spreads"]:
         best_books["spreads"] = [
             {"team": x["team"], "point": x["point"], "bookmaker": x["bookmaker"]}
             for x in best["spreads"]
+        ]
+    if best["teamTotals"]:
+        best_books["teamTotals"] = [
+            {"team": x["team"], "point": x["point"], "side": x["side"], "bookmaker": x["bookmaker"]}
+            for x in best["teamTotals"]
         ]
     return {
         "eventId": event.get("id"),
@@ -218,16 +243,66 @@ def convert_event(event):
     }
 
 
+def merge_quote(existing, incoming):
+    """Add missing markets from The Odds API without replacing BSD consensus."""
+    if not existing:
+        return incoming
+    if not incoming:
+        return existing
+    merged = dict(existing)
+    merged["best"] = dict(existing.get("best") or {})
+    merged["bestBookmakers"] = dict(existing.get("bestBookmakers") or {})
+    for market, values in (incoming.get("best") or {}).items():
+        if market in ("spreads", "teamTotals"):
+            old_rows = list(merged["best"].get(market) or [])
+            identity = ("team", "point") if market == "spreads" else ("team", "point", "side")
+            for row in values or []:
+                if not any(all(old.get(k) == row.get(k) for k in identity) for old in old_rows):
+                    old_rows.append(row)
+            if old_rows:
+                merged["best"][market] = old_rows
+        else:
+            old_values = dict(merged["best"].get(market) or {})
+            for key, value in (values or {}).items():
+                old_values.setdefault(key, value)
+            if old_values:
+                merged["best"][market] = old_values
+    for market, values in (incoming.get("bestBookmakers") or {}).items():
+        if market in ("spreads", "teamTotals"):
+            old_rows = list(merged["bestBookmakers"].get(market) or [])
+            old_rows.extend(row for row in (values or []) if row not in old_rows)
+            if old_rows:
+                merged["bestBookmakers"][market] = old_rows
+        else:
+            old_values = dict(merged["bestBookmakers"].get(market) or {})
+            for key, value in (values or {}).items():
+                old_values.setdefault(key, value)
+            if old_values:
+                merged["bestBookmakers"][market] = old_values
+    merged["bookmakers"] = list(existing.get("bookmakers") or []) + [
+        book for book in (incoming.get("bookmakers") or [])
+        if book not in (existing.get("bookmakers") or [])
+    ]
+    merged["updatedAt"] = incoming.get("updatedAt") or existing.get("updatedAt")
+    merged["eventId"] = existing.get("eventId") or incoming.get("eventId")
+    return merged
+
+
 def main():
     if not DATA_FILE.exists():
         raise RuntimeError("docs/data.json does not exist")
     data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
     api_key = os.getenv("ODDS_API_KEY", "").strip()
     if not api_key:
-        data["oddsStatus"] = "missing_api_key"
-        data["oddsNotice"] = "Добавьте ODDS_API_KEY в GitHub Secrets, чтобы получать коэффициенты."
+        bsd_count = int(data.get("bsdOddsUpdated") or 0)
+        data["oddsStatus"] = "ready" if bsd_count else "missing_api_key"
+        data["oddsNotice"] = (
+            f"BSD обновил базовые котировки для {bsd_count} матчей; The Odds API не настроен."
+            if bsd_count else
+            "Добавьте ODDS_API_KEY в GitHub Secrets, чтобы дополнять рынки котировками букмекеров."
+        )
         DATA_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-        print("ODDS_API_KEY is not configured; model data left unchanged.")
+        print(f"The Odds API skipped; BSD supplied odds for {bsd_count} matches.")
         return
 
     quota_remaining = None
@@ -254,7 +329,7 @@ def main():
                 params={
                     "apiKey": api_key,
                     "regions": "eu",
-                    "markets": "h2h,totals,spreads,double_chance,btts",
+                    "markets": "h2h,totals,spreads,double_chance,btts,team_totals",
                     "oddsFormat": "decimal",
                     "dateFormat": "iso",
                 },
@@ -277,7 +352,7 @@ def main():
                     matched += 1
                     quote = convert_event(event)
                     if quote.get("best"):
-                        match["odds"] = quote
+                        match["odds"] = merge_quote(match.get("odds"), quote)
                         updated += 1
                         league_updated += 1
                     elif match.get("odds"):
