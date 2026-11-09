@@ -131,6 +131,14 @@ def parse_odds(m):
                         side_key = ("over" if key in ("over", "больше") or key.startswith("over_") else
                                     "under" if key in ("under", "меньше") or key.startswith("under_") else None)
                         if side_key is None or arg is None:continue
+                        try:
+                            point = float(arg)
+                        except (TypeError, ValueError):
+                            continue
+                        # Exact lines supported by the model; discard quarter-lines and unrelated markets.
+                        allowed_points = {0.5, 1.5, 2.5, 3.5} if kind == "tt" else {1.5, 2.5, 3.5}
+                        if not any(abs(point - allowed) < 0.001 for allowed in allowed_points):
+                            continue
                         if kind=="tt":
                             market_name = market.get("name") or {}
                             market_name = (market_name.get("en") or market_name.get("ru") or "") if isinstance(market_name, dict) else str(market_name)
