@@ -138,6 +138,88 @@ def compare(model, baseline):
     }
 
 
+
+def fit_vector_scaling(train_rows, market, min_n=100):
+    """Fit regularized vector scaling on prior walk-forward predictions only."""
+    classes = ("1", "X", "2") if market == "1X2" else (
+        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    if len(train_rows) < min_n:
+        return {"available": False, "reason": "insufficient_training_rows",
+                "train_n": len(train_rows), "classes": list(classes)}
+    bias = [0.0] * len(classes)
+    log_temperature = 0.0
+    examples = []
+    for row in train_rows:
+        raw = row["model"]
+        probs = raw if isinstance(raw, dict) else {"0": 1.0 - float(raw), "1": float(raw)}
+        logits = [math.log(max(1e-8, min(1.0, float(probs[label])))) for label in classes]
+        examples.append((logits, classes.index(str(row["actual"]))))
+    # Multinomial vector scaling: log(p)/T + class bias. L2 regularization
+    # keeps small-sample class offsets from becoming extreme.
+    learning_rate = 0.04
+    for _ in range(700):
+        grad_bias = [0.0] * len(classes)
+        grad_log_t = 0.0
+        inv_t = math.exp(-log_temperature)
+        for logits, actual_index in examples:
+            z = [logits[i] * inv_t + bias[i] for i in range(len(classes))]
+            peak = max(z)
+            exp_z = [math.exp(max(-60.0, value - peak)) for value in z]
+            total = sum(exp_z)
+            q = [value / total for value in exp_z]
+            for i in range(len(classes)):
+                error = q[i] - (1.0 if i == actual_index else 0.0)
+                grad_bias[i] += error
+                grad_log_t += error * (-logits[i] * inv_t)
+        scale = 1.0 / len(examples)
+        for i in range(len(classes)):
+            grad_bias[i] = grad_bias[i] * scale + 0.01 * bias[i]
+            bias[i] -= learning_rate * grad_bias[i]
+        grad_log_t = grad_log_t * scale + 0.01 * log_temperature
+        log_temperature -= learning_rate * grad_log_t
+        log_temperature = max(-2.0, min(2.0, log_temperature))
+    return {"available": True, "train_n": len(train_rows),
+            "classes": list(classes), "temperature": math.exp(log_temperature),
+            "bias": {label: bias[i] for i, label in enumerate(classes)}}
+
+
+def apply_vector_scaling(row, params):
+    raw = row["model"]
+    classes = params["classes"]
+    probs = raw if isinstance(raw, dict) else {"0": 1.0 - float(raw), "1": float(raw)}
+    temperature = params["temperature"]
+    logits = [math.log(max(1e-8, min(1.0, float(probs[label])))) / temperature
+              + params["bias"][label] for label in classes]
+    peak = max(logits)
+    exp_z = [math.exp(max(-60.0, value - peak)) for value in logits]
+    total = sum(exp_z)
+    calibrated = {label: exp_z[i] / total for i, label in enumerate(classes)}
+    result = dict(row)
+    result["calibrated"] = calibrated if market_is_multiclass(row["market"]) else calibrated["1"]
+    return result
+
+
+def market_is_multiclass(market):
+    return market == "1X2" or market.startswith("DNB")
+
+
+def calibration_comparison(train_rows, test_rows, market):
+    params = fit_vector_scaling(train_rows, market)
+    if not params["available"] or not test_rows:
+        return {"calibrator": params, "holdout": None, "brier_delta_vs_raw": None,
+                "log_loss_delta_vs_raw": None}
+    calibrated_rows = [apply_vector_scaling(row, params) for row in test_rows]
+    raw_metrics = score(test_rows, market, "model")
+    calibrated_metrics = score(calibrated_rows, market, "calibrated")
+    return {
+        "calibrator": params,
+        "holdout": calibrated_metrics,
+        "raw_holdout": raw_metrics,
+        "brier_delta_vs_raw": raw_metrics["brier"] - calibrated_metrics["brier"],
+        "log_loss_delta_vs_raw": raw_metrics["log_loss"] - calibrated_metrics["log_loss"],
+        "accuracy_delta_vs_raw": calibrated_metrics["accuracy"] - raw_metrics["accuracy"],
+    }
+
 def run(rows, holdout):
     rows = sorted(rows, key=lambda row: (row["date"], row["league"], row["id"]))
     histories = defaultdict(list)
@@ -237,13 +319,31 @@ def run(rows, holdout):
                                          score(group, market, "baseline"))
             return output
 
+        # One calibrator is trained globally and one per competition. Every
+        # calibrator sees only pre-holdout predictions/outcomes.
+        global_calibration = calibration_comparison(train, test, market)
+        per_competition_calibration = {}
+        for league in sorted({row["league"] for row in items}):
+            league_train = [row for row in train if row["league"] == league]
+            league_test = [row for row in test if row["league"] == league]
+            per_competition_calibration[league] = calibration_comparison(
+                league_train, league_test, market)
+
         result["markets"][market] = {
             "all": compare(score(items, market, "model"), score(items, market, "baseline")),
             "all_by_competition": grouped(items),
             "holdout": compare(score(test, market, "model"), score(test, market, "baseline")),
             "holdout_by_competition": grouped(test),
             "train_n": len(train),
+            "calibration_global": global_calibration,
+            "calibration_by_competition": per_competition_calibration,
         }
+    result["calibration_method"] = (
+        "Regularized multinomial vector scaling (log probabilities / temperature + class bias), "
+        "fit only on pre-holdout chronological walk-forward predictions; evaluated once on holdout. "
+        "Per-market global and per-competition calibrators are reported. This is an evaluation, "
+        "not a production strategy change."
+    )
     return result
 
 
