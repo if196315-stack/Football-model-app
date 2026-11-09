@@ -171,6 +171,19 @@ def predict(c,home,away,st,base,names,matches,target_date):
     pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
     return pred,None
 
+def strip_forbidden_market_fields(prediction):
+    """Remove AH0 / DNB from current and archived prediction payloads."""
+    if not isinstance(prediction, dict):
+        return
+    for field in ("dnbHome", "dnbAway", "ah0Home", "ah0Away"):
+        prediction.pop(field, None)
+    signal = prediction.get("strongestSignal")
+    if isinstance(signal, dict):
+        label = " ".join(str(signal.get(k, "")) for k in ("market", "side")).lower()
+        if "фора 0" in label or "draw no bet" in label or "dnb" in label:
+            prediction["strongestSignal"] = None
+
+
 def update_prediction_archive(payload):
     """Freeze forecasts before kickoff and attach final scores without rewriting forecasts."""
     now = datetime.now(timezone.utc)
@@ -184,8 +197,12 @@ def update_prediction_archive(payload):
         except Exception:
             pass
 
+    # Sanitize carried-forward archive entries as well as the new predictions.
+    for archived in archive["matches"].values():
+        strip_forbidden_market_fields(archived.get("prediction"))
     for competition in payload.get("competitions", []):
         for match in competition.get("matches", []):
+            strip_forbidden_market_fields(match.get("prediction"))
             match_id = match.get("id")
             if match_id is None:
                 continue
