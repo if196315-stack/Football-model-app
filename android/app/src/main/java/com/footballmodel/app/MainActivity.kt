@@ -886,7 +886,19 @@ class MainActivity : Activity() {
                     }
                     addText(box, "ВНУТРЕННИЕ ВЕРОЯТНОСТИ ИСХОДА", 10, true, muted)
                     addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
-                    addText(box, "Дополнительные рынки: ТБ 2.5 ${pct(pred, "over25")} · Обе забьют ${pct(pred, "bttsYes")}", 11, false, muted)
+                    addText(box, "НОВЫЕ РЫНКИ · ВЕРОЯТНОСТИ МОДЕЛИ", 10, true, cyan)
+                    addText(box, "ОЗ: да ${pct(pred, "bttsYes")} · нет ${pct(pred, "bttsNo")}", 11, false, muted)
+                    for (line in listOf("15", "25", "35")) {
+                        val label = when (line) { "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
+                        addText(box, "Тотал $label: Б ${pct(pred, "over$line")} · М ${pct(pred, "under$line")}", 11, false, muted)
+                    }
+                    for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
+                        addText(box, "ИТ ${teamName}", 10, true, muted)
+                        for (line in listOf("05", "15", "25", "35")) {
+                            val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
+                            addText(box, "$label: Б ${pct(pred, "${teamKey}Over$line")} · М ${pct(pred, "${teamKey}Under$line")}", 11, false, muted)
+                        }
+                    }
                     addText(box, "Ожидаемые голы  ${String.format(Locale.US, "%.2f : %.2f", pred.optDouble("expectedHomeGoals"), pred.optDouble("expectedAwayGoals"))}", 12, true)
                     renderOdds(box, m.optJSONObject("odds"))
                     actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
