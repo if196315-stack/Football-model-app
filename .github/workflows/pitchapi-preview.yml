@@ -7,6 +7,9 @@ on:
     paths:
       - ".github/workflows/pitchapi-preview.yml"
       - "backend/**"
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       max_shot_requests:
@@ -30,7 +33,7 @@ concurrency:
 
 jobs:
   preview:
-    if: github.ref == 'refs/heads/feature/pitchapi-data-source'
+    if: github.ref == 'refs/heads/feature/pitchapi-data-source' || github.head_ref == 'feature/pitchapi-data-source'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
