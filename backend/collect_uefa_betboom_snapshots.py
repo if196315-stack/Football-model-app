@@ -25,6 +25,7 @@ FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
 ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
+LOOKAHEAD_DAYS = 30
 
 
 def valid_price(value: Any) -> bool:
@@ -53,15 +54,18 @@ def _row(common: dict, market: str, price: Any, **fields) -> dict | None:
 
 
 def snapshot_rows(cache: dict, provider_fixtures: list[dict],
-                  captured_at: str | None = None) -> list[dict]:
+                  captured_at: str | None = None,
+                  diagnostics: dict | None = None) -> list[dict]:
     captured_at = captured_at or datetime.now(timezone.utc).isoformat()
     rows = []
+    eligible_fixtures = matched_fixtures = betboom_boards = active_prematch_boards = fixtures_with_selected_markets = 0
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
         if league not in ("UCL", "UEL"):
             continue
         if str(match.get("status") or "").casefold() not in ("not_started", "scheduled", "timed"):
             continue
+        eligible_fixtures += 1
         target = {
             "utcDate": match.get("date"),
             "home": match.get("home"),
@@ -72,10 +76,15 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         source = match_fixture(target, provider_fixtures)
         if not source:
             continue
+        matched_fixtures += 1
         bookmaker_board = (source.get("oddsBk") or {}).get("betboom") or {}
+        if bookmaker_board:
+            betboom_boards += 1
         active_by_stage = bookmaker_board.get("isBettingActiveByStage") or {}
         if active_by_stage.get("prematch") is False:
             continue
+        if bookmaker_board and active_by_stage.get("prematch") is True:
+            active_prematch_boards += 1
         board_updated_at = _board_timestamp(bookmaker_board)
         try:
             board_age_seconds = (
@@ -91,6 +100,8 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         )
         quote = parse_odds(source)
         best = quote.get("best") or {}
+        if best:
+            fixtures_with_selected_markets += 1
         common = {
             "schema_version": 1,
             "captured_at": captured_at,
@@ -154,6 +165,15 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             if row:
                 rows.append(row)
 
+    if diagnostics is not None:
+        diagnostics.update({
+            "eligible_uefa_upcoming_fixtures_in_cache": eligible_fixtures,
+            "api_sport_provider_fixtures": len(provider_fixtures),
+            "matched_pitchapi_fixtures": matched_fixtures,
+            "matches_with_betboom_board": betboom_boards,
+            "matches_with_active_prematch_board": active_prematch_boards,
+            "matches_with_selected_markets": fixtures_with_selected_markets,
+        })
     return rows
 
 
@@ -164,7 +184,7 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
     start = today or datetime.now(timezone.utc).date()
     params = {
         "date_from": start.isoformat(),
-        "date_to": (start + timedelta(days=14)).isoformat(),
+        "date_to": (start + timedelta(days=LOOKAHEAD_DAYS)).isoformat(),
         "exclude_amateur": "true",
         "view": "odds",
         "with_bk_odds": "true",
@@ -192,7 +212,8 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
     return fixtures
 
 
-def append_rows(rows: list[dict], output_path: str | Path = ARCHIVE) -> dict:
+def append_rows(rows: list[dict], output_path: str | Path = ARCHIVE,
+                diagnostics: dict | None = None) -> dict:
     output = Path(output_path)
     if rows:
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -208,6 +229,7 @@ def append_rows(rows: list[dict], output_path: str | Path = ARCHIVE) -> dict:
         "by_market": dict(sorted(by_market.items())),
         "archive": str(output),
         "archive_written": bool(rows),
+        **(diagnostics or {}),
     }
     print(json.dumps(summary, ensure_ascii=False))
     return summary
@@ -224,8 +246,9 @@ def main() -> int:
     cache = json.loads(cache_path.read_text(encoding="utf-8"))
     provider_fixtures = fetch_provider_fixtures(os.environ.get("API_SPORT_KEY", "").strip())
     captured_at = datetime.now(timezone.utc).isoformat()
-    rows = snapshot_rows(cache, provider_fixtures, captured_at)
-    append_rows(rows, args.output)
+    diagnostics = {}
+    rows = snapshot_rows(cache, provider_fixtures, captured_at, diagnostics)
+    append_rows(rows, args.output, diagnostics)
     return 0
 
 
