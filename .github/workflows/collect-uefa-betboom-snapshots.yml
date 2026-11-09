@@ -72,6 +72,9 @@ jobs:
           if [ -f artifacts/uefa-paper-signals.jsonl ]; then
             git add artifacts/uefa-paper-signals.jsonl
           fi
+          if [ -f artifacts/uefa-paper-bets.jsonl ]; then
+            git add artifacts/uefa-paper-bets.jsonl
+          fi
           git diff --cached --quiet || git commit -m "Capture UEFA BetBoom odds snapshots"
           git pull --rebase origin main
           git push

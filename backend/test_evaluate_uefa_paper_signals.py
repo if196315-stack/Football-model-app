@@ -2,7 +2,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from evaluate_uefa_paper_signals import build_signals, evaluate_candidate, append_new_signals
+from evaluate_uefa_paper_signals import (
+    build_signals, evaluate_candidate, append_new_signals, append_unique_paper_bets
+)
 
 
 def base_row(**overrides):
@@ -68,6 +70,25 @@ class UefaPaperSignalTests(unittest.TestCase):
         signal = evaluate_candidate(base_row(), [base_row()])
         self.assertEqual(signal["decision"], "WAIT")
         self.assertIn("complementary_price_missing", signal["reasons"])
+
+    def test_only_first_bet_per_fixture_market_becomes_paper_entry(self):
+        first = {
+            "signal_id": "first", "fixture_id": "fixture-1",
+            "market": "match_total_over", "point": 2.5, "team": None, "outcome": None,
+            "captured_at": "2026-11-10T12:00:00+00:00", "decision": "BET", "price": 1.9,
+        }
+        second = {**first, "signal_id": "second",
+                  "captured_at": "2026-11-10T15:00:00+00:00", "price": 2.0}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "paper-bets.jsonl"
+            result = append_unique_paper_bets([second, first], path)
+            self.assertEqual(result["unique_paper_bets_added"], 1)
+            self.assertEqual(result["unique_paper_bets_total"], 1)
+            rows = path.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(len(rows), 1)
+            self.assertIn('"signal_id": "first"', rows[0])
+            again = append_unique_paper_bets([first, second], path)
+            self.assertEqual(again["unique_paper_bets_added"], 0)
 
     def test_append_is_idempotent_and_ignores_reference_rows(self):
         over = base_row()
