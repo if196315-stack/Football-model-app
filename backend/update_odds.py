@@ -80,10 +80,26 @@ def similarity(a, b, league=None):
     return 0.72 * seq + 0.28 * token
 
 def parse_time(value):
+    """Parse provider timestamps and normalize them to timezone-aware UTC."""
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except Exception:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except (TypeError, ValueError):
         return None
+
+
+def is_same_fixture_date(match_value, event_time):
+    """Date-only fixture feeds have no kickoff time; match by UTC calendar date."""
+    raw = str(match_value or "").strip()
+    if len(raw) == 10:
+        try:
+            return datetime.fromisoformat(raw).date() == event_time.date()
+        except ValueError:
+            return False
+    target_time = parse_time(raw)
+    return bool(target_time and abs((event_time - target_time).total_seconds()) <= 18 * 3600)
 
 
 def read_market(bookmaker, key, home, away):
@@ -155,13 +171,14 @@ def read_market(bookmaker, key, home, away):
     return out or None
 
 def event_for_match(match, events, league):
-    target_time = parse_time(match.get("utcDate", ""))
-    if not target_time:
+    raw_target_time = str(match.get("utcDate", "") or "")
+    target_time = parse_time(raw_target_time)
+    if not target_time and len(raw_target_time.strip()) != 10:
         return None
     ranked = []
     for event in events:
         event_time = parse_time(event.get("commence_time", ""))
-        if not event_time or abs((event_time - target_time).total_seconds()) > 18 * 3600:
+        if not event_time or not is_same_fixture_date(raw_target_time, event_time):
             continue
         h = similarity(match.get("home"), event.get("home_team"), league)
         a = similarity(match.get("away"), event.get("away_team"), league)
