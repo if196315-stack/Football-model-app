@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "backend/cache/pitchapi_uefa_fixtures.json"
 REPORT = ROOT / "pitchapi-uefa-xg-diagnostic.json"
 BASE = "https://api.pitchapi.dev/v1"
-RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+RETRYABLE_STATUS = {429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
 
 
 def shot_rows(data):
