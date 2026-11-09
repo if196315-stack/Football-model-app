@@ -66,7 +66,8 @@ class OddsSnapshotTests(unittest.TestCase):
             source = Path(tmp) / "data.json"
             archive = Path(tmp) / "history.jsonl"
             data = self.sample()
-            data["oddsBookmaker"] = "melbet"\n            data["competitions"][0]["matches"][0]["odds"]["bookmaker"] = "legacy-mixed-books"
+            data["oddsBookmaker"] = "melbet"
+            data["competitions"][0]["matches"][0]["odds"]["bookmaker"] = "legacy-mixed-books"
             source.write_text(json.dumps(data), encoding="utf-8")
             result = append_snapshots(source, archive, "2026-11-09T12:00:00+00:00")
             self.assertEqual(result["records_appended"], 0)
