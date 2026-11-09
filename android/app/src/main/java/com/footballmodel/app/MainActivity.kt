@@ -530,7 +530,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "⌂\nГЛАВНАЯ", "desk" to "✧\nAI", "history" to "▤\nБАНК", "stats" to "▥\nСТАТИСТИКА", "help" to "♙\nПРОФИЛЬ")
+        val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "Банк", "stats" to "Stats", "help" to "Профиль")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -538,7 +538,7 @@ class MainActivity : Activity() {
             items.forEach { item ->
                 val t = label(item.second, 11, true, muted).apply {
                     gravity = Gravity.CENTER
-                    maxLines = 2
+                    maxLines = 1
                     includeFontPadding = false
                     setPadding(dp(3), dp(5), dp(3), dp(5))
                     isClickable = true
