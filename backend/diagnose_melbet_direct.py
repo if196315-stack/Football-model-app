@@ -10,7 +10,6 @@ import requests
 
 BASE_URL = "https://melbet.mobi/service-api/LineFeed/GetGameZip"
 TIMEOUT = 30
-SUPPORTED_GROUPS = {2, 3, 4, 6, 9, 15, 17, 62}
 EVENTS = [
     {"id": 385744564, "home": "Manchester City", "away": "Fulham"},
     {"id": 385744560, "home": "Aston Villa", "away": "Sunderland"},
@@ -19,26 +18,17 @@ EVENTS = [
     {"id": 385744566, "home": "Coventry City", "away": "Crystal Palace"},
 ]
 BASE_PARAMS = {
-    "lng": "en",
-    "mode": "4",
-    "country": "87",
-    "top": "true",
-    "virtualSports": "true",
-    "partner": "61",
-    "gr": "6",
-    "isSubGames": "true",
-    "grMode": "4",
+    "lng": "en", "mode": "4", "country": "87", "top": "true",
+    "virtualSports": "true", "partner": "61", "gr": "6",
+    "isSubGames": "true", "grMode": "4",
 }
 
 
 def unwrap_value(payload: Any) -> Any:
-    if isinstance(payload, dict):
-        return payload.get("Value", payload)
-    return payload
+    return payload.get("Value", payload) if isinstance(payload, dict) else payload
 
 
 def iter_market_rows(value: Any) -> list[dict]:
-    """Find terse market records without assuming one exact nesting shape."""
     rows: list[dict] = []
     seen: set[int] = set()
 
@@ -74,17 +64,31 @@ def collect_market_rows(value: Any, limit: int = 20) -> tuple[int, list[dict]]:
     return len(rows), [compact_market(row) for row in rows[:limit]]
 
 
-def supported_market_summary(value: Any, limit: int = 160) -> dict:
+def catalog_preview(event_obj: dict, limit: int = 40) -> list[dict]:
+    catalog = event_obj.get("MEC")
+    if not isinstance(catalog, list):
+        return []
+    fields = ("I", "G", "GS", "T", "N", "Name", "EN", "RU", "L", "P", "B")
+    return [
+        {key: item.get(key) for key in fields if key in item}
+        for item in catalog[:limit] if isinstance(item, dict)
+    ]
+
+
+def market_group_summary(value: Any, limit: int = 220) -> dict:
     rows = iter_market_rows(value)
     counts: dict[str, int] = {}
-    supported = []
+    sample = []
     one_x_two = {}
     for row in rows:
-        group = row.get("G")
         try:
-            group_id = int(group)
+            group_id = int(row.get("G"))
         except (TypeError, ValueError):
             continue
+        key = str(group_id)
+        counts[key] = counts.get(key, 0) + 1
+        if len(sample) < limit:
+            sample.append(compact_market(row))
         if group_id == 1:
             try:
                 outcome_id = int(row.get("T"))
@@ -93,15 +97,10 @@ def supported_market_summary(value: Any, limit: int = 160) -> dict:
             outcome = {1: "home", 2: "draw", 3: "away"}.get(outcome_id)
             if outcome and row.get("C") is not None:
                 one_x_two[outcome] = row.get("C")
-        if group_id in SUPPORTED_GROUPS:
-            key = str(group_id)
-            counts[key] = counts.get(key, 0) + 1
-            if len(supported) < limit:
-                supported.append(compact_market(row))
     return {
         "oneXTwo": one_x_two,
-        "supportedMarketGroupCounts": dict(sorted(counts.items())),
-        "supportedMarketSample": supported,
+        "marketGroupCounts": dict(sorted(counts.items(), key=lambda item: int(item[0]))),
+        "marketGroupSample": sample,
     }
 
 
@@ -121,12 +120,13 @@ def summarize_response(event: dict, status: int, content_type: str,
         "error": payload.get("Error") if isinstance(payload, dict) else None,
         "topLevelKeys": sorted(payload.keys())[:30] if isinstance(payload, dict) else [],
         "valueType": type(value).__name__,
-        "valueKeys": sorted(event_obj.keys())[:40],
+        "valueKeys": sorted(event_obj.keys())[:50],
         "sourceHome": event_obj.get("O1") or event_obj.get("O1E"),
         "sourceAway": event_obj.get("O2") or event_obj.get("O2E"),
         "marketRecordsFound": market_count,
         "marketSample": market_sample,
-        **supported_market_summary(value),
+        "marketCatalogPreview": catalog_preview(event_obj),
+        **market_group_summary(value),
     }
     if not isinstance(payload, (dict, list)) and text_body:
         result["bodyPreview"] = text_body[:300]
@@ -150,11 +150,10 @@ def main() -> None:
     rows = []
     for event in EVENTS:
         params = {**BASE_PARAMS, "id": str(event["id"])}
-        referer = (
+        session.headers["referer"] = (
             "https://melbet.mobi/en/line/football/88637-england-premier-league/"
             f'{event["id"]}-event'
         )
-        session.headers["referer"] = referer
         try:
             response = session.get(BASE_URL, params=params, timeout=TIMEOUT)
             try:
@@ -162,8 +161,7 @@ def main() -> None:
             except (ValueError, json.JSONDecodeError):
                 payload = None
             rows.append(summarize_response(
-                event, response.status_code,
-                response.headers.get("content-type", ""),
+                event, response.status_code, response.headers.get("content-type", ""),
                 payload=payload, text_body=response.text,
             ))
         except requests.RequestException as exc:

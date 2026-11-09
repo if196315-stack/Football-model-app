@@ -2,7 +2,7 @@ import unittest
 
 from diagnose_melbet_direct import (
     collect_market_rows,
-    supported_market_summary,
+    market_group_summary,
     summarize_response,
 )
 
@@ -18,32 +18,30 @@ class MelbetDirectDiagnosticTests(unittest.TestCase):
         self.assertEqual(sample[0]["C"], 1.45)
         self.assertEqual(sample[2]["P"], 2.5)
 
-    def test_supported_market_summary_extracts_1x2_and_market_groups(self):
-        payload = {
-            "E": [
-                {"G": 1, "T": 1, "C": 1.5},
-                {"G": 1, "T": 2, "C": 5.0},
-                {"G": 1, "T": 3, "C": 6.0},
-                {"G": 6, "T": 13, "C": 1.2},
-                {"G": 17, "GS": 4, "T": 9, "P": 2.5, "C": 1.9},
-            ],
-        }
-        result = supported_market_summary(payload)
+    def test_market_group_summary_keeps_all_groups_and_1x2(self):
+        payload = {"E": [
+            {"G": 1, "T": 1, "C": 1.5},
+            {"G": 1, "T": 2, "C": 5.0},
+            {"G": 1, "T": 3, "C": 6.0},
+            {"G": 6, "T": 13, "C": 1.2},
+            {"G": 17, "GS": 4, "T": 9, "P": 2.5, "C": 1.9},
+        ]}
+        result = market_group_summary(payload)
         self.assertEqual(result["oneXTwo"], {"home": 1.5, "draw": 5.0, "away": 6.0})
-        self.assertEqual(result["supportedMarketGroupCounts"], {"17": 1, "6": 1})
-        self.assertEqual(len(result["supportedMarketSample"]), 2)
+        self.assertEqual(result["marketGroupCounts"], {"1": 3, "6": 1, "17": 1})
 
     def test_summarize_response_reports_event_and_market_data(self):
         event = {"id": 123, "home": "Home FC", "away": "Away FC"}
-        payload = {
-            "Success": True,
-            "Value": [{"I": 123, "O1": "Home FC", "O2": "Away FC",
-                       "E": [{"G": 1, "T": 1, "C": 1.5}]}],
-        }
+        payload = {"Success": True, "Value": [{
+            "I": 123, "O1": "Home FC", "O2": "Away FC",
+            "E": [{"G": 1, "T": 1, "C": 1.5}],
+            "MEC": [{"I": 1, "N": "Popular"}],
+        }]}
         result = summarize_response(event, 200, "application/json", payload)
         self.assertEqual(result["sourceHome"], "Home FC")
         self.assertEqual(result["sourceAway"], "Away FC")
         self.assertEqual(result["marketRecordsFound"], 1)
+        self.assertEqual(result["marketCatalogPreview"], [{"I": 1, "N": "Popular"}])
         self.assertTrue(result["success"])
 
     def test_summarize_non_json_response_keeps_short_preview(self):
