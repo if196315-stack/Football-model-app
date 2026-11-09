@@ -60,7 +60,7 @@ class MainActivity : Activity() {
     private val liveRefreshHandler = Handler(Looper.getMainLooper())
     private val liveRefreshTask = object : Runnable {
         override fun run() {
-            if (refreshButton.isEnabled && currentTab in listOf("matches", "history")) loadData()
+            if (refreshButton.isEnabled && currentTab in listOf("matches", "history", "desk")) loadData()
             liveRefreshHandler.postDelayed(this, 30_000)
         }
     }
@@ -679,6 +679,7 @@ class MainActivity : Activity() {
                         if (currentTab != item.first) {
                             currentTab = item.first
                             render()
+                            if (currentTab == "desk") loadData()
                         }
                     }
                 }
@@ -1409,7 +1410,7 @@ class MainActivity : Activity() {
             val edge = row.optDouble("edge", Double.NaN)
             val expectedValue = row.optDouble("expected_value", Double.NaN)
             val sameQualifyingPrice = archivedPrice.isFinite() && kotlin.math.abs(price - archivedPrice) < 0.005
-            if (hasFreshBookmakerQuote(match) && sameQualifyingPrice &&
+            if (sameQualifyingPrice &&
                 probability.isFinite() && probability >= 0.60 &&
                 edge.isFinite() && edge >= 0.05 &&
                 expectedValue.isFinite() && expectedValue >= 0.05) candidates.add(signal)
@@ -1482,13 +1483,12 @@ class MainActivity : Activity() {
             val signal = item.third
             val price = topSignalOdds(signal, m) ?: return@filter false
             val probability = signal.optDouble("modelProbability", Double.NaN)
-            val fresh = hasFreshBookmakerQuote(m)
             val ev = probability * price - 1.0
             if (signal.optBoolean("paperOnly")) {
-                fresh && probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
+                probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
             } else {
                 val impliedEdge = probability - 1.0 / price
-                fresh && probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+                probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
             }
         }.sortedByDescending {
             val price = topSignalOdds(it.third, it.first) ?: 0.0
@@ -1497,7 +1497,7 @@ class MainActivity : Activity() {
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
-            addText(empty, "Нужны положительный сигнал и актуальная прематч-котировка BetBoom от 1.50. Не подменяем отсутствующие цены котировками других букмекеров.", 11, false, muted)
+            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка BetBoom от 1.50 и выполнение порогов стратегии. Возраст цены показываем отдельно; перед подтверждением купона её нужно перепроверить.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
