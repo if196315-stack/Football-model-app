@@ -77,5 +77,25 @@ class ApiSportOddsTests(unittest.TestCase):
                          {("home", 0.0), ("away", 0.0)})
 
 
+    def test_ignores_live_markets_and_keeps_prematch_quotes(self):
+        source = {"id": 99, "oddsBk": {"melbet": {"markets": {
+            "total_live": {"status": "open", "stage": "live", "stakes": {
+                "over": {"lines": [{"argument": 2.5, "factor": 8.5}]},
+                "under": {"lines": [{"argument": 2.5, "factor": 1.05}]}
+            }},
+            "total": {"status": "open", "stage": "prematch", "stakes": {
+                "over": {"lines": [{"argument": 2.5, "factor": 1.91}]},
+                "under": {"lines": [{"argument": 2.5, "factor": 1.95}]}
+            }},
+            "double_chance": {"status": "open", "stage": "live", "stakes": {
+                "1x": {"factor": 1.01}
+            }}
+        }}}}
+        quote = parse_odds(source)
+        self.assertEqual({(x["point"], x["side"], x["price"]) for x in quote["best"]["totals"]},
+                         {(2.5, "over", 1.91), (2.5, "under", 1.95)})
+        self.assertNotIn("doubleChance", quote["best"])
+
+
 if __name__ == "__main__":
     unittest.main()
