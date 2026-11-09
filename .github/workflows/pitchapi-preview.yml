@@ -13,13 +13,14 @@ on:
       max_shot_requests:
         description: "Maximum shot/xG requests in this run"
         required: true
-        default: "500" # Keep incremental batches bounded while backfilling historical xG.
+        default: "5000" # One sequential full-history xG backfill; PitchAPI fair-use retries remain enabled.
         type: choice
         options:
           - "50"
           - "100"
           - "250"
           - "500"
+          - "5000"
 
 permissions:
   contents: read
@@ -32,7 +33,7 @@ jobs:
   preview:
     if: github.ref == 'refs/heads/feature/pitchapi-data-source'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -55,7 +56,7 @@ jobs:
       - name: Refresh PitchAPI preview
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '500' }}
+          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '5000' }}
           PITCHAPI_PREVIOUS_DATA_PATH: backend/cache/previous_odds_data.json
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
