@@ -1283,10 +1283,7 @@ class MainActivity : Activity() {
                         }
                         return "—"
                     }
-                    addMarketRow(mainMarkets, listOf(
-                        Triple("1X · ${pct(pred, "1x")}  |  кэф ${quote("1x")}", "", Color.WHITE),
-                        Triple("X2 · ${pct(pred, "x2")}  |  кэф ${quote("x2")}", "", Color.WHITE)
-                    ))
+                    addText(mainMarkets, "1X · ${pct(pred, "1x")} · кэф ${quote("1x")}       X2 · ${pct(pred, "x2")} · кэф ${quote("x2")}", 12, true, Color.WHITE)
                     addText(mainMarkets, "ПОБЕДА / НИЧЬЯ · без котировок в текущем фиде", 9, true, muted)
                     addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
                     addText(mainMarkets, "ОБЕ КОМАНДЫ ЗАБЬЮТ", 9, true, muted)
