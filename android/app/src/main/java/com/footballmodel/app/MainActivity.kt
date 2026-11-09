@@ -150,15 +150,6 @@ class MainActivity : Activity() {
         val panelOdds = card(parent)
         panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = 18f; setStroke(1, Color.rgb(105, 83, 52)) }
         addText(panelOdds, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, gold)
-        val h2h = best.optJSONObject("h2h")
-        if (h2h != null) {
-            addText(panelOdds, "1X2 · лучшие цены", 10, true, muted)
-            addMarketRow(panelOdds, listOf(
-                Triple("П1", oddsText(h2h,"home"), gold),
-                Triple("НИЧЬЯ", oddsText(h2h,"draw"), gold),
-                Triple("П2", oddsText(h2h,"away"), gold)
-            ))
-        }
         val dc = best.optJSONObject("doubleChance")
         if (dc != null) {
             addText(panelOdds, "ДВОЙНОЙ ШАНС · лучшие цены", 10, true, muted)
@@ -738,7 +729,10 @@ class MainActivity : Activity() {
             val upcoming = mutableListOf<JSONObject>()
             for (j in 0 until matches.length()) {
                 val m = matches.getJSONObject(j)
-                if (m.optString("status") in listOf("SCHEDULED", "TIMED", "POSTPONED")) {
+                // Do not show fixtures without a complete model prediction.
+                // A scheduled match with insufficient paired xG/history stays out of the app.
+                if (m.optString("status") in listOf("SCHEDULED", "TIMED") &&
+                    m.optJSONObject("prediction") != null) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
