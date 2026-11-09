@@ -276,12 +276,17 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 else -> ""
             }
             if (side.isBlank()) continue
-            val signal = JSONObject().put("side", side).put("modelProbability", row.optDouble("model_probability"))
-                .put("edgePp", row.optDouble("edge") * 100.0).put("paperOnly", true)
+            val probability = row.optDouble("model_probability", Double.NaN)
+            val edge = row.optDouble("edge", Double.NaN)
+            val archivedPrice = row.optDouble("price", Double.NaN)
+            val archivedEv = row.optDouble("expected_value", Double.NaN)
+            val signal = JSONObject().put("side", side).put("modelProbability", probability)
+                .put("edgePp", edge * 100.0).put("paperOnly", true)
             val price = priceFor(signal, match) ?: continue
-            if (abs(price - row.optDouble("price", Double.NaN)) >= 0.005) continue
-            if (row.optDouble("model_probability") < 0.60 || row.optDouble("edge") < 0.05 || row.optDouble("expected_value") < 0.05) continue
-            val ev = row.optDouble("model_probability") * price - 1.0
+            if (!archivedPrice.isFinite() || abs(price - archivedPrice) >= 0.005) continue
+            if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 0.05 ||
+                !archivedEv.isFinite() || archivedEv < 0.05) continue
+            val ev = probability * price - 1.0
             if (ev > bestEv) { bestEv = ev; selected = signal }
         }
         return selected
