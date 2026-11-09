@@ -233,7 +233,11 @@ def convert_event(event):
             "totals": read_market(raw, "totals", event.get("home_team", ""), event.get("away_team", "")) or {},
             "doubleChance": read_market(raw, "double_chance", event.get("home_team", ""), event.get("away_team", "")) or {},
             "btts": read_market(raw, "btts", event.get("home_team", ""), event.get("away_team", "")) or {},
-            "spreads": read_market(raw, "spreads", event.get("home_team", ""), event.get("away_team", "")) or [],
+            "spreads": (
+                read_market(raw, "spreads", event.get("home_team", ""), event.get("away_team", "")) or []
+            ) + (
+                read_market(raw, "alternate_spreads", event.get("home_team", ""), event.get("away_team", "")) or []
+            ),
             "teamTotals": read_market(raw, "team_totals", event.get("home_team", ""), event.get("away_team", "")) or [],
         }
         item = {
