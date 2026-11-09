@@ -33,22 +33,37 @@ def read_jsonl(path: str | Path) -> list[dict]:
         return [json.loads(line) for line in handle if line.strip()]
 
 
-def _valid_fresh_snapshot(rows: list[dict]) -> list[dict]:
+def _parse_time(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed.astimezone(timezone.utc)
+    except ValueError:
+        return None
+
+
+def _valid_fresh_snapshot(rows: list[dict], now: datetime) -> list[dict]:
     if not rows:
         return []
     latest = max(str(row.get("captured_at") or "") for row in rows)
     selected = [row for row in rows if str(row.get("captured_at") or "") == latest]
-    return [
-        row for row in selected
-        if row.get("freshness_status") == "fresh"
-        and isinstance(row.get("bookmaker_update_age_seconds"), (int, float))
-        and 0 <= float(row["bookmaker_update_age_seconds"]) <= MAX_QUOTE_AGE_SECONDS
-        and row.get("market_parser_version") == "betboom-fulltime-v2"
-    ]
+    fresh = []
+    for row in selected:
+        source_time = _parse_time(row.get("bookmaker_updated_at"))
+        if (row.get("freshness_status") != "fresh"
+                or row.get("market_parser_version") != "betboom-fulltime-v2"
+                or source_time is None):
+            continue
+        current_age = (now - source_time).total_seconds()
+        if 0 <= current_age <= MAX_QUOTE_AGE_SECONDS:
+            fresh.append(row)
+    return fresh
 
 
-def build_odds(rows: list[dict]) -> dict | None:
-    fresh = _valid_fresh_snapshot(rows)
+def build_odds(rows: list[dict], now: datetime | None = None) -> dict | None:
+    now = now or datetime.now(timezone.utc)
+    fresh = _valid_fresh_snapshot(rows, now)
     if not fresh:
         return None
     best: dict[str, Any] = {
@@ -88,7 +103,7 @@ def build_odds(rows: list[dict]) -> dict | None:
         "updatedAt": board_time or captured_at,
         "source": "API-Sport / BetBoom",
         "freshnessStatus": "fresh",
-        "bookmakerUpdateAgeSeconds": max(float(r["bookmaker_update_age_seconds"]) for r in fresh),
+        "bookmakerUpdateAgeSeconds": round(max((now - _parse_time(r["bookmaker_updated_at"])).total_seconds() for r in fresh), 3),
     }
 
 

@@ -1,6 +1,6 @@
 import unittest
 
-from build_uefa_app_feed import build_feed, build_odds
+from datetime import datetime, timezone\n\nfrom build_uefa_app_feed import build_feed, build_odds
 
 
 class BuildUefaAppFeedTests(unittest.TestCase):
@@ -9,17 +9,17 @@ class BuildUefaAppFeedTests(unittest.TestCase):
             {"captured_at": "2026-11-10T10:00:00+00:00", "freshness_status": "fresh",
              "bookmaker_update_age_seconds": 20, "market_parser_version": "betboom-fulltime-v2",
              "market": "team_total_over", "team": "home", "point": 1.5, "side": "over", "price": 1.9},
-            {"captured_at": "2026-11-10T10:00:00+00:00", "freshness_status": "stale",
+            {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:45:00+00:00", "freshness_status": "stale",
              "bookmaker_update_age_seconds": 900, "market_parser_version": "betboom-fulltime-v2",
              "market": "btts", "outcome": "yes", "price": 1.8},
-            {"captured_at": "2026-11-10T09:00:00+00:00", "freshness_status": "fresh",
+            {"captured_at": "2026-11-10T09:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:00:00+00:00", "freshness_status": "fresh",
              "bookmaker_update_age_seconds": 10, "market_parser_version": "betboom-fulltime-v2",
              "market": "btts", "outcome": "yes", "price": 2.0},
         ]
-        odds = build_odds(rows)
+        odds = build_odds(rows, datetime(2026, 11, 10, 10, 0, 20, tzinfo=timezone.utc))
         self.assertIsNotNone(odds)
         self.assertEqual(odds["best"]["teamTotals"][0]["price"], 1.9)
-        self.assertEqual(odds["best"]["btts"], {})
+        self.assertEqual(odds["best"]["btts"], {})\n        stale = build_odds([rows[0]], datetime(2026, 11, 10, 10, 10, 0, tzinfo=timezone.utc))\n        self.assertIsNone(stale)
 
     def test_feed_contains_two_separate_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
