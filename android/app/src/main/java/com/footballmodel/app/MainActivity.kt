@@ -714,7 +714,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        addText(matchesContainer, "AI · FOOTBALL INTELLIGENCE", 9, true, cyan)
+        addText(matchesContainer, "AI · MATCH INTELLIGENCE", 9, true, cyan)
         addText(matchesContainer, "Разбор рекомендованных ставок", 22, true)
         addText(matchesContainer, "Каждая рекомендация содержит обоснование, проверку цены и ограничения модели.", 11, false, muted)
         val target = card()
