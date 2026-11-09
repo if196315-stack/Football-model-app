@@ -1119,11 +1119,31 @@ class MainActivity : Activity() {
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
             "ОЗ — да/нет: обе команды забьют хотя бы по одному голу или хотя бы одна команда не забьёт.\nВ карточках отображаются только тоталы БОЛЬШЕ: общие и индивидуальные.\nВероятности рассчитываются по xG независимым распределением Пуассона. Котировки доступны только при наличии свежих данных BetBoom от API-Sport.")
         section("4. AI И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В AI показываются матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты и подтверждённой ценой BetBoom от 1.50. Сильнейший сигнал выбирается среди поддерживаемых рынков. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
+            "В AI показываются матчи на сегодня и ближайшие 30 дней. Для UEFA используются прошедшие серверную проверку paper-сигналы с edge после удаления маржи, p ≥60%, EV ≥5% и актуальной ценой BetBoom. Для остальных лиг — положительный сигнал, цена от 1.50 и свежесть до 5 минут. Это не гарантия value или прибыли.")
         section("5. АНАЛИЗ",
             "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
         section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
             "PitchAPI — источник расписания, результатов и shot-level xG. API-Sport — источник котировок только BetBoom. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты BetBoom на момент прогноза и walk-forward проверка.")
+    }
+
+    // Recalculate quote age from the bookmaker board timestamp; stored feed age goes stale.
+    private fun currentBookmakerQuoteAgeSeconds(odds: JSONObject?): Double? {
+        if (odds == null || odds.optString("freshnessStatus") != "fresh") return null
+        val raw = odds.optString("updatedAt").trim()
+        if (raw.isBlank()) return null
+        return try {
+            var normalized = raw.replace(Regex("\\.\\d+"), "")
+            normalized = normalized.replace("T", " ").replace("Z", "+0000")
+                .replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
+            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ", Locale.US).apply { isLenient = false }
+            val timestamp = format.parse(normalized)?.time ?: return null
+            (System.currentTimeMillis() - timestamp) / 1000.0
+        } catch (_: Exception) { null }
+    }
+
+    private fun hasFreshBookmakerQuote(match: JSONObject): Boolean {
+        val age = currentBookmakerQuoteAgeSeconds(match.optJSONObject("odds")) ?: return false
+        return age in 0.0..300.0
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
@@ -1183,7 +1203,7 @@ class MainActivity : Activity() {
                     }
                     "ИТБ " + row.optDouble("point").toString() + " · " + team
                 }
-                "btts" -> when (row.optString("outcome")) { "yes" -> "ОЗ ДА"; "no" -> "ОЗ НЕТ"; else -> "" }
+                "btts" -> if (row.optString("outcome") == "yes") "ОЗ ДА" else ""
                 else -> ""
             }
             if (side.isBlank()) continue
@@ -1198,10 +1218,16 @@ class MainActivity : Activity() {
                 put("paperOnly", true)
             }
             val price = topSignalOdds(signal, match) ?: continue
-            val odds = match.optJSONObject("odds")
-            val age = odds?.optDouble("bookmakerUpdateAgeSeconds", Double.NaN) ?: Double.NaN
-            val fresh = odds?.optString("freshnessStatus") == "fresh" && age.isFinite() && age in 0.0..300.0
-            if (fresh && probability.isFinite() && probability >= 0.60 && probability - 1.0 / price >= 0.05 && probability * price - 1.0 >= 0.05) candidates.add(signal)
+            val archivedPrice = row.optDouble("price", Double.NaN)
+            val edge = row.optDouble("edge", Double.NaN)
+            val expectedValue = row.optDouble("expected_value", Double.NaN)
+            // UEFA paperSignals are server-side BET decisions; retain de-vigged edge
+            // and reject the candidate if the live price moved since qualification.
+            val sameQualifyingPrice = archivedPrice.isFinite() && kotlin.math.abs(price - archivedPrice) < 0.005
+            if (hasFreshBookmakerQuote(match) && sameQualifyingPrice &&
+                probability.isFinite() && probability >= 0.60 &&
+                edge.isFinite() && edge >= 0.05 &&
+                expectedValue.isFinite() && expectedValue >= 0.05) candidates.add(signal)
         }
         return candidates.maxByOrNull {
             val price = topSignalOdds(it, match) ?: 0.0
@@ -1254,7 +1280,7 @@ class MainActivity : Activity() {
                 if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
                 val matchDay = m.optString("utcDate").take(10)
                 val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
-                val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 14) }
+                val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 30) }
                 val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
                 if (matchDay < today || matchDay > endDay) continue
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
@@ -1272,8 +1298,7 @@ class MainActivity : Activity() {
             val price = topSignalOdds(signal, m) ?: return@filter false
             val probability = signal.optDouble("modelProbability", Double.NaN)
             val odds = m.optJSONObject("odds")
-            val age = odds?.optDouble("bookmakerUpdateAgeSeconds", Double.NaN) ?: Double.NaN
-            val fresh = odds?.optString("freshnessStatus") == "fresh" && age.isFinite() && age in 0.0..300.0
+            val fresh = hasFreshBookmakerQuote(m)
             val impliedEdge = probability - 1.0 / price
             val ev = probability * price - 1.0
             fresh && probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
@@ -1301,8 +1326,13 @@ class MainActivity : Activity() {
             addText(box, date(m.optString("utcDate")), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
-            addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
-            addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это фильтр для анализа, но не доказательство value относительно букмекера.", 11, false, muted)
+            if (signal.optBoolean("paperOnly")) {
+                addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; справедливая вероятность рынка без маржи: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
+                addText(box, "Преимущество над справедливой вероятностью: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
+            } else {
+                addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
+                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это фильтр для анализа, но не доказательство value относительно букмекера.", 11, false, muted)
+            }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
@@ -1313,7 +1343,7 @@ class MainActivity : Activity() {
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "AI отбирает только сигналы с положительным edge и подтверждённой котировкой BetBoom от 1.50. ОЗ и тоталы показываются в карточках матчей. Котировки — только API-Sport / BetBoom.", 11, false, muted)
+        addText(footer, "Окно отбора — 30 дней. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5%, совпадение цены с квалифицирующим снимком и фактическая свежесть до 5 минут. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Только BetBoom.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
