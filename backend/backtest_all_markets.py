@@ -142,7 +142,7 @@ def run(rows, holdout):
     rows = sorted(rows, key=lambda row: (row["date"], row["league"], row["id"]))
     histories = defaultdict(list)
     league_xg = defaultdict(list)
-    counts = defaultdict(lambda: defaultdict(int))
+    counts = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     by_date = defaultdict(list)
     for row in rows:
         by_date[row["date"]].append(row)
