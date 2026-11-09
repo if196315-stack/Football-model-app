@@ -155,6 +155,31 @@ def main():
         "page_size": SAMPLE_SIZE,
         "sort": "asc",
     }
+    # First inspect fixture availability without bookmaker filters. A zero
+    # result here means the upstream fixture feed has not published this date;
+    # it must not be misdiagnosed as missing Melbet prices.
+    fixture_params = {
+        "date_from": target_date,
+        "date_to": target_date,
+        "exclude_amateur": "true",
+        "page": 1,
+        "page_size": SAMPLE_SIZE,
+        "sort": "asc",
+    }
+    fixture_response = session.get(MATCHES_URL, params=fixture_params, timeout=TIMEOUT)
+    fixture_response.raise_for_status()
+    fixture_payload = fixture_response.json()
+    fixture_matches = response_items(fixture_payload)
+    fixture_rows = []
+    for match in fixture_matches[:IDENTITY_SAMPLE_SIZE]:
+        flags = match.get("hasBkOdds") or {}
+        fixture_rows.append({
+            **fixture_identity_sample(match),
+            "hasMelbetOdds": flags.get("melbet") if isinstance(flags, dict) else None,
+        })
+    print(f"FIXTURE_ONLY_COUNT={len(fixture_matches)} (requested max {SAMPLE_SIZE}; one page only)")
+    print("FIXTURE_ONLY_SAMPLE=" + json.dumps(fixture_rows, ensure_ascii=False))
+
     matches_response = session.get(MATCHES_URL, params=params, timeout=TIMEOUT)
     matches_response.raise_for_status()
     payload = matches_response.json()
