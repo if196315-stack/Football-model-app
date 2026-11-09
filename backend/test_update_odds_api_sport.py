@@ -20,6 +20,18 @@ class ApiSportOddsTests(unittest.TestCase):
         }]
         self.assertIsNotNone(match_fixture(target, source))
 
+    def test_includes_source_board_freshness_not_local_capture_time(self):
+        import time
+        source = {"id": 90, "oddsBk": {"betboom": {
+            "updatedAtByStage": {"prematch": int(time.time() * 1000)},
+            "markets": {"both_teams_to_score": {"status": "open", "stage": "prematch",
+                "stakes": {"yes": {"factor": 1.8}, "no": {"factor": 2.0}}}}
+        }}}
+        quote = parse_odds(source)
+        self.assertEqual(quote["freshnessStatus"], "fresh")
+        self.assertLessEqual(quote["bookmakerUpdateAgeSeconds"], 300)
+        self.assertIsNotNone(quote["bookmakerUpdatedAt"])
+
     def test_parses_btts_match_totals_and_both_team_total_sides_from_betboom_only(self):
         source = {"id": 88, "oddsBk": {
             "betboom": {"markets": {
