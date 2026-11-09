@@ -1,6 +1,6 @@
 import unittest
 
-from backtest_all_markets import market_outcomes, market_probs, run
+from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, run)
 
 
 class AllMarketBacktestTests(unittest.TestCase):
@@ -50,6 +50,9 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertIn("ENG", report["markets"]["1X2"]["all_by_competition"])
         self.assertIn("brier_skill", report["markets"]["1X2"]["holdout"])
         self.assertIn("limitations", report)
+        self.assertIn("calibration_global", report["markets"]["1X2"])
+        self.assertTrue(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
+        self.assertIn("ENG", report["markets"]["1X2"]["calibration_by_competition"])
 
     def test_walk_forward_produces_predictions_only_after_history_exists(self):
         rows = [
@@ -65,6 +68,32 @@ class AllMarketBacktestTests(unittest.TestCase):
         report = run(rows, "2025-01-02")
         self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 2})
         self.assertEqual(report["markets"]["1X2"]["holdout"]["model"]["n"], 2)
+
+
+    def test_vector_scaling_uses_training_rows_and_preserves_probability_simplex(self):
+        train = []
+        for i in range(120):
+            actual = "1" if i % 3 == 0 else "X" if i % 3 == 1 else "2"
+            train.append({
+                "market": "1X2", "actual": actual,
+                "model": {"1": 0.60, "X": 0.25, "2": 0.15},
+            })
+        params = fit_vector_scaling(train, "1X2")
+        self.assertTrue(params["available"])
+        self.assertEqual(params["train_n"], 120)
+        self.assertEqual(set(params["classes"]), {"1", "X", "2"})
+        holdout = {"market": "1X2", "actual": "2",
+                   "model": {"1": 0.55, "X": 0.30, "2": 0.15}}
+        calibrated = apply_vector_scaling(holdout, params)["calibrated"]
+        self.assertAlmostEqual(sum(calibrated.values()), 1.0, places=8)
+        self.assertTrue(all(0.0 <= value <= 1.0 for value in calibrated.values()))
+
+    def test_vector_scaling_refuses_small_training_sample(self):
+        params = fit_vector_scaling([
+            {"market": "BTTS", "actual": "1", "model": 0.65}
+        ] * 20, "BTTS")
+        self.assertFalse(params["available"])
+        self.assertEqual(params["train_n"], 20)
 
 
 if __name__ == "__main__":
