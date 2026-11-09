@@ -21,7 +21,7 @@ SPORTS = {
     "BL1": "soccer_germany_bundesliga",
     "FL1": "soccer_france_ligue_one",
 }
-MARKETS = "h2h,spreads,totals,team_totals,double_chance,btts"
+MARKETS = "h2h,spreads,totals,team_totals,alternate_team_totals,double_chance,btts"
 ROOT = "https://api.the-odds-api.com/v4/sports"
 
 
