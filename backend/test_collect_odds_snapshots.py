@@ -165,7 +165,7 @@ class OddsSnapshotTests(unittest.TestCase):
             summary = collect(input_path, output_path, "not-a-real-key", session=FakeSession)
             rows = [json.loads(line) for line in output_path.read_text(encoding="utf-8").splitlines()]
 
-        self.assertEqual(len(FakeSession.calls), 5)
+        self.assertEqual(len(FakeSession.calls), 1)
         self.assertEqual(FakeSession.calls[0][1]["markets"], "h2h,spreads,double_chance")
         self.assertEqual(summary["records_written"], 1)
         self.assertEqual(summary["by_league"]["PL"]["with_1x2"], 1)
