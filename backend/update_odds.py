@@ -112,7 +112,7 @@ def read_market(bookmaker, key, home, away):
             elif name.lower() == "under":
                 out["under25"] = float(price)
         elif key == "double_chance":
-            label = re.sub(r"\s+", "", name.lower()).replace("home", "1").replace("draw", "x").replace("away", "2")
+            label = re.sub(r"[^a-z]+", "", name.lower()).replace("home", "1").replace("draw", "x").replace("away", "2")
             if label in ("1x", "x2", "12"):
                 out[label] = float(price)
         elif key == "spreads":
