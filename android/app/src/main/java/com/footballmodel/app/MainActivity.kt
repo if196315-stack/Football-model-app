@@ -1189,7 +1189,12 @@ class MainActivity : Activity() {
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
-                addText(box, date(m.optString("utcDate")), 11, true, accent)
+                box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                    intArrayOf(Color.rgb(16, 42, 61), Color.rgb(8, 22, 39), Color.rgb(9, 35, 47))).apply {
+                    cornerRadius = dp(22).toFloat()
+                    setStroke(dp(1), Color.rgb(40, 121, 128))
+                }
+                addText(box, "✦  MATCH FIXTURE  ·  ${date(m.optString("utcDate"))}", 9, true, accent)
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
