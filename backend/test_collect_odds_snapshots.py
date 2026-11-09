@@ -131,6 +131,10 @@ class OddsSnapshotTests(unittest.TestCase):
                         {"name": "Draw or Away", "price": 1.65},
                         {"name": "Home or Away", "price": 1.25},
                     ]},
+                    {"key": "btts", "outcomes": [
+                        {"name": "Yes", "price": 1.72},
+                        {"name": "No", "price": 2.08},
+                    ]},
                     {"key": "spreads", "outcomes": [
                         {"name": "Arsenal FC", "point": 0, "price": 1.9},
                         {"name": "Arsenal FC", "point": -0.5, "price": 2.0},
