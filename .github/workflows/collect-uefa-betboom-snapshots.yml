@@ -1,0 +1,60 @@
+name: Capture UEFA BetBoom odds snapshots
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/collect_uefa_betboom_snapshots.py"
+      - "backend/refresh_pitchapi_uefa_fixtures.py"
+      - ".github/workflows/collect-uefa-betboom-snapshots.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "23 */3 * * *"
+
+concurrency:
+  group: football-data-json-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore incremental UEFA fixture cache
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_uefa_fixtures.json
+          key: pitchapi-uefa-fixtures-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pitchapi-uefa-fixtures-v1-${{ runner.os }}-
+      - name: Install dependencies
+        run: python -m pip install requests
+      - name: Refresh latest UEFA season fixtures
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/refresh_pitchapi_uefa_fixtures.py --upcoming-only
+      - name: Capture timestamped BetBoom market quotes
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/collect_uefa_betboom_snapshots.py
+      - name: Commit immutable UEFA odds history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -f artifacts/uefa-betboom-odds-snapshots.jsonl ]; then
+            git add artifacts/uefa-betboom-odds-snapshots.jsonl
+          fi
+          git diff --cached --quiet || git commit -m "Capture UEFA BetBoom odds snapshots"
+          git pull --rebase origin main
+          git push

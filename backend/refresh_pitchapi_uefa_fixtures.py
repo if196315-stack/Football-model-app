@@ -5,6 +5,7 @@ It does not request shot/xG endpoints or bookmaker odds.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -130,6 +131,7 @@ def refresh_uefa_fixtures(
     cache_path: Path = CACHE_PATH,
     report_path: Path = REPORT_PATH,
     pause_seconds: float = 0.12,
+    upcoming_only: bool = False,
 ) -> dict:
     """Refresh the latest six available seasons without requesting shot data."""
     if not api_key:
@@ -144,6 +146,9 @@ def refresh_uefa_fixtures(
     for code in sorted(leagues):
         league = leagues[code]
         seasons = sorted(
+            {value for value in (season_value(x) for x in (league.get("seasons") or [])) if value},
+            key=season_sort,
+        )[-1:] if upcoming_only else sorted(
             {value for value in (season_value(x) for x in (league.get("seasons") or [])) if value},
             key=season_sort,
         )[-6:]
@@ -197,6 +202,7 @@ def refresh_uefa_fixtures(
         "generatedAt": cache["updatedAt"],
         "provider": "PitchAPI",
         "scope": "UEFA Champions League and Europa League fixtures/results only; no xG or odds calls",
+        "upcomingSeasonOnly": upcoming_only,
         "listedMatchesThisRun": listed_total,
         "cachedMatches": len(stored),
         "errors": errors,
@@ -211,7 +217,14 @@ def refresh_uefa_fixtures(
 
 
 def main() -> int:
-    result = refresh_uefa_fixtures(os.environ.get("PITCHAPI_API_KEY", "").strip())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--upcoming-only", action="store_true",
+                        help="refresh only the latest available season to reduce scheduled API usage")
+    args = parser.parse_args()
+    result = refresh_uefa_fixtures(
+        os.environ.get("PITCHAPI_API_KEY", "").strip(),
+        upcoming_only=args.upcoming_only,
+    )
     print(json.dumps(result["cache"]["lastRefreshSummary"], ensure_ascii=False))
     return 0
 
