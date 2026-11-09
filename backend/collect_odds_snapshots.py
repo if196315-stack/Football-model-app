@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect a timestamped snapshot of currently available 1X2 odds.
+"""Collect timestamped snapshots of 1X2, double-chance and handicap odds.
 
 This is prospective data collection, not a historical-odds downloader.
 The API key is read only from ODDS_API_KEY and is never logged or persisted.
@@ -91,6 +91,57 @@ def extract_h2h(event):
     return bookmakers
 
 
+
+def extract_snapshot_markets(event):
+    """Extract 1X2, double-chance and supported nonzero handicap quotes."""
+    h2h_by_book = {item["key"]: item for item in extract_h2h(event)}
+    bookmakers = []
+    for bookmaker in event.get("bookmakers", []):
+        key = bookmaker.get("key")
+        h2h = h2h_by_book.get(key)
+        double_chance = []
+        spreads = []
+        for market in bookmaker.get("markets", []):
+            market_key = market.get("key")
+            for outcome in market.get("outcomes", []):
+                price = outcome.get("price")
+                if not isinstance(price, (int, float)) or price <= 1:
+                    continue
+                name = str(outcome.get("name", ""))
+                if market_key == "double_chance":
+                    label = re.sub(r"[^a-z]+", "", name.lower())
+                    label = label.replace("home", "1").replace("draw", "x").replace("away", "2")
+                    if label in ("1x", "x2", "12"):
+                        double_chance.append({"outcome": label, "price": float(price)})
+                elif market_key == "spreads":
+                    point = outcome.get("point")
+                    try:
+                        point = float(point)
+                    except (TypeError, ValueError):
+                        continue
+                    # Exclude AH0/DNB and quarter lines; settlement supports whole/half only.
+                    if abs(point) < 0.001 or abs(point * 2 - round(point * 2)) > 0.001:
+                        continue
+                    normalized_name = normalize(name)
+                    if normalized_name == normalize(event.get("home_team")):
+                        team = "home"
+                    elif normalized_name == normalize(event.get("away_team")):
+                        team = "away"
+                    else:
+                        continue
+                    spreads.append({"team": team, "point": point, "price": float(price)})
+        if h2h or double_chance or spreads:
+            bookmakers.append({
+                "key": key,
+                "title": bookmaker.get("title"),
+                "last_update": bookmaker.get("last_update"),
+                # Keep the original 1X2 field for existing archive readers.
+                "outcomes": h2h["outcomes"] if h2h else [],
+                "double_chance": double_chance,
+                "spreads": spreads,
+            })
+    return bookmakers
+
 def collect(input_path, output_path, api_key, session=requests):
     data = json.loads(Path(input_path).read_text(encoding="utf-8"))
     competitions = {item.get("code"): item for item in data.get("competitions", [])}
@@ -116,7 +167,7 @@ def collect(input_path, output_path, api_key, session=requests):
                 params={
                     "apiKey": api_key,
                     "regions": "eu",
-                    "markets": "h2h",
+                    "markets": "h2h,spreads,double_chance",
                     "oddsFormat": "decimal",
                     "dateFormat": "iso",
                 },
@@ -132,12 +183,13 @@ def collect(input_path, output_path, api_key, session=requests):
                 if event is None:
                     continue
                 matched += 1
-                bookmaker_quotes = extract_h2h(event)
+                bookmaker_quotes = extract_snapshot_markets(event)
                 if not bookmaker_quotes:
                     continue
-                with_odds += 1
+                if any(book.get("outcomes") for book in bookmaker_quotes):
+                    with_odds += 1
                 rows.append({
-                    "schema_version": 1,
+                    "schema_version": 2,
                     "retrieved_at": retrieved_at,
                     "league_code": code,
                     "fixture_id": str(fixture.get("id")),
@@ -153,6 +205,7 @@ def collect(input_path, output_path, api_key, session=requests):
                 "eligible": len(fixtures),
                 "matched": matched,
                 "with_1x2": with_odds,
+                "with_strategy_markets": sum(1 for row in rows if row["league_code"] == code and any(book["double_chance"] or book["spreads"] for book in row["bookmakers"])),
             }
         except Exception as exc:
             # Do not include request URLs or parameters, which may contain the key.
