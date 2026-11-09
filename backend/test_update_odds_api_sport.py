@@ -20,7 +20,7 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertIsNotNone(match_fixture(target, source))
 
     def test_parses_double_chance_and_only_zero_handicap(self):
-        source = {"id": 7, "oddsBk": {"pari": {"markets": {
+        source = {"id": 7, "oddsBk": {"melbet": {"markets": {
             "double_chance": {"status": "open", "stakes": {
                 "1x": {"factor": 1.3}, "x2": {"factor": 2.7}
             }},
@@ -32,8 +32,12 @@ class ApiSportOddsTests(unittest.TestCase):
                 "handicap_2": {"lines": [{"argument": 0, "factor": 1.95}]}
             }}
         }}}}
+        source["oddsBk"]["pari"] = source["oddsBk"]["melbet"]
+        source["oddsBk"]["pari"]["markets"]["double_chance"]["stakes"]["1x"]["factor"] = 9.99
         quote = parse_odds(source)
         self.assertEqual(quote["best"]["doubleChance"], {"1x": 1.3, "x2": 2.7})
+        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["melbet"])
+        self.assertEqual(quote["bestBookmakers"]["doubleChance"]["1x"], "MELBET")
         self.assertEqual({(x["team"], x["point"]) for x in quote["best"]["spreads"]},
                          {("home", 0.0), ("away", 0.0)})
 
