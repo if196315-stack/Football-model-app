@@ -1,7 +1,9 @@
-name: Update odds only
+name: Update odds and archive snapshots
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "41 */6 * * *"
 
 concurrency:
   group: football-data-json-write
@@ -31,11 +33,13 @@ jobs:
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python backend/update_odds.py
-      - name: Commit updated odds data
+      - name: Append immutable model-market odds snapshots
+        run: python backend/collect_odds_snapshots.py --input docs/data.json --output artifacts/odds-snapshots.jsonl
+      - name: Commit refreshed odds and snapshot history
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json
-          git diff --cached --quiet || git commit -m "Update BSD and bookmaker odds"
+          git add docs/data.json artifacts/odds-snapshots.jsonl
+          git diff --cached --quiet || git commit -m "Update odds and append snapshot history"
           git pull --rebase origin main
           git push
