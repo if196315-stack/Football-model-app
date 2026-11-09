@@ -1315,14 +1315,18 @@ class MainActivity : Activity() {
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
-                    addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
+                    if ((m.optJSONArray("paperSignals")?.length() ?: 0) > 0) {
+                        addText(box, "Матч завершён · исторический сигнал модели ниже", 11, false, muted)
+                    } else {
+                        addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
+                    }
                 } else {
                     val signal = pred.optJSONObject("strongestSignal")
                     val signalBox = card(box)
                     signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(32, 55, 66), Color.rgb(17, 34, 52))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(67, 137, 119)) }
                     addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, gold)
                     if (signal == null) {
-                        addText(signalBox, "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
+                        addText(signalBox, if (leagueCode == "UCL" || leagueCode == "UEL") "Вероятности рассчитаны по историческим xG; проверенные тестовые сигналы и их результаты — ниже." else "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
                     } else {
                         val edge = signal.optDouble("edgePp")
                         if (signal.optBoolean("noPositiveSignal")) {

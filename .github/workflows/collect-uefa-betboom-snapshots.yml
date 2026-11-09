@@ -7,6 +7,7 @@ on:
     paths:
       - "backend/collect_uefa_betboom_snapshots.py"
       - "backend/refresh_pitchapi_uefa_fixtures.py"
+      - "backend/build_uefa_app_feed.py"
       - ".github/workflows/collect-uefa-betboom-snapshots.yml"
   workflow_dispatch:
   schedule:
