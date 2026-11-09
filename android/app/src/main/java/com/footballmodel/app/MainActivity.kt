@@ -595,10 +595,39 @@ class MainActivity : Activity() {
             "PitchAPI — источник расписания, результатов и shot-level xG. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. The Odds API — отдельный источник букмекерских котировок. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты на момент прогноза.")
     }
 
+    private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
+        val side = signal.optString("side")
+        val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
+        if (side == "1X" || side == "X2") {
+            val dc = best.optJSONObject("doubleChance") ?: return null
+            val key = if (side == "1X") "1x" else "x2"
+            val price = dc.optDouble(key, Double.NaN)
+            return price.takeIf { it.isFinite() && it >= 1.50 }
+        }
+        if (side.startsWith("ИТБ 1.5 · ")) {
+            val teamName = side.substringAfter("ИТБ 1.5 · ").trim()
+            val team = when (teamName) {
+                match.optString("home") -> "home"
+                match.optString("away") -> "away"
+                else -> return null
+            }
+            val rows = best.optJSONArray("teamTotals") ?: return null
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                val point = row.optDouble("point", Double.NaN)
+                val price = row.optDouble("price", Double.NaN)
+                if (row.optString("team") == team && row.optString("side") == "over" &&
+                    point.isFinite() && kotlin.math.abs(point - 1.5) < 0.001 &&
+                    price.isFinite() && price >= 1.50) return price
+            }
+        }
+        return null
+    }
+
     private fun renderDay(json: JSONObject) {
         addText(matchesContainer, "DAILY SIGNAL FILTER", 9, true, cyan)
         addText(matchesContainer, "Ставки дня", 22, true)
-        addText(matchesContainer, "Матчи на сегодня и ближайшие 14 дней с положительным отклонением модели от исторической базы. Сначала самые сильные сигналы.", 11, false, muted)
+        addText(matchesContainer, "Только самые сильные положительные сигналы модели с подтверждённым коэффициентом от 1.50 на выбранную сторону.", 11, false, muted)
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
@@ -620,18 +649,20 @@ class MainActivity : Activity() {
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
                 if (signal.optBoolean("noPositiveSignal") || edge <= 0.0) continue
+                // Require a real quote for the exact strongest side, at decimal odds >= 1.50.
+                if (topSignalOdds(signal, m) == null) continue
                 items.add(Triple(m, league.optString("name"), signal))
             }
         }
         val sorted = items.sortedByDescending { it.third.optDouble("edgePp") }
         val summary = card()
-        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ · 14 ДНЕЙ", 9, true, accent)
+        addText(summary, "СИЛЬНЫЕ СИГНАЛЫ · КЭФ ОТ 1.50", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
         addText(summary, "Только матчи с рассчитанным прогнозом и положительным отклонением от исторической базы. Это фильтр модели, не рекомендация ставить.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
-            addText(empty, "В ближайшие 14 дней нет матчей с положительным сильнейшим сигналом модели.", 13, true)
-            addText(empty, "Сюда попадают только матчи с полноценным прогнозом, достаточной исторической базой и положительным отклонением модели.", 11, false, muted)
+            addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)
+            addText(empty, "В TOP попадают только матчи с полноценным прогнозом, положительным сильнейшим сигналом и реальной котировкой от 1.50 именно на выбранный исход.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
@@ -641,6 +672,8 @@ class MainActivity : Activity() {
             addText(box, "${m.optString("home")}  —  ${m.optString("away")}", 16, true, Color.WHITE)
             addText(box, signal.optString("side"), 14, true, gold)
             addText(box, "+${String.format(Locale.US, "%.1f", signal.optDouble("edgePp"))} п.п. к исторической базе", 13, true, accent)
+            val signalOdds = topSignalOdds(signal, m)
+            addText(box, "Коэффициент на сигнал: ${String.format(Locale.US, "%.2f", signalOdds ?: 0.0)}", 14, true, gold)
             addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability") * 100)}% · база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}%", 11, false, muted)
             addText(box, "Историческая выборка: ${signal.optInt("baselineMatches")} матчей до даты игры", 10, false, muted)
             renderOdds(box, m.optJSONObject("odds"))
