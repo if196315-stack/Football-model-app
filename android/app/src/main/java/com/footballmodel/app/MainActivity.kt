@@ -395,7 +395,24 @@ class MainActivity : Activity() {
             BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
             BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
             BetMarket("awayOver15","ИТБ 1.5 · ${m.optString("away")}")
-        ).filter { p.has(it.key) && !p.isNull(it.key) }
+        ).filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
+        val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
+        val dcOdds = bestOdds?.optJSONObject("doubleChance")
+        if (dcOdds != null) listOf("1x", "x2", "12").forEach { key ->
+            if (dcOdds.has(key) && !dcOdds.isNull(key) && markets.none { it.key == key })
+                markets.add(BetMarket(key, "Двойной шанс $key"))
+        }
+        val spreadLines = bestOdds?.optJSONArray("spreads")
+        if (spreadLines != null) for (i in 0 until spreadLines.length()) {
+            val line = spreadLines.optJSONObject(i) ?: continue
+            val point = line.optDouble("point", 0.0)
+            if (kotlin.math.abs(point) < 0.001) continue
+            val team = line.optString("team")
+            val key = "spread:$team:${String.format(Locale.US, "%.1f", point)}"
+            val teamName = if (team == "home") m.optString("home") else m.optString("away")
+            val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
+            markets.add(BetMarket(key, "Фора $teamName $signed"))
+        }
         if (markets.isEmpty()) return
         val form = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(20,8,20,0) }
         form.addView(label(m.optString("home")+" — "+m.optString("away"),16,true))
@@ -412,9 +429,17 @@ class MainActivity : Activity() {
                 "1" -> h?.optDouble("home", Double.NaN)
                 "x" -> h?.optDouble("draw", Double.NaN)
                 "2" -> h?.optDouble("away", Double.NaN)
+                "1x", "x2", "12" -> best.optJSONObject("doubleChance")?.optDouble(marketKey, Double.NaN)
                 "over25" -> t?.optDouble("over25", Double.NaN)
                 "under25" -> t?.optDouble("under25", Double.NaN)
-                else -> null
+                else -> if (marketKey.startsWith("spread:")) {
+                    val parts = marketKey.split(":")
+                    val lines = best.optJSONArray("spreads")
+                    (0 until (lines?.length() ?: 0)).mapNotNull { lines?.optJSONObject(it) }
+                        .firstOrNull { it.optString("team") == parts.getOrNull(1) &&
+                            kotlin.math.abs(it.optDouble("point") - (parts.getOrNull(2)?.toDoubleOrNull() ?: 999.0)) < 0.001 }
+                        ?.optDouble("price", Double.NaN)
+                } else null
             }
             return value?.takeIf { it.isFinite() && it > 1.0 }
         }
