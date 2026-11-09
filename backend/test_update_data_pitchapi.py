@@ -5,6 +5,7 @@ import pandas as pd
 
 from update_data_pitchapi import (
     app_status, build_model_frames, find_odds_event, fixture_identity, preserve_odds_by_identity,
+    markets,
 )
 
 
@@ -164,6 +165,18 @@ class PitchApiUpdaterTests(unittest.TestCase):
                 self.assertEqual(payload["competitions"][0]["matches"][0]["odds"], quote)
             finally:
                 updater.OUT = old_out
+
+    def test_zero_handicap_markets_are_not_calculated_or_signalled(self):
+        probabilities = markets(1.4, 0.9)
+        self.assertNotIn("dnbHome", probabilities)
+        self.assertNotIn("dnbAway", probabilities)
+        self.assertNotIn("ah0Home", probabilities)
+        from update_data import strongest_signal
+        prediction = {**probabilities, "homeOver15": 0.6, "awayOver15": 0.4}
+        baseline = {"1x": 0.5, "x2": 0.5, "homeOver15": 0.5, "awayOver15": 0.5, "matches": 200}
+        signal = strongest_signal(prediction, baseline, "Home", "Away")
+        self.assertNotIn("Фора 0", signal["market"])
+        self.assertNotIn("Фора 0", signal["side"])
 
 
 if __name__ == "__main__":
