@@ -45,8 +45,12 @@ def _board_timestamp(book: dict) -> str | None:
 def _row(common: dict, market: str, price: Any, **fields) -> dict | None:
     if not valid_price(price):
         return None
+    candidate_market = fields.pop("candidate_market", True)
+    reference_only = fields.pop("reference_only", False)
     return {
         **common, "market": market, **fields,
+        "candidate_market": candidate_market,
+        "reference_only": reference_only,
         "price": round(float(price), 6),
         "model_probability": None,
         "model_probability_status": "not_available_yet",
@@ -119,28 +123,37 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "away_team": match.get("away"),
         }
 
-        for outcome in ("1x", "x2"):
+        for outcome in ("1x", "x2", "12"):
             price = (best.get("doubleChance") or {}).get(outcome)
-            item = _row(common, "double_chance", price, outcome=outcome)
+            is_reference = outcome == "12"
+            item = _row(common, "double_chance", price, outcome=outcome,
+                        candidate_market=not is_reference, reference_only=is_reference)
             if item:
                 rows.append(item)
 
         for item in best.get("totals") or []:
             point = item.get("point")
-            if item.get("side") != "over" or point not in ALLOWED_TOTALS:
+            side = item.get("side")
+            if side not in ("over", "under") or point not in ALLOWED_TOTALS:
                 continue
-            row = _row(common, "match_total_over", item.get("price"), point=float(point))
+            is_reference = side == "under"
+            market = "match_total_under_reference" if is_reference else "match_total_over"
+            row = _row(common, market, item.get("price"), point=float(point), side=side,
+                       candidate_market=not is_reference, reference_only=is_reference)
             if row:
                 rows.append(row)
 
         for item in best.get("teamTotals") or []:
             point = item.get("point")
             team = item.get("team")
-            if (item.get("side") != "over" or team not in ("home", "away")
+            side = item.get("side")
+            if (side not in ("over", "under") or team not in ("home", "away")
                     or point not in ALLOWED_TEAM_TOTALS):
                 continue
-            row = _row(common, "team_total_over", item.get("price"),
-                       team=team, point=float(point))
+            is_reference = side == "under"
+            market = "team_total_under_reference" if is_reference else "team_total_over"
+            row = _row(common, market, item.get("price"), team=team, point=float(point),
+                       side=side, candidate_market=not is_reference, reference_only=is_reference)
             if row:
                 rows.append(row)
 
