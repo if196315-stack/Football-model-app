@@ -16,6 +16,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 ODDS_ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
 SIGNAL_ARCHIVE = ROOT / "artifacts" / "uefa-paper-signals.jsonl"
+PAPER_BETS_ARCHIVE = ROOT / "artifacts" / "uefa-paper-bets.jsonl"
 MIN_PROBABILITY = 0.60
 MIN_EDGE = 0.05
 MIN_EV = 0.05
@@ -212,13 +213,61 @@ def append_new_signals(signals: list[dict], output_path: str | Path = SIGNAL_ARC
     return summary
 
 
+def _paper_bet_key(row: dict) -> tuple:
+    return (
+        str(row.get("fixture_id") or ""),
+        str(row.get("market") or ""),
+        str(row.get("point") or ""),
+        str(row.get("team") or ""),
+        str(row.get("outcome") or ""),
+    )
+
+
+def append_unique_paper_bets(signals: list[dict],
+                             output_path: str | Path = PAPER_BETS_ARCHIVE) -> dict:
+    output = Path(output_path)
+    existing_rows = read_jsonl(output)
+    seen = {_paper_bet_key(row) for row in existing_rows}
+    new_rows = []
+    for signal in sorted(signals, key=lambda row: (
+        row.get("captured_at") or "", row.get("fixture_id") or "",
+        row.get("market") or "", str(row.get("point") or ""),
+        row.get("team") or "", row.get("outcome") or "",
+    )):
+        if signal.get("decision") != "BET":
+            continue
+        key = _paper_bet_key(signal)
+        if key in seen:
+            continue
+        new_rows.append({
+            **signal,
+            "paper_entry": True,
+            "paper_entry_policy": "first_qualifying_snapshot_per_fixture_market",
+        })
+        seen.add(key)
+    if new_rows:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with output.open("a", encoding="utf-8") as handle:
+            for row in new_rows:
+                handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+    summary = {
+        "unique_paper_bets_added": len(new_rows),
+        "unique_paper_bets_total": len(seen),
+        "paper_bets_archive": str(output),
+    }
+    print(json.dumps(summary, ensure_ascii=False))
+    return summary
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--odds", default=str(ODDS_ARCHIVE))
     parser.add_argument("--output", default=str(SIGNAL_ARCHIVE))
+    parser.add_argument("--paper-bets-output", default=str(PAPER_BETS_ARCHIVE))
     args = parser.parse_args()
     signals = build_signals(read_jsonl(args.odds))
     append_new_signals(signals, args.output)
+    append_unique_paper_bets(signals, args.paper_bets_output)
     return 0
 
 
