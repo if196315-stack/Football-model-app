@@ -1,6 +1,7 @@
 package com.footballmodel.app
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import org.json.JSONArray
@@ -20,18 +21,35 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     private val prefs = context.getSharedPreferences("bet_history", Context.MODE_PRIVATE)
     private val settings = context.getSharedPreferences("bank_settings", Context.MODE_PRIVATE)
 
+    companion object {
+        private const val TAG = "IQMatchAutoPaper"
+    }
+
     override fun doWork(): Result {
+        val startedAt = System.currentTimeMillis()
+        Log.i(TAG, "Auto-paper worker started; attempt=$runAttemptCount")
         return try {
-            val domestic = JSONObject(download("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"))
+            val domesticText = download("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json")
+            val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            var changed = false
+            var totalBets = 0
+            var pendingAuto = 0
             synchronized(AutoPaperExecutionLock) {
                 val bets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
-                val changed = process(domestic, bets)
+                changed = process(domestic, bets)
                 if (changed) prefs.edit().putString("bets", bets.toString()).commit()
+                totalBets = bets.length()
+                for (i in 0 until bets.length()) {
+                    val bet = bets.optJSONObject(i) ?: continue
+                    if (bet.optString("source") == "AI_AUTO" && bet.optString("status") == "PENDING") pendingAuto++
+                }
             }
+            Log.i(TAG, "Auto-paper worker succeeded; changed=$changed totalBets=$totalBets pendingAuto=$pendingAuto elapsedMs=${System.currentTimeMillis() - startedAt}")
             Result.success()
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Log.w(TAG, "Auto-paper worker failed; retrying", error)
             Result.retry()
         }
     }
