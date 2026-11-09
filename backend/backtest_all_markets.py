@@ -102,7 +102,7 @@ def score(rows, market, source):
     for row in rows:
         probabilities = row[source]
         actual = str(row["actual"])
-        if market != "1X2" and not market.startswith("DNB"):
+        if market != "1X2" and not market.startswith("DNB") and not isinstance(probabilities, dict):
             probability_yes = float(probabilities)
             probabilities = {"0": 1.0 - probability_yes, "1": probability_yes}
         brier += sum((float(probabilities[label]) - (1.0 if label == actual else 0.0)) ** 2
