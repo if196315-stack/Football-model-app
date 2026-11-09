@@ -362,6 +362,10 @@ def run() -> dict:
                     warning = "Для прогноза требуется не менее 5 матчей истории каждой команды"
                 else:
                     pred, warning = predict(league, home, away, st, base, names, results, date[:10])
+            # Keep unsupported upcoming fixtures out of the app feed entirely.
+            # Only publish a scheduled fixture once both teams have sufficient paired xG history.
+            if status in ("SCHEDULED", "TIMED") and pred is None:
+                continue
             item["matches"].append({
                 "id": row["id"], "utcDate": date, "status": status,
                 "home": home, "away": away,
