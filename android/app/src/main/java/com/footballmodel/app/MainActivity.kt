@@ -352,6 +352,22 @@ class MainActivity : Activity() {
         copy.addView(label("IQ MATCH  /  MATCH CENTER", 9, true, gold))
         copy.addView(label("Матчи и прогнозы", 22, true, Color.WHITE))
         copy.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
+        val features = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "MELBET").forEachIndexed { index, caption ->
+            val chip = label(caption, 7, true, if (index == 2) gold else accent).apply {
+                gravity = Gravity.CENTER
+                setPadding(dp(5), dp(6), dp(5), dp(6))
+                background = GradientDrawable().apply {
+                    setColor(Color.argb(45, 4, 12, 22))
+                    cornerRadius = dp(8).toFloat()
+                    setStroke(dp(1), Color.rgb(59, 91, 103))
+                }
+            }
+            features.addView(chip, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                setMargins(dp(2), dp(7), dp(2), 0)
+            })
+        }
+        copy.addView(features)
         banner.addView(copy, LinearLayout.LayoutParams(0, -2, 1f))
         val ball = label("⚽", 54, true, Color.WHITE).apply {
             gravity = Gravity.CENTER
@@ -1090,37 +1106,6 @@ class MainActivity : Activity() {
         }
 
         addStadiumBanner(matchesContainer)
-        val homeHero = card()
-        homeHero.setPadding(dp(18), dp(18), dp(18), dp(18))
-        homeHero.background = GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            intArrayOf(Color.rgb(25, 62, 67), Color.rgb(15, 35, 54), Color.rgb(12, 25, 43))
-        ).apply {
-            cornerRadius = dp(24).toFloat()
-            setStroke(dp(1), Color.rgb(57, 112, 105))
-        }
-        addText(homeHero, "IQ MATCH  /  MATCH CENTER", 9, true, gold)
-        addText(homeHero, "Матчи и прогнозы", 23, true, Color.WHITE)
-        addText(homeHero, "Футбольная аналитика на основе статистики, xG и исторических данных.", 11, false, Color.rgb(190, 207, 221))
-        val featureRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "MELBET").forEachIndexed { index, caption ->
-            val chip = label(caption, 8, true, if (index == 2) gold else accent).apply {
-                gravity = Gravity.CENTER
-                setPadding(dp(8), dp(7), dp(8), dp(7))
-                background = GradientDrawable().apply {
-                    setColor(Color.argb(42, 4, 12, 22))
-                    cornerRadius = dp(9).toFloat()
-                    setStroke(dp(1), Color.rgb(59, 91, 103))
-                }
-            }
-            featureRow.addView(chip, LinearLayout.LayoutParams(0, -2, 1f).apply {
-                setMargins(dp(2), dp(8), dp(2), dp(2))
-            })
-        }
-        homeHero.addView(featureRow)
         addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
         addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
         addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ MELBET", 9, true, muted)
