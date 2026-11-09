@@ -1,0 +1,41 @@
+name: Update odds only
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: football-data-json-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update-odds:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install requests pandas
+      - name: Refresh base consensus odds via BSD
+        env:
+          BSD_API_KEY: ${{ secrets.BSD_API_KEY }}
+        run: python backend/update_bsd_odds.py
+      - name: Fill missing markets via The Odds API
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python backend/update_odds.py
+      - name: Commit updated odds data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json
+          git diff --cached --quiet || git commit -m "Update BSD and bookmaker odds"
+          git pull --rebase origin main
+          git push
