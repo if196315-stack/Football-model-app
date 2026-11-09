@@ -390,10 +390,9 @@ class MainActivity : Activity() {
     private fun showAddBetDialog(m: JSONObject, league: String) {
         val p = m.optJSONObject("prediction") ?: return
         val markets = listOf(
-            BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"), BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
-            BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
-            BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
-            BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
+            BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"),
+            BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
+            BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
             BetMarket("awayOver15","ИТБ 1.5 · ${m.optString("away")}")
         ).filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
         val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
