@@ -62,9 +62,12 @@ def evaluate_candidate(row: dict, snapshot_rows: list[dict]) -> dict:
 
     if not _valid_probability(probability):
         reasons.append("model_probability_unavailable")
-    if row.get("freshness_status") != "fresh" or row.get("bookmaker_update_age_seconds") is None:
-        reasons.append("quote_freshness_unknown_or_stale")
-    elif float(row["bookmaker_update_age_seconds"]) > MAX_QUOTE_AGE_SECONDS:
+    quote_age = row.get("bookmaker_update_age_seconds")
+    if quote_age is None or row.get("freshness_status") == "unknown":
+        reasons.append("quote_freshness_unknown")
+    elif row.get("freshness_status") == "clock_skew":
+        reasons.append("bookmaker_timestamp_clock_skew")
+    elif row.get("freshness_status") != "fresh" or float(quote_age) > MAX_QUOTE_AGE_SECONDS:
         reasons.append("quote_older_than_5_minutes")
     if row.get("model_history_max_date") and row.get("kickoff_utc"):
         if str(row["model_history_max_date"])[:10] >= str(row["kickoff_utc"])[:10]:
@@ -108,8 +111,8 @@ def evaluate_candidate(row: dict, snapshot_rows: list[dict]) -> dict:
             reasons.append("expected_value_below_5_percent")
 
     if any(reason in reasons for reason in (
-        "model_probability_unavailable", "quote_freshness_unknown_or_stale",
-        "quote_older_than_5_minutes", "same_day_or_future_xg_history",
+        "model_probability_unavailable", "quote_freshness_unknown",
+        "bookmaker_timestamp_clock_skew", "quote_older_than_5_minutes", "same_day_or_future_xg_history",
         "complementary_price_missing", "complementary_model_probability_unavailable",
     )):
         decision = "WAIT"
