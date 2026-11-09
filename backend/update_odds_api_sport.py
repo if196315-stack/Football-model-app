@@ -79,7 +79,7 @@ def is_supported_full_time_market(slug, market):
     excluded = (
         "first_half", "firsthalf", "1st_half", "first half", "1st half",
         "second_half", "secondhalf", "2nd_half", "second half", "2nd half",
-        "half_time", "half time", "halftime", "period",
+        "half_time", "half time", "halftime", "half 1", "half 2", "1h", "2h", "period",
         "corner", "corners", "card", "cards", "shot", "shots",
         "offside", "offsides", "player",
     )
