@@ -601,7 +601,7 @@ class MainActivity : Activity() {
     private fun renderDay(json: JSONObject) {
         addText(matchesContainer, "DAILY SIGNAL FILTER", 9, true, cyan)
         addText(matchesContainer, "Ставки дня", 22, true)
-        addText(matchesContainer, "Матчи на сегодня и ближайшие 7 дней с положительным отклонением модели от исторической базы. Сначала самые сильные сигналы.", 11, false, muted)
+        addText(matchesContainer, "Матчи на сегодня и ближайшие 14 дней с положительным отклонением модели от исторической базы. Сначала самые сильные сигналы.", 11, false, muted)
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
