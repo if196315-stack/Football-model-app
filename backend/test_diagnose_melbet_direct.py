@@ -4,6 +4,7 @@ from diagnose_melbet_direct import (
     collect_market_rows,
     extract_champ_fixtures,
     extract_football_leagues,
+    find_champ_matches,
     market_group_summary,
     summarize_response,
 )
@@ -56,6 +57,17 @@ class MelbetDirectDiagnosticTests(unittest.TestCase):
         self.assertEqual(sample[0]["id"], 1)
         self.assertEqual(sample[0]["home"], "Home")
         self.assertTrue(sample[0]["hasMarkets"])
+
+    def test_find_champ_matches_maps_model_fixtures_to_discovered_ids(self):
+        payload = {"Value": {"G": [
+            {"I": 766922200, "O1": "Manchester City", "O2": "Fulham", "S": 1795264200},
+            {"I": 1, "O1": "Other", "O2": "Side", "S": 123},
+        ]}}
+        targets = [{"id": 385744564, "home": "Manchester City", "away": "Fulham"}]
+        self.assertEqual(find_champ_matches(payload, targets), [{
+            "id": 766922200, "home": "Manchester City", "away": "Fulham",
+            "start": 1795264200, "leagueId": None,
+        }])
 
     def test_summarize_response_reports_event_and_market_data(self):
         event = {"id": 123, "home": "Home FC", "away": "Away FC"}
