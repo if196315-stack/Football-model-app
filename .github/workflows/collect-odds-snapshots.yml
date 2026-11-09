@@ -26,20 +26,10 @@ jobs:
           python backend/collect_odds_snapshots.py \
             --input docs/data.json \
             --output artifacts/odds-snapshots.jsonl
-      - name: Probe strategy markets on a bounded sample
-        env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-        run: |
-          python backend/probe_odds_markets.py \
-            --input docs/data.json \
-            --output artifacts/odds-market-probe.jsonl \
-            --max-events-per-league 1
-      - name: Upload odds archives
+      - name: Upload odds archive
         uses: actions/upload-artifact@v4
         with:
-          name: prospective-odds-market-probe
-          path: |
-            artifacts/odds-snapshots.jsonl
-            artifacts/odds-market-probe.jsonl
+          name: prospective-odds-snapshots
+          path: artifacts/odds-snapshots.jsonl
           if-no-files-found: error
           retention-days: 90
