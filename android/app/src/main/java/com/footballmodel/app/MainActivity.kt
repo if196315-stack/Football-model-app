@@ -1076,7 +1076,19 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
-                    addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
+                    val teamTotalsHeading = TextView(this).apply {
+                        text = "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · БОЛЬШЕ"
+                        textSize = 10f
+                        setTypeface(typeface, android.graphics.Typeface.BOLD)
+                        setTextColor(gold)
+                        setPadding(dp(10), dp(9), dp(10), dp(7))
+                        background = GradientDrawable().apply {
+                            setColor(Color.argb(38, 224, 180, 85))
+                            cornerRadius = dp(9).toFloat()
+                            setStroke(dp(1), Color.rgb(112, 88, 48))
+                        }
+                    }
+                    mainMarkets.addView(teamTotalsHeading)
                     for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
                         addText(mainMarkets, "ИТБ · $teamName", 10, true, accent)
                         addMarketRow(mainMarkets, listOf(
