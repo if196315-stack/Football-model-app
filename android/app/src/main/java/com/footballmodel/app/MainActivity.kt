@@ -491,8 +491,8 @@ class MainActivity : Activity() {
                 val parts = b.optString("marketKey").split(":")
                 val handicap = parts.getOrNull(2)?.toDoubleOrNull()
                 when(parts.getOrNull(1)) {
-                    "home" -> handicap?.let { h + it > a }
-                    "away" -> handicap?.let { a + it > h }
+                    "home" -> handicap?.let { when { h + it > a -> true; h + it < a -> false; else -> null } }
+                    "away" -> handicap?.let { when { a + it > h -> true; a + it < h -> false; else -> null } }
                     else -> null
                 }
             } else null
