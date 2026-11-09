@@ -45,9 +45,7 @@ class MainActivity : Activity() {
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
     private var bets = JSONArray()
-    private var coupon = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
-    private val couponPrefs by lazy { getSharedPreferences("bet_coupon", MODE_PRIVATE) }
     private val feedCache by lazy { getSharedPreferences("feed_cache_v1", MODE_PRIVATE) }
     private val loadInProgress = AtomicBoolean(false)
     @Volatile private var lastPayload: String? = null
@@ -147,7 +145,6 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
-        coupon = try { JSONArray(couponPrefs.getString("coupon", "[]")) } catch (_: Exception) { JSONArray() }
         // Мгновенный старт: показываем последний успешный снимок до сетевого обновления.
         feedCache.getString("merged_json", null)?.let { cached ->
             try {
@@ -662,7 +659,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "Линия", "coupon" to "Купон", "desk" to "AI", "history" to "Банк", "stats" to "Stats", "help" to "Профиль")
+        val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "Банк", "stats" to "Stats", "help" to "Профиль")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -831,10 +828,6 @@ class MainActivity : Activity() {
         tabViewCache.remove("history|ALL")
         tabViewCache.remove("desk|ALL")
     }
-    private fun saveCoupon() {
-        couponPrefs.edit().putString("coupon", coupon.toString()).apply()
-        tabViewCache.remove("coupon|ALL")
-    }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
         val b = Button(this).apply {
             text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = dp(48)
@@ -844,253 +837,6 @@ class MainActivity : Activity() {
         }
         parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
     }
-    private fun showAddBetDialog(m: JSONObject, league: String) {
-        val p = m.optJSONObject("prediction") ?: return
-        val markets = mutableListOf(
-            BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"),
-            BetMarket("x2","X2 · гости победят ИЛИ будет ничья")
-        ).apply {
-            add(BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"))
-            add(BetMarket("awayOver15","ИТБ 1.5 · ${m.optString("away")}"))
-            add(BetMarket("bttsYes","ОЗ — да"))
-            for (line in listOf("15", "25", "35")) {
-                val label = when (line) { "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
-                add(BetMarket("over$line","ТБ $label"))
-            }
-            for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
-                for (line in listOf("05", "15", "25", "35")) {
-                    val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
-                    add(BetMarket("${teamKey}Over$line","ИТБ $label · $teamName"))
-                }
-            }
-        }.filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
-        val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
-        val dcOdds = bestOdds?.optJSONObject("doubleChance")
-        if (dcOdds != null) listOf("1x", "x2").forEach { key ->
-            if (dcOdds.has(key) && !dcOdds.isNull(key) && markets.none { it.key == key })
-                markets.add(BetMarket(key, "Двойной шанс $key"))
-        }
-        val spreadLines = bestOdds?.optJSONArray("spreads")
-        if (spreadLines != null) for (i in 0 until spreadLines.length()) {
-            val line = spreadLines.optJSONObject(i) ?: continue
-            val point = line.optDouble("point", 0.0)
-            if (kotlin.math.abs(point) < 0.001 ||
-                kotlin.math.abs(point * 2.0 - kotlin.math.round(point * 2.0)) > 0.001) continue
-            val team = line.optString("team")
-            val key = "spread:$team:${String.format(Locale.US, "%.1f", point)}"
-            val teamName = if (team == "home") m.optString("home") else m.optString("away")
-            val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
-            markets.add(BetMarket(key, "Фора $teamName $signed"))
-        }
-        if (markets.isEmpty()) return
-        val form = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(20,8,20,0) }
-        form.addView(label(m.optString("home")+" — "+m.optString("away"),16,true))
-        val spin = Spinner(this)
-        spin.adapter = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,markets.map { it.label })
-        form.addView(spin)
-        fun field(h: String) = EditText(this).apply { hint=h; setSingleLine(true); inputType=InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
-        val odds=field("Коэффициент (например 1.85)")
-        form.addView(odds)
-        fun suggestedOdds(marketKey: String): Double? {
-            val best = m.optJSONObject("odds")?.optJSONObject("best") ?: return null
-            val h = best.optJSONObject("h2h"); val t = best.optJSONObject("totals")
-            val value = when(marketKey) {
-                "1" -> h?.optDouble("home", Double.NaN)
-                "x" -> h?.optDouble("draw", Double.NaN)
-                "2" -> h?.optDouble("away", Double.NaN)
-                "1x", "x2", "12" -> best.optJSONObject("doubleChance")?.optDouble(marketKey, Double.NaN)
-                "bttsYes", "bttsNo" -> best.optJSONObject("btts")?.optDouble(if (marketKey == "bttsYes") "yes" else "no", Double.NaN)
-                else -> {
-                    val side = when {
-                        marketKey.startsWith("over") || marketKey.contains("Over") -> "over"
-                        marketKey.startsWith("under") || marketKey.contains("Under") -> "under"
-                        else -> null
-                    }
-                    val point = marketKey.takeLast(2).toDoubleOrNull()?.div(10.0)
-                    if (side == null || point == null) null
-                    else if (marketKey.startsWith("home") || marketKey.startsWith("away")) {
-                        val team = if (marketKey.startsWith("home")) "home" else "away"
-                        val rows = best.optJSONArray("teamTotals")
-                        (0 until (rows?.length() ?: 0)).mapNotNull { rows?.optJSONObject(it) }
-                            .firstOrNull { it.optString("team") == team && it.optString("side") == side &&
-                                kotlin.math.abs(it.optDouble("point") - point) < 0.001 }
-                            ?.optDouble("price", Double.NaN)
-                    } else {
-                        val rows = best.optJSONArray("totals")
-                        (0 until (rows?.length() ?: 0)).mapNotNull { rows?.optJSONObject(it) }
-                            .firstOrNull { it.optString("side") == side && kotlin.math.abs(it.optDouble("point") - point) < 0.001 }
-                            ?.optDouble("price", Double.NaN)
-                    }
-                }
-            }
-            return value?.takeIf { it.isFinite() && it > 1.0 }
-        }
-        fun fillSuggested() {
-            val value = suggestedOdds(markets[spin.selectedItemPosition].key)
-            odds.setText(value?.let { String.format(Locale.US, "%.2f", it) } ?: "")
-        }
-        spin.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { fillSuggested() }
-        }
-        fillSuggested()
-        val dlg=AlertDialog.Builder(this).setTitle("Новая ставка").setView(form).setNegativeButton("Отмена",null).setPositiveButton("Сохранить",null).create()
-        dlg.setOnShowListener {
-            dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val o=odds.text.toString().replace(',','.').toDoubleOrNull()
-                if(o==null || !o.isFinite() || o<=1.0) {
-                    Toast.makeText(this,"Введи корректный коэффициент больше 1.00",Toast.LENGTH_LONG).show()
-                    return@setOnClickListener
-                }
-                val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
-                val mk=markets[spin.selectedItemPosition]
-                val duplicate = (0 until coupon.length()).any { index ->
-                    val existing = coupon.optJSONObject(index)
-                    existing != null && existing.optString("matchId") == matchId && existing.optString("marketKey") == mk.key
-                }
-                if (duplicate) {
-                    Toast.makeText(this, "Этот исход уже есть в купоне", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-                coupon.put(JSONObject().apply {
-                    put("id", System.currentTimeMillis().toString())
-                    put("matchId", matchId)
-                    put("date", m.optString("utcDate")); put("league", league)
-                    put("home", m.optString("home")); put("away", m.optString("away"))
-                    put("marketKey", mk.key); put("market", mk.label)
-                    put("probability", p.optDouble(mk.key)); put("odds", o)
-                    put("addedAt", System.currentTimeMillis())
-                })
-                saveCoupon()
-                dlg.dismiss()
-                currentTab = "coupon"
-                render()
-            }
-        }
-        dlg.show()
-    }
-
-    private fun renderCoupon() {
-        screenHeader("BET SLIP · LOCAL COUPON", "Купон", "Собери экспресс из выбранных исходов. Коэффициенты можно изменить до фиксации тестового купона.")
-        if (coupon.length() == 0) {
-            val empty = card()
-            addText(empty, "Купон пока пуст", 16, true, Color.WHITE)
-            addText(empty, "Открой матч в разделе «Линия» или выбери сигнал в AI и нажми «Добавить в купон».", 12, false, muted)
-            actionButton(empty, "Перейти к линии") { currentTab = "matches"; render() }
-            return
-        }
-        var combinedOdds = 1.0
-        for (i in 0 until coupon.length()) combinedOdds *= coupon.optJSONObject(i)?.optDouble("odds", 1.0) ?: 1.0
-        val summary = card()
-        addText(summary, "СОБЫТИЙ В КУПОНЕ", 10, true, cyan)
-        addText(summary, coupon.length().toString(), 28, true, Color.WHITE)
-        addText(summary, "Общий коэффициент · " + String.format(Locale.US, "%.2f", combinedOdds), 15, true, gold)
-        addText(summary, "Экспресс: все исходы должны пройти. Купон ведётся внутри IQ MATCH и не отправляется букмекеру.", 10, false, muted)
-        for (i in coupon.length() - 1 downTo 0) {
-            val pick = coupon.optJSONObject(i) ?: continue
-            val box = card()
-            addText(box, pick.optString("league") + " · " + date(pick.optString("date")), 9, true, muted)
-            addText(box, pick.optString("home") + " — " + pick.optString("away"), 14, true, Color.WHITE)
-            addText(box, pick.optString("market"), 12, true, accent)
-            val priceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-            priceRow.addView(label("Коэффициент: " + String.format(Locale.US, "%.2f", pick.optDouble("odds")), 13, true, gold), LinearLayout.LayoutParams(0, -2, 1f))
-            val edit = Button(this).apply {
-                text = "Изменить"; isAllCaps = false; setTextColor(Color.WHITE); background = rounded(surface, 12)
-                setOnClickListener {
-                    val field = EditText(this@MainActivity).apply {
-                        inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-                        setSingleLine(true); setText(String.format(Locale.US, "%.2f", pick.optDouble("odds")))
-                    }
-                    AlertDialog.Builder(this@MainActivity).setTitle("Коэффициент купона").setView(field)
-                        .setNegativeButton("Отмена", null).setPositiveButton("Сохранить") { _, _ ->
-                            val v = field.text.toString().replace(',', '.').toDoubleOrNull()
-                            if (v != null && v.isFinite() && v > 1.0) { pick.put("odds", v); saveCoupon(); render() }
-                            else Toast.makeText(this@MainActivity, "Коэффициент должен быть больше 1.00", Toast.LENGTH_SHORT).show()
-                        }.show()
-                }
-            }
-            priceRow.addView(edit); box.addView(priceRow)
-            actionButton(box, "Убрать из купона") {
-                val next = JSONArray()
-                for (k in 0 until coupon.length()) if (k != i) coupon.optJSONObject(k)?.let { next.put(it) }
-                coupon = next; saveCoupon(); render()
-            }
-        }
-        val stakeCard = card()
-        addText(stakeCard, "СУММА КУПОНА", 10, true, cyan)
-        val stakeField = EditText(this).apply {
-            hint = "Сумма в валюте банка"
-            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-            setSingleLine(true); setText(String.format(Locale.US, "%.2f", currentBankroll() * 0.005))
-            setTextColor(Color.WHITE); setHintTextColor(muted); background = rounded(surface, 12)
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-        }
-        stakeCard.addView(stakeField, LinearLayout.LayoutParams(-1, -2))
-        val payoutView = label("Потенциальная выплата: " + String.format(Locale.US, "%.2f", currentBankroll() * 0.005 * combinedOdds), 13, true, gold)
-        stakeCard.addView(payoutView)
-        stakeField.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val amount = s?.toString()?.replace(',', '.')?.toDoubleOrNull() ?: 0.0
-                payoutView.text = "Потенциальная выплата: " + String.format(Locale.US, "%.2f", amount * combinedOdds)
-            }
-            override fun afterTextChanged(s: android.text.Editable?) {}
-        })
-        addText(stakeCard, "Сумма 0,25–1% банка; лимит на матч 1%, на день 2%.", 10, false, muted)
-        actionButton(stakeCard, "Зафиксировать тестовый купон") {
-            val stake = stakeField.text.toString().replace(',', '.').toDoubleOrNull()
-            val bank = currentBankroll()
-            if (stake == null || stake < bank * 0.0025 || stake > bank * 0.01) {
-                Toast.makeText(this, "Сумма должна быть в диапазоне 0,25–1% банка", Toast.LENGTH_LONG).show()
-                return@actionButton
-            }
-            val selections = JSONArray()
-            for (k in 0 until coupon.length()) coupon.optJSONObject(k)?.let { selections.put(JSONObject(it.toString())) }
-            val matchIds = (0 until selections.length()).mapNotNull { selections.optJSONObject(it)?.optString("matchId") }.distinct()
-            val days = (0 until selections.length()).mapNotNull { selections.optJSONObject(it)?.optString("date")?.take(10) }.distinct()
-            fun existingTouchesMatch(b: JSONObject, matchId: String): Boolean {
-                if (b.optString("marketKey") != "COUPON") return b.optString("matchId") == matchId
-                val legs = b.optJSONArray("selections") ?: return false
-                return (0 until legs.length()).any { legs.optJSONObject(it)?.optString("matchId") == matchId }
-            }
-            fun existingTouchesDay(b: JSONObject, day: String): Boolean {
-                if (b.optString("marketKey") != "COUPON") return b.optString("date").take(10) == day
-                val legs = b.optJSONArray("selections") ?: return false
-                return (0 until legs.length()).any { legs.optJSONObject(it)?.optString("date")?.take(10) == day }
-            }
-            val matchViolation = matchIds.any { matchId ->
-                val exposure = (0 until bets.length()).sumOf { k ->
-                    val b = bets.optJSONObject(k)
-                    if (b != null && b.optString("status") == "PENDING" && existingTouchesMatch(b, matchId)) b.optDouble("stake") else 0.0
-                }
-                exposure + stake > bank * 0.01
-            }
-            val dailyViolation = days.any { day ->
-                val exposure = (0 until bets.length()).sumOf { k ->
-                    val b = bets.optJSONObject(k)
-                    if (b != null && b.optString("status") == "PENDING" && existingTouchesDay(b, day)) b.optDouble("stake") else 0.0
-                }
-                exposure + stake > bank * 0.02
-            }
-            if (matchViolation || dailyViolation) {
-                Toast.makeText(this, "Лимит экспозиции: на матч не более 1%, на день не более 2% банка", Toast.LENGTH_LONG).show()
-                return@actionButton
-            }
-            val effectiveCombinedOdds = (0 until selections.length()).fold(1.0) { acc, k -> acc * (selections.optJSONObject(k)?.optDouble("odds", 1.0) ?: 1.0) }
-            val first = selections.optJSONObject(0)
-            bets.put(JSONObject().apply {
-                put("id", System.currentTimeMillis().toString()); put("marketKey", "COUPON")
-                put("market", "Экспресс · " + selections.length() + " событий")
-                put("selections", selections); put("odds", effectiveCombinedOdds); put("stake", stake)
-                put("status", "PENDING"); put("date", first?.optString("date") ?: "")
-                put("home", "Купон"); put("away", ""); put("matchId", first?.optString("matchId") ?: "")
-                put("league", "IQ MATCH")
-            })
-            saveBets(); coupon = JSONArray(); saveCoupon(); currentTab = "history"; render()
-        }
-        actionButton(stakeCard, "Очистить купон") { coupon = JSONArray(); saveCoupon(); render() }
-    }
-
     private fun settleCoupon(j: JSONObject, bet: JSONObject) {
         if (bet.optString("status") != "PENDING") return
         val selections = bet.optJSONArray("selections") ?: return
@@ -1527,7 +1273,6 @@ class MainActivity : Activity() {
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
             addText(box, "Купон не отправляется букмекеру автоматически. Сверь цену в приложении BetBoom, исправь её при необходимости и только затем подтверди фиксацию.", 11, true, gold)
-            actionButton(box, "Проверить коэффициент и подготовить купон") { showAddBetDialog(m, league) }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
@@ -1585,7 +1330,6 @@ class MainActivity : Activity() {
             addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability") * 100)}% · база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}%", 11, false, muted)
             addText(box, "Историческая выборка: ${signal.optInt("baselineMatches")} матчей до даты игры", 10, false, muted)
             renderOdds(box, m.optJSONObject("odds"))
-            actionButton(box, "＋ В купон") { showAddBetDialog(m, leagueName) }
         }
         val note = card()
         addText(note, "ВАЖНО", 10, true, gold)
@@ -1641,11 +1385,6 @@ class MainActivity : Activity() {
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
             renderDay(json)
-            return
-        }
-        if (currentTab == "coupon") {
-            leagueBar.visibility = View.GONE
-            renderCoupon()
             return
         }
         if (currentTab == "desk") {
@@ -1854,7 +1593,6 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
 
-                    actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
                 }
             }
         }
