@@ -19,6 +19,40 @@ class ApiSportOddsTests(unittest.TestCase):
         }]
         self.assertIsNotNone(match_fixture(target, source))
 
+    def test_parses_btts_match_totals_and_both_team_total_sides_from_melbet_only(self):
+        source = {"id": 88, "oddsBk": {
+            "melbet": {"markets": {
+                "both_teams_to_score": {"status": "open", "stakes": {
+                    "yes": {"factor": 1.82}, "no": {"factor": 1.96}
+                }},
+                "total_goals": {"status": "open", "stakes": {
+                    "over": {"lines": [{"argument": 2.5, "factor": 1.91}]},
+                    "under": {"lines": [{"argument": 2.5, "factor": 1.95}]}
+                }},
+                "total_team_1": {"status": "open", "stakes": {
+                    "over": {"lines": [{"argument": 1.5, "factor": 1.88}]},
+                    "under": {"lines": [{"argument": 1.5, "factor": 1.92}]}
+                }},
+                "total_team_2": {"status": "open", "stakes": {
+                    "over": {"lines": [{"argument": 0.5, "factor": 1.7}]},
+                    "under": {"lines": [{"argument": 0.5, "factor": 2.1}]}
+                }}
+            }},
+            "pari": {"markets": {
+                "both_teams_to_score": {"status": "open", "stakes": {"yes": {"factor": 9.99}}}
+            }}
+        }}
+        quote = parse_odds(source)
+        best = quote["best"]
+        self.assertEqual(best["btts"], {"yes": 1.82, "no": 1.96})
+        self.assertEqual({(x["point"], x["side"]) for x in best["totals"]},
+                         {(2.5, "over"), (2.5, "under")})
+        self.assertEqual({(x["team"], x["point"], x["side"]) for x in best["teamTotals"]},
+                         {("home", 1.5, "over"), ("home", 1.5, "under"),
+                          ("away", 0.5, "over"), ("away", 0.5, "under")})
+        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["melbet"])
+        self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "MELBET")
+
     def test_parses_double_chance_and_only_zero_handicap(self):
         source = {"id": 7, "oddsBk": {"melbet": {"markets": {
             "double_chance": {"status": "open", "stakes": {
