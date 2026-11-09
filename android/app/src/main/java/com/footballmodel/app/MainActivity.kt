@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.text.InputType
 import android.os.Bundle
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -369,11 +370,39 @@ class MainActivity : Activity() {
         }
         copy.addView(features)
         banner.addView(copy, LinearLayout.LayoutParams(0, -2, 1f))
-        val ball = label("⚽", 54, true, Color.WHITE).apply {
-            gravity = Gravity.CENTER
-            setShadowLayer(dp(10).toFloat(), 0f, 0f, Color.rgb(30, 161, 197))
+        val stadium = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            contentDescription = "Ночной футбольный стадион"
+            background = GradientDrawable().apply {
+                cornerRadius = dp(15).toFloat()
+                setStroke(dp(1), Color.rgb(72, 168, 186))
+            }
+            clipToOutline = true
+            alpha = 0.96f
         }
-        banner.addView(ball, LinearLayout.LayoutParams(dp(76), dp(76)))
+        banner.addView(stadium, LinearLayout.LayoutParams(dp(124), dp(104)).apply {
+            leftMargin = dp(8)
+        })
+        thread {
+            try {
+                val connection = URL("https://images.unsplash.com/photo-1652541090220-c9a0d15edbe4?auto=format&fit=crop&w=900&q=80").openConnection()
+                connection.connectTimeout = 7000
+                connection.readTimeout = 7000
+                connection.getInputStream().use { stream ->
+                    val bitmap = BitmapFactory.decodeStream(stream)
+                    runOnUiThread { stadium.setImageBitmap(bitmap) }
+                }
+            } catch (_: Exception) {
+                runOnUiThread {
+                    stadium.setImageDrawable(null)
+                    stadium.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(Color.rgb(7, 48, 72), Color.rgb(13, 95, 102))).apply {
+                        cornerRadius = dp(15).toFloat()
+                        setStroke(dp(1), Color.rgb(72, 168, 186))
+                    }
+                }
+            }
+        }
         val lp = LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(10)
             bottomMargin = dp(8)
