@@ -25,9 +25,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(download("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"))
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
-            val bets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
-            val changed = synchronized(AutoPaperExecutionLock) { process(domestic, bets) }
-            if (changed) prefs.edit().putString("bets", bets.toString()).commit()
+            synchronized(AutoPaperExecutionLock) {
+                val bets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
+                val changed = process(domestic, bets)
+                if (changed) prefs.edit().putString("bets", bets.toString()).commit()
+            }
             Result.success()
         } catch (_: Exception) {
             Result.retry()
