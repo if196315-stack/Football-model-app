@@ -1331,8 +1331,8 @@ class MainActivity : Activity() {
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
             if (signal.optBoolean("paperOnly")) {
-                addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; справедливая вероятность рынка без маржи: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
-                addText(box, "Преимущество над справедливой вероятностью: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
+                addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; рыночная пороговая вероятность для оценки: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
+                addText(box, "Преимущество над рыночным порогом: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
             } else {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
                 addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это фильтр для анализа, но не доказательство value относительно букмекера.", 11, false, muted)
