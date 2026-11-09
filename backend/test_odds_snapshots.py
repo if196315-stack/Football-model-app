@@ -21,8 +21,13 @@ class OddsSnapshotTests(unittest.TestCase):
                         {"team": "away", "point": 0, "price": 1.9, "bookmaker": "Book B"},
                     ],
                     "teamTotals": [
-                        {"team": "home", "point": 1.5, "side": "over", "price": 1.82, "bookmaker": "Book C"},
-                        {"team": "away", "point": 1.5, "side": "under", "price": 2.0, "bookmaker": "Book D"},
+                        {"team": "home", "point": 1.5, "side": "over", "price": 1.82, "bookmaker": "MELBET"},
+                        {"team": "away", "point": 1.5, "side": "under", "price": 2.0, "bookmaker": "MELBET"},
+                    ],
+                    "btts": {"yes": 1.85, "no": 1.95},
+                    "totals": [
+                        {"point": 2.5, "side": "over", "price": 1.91},
+                        {"point": 2.5, "side": "under", "price": 1.99},
                     ],
                 },
                 "bestBookmakers": {"doubleChance": {"1x": "Book A"}}
@@ -31,10 +36,11 @@ class OddsSnapshotTests(unittest.TestCase):
 
     def test_only_strategy_markets_are_snapshotted(self):
         rows = list(snapshot_rows(self.sample(), "2026-11-09T12:00:00+00:00"))
-        self.assertEqual(len(rows), 6)
+        self.assertEqual(len(rows), 11)
         self.assertEqual({row["market"] for row in rows},
-                         {"double_chance", "spread", "team_total"})
-        self.assertFalse(any(row.get("side") == "under" for row in rows))
+                         {"double_chance", "spread", "team_total", "match_total", "btts"})
+        self.assertTrue(any(row.get("side") == "under" and row["market"] == "team_total" for row in rows))
+        self.assertTrue(any(row.get("side") == "under" and row["market"] == "match_total" for row in rows))
         spread_rows = [row for row in rows if row["market"] == "spread"]
         self.assertEqual(len(spread_rows), 2)
         self.assertTrue(all(abs(row["point"]) < 0.001 for row in spread_rows))
@@ -47,12 +53,23 @@ class OddsSnapshotTests(unittest.TestCase):
             source.write_text(json.dumps(self.sample()), encoding="utf-8")
             first = append_snapshots(source, archive, "2026-11-09T12:00:00+00:00")
             second = append_snapshots(source, archive, "2026-11-09T18:00:00+00:00")
-            self.assertEqual(first["records_appended"], 6)
-            self.assertEqual(second["records_appended"], 6)
+            self.assertEqual(first["records_appended"], 11)
+            self.assertEqual(second["records_appended"], 11)
             lines = archive.read_text(encoding="utf-8").splitlines()
-            self.assertEqual(len(lines), 12)
+            self.assertEqual(len(lines), 22)
             self.assertNotEqual(json.loads(lines[0])["retrieved_at"],
                                 json.loads(lines[-1])["retrieved_at"])
+
+    def test_legacy_non_melbet_quotes_are_not_archived(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "data.json"
+            archive = Path(tmp) / "history.jsonl"
+            data = self.sample()
+            data["oddsBookmaker"] = "legacy-mixed-books"
+            source.write_text(json.dumps(data), encoding="utf-8")
+            result = append_snapshots(source, archive, "2026-11-09T12:00:00+00:00")
+            self.assertEqual(result["records_appended"], 0)
+            self.assertFalse(archive.exists())
 
     def test_empty_snapshot_does_not_create_archive(self):
         with tempfile.TemporaryDirectory() as tmp:
