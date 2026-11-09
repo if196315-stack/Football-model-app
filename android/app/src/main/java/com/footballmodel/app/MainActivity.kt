@@ -402,12 +402,7 @@ class MainActivity : Activity() {
         collect("bttsYes", "ОЗ — да", { h,a -> h >= 1 && a >= 1 })
         collect("bttsNo", "ОЗ — нет", { h,a -> h == 0 || a == 0 })
         collect("over15", "ТБ 1.5", { h,a -> h+a >= 2 })
-        collect("under15", "ТМ 1.5", { h,a -> h+a <= 1 })
-        collect("under25", "ТМ 2.5", { h,a -> h+a <= 2 })
         collect("over35", "ТБ 3.5", { h,a -> h+a >= 4 })
-        collect("under35", "ТМ 3.5", { h,a -> h+a <= 3 })
-        collect("homeUnder15", "ИТМ 1.5 · хозяева", { h,_ -> h <= 1 })
-        collect("awayUnder15", "ИТМ 1.5 · гости", { _,a -> a <= 1 })
         collect("homeOver25", "ИТБ 2.5 · хозяева", { h,_ -> h >= 3 })
         collect("awayOver25", "ИТБ 2.5 · гости", { _,a -> a >= 3 })
         if (metrics.isEmpty()) {
@@ -459,13 +454,11 @@ class MainActivity : Activity() {
             for (line in listOf("15", "25", "35")) {
                 val label = when (line) { "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
                 add(BetMarket("over$line","ТБ $label"))
-                add(BetMarket("under$line","ТМ $label"))
             }
             for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
                 for (line in listOf("05", "15", "25", "35")) {
                     val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
                     add(BetMarket("${teamKey}Over$line","ИТБ $label · $teamName"))
-                    add(BetMarket("${teamKey}Under$line","ИТМ $label · $teamName"))
                 }
             }
         }.filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
@@ -659,8 +652,13 @@ class MainActivity : Activity() {
             addText(box, title, 14, true, accent)
             addText(box, body, 12, false, Color.WHITE)
         }
-        addText(matchesContainer, "КРАТКАЯ СПРАВКА", 9, true, cyan)
-        addText(matchesContainer, "Как пользоваться моделью", 22, true)
+        addText(matchesContainer, "IQ MATCH · PROFILE", 9, true, cyan)
+        addText(matchesContainer, "Профиль и справка", 22, true)
+        val profile = card()
+        addText(profile, "IQ MATCH", 18, true, Color.WHITE)
+        addText(profile, "Аналитическая платформа футбольных матчей", 11, false, muted)
+        addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
+        addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / Melbet", 10, false, muted)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
         section("2. ОСНОВНЫЕ РЫНКИ",
