@@ -97,5 +97,33 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertNotIn("doubleChance", quote["best"])
 
 
+    def test_matches_date_only_model_fixture_on_same_calendar_day(self):
+        target = {"utcDate": "2026-11-21", "home": "Manchester City", "away": "Fulham"}
+        candidate = {
+            "startTimestamp": 1795273200000,
+            "homeTeam": {"name": "Manchester City"},
+            "awayTeam": {"name": "Fulham"},
+        }
+        self.assertIs(match_fixture(target, [candidate]), candidate)
+
+    def test_date_only_fixture_does_not_match_different_calendar_day(self):
+        target = {"utcDate": "2026-11-21", "home": "Manchester City", "away": "Fulham"}
+        candidate = {
+            "startTimestamp": 1795186800000,
+            "homeTeam": {"name": "Manchester City"},
+            "awayTeam": {"name": "Fulham"},
+        }
+        self.assertIsNone(match_fixture(target, [candidate]))
+
+    def test_exact_kickoff_keeps_six_hour_tolerance(self):
+        target = {"utcDate": "2026-11-21T15:00:00Z", "home": "Manchester City", "away": "Fulham"}
+        candidate = {
+            "startTimestamp": 1795273200000,
+            "homeTeam": {"name": "Manchester City"},
+            "awayTeam": {"name": "Fulham"},
+        }
+        self.assertIs(match_fixture(target, [candidate]), candidate)
+
+
 if __name__ == "__main__":
     unittest.main()
