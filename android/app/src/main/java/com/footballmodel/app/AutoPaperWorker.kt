@@ -222,10 +222,12 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         if (side == "ОЗ ДА") return "bttsYes"
         if (side.startsWith("ТБ ")) {
             val line = side.removePrefix("ТБ ").trim().toDoubleOrNull() ?: return null
+            if (abs(line * 10.0 - (line * 10.0).toInt()) > 0.001) return null
             return "over" + (line * 10).toInt().toString().padStart(2, '0')
         }
         if (side.startsWith("ИТБ ")) {
             val line = side.removePrefix("ИТБ ").substringBefore("·").trim().toDoubleOrNull() ?: return null
+            if (abs(line * 10.0 - (line * 10.0).toInt()) > 0.001) return null
             val team = side.substringAfter("·", "").trim()
             val prefix = when (team) { match.optString("home") -> "homeOver"; match.optString("away") -> "awayOver"; else -> return null }
             return prefix + (line * 10).toInt().toString().padStart(2, '0')
