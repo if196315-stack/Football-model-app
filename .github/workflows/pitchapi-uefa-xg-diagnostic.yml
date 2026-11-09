@@ -1,0 +1,48 @@
+name: PitchAPI UEFA xG coverage diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      sample_limit:
+        description: "Maximum finished matches to probe (bounded)"
+        required: false
+        default: "24"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pitchapi-uefa-xg-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore isolated UEFA fixture cache
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/cache/pitchapi_uefa_fixtures.json
+          key: pitchapi-uefa-fixtures-v1-${{ runner.os }}-
+          restore-keys: |
+            pitchapi-uefa-fixtures-v1-${{ runner.os }}-
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Probe sampled finished-match shot endpoints
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+          PITCHAPI_UEFA_XG_SAMPLE_LIMIT: ${{ inputs.sample_limit }}
+        run: python backend/diagnose_pitchapi_uefa_xg.py
+      - name: Upload xG coverage report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-uefa-xg-diagnostic-${{ github.run_number }}
+          path: pitchapi-uefa-xg-diagnostic.json
+          if-no-files-found: warn
+          retention-days: 14
