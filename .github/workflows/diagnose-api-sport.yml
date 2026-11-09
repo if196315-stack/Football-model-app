@@ -2,6 +2,11 @@ name: Diagnose API-Sport quota and Melbet markets
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/diagnose_api_sport.py'
+      - '.github/workflows/diagnose-api-sport.yml'
 
 permissions:
   contents: read
