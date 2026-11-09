@@ -2,15 +2,16 @@
 """Capture timestamped BetBoom odds for UEFA Champions League and Europa League.
 
 The archive stores only the strategy's supported markets and exact line values.
-It intentionally does not fabricate model probabilities or bookmaker update times:
-captured_at is the time this collector received the quote from API-Sport.
+It records both capture time and the bookmaker board's source-side prematch update
+timestamp; model probabilities remain explicitly unavailable until a live UEFA
+prediction pipeline is connected.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
