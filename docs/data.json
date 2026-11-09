@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T18:58:51.496095+00:00",
+  "updatedAt": "2026-11-09T01:26:17.368246+00:00",
   "source": "Football-Data.org (fixtures/results); openplay (Noah Bair), CC BY 4.0 (xG/history)",
   "modelVersion": "Openplay v1.3 · frozen research baseline",
   "modelConfig": {
@@ -11381,11 +11381,11 @@
         {
           "id": 564738,
           "utcDate": "2026-11-08T13:00:00Z",
-          "status": "TIMED",
+          "status": "FINISHED",
           "home": "Elche CF",
           "away": "Real Betis Balompié",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 2,
           "prediction": {
             "1": 0.35727670922333254,
             "x": 0.2580238690297225,
@@ -11425,11 +11425,11 @@
         {
           "id": 564742,
           "utcDate": "2026-11-08T17:30:00Z",
-          "status": "TIMED",
+          "status": "FINISHED",
           "home": "RC Celta de Vigo",
           "away": "Levante UD",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 0,
+          "awayScore": 0,
           "prediction": {
             "1": 0.36243409524071146,
             "x": 0.250766815762403,
@@ -11469,11 +11469,11 @@
         {
           "id": 564747,
           "utcDate": "2026-11-08T17:30:00Z",
-          "status": "TIMED",
+          "status": "FINISHED",
           "home": "Villarreal CF",
           "away": "Getafe CF",
-          "homeScore": null,
-          "awayScore": null,
+          "homeScore": 2,
+          "awayScore": 0,
           "prediction": {
             "1": 0.5275125025474957,
             "x": 0.26194685055649974,
@@ -23159,7 +23159,7 @@
         },
         "homeScore": 1,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "560636": {
         "id": 560636,
@@ -23205,7 +23205,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "560638": {
         "id": 560638,
@@ -23251,7 +23251,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "560639": {
         "id": 560639,
@@ -23297,7 +23297,7 @@
         },
         "homeScore": 4,
         "awayScore": 4,
-        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "560643": {
         "id": 560643,
@@ -30363,7 +30363,7 @@
         },
         "homeScore": 0,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-08T15:46:45.849865+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "564742": {
         "id": 564742,
@@ -30372,7 +30372,7 @@
         "away": "Levante UD",
         "utcDate": "2026-11-08T17:30:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.36243409524071146,
           "x": 0.250766815762403,
@@ -30407,8 +30407,9 @@
             "baselineMatches": 4559
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 0,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "564747": {
         "id": 564747,
@@ -30417,7 +30418,7 @@
         "away": "Getafe CF",
         "utcDate": "2026-11-08T17:30:00Z",
         "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.5275125025474957,
           "x": 0.26194685055649974,
@@ -30452,8 +30453,9 @@
             "baselineMatches": 4559
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 2,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "564756": {
         "id": 564756,
@@ -37161,7 +37163,7 @@
         },
         "homeScore": 1,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "565854": {
         "id": 565854,
@@ -37207,7 +37209,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "565859": {
         "id": 565859,
@@ -39503,7 +39505,7 @@
         },
         "homeScore": 0,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+        "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
       },
       "559614": {
         "id": 559614,
@@ -40497,7 +40499,7 @@
       },
       "homeScore": 1,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     },
     {
       "id": 560636,
@@ -40543,7 +40545,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     },
     {
       "id": 560638,
@@ -40589,7 +40591,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     },
     {
       "id": 560639,
@@ -40635,7 +40637,7 @@
       },
       "homeScore": 4,
       "awayScore": 4,
-      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     },
     {
       "id": 564738,
@@ -40681,7 +40683,99 @@
       },
       "homeScore": 0,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-08T15:46:45.849865+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
+    },
+    {
+      "id": 564742,
+      "league": "Испания · Ла Лига",
+      "home": "RC Celta de Vigo",
+      "away": "Levante UD",
+      "utcDate": "2026-11-08T17:30:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.36243409524071146,
+        "x": 0.250766815762403,
+        "2": 0.38679908899688514,
+        "1x": 0.6132009110031145,
+        "x2": 0.6375659047592881,
+        "dnbHome": 0.48374004631083783,
+        "dnbAway": 0.5162599536891622,
+        "over15": 0.775249137763271,
+        "over25": 0.5394639005016997,
+        "over35": 0.3164414474896329,
+        "under25": 0.4605360994983003,
+        "bttsYes": 0.5743832922711237,
+        "bttsNo": 0.4256167077288763,
+        "homeOver05": 0.7513685283551229,
+        "homeOver15": 0.40532734545511984,
+        "homeOver25": 0.1645201389686777,
+        "awayOver05": 0.7644494952810301,
+        "awayOver15": 0.42388352526957435,
+        "awayOver25": 0.1776832887890323,
+        "ah0Home": 0.48374004631083783,
+        "ahMinus05Home": 0.36243409524071146,
+        "ahPlus05Home": 0.6132009110031145,
+        "expectedHomeGoals": 1.391783512403669,
+        "expectedAwayGoals": 1.4458299311129714,
+        "strongestSignal": {
+          "market": "Фора 0 гостей",
+          "side": "Фора 0 · Levante UD",
+          "modelProbability": 0.5162599536891622,
+          "baselineProbability": 0.3839787171149867,
+          "edgePp": 13.228123657417552,
+          "baselineMatches": 4559
+        }
+      },
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
+    },
+    {
+      "id": 564747,
+      "league": "Испания · Ла Лига",
+      "home": "Villarreal CF",
+      "away": "Getafe CF",
+      "utcDate": "2026-11-08T17:30:00Z",
+      "predictionCapturedAt": "2026-11-08T09:05:30.365672+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.5275125025474957,
+        "x": 0.26194685055649974,
+        "2": 0.21054064689600466,
+        "1x": 0.7894593531039955,
+        "x2": 0.4724874974525044,
+        "dnbHome": 0.71473511486977,
+        "dnbAway": 0.2852648851302301,
+        "over15": 0.6777060562887482,
+        "over25": 0.4138854580920314,
+        "over35": 0.20832357141273708,
+        "under25": 0.5861145419079685,
+        "bttsYes": 0.44103395540526413,
+        "bttsNo": 0.5589660445947359,
+        "homeOver05": 0.7764637614876345,
+        "homeOver15": 0.4415658513735153,
+        "homeOver25": 0.19069688501439785,
+        "awayOver05": 0.5680032697988162,
+        "awayOver15": 0.20541231805277543,
+        "awayOver25": 0.05324427012927477,
+        "ah0Home": 0.71473511486977,
+        "ahMinus05Home": 0.5275125025474957,
+        "ahPlus05Home": 0.7894593531039955,
+        "expectedHomeGoals": 1.4981817370770176,
+        "expectedAwayGoals": 0.8393372597454112,
+        "strongestSignal": {
+          "market": "Гости забьют 2+",
+          "side": "ИТМ 1.5 · Getafe CF",
+          "modelProbability": 0.7945876819472246,
+          "baselineProbability": 0.6923920192940145,
+          "edgePp": 10.219566265321012,
+          "baselineMatches": 4559
+        }
+      },
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     },
     {
       "id": 565855,
@@ -40727,7 +40821,7 @@
       },
       "homeScore": 1,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     },
     {
       "id": 565854,
@@ -40773,7 +40867,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     },
     {
       "id": 559633,
@@ -40819,7 +40913,7 @@
       },
       "homeScore": 0,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-08T18:59:40.961300+00:00"
+      "resultUpdatedAt": "2026-11-09T01:27:05.543768+00:00"
     }
   ],
   "oddsUpdatedAt": "2026-11-08T05:30:24.907202+00:00",
