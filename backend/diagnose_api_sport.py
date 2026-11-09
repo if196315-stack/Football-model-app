@@ -41,6 +41,47 @@ def quota_summary(payload):
     }
 
 
+def fixture_identity_sample(match):
+    home = match.get("homeTeam") or {}
+    away = match.get("awayTeam") or {}
+    return {
+        "id": match.get("id"),
+        "startTimestamp": match.get("startTimestamp"),
+        "dateEvent": match.get("dateEvent"),
+        "home": home.get("name") if isinstance(home, dict) else home,
+        "homeTranslations": home.get("translations") if isinstance(home, dict) else None,
+        "away": away.get("name") if isinstance(away, dict) else away,
+        "awayTranslations": away.get("translations") if isinstance(away, dict) else None,
+    }
+
+
+def model_fixture_sample(data, limit=5):
+    result = []
+    today = datetime.now(timezone.utc).date()
+    for competition in data.get("competitions", []):
+        for match in competition.get("matches", []):
+            if match.get("status") not in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
+                continue
+            raw = match.get("utcDate")
+            try:
+                dt = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+                if dt.date() < today:
+                    continue
+            except (TypeError, ValueError):
+                continue
+            result.append({
+                "competition": competition.get("code"),
+                "id": match.get("id"),
+                "utcDate": raw,
+                "home": match.get("home"),
+                "away": match.get("away"),
+                "status": match.get("status"),
+            })
+            if len(result) >= limit:
+                return result
+    return result
+
+
 def market_summary(board):
     markets = board.get("markets") or {}
     result = []
@@ -90,6 +131,11 @@ def main():
     print("ACCOUNT_USAGE=" + json.dumps(quota_summary(usage_payload), ensure_ascii=False))
 
     today = datetime.now(timezone.utc).date()
+    try:
+        model_data = json.loads((__import__("pathlib").Path(__file__).resolve().parents[1] / "docs" / "data.json").read_text(encoding="utf-8"))
+        print("MODEL_FIXTURE_SAMPLE=" + json.dumps(model_fixture_sample(model_data), ensure_ascii=False))
+    except (OSError, json.JSONDecodeError):
+        print("MODEL_FIXTURE_SAMPLE=[]")
     params = {
         "date_from": today.isoformat(),
         "date_to": (today + timedelta(days=3)).isoformat(),
@@ -115,6 +161,7 @@ def main():
     }
     print("REQUEST_RATE_LIMIT_HEADERS=" + json.dumps(header_limits, ensure_ascii=False))
     print(f"MATCH_SAMPLE_COUNT={len(matches)} (requested max {SAMPLE_SIZE}; one page only)")
+    print("API_FIXTURE_IDENTITY_SAMPLE=" + json.dumps([fixture_identity_sample(m) for m in matches[:SAMPLE_SIZE]], ensure_ascii=False))
 
     totals = {"matches": 0, "hasMelbetFlag": 0, "melbetBoard": 0,
               "marketSlugs": {}, "openMarketSlugs": {}}
