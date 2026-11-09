@@ -1006,25 +1006,27 @@ class MainActivity : Activity() {
         if (changed) saveBets()
     }
 
-    private fun saveBets() {
+    private fun saveBets(preserveBackgroundAuto: Boolean = true) {
         synchronized(AutoPaperExecutionLock) {
             val persisted = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
             val merged = LinkedHashMap<String, JSONObject>()
-            fun identity(item: JSONObject, index: Int): String = item.optString("id").ifBlank {
-                "legacy:${item.optString("matchId")}:${item.optString("marketKey")}:${item.optString("date")}:${item.optString("createdAt")}:$index"
+            for (i in 0 until bets.length()) {
+                val item = bets.optJSONObject(i) ?: continue
+                val key = item.optString("id").ifBlank { "local:$i" }
+                merged[key] = item
             }
             for (i in 0 until persisted.length()) {
                 val item = persisted.optJSONObject(i) ?: continue
-                merged[identity(item, i)] = item
-            }
-            for (i in 0 until bets.length()) {
-                val item = bets.optJSONObject(i) ?: continue
-                val id = identity(item, i)
-                val old = merged[id]
-                val oldStatus = old?.optString("status")
-                val newStatus = item.optString("status")
-                val oldIsSettled = oldStatus in listOf("WON", "LOST", "PUSH")
-                if (old == null || !(oldIsSettled && newStatus == "PENDING")) merged[id] = item
+                if (item.optString("source") != "AI_AUTO") continue
+                val key = item.optString("id")
+                if (key.isBlank()) continue
+                val local = merged[key]
+                if (local == null && preserveBackgroundAuto) {
+                    merged[key] = item
+                } else if (local != null && local.optString("status") == "PENDING" &&
+                    item.optString("status") in listOf("WON", "LOST", "PUSH")) {
+                    merged[key] = item
+                }
             }
             bets = JSONArray(merged.values.toList())
             betPrefs.edit().putString("bets", bets.toString()).commit()
@@ -1253,7 +1255,7 @@ class MainActivity : Activity() {
             actionButton(box,"Удалить запись") {
                 val id=b.optString("id"); val next=JSONArray()
                 for(k in 0 until bets.length()) { val x=bets.optJSONObject(k) ?: continue; if(x.optString("id")!=id)next.put(x) }
-                bets=next;saveBets();render()
+                bets=next;saveBets(preserveBackgroundAuto = false);render()
             }
         }
     }
