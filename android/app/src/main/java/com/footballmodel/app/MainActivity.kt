@@ -1190,7 +1190,12 @@ class MainActivity : Activity() {
         screenHeader("BET TRACKER", "Ставки и купоны", "Все подтверждённые вручную купоны · фактический коэффициент можно исправить.")
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
-            if (b.optString("marketKey") == "COUPON") settleCoupon(j, b)
+            if (b.optString("marketKey") == "COUPON") {
+                val before = b.optString("status")
+                settleCoupon(j, b)
+                if (b.optString("status") != before) changed = true
+                continue
+            }
             val m=findMatch(j,b)
             if(m!=null) {
                 val matchStatus = m.optString("status")
@@ -1232,7 +1237,17 @@ class MainActivity : Activity() {
             addText(box, if (b.optString("marketKey") == "COUPON") "Экспресс · " + (b.optJSONArray("selections")?.length() ?: 0) + " исходов" else b.optString("home")+" — "+b.optString("away"),15,true)
             addText(box,b.optString("market")+" · кэф "+fmt(b.optDouble("odds")),12,true,accent)
             if (b.has("couponScores")) addText(box, b.optString("couponScores"), 10, false, muted)
-            addText(box,"Ставка: "+fmt(b.optDouble("stake"))+" · модель: "+String.format(Locale.getDefault(),"%.1f%%",b.optDouble("probability")*100),11,false,muted)
+            if (b.optString("marketKey") == "COUPON") {
+                addText(box, "Сумма купона: " + fmt(b.optDouble("stake")), 11, false, muted)
+                val legs = b.optJSONArray("selections")
+                for (legIndex in 0 until (legs?.length() ?: 0)) {
+                    val leg = legs?.optJSONObject(legIndex) ?: continue
+                    addText(box, (legIndex + 1).toString() + ". " + leg.optString("home") + " — " + leg.optString("away") +
+                        " · " + leg.optString("market") + " · " + fmt(leg.optDouble("odds")), 10, false, muted)
+                }
+            } else {
+                addText(box,"Ставка: "+fmt(b.optDouble("stake"))+" · модель: "+String.format(Locale.getDefault(),"%.1f%%",b.optDouble("probability")*100),11,false,muted)
+            }
             val liveStatus = when(b.optString("matchStatus")) {
                 "IN_PLAY", "LIVE", "PAUSED" -> " · LIVE"
                 "FINISHED" -> " · ФИНАЛ"
