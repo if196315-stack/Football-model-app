@@ -904,6 +904,8 @@ class MainActivity : Activity() {
     }
 
     private fun processAutoPaperBetsUnlocked(json: JSONObject) {
+        // Reload persisted worker changes before foreground processing.
+        bets = try { JSONArray(betPrefs.getString("bets", bets.toString())) } catch (_: Exception) { bets }
         val now = System.currentTimeMillis()
         var changed = false
         for (i in 0 until bets.length()) {
@@ -1002,7 +1004,26 @@ class MainActivity : Activity() {
     }
 
     private fun saveBets() {
-        betPrefs.edit().putString("bets", bets.toString()).apply()
+        synchronized(AutoPaperExecutionLock) {
+            val persisted = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+            val merged = LinkedHashMap<String, JSONObject>()
+            for (i in 0 until persisted.length()) {
+                val item = persisted.optJSONObject(i) ?: continue
+                val id = item.optString("id").ifBlank { "legacy:persisted:$i" }
+                merged[id] = item
+            }
+            for (i in 0 until bets.length()) {
+                val item = bets.optJSONObject(i) ?: continue
+                val id = item.optString("id").ifBlank { "legacy:memory:$i" }
+                val old = merged[id]
+                val oldStatus = old?.optString("status")
+                val newStatus = item.optString("status")
+                val oldIsSettled = oldStatus in listOf("WON", "LOST", "PUSH")
+                if (old == null || !(oldIsSettled && newStatus == "PENDING")) merged[id] = item
+            }
+            bets = JSONArray(merged.values.toList())
+            betPrefs.edit().putString("bets", bets.toString()).commit()
+        }
         tabViewCache.remove("history|ALL")
         tabViewCache.remove("desk|ALL")
         tabViewCache.remove("stats|ALL")
