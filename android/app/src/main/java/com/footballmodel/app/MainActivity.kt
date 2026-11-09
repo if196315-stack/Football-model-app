@@ -1129,14 +1129,14 @@ class MainActivity : Activity() {
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
         val side = signal.optString("side")
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
+        fun acceptable(value: Double) = value.isFinite() && value >= 1.50
         if (side == "1X" || side == "X2") {
             val dc = best.optJSONObject("doubleChance") ?: return null
-            val key = if (side == "1X") "1x" else "x2"
-            val price = dc.optDouble(key, Double.NaN)
-            return price.takeIf { it.isFinite() && it >= 1.50 }
+            return dc.optDouble(if (side == "1X") "1x" else "x2", Double.NaN).takeIf { acceptable(it) }
         }
-        if (side.startsWith("ИТБ 1.5 · ")) {
-            val teamName = side.substringAfter("ИТБ 1.5 · ").trim()
+        if (side.startsWith("ИТБ ")) {
+            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
+            val teamName = side.substringAfter("·", "").trim()
             val team = when (teamName) {
                 match.optString("home") -> "home"
                 match.optString("away") -> "away"
@@ -1145,14 +1145,68 @@ class MainActivity : Activity() {
             val rows = best.optJSONArray("teamTotals") ?: return null
             for (i in 0 until rows.length()) {
                 val row = rows.optJSONObject(i) ?: continue
-                val point = row.optDouble("point", Double.NaN)
+                val line = row.optDouble("point", Double.NaN)
                 val price = row.optDouble("price", Double.NaN)
-                if (row.optString("team") == team && row.optString("side") == "over" &&
-                    point.isFinite() && kotlin.math.abs(point - 1.5) < 0.001 &&
-                    price.isFinite() && price >= 1.50) return price
+                if (row.optString("team") == team && row.optString("side") == "over" && line.isFinite() && kotlin.math.abs(line - point) < 0.001 && acceptable(price)) return price
             }
         }
+        if (side.startsWith("ТБ ")) {
+            val point = side.removePrefix("ТБ ").trim().toDoubleOrNull() ?: return null
+            val rows = best.optJSONArray("totals") ?: return null
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                val line = row.optDouble("point", Double.NaN)
+                val price = row.optDouble("price", Double.NaN)
+                if (row.optString("side") == "over" && line.isFinite() && kotlin.math.abs(line - point) < 0.001 && acceptable(price)) return price
+            }
+        }
+        if (side == "ОЗ ДА" || side == "ОЗ НЕТ") {
+            val btts = best.optJSONObject("btts") ?: return null
+            return btts.optDouble(if (side == "ОЗ ДА") "yes" else "no", Double.NaN).takeIf { acceptable(it) }
+        }
         return null
+    }
+
+    private fun uefaPaperSignal(match: JSONObject): JSONObject? {
+        val rows = match.optJSONArray("paperSignals") ?: return null
+        val candidates = mutableListOf<JSONObject>()
+        for (i in 0 until rows.length()) {
+            val row = rows.optJSONObject(i) ?: continue
+            val side = when (row.optString("market")) {
+                "double_chance" -> when (row.optString("outcome")) { "1x" -> "1X"; "x2" -> "X2"; else -> "" }
+                "match_total_over" -> "ТБ " + row.optDouble("point").toString()
+                "team_total_over" -> {
+                    val team = when (row.optString("team")) {
+                        "home" -> match.optString("home")
+                        "away" -> match.optString("away")
+                        else -> ""
+                    }
+                    "ИТБ " + row.optDouble("point").toString() + " · " + team
+                }
+                "btts" -> when (row.optString("outcome")) { "yes" -> "ОЗ ДА"; "no" -> "ОЗ НЕТ"; else -> "" }
+                else -> ""
+            }
+            if (side.isBlank()) continue
+            val probability = row.optDouble("model_probability", Double.NaN)
+            val signal = JSONObject().apply {
+                put("side", side)
+                put("modelProbability", probability)
+                put("baselineProbability", probability - row.optDouble("edge", 0.0))
+                put("edgePp", row.optDouble("edge", 0.0) * 100.0)
+                put("baselineMatches", 0)
+                put("paperSignalId", row.optString("signal_id"))
+                put("paperOnly", true)
+            }
+            val price = topSignalOdds(signal, match) ?: continue
+            val odds = match.optJSONObject("odds")
+            val age = odds?.optDouble("bookmakerUpdateAgeSeconds", Double.NaN) ?: Double.NaN
+            val fresh = odds?.optString("freshnessStatus") == "fresh" && age.isFinite() && age in 0.0..300.0
+            if (fresh && probability.isFinite() && probability >= 0.60 && probability - 1.0 / price >= 0.05 && probability * price - 1.0 >= 0.05) candidates.add(signal)
+        }
+        return candidates.maxByOrNull {
+            val price = topSignalOdds(it, match) ?: 0.0
+            it.optDouble("modelProbability") * price - 1.0
+        }
     }
 
     // Bank = initial bankroll + settled net P/L - stakes reserved on pending bets.
@@ -1203,7 +1257,9 @@ class MainActivity : Activity() {
                 val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 14) }
                 val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
                 if (matchDay < today || matchDay > endDay) continue
-                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal") ?: continue
+                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                    ?: if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null
+                    ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
@@ -1394,8 +1450,8 @@ class MainActivity : Activity() {
         addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
         addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
         addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
-        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1")
-        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA")
+        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL")
+        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL")
         // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
