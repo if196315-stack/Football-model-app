@@ -7,6 +7,7 @@ on:
       - feature/pitchapi-data-source
     paths:
       - backend/backtest_all_markets.py
+      - backend/test_backtest_all_markets.py
       - .github/workflows/pitchapi-backtest.yml
 
 permissions:
