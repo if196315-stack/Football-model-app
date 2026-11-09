@@ -221,10 +221,28 @@ class ApiSportOddsTests(unittest.TestCase):
                 }},
         }}}}
         report = betboom_market_diagnostics([source])
-        self.assertEqual(report["team_total_markets_classified"], 1)
-        self.assertEqual(report["team_like_markets_not_classified"], 1)
-        self.assertEqual(report["parsed_team_total_quotes"], 1)
+        self.assertEqual(report["team_total_markets_classified"], 2)
+        self.assertEqual(report["team_like_markets_not_classified"], 0)
+        self.assertEqual(report["parsed_team_total_quotes"], 2)
         self.assertIn("team_goals_home", report["market_examples"])
+
+
+    def test_parses_home_and_away_team_goals_market_slugs(self):
+        source = {"id": 503, "oddsBk": {"betboom": {"markets": {
+            "team_goals_home": {"name": {"en": "Home Team Goals"},
+                "status": "open", "stage": "prematch", "stakes": {
+                    "Over 1.5": {"lines": [{"argument": 1.5, "factor": 1.91}]},
+                    "Under 1.5": {"lines": [{"argument": 1.5, "factor": 1.89}]}
+                }},
+            "team_goals_away": {"name": {"en": "Away Team Goals"},
+                "status": "open", "stage": "prematch", "stakes": {
+                    "Over 0.5": {"lines": [{"argument": 0.5, "factor": 1.72}]}
+                }}
+        }}}}
+        quotes = parse_odds(source)["best"]["teamTotals"]
+        self.assertIn(("home", 1.5, "over"), {(x["team"], x["point"], x["side"]) for x in quotes})
+        self.assertIn(("home", 1.5, "under"), {(x["team"], x["point"], x["side"]) for x in quotes})
+        self.assertIn(("away", 0.5, "over"), {(x["team"], x["point"], x["side"]) for x in quotes})
 
     def test_team_total_diagnostics_count_raw_but_closed_and_half_time_separately(self):
         source = {"id": 502, "oddsBk": {"betboom": {"markets": {
