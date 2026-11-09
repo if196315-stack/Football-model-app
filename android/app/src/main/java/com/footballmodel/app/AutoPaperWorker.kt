@@ -43,7 +43,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 connectTimeout = 12000
                 readTimeout = 18000
                 requestMethod = "GET"
-                setRequestProperty("Accept-Encoding", "gzip")
             }
             if (connection.responseCode !in 200..299) return null
             connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -188,9 +187,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             "homeOver15" -> h >= 2
             "awayOver15" -> a >= 2
             else -> when {
-                key.startsWith("over") && line != null -> h + a > line
-                key.startsWith("homeOver") && line != null -> h > line
-                key.startsWith("awayOver") && line != null -> a > line
+                key.startsWith("over") && line != null -> when { h + a > line -> true; h + a < line -> false; else -> null }
+                key.startsWith("homeOver") && line != null -> when { h > line -> true; h < line -> false; else -> null }
+                key.startsWith("awayOver") && line != null -> when { a > line -> true; a < line -> false; else -> null }
                 else -> null
             }
         }
