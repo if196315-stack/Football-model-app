@@ -20,7 +20,11 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
             "startTimestamp": 1795287600000,
             "homeTeam": {"name": "Arsenal"},
             "awayTeam": {"name": "Chelsea"},
-            "oddsBk": {"betboom": {"markets": {
+            "oddsBk": {"betboom": {
+                "updatedAt": 1794311880000,
+                "updatedAtByStage": {"prematch": 1794311880000},
+                "isBettingActiveByStage": {"prematch": True},
+                "markets": {
                 "double_chance": {"status": "open", "stage": "prematch",
                                   "stakes": {"1x": {"factor": 1.3}, "x2": {"factor": 2.7},
                                              "12": {"factor": 1.4}}},
@@ -53,6 +57,8 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertTrue(all(row["bookmaker"] == "BETBOOM" for row in rows))
         self.assertTrue(all(row["model_probability"] is None for row in rows))
         self.assertTrue(all(row["captured_at"] == "2026-11-10T12:00:00+00:00" for row in rows))
+        self.assertTrue(all(row["freshness_status"] == "fresh" for row in rows))
+        self.assertTrue(all(row["bookmaker_update_age_seconds"] == 120.0 for row in rows))
         self.assertFalse(any(row.get("outcome") == "12" for row in rows))
         self.assertFalse(any(row.get("side") == "under" for row in rows))
         self.assertFalse(any(row.get("point") == 2.75 for row in rows))
