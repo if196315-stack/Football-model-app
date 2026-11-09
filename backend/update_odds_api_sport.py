@@ -98,7 +98,7 @@ def market_group(slug, market):
         if normalized:
             return normalized
     normalized_slug = re.sub(r"(^|[_-])(over|under)(?=[_-]|$)", "_", slug.lower())
-    normalized_slug = re.sub(r"[_-]\\d+[_-]\\d+$", "", normalized_slug)
+    normalized_slug = re.sub(r"[_-]\d+[_-]\d+$", "", normalized_slug)
     return normalized_slug.strip("_-")
 
 
