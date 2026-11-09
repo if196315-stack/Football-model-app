@@ -1,4 +1,4 @@
-"""Targeted PitchAPI recheck for known audit exceptions; never scans full history."""
+"""Targeted PitchAPI recheck for current audit exceptions; never scans full history."""
 from __future__ import annotations
 
 import json
@@ -11,10 +11,28 @@ import requests
 
 from probe_pitchapi_coverage import BASE_URL, fetch, flatten_shots
 
+# Recheck the two historical round-robin anomalies found by the full audit.
 TARGETS = {
-    "laliga_2023_2024": ("l_0ErfuF", "2023/2024"),
+    "laliga_2023_2024": {
+        "league_id": "l_0ErfuF",
+        "season": "2023/2024",
+        "expected_pairs": {frozenset(("Girona", "Mallorca"))},
+    },
+    "bundesliga_2024_2025": {
+        "league_id": "l_1Isor4",
+        "season": "2024/2025",
+        "expected_pairs": {frozenset(("Bochum", "Union Berlin"))},
+    },
 }
-SHOT_MATCH_IDS = ("m_0SCdQY", "m_0OuRZj")
+
+# All five matches with missing or one-sided shot-level xG in audit run #100.
+SHOT_MATCH_IDS = (
+    "m_4HsmY0",  # Barcelona - Real Sociedad
+    "m_3RvEae",  # Montpellier - Clermont Foot
+    "m_1fAQKz",  # Werder Bremen - Bayern München
+    "m_04dR2o",  # Juventus - Genoa
+    "m_1Or7sa",  # Cremonese - Pisa
+)
 
 
 def inspect_shots(session, match_id: str, api_key: str) -> dict:
@@ -50,7 +68,7 @@ def inspect_shots(session, match_id: str, api_key: str) -> dict:
         "validXgShots": valid,
         "homeXg": round(totals[home_id], 4) if home_id in totals else None,
         "awayXg": round(totals[away_id], 4) if away_id in totals else None,
-        "teamXgTotalsById": {key: round(value, 4) for key, value in totals.items()},
+        "pairedXgPresent": home_id in totals and away_id in totals,
     }
 
 
@@ -59,17 +77,22 @@ def main() -> int:
     if not api_key:
         print("PITCHAPI_API_KEY is not configured", file=sys.stderr)
         return 2
-    output = {"provider": "PitchAPI", "auditType": "targeted_recheck_v2", "leagueChecks": [], "shotChecks": []}
-    for label, (league_id, season) in TARGETS.items():
+    output = {"provider": "PitchAPI", "auditType": "targeted_recheck_v3", "leagueChecks": [], "shotChecks": []}
+    for label, target in TARGETS.items():
         try:
-            data = fetch(requests, f"/leagues/{league_id}/matches", api_key, {"season": season, "status": "played"})
+            data = fetch(
+                requests,
+                f"/leagues/{target['league_id']}/matches",
+                api_key,
+                {"season": target["season"], "status": "played"},
+            )
             matches = data.get("matches", []) if isinstance(data, dict) else []
-            pair = []
+            found = []
             for match in matches:
                 home = (match.get("home_team") or {}).get("name")
                 away = (match.get("away_team") or {}).get("name")
-                if {home, away} == {"Girona", "Mallorca"}:
-                    pair.append({
+                if frozenset((home, away)) in target["expected_pairs"]:
+                    found.append({
                         "matchId": match.get("id"),
                         "date": match.get("date"),
                         "status": match.get("status"),
@@ -79,7 +102,8 @@ def main() -> int:
             output["leagueChecks"].append({
                 "check": label,
                 "listedMatches": len(matches),
-                "gironaMallorcaFixtures": sorted(pair, key=lambda row: str(row.get("date") or "")),
+                "expectedPairs": [sorted(pair) for pair in target["expected_pairs"]],
+                "matchesFound": sorted(found, key=lambda row: str(row.get("date") or "")),
                 "errorType": None,
             })
         except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
