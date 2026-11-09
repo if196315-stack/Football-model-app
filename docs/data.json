@@ -200163,62 +200163,62 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-09T12:10:04.021570+00:00",
-  "oddsCreditsRemaining": 322,
-  "oddsCreditsUsed": 178,
+  "oddsUpdatedAt": "2026-11-09T12:27:52.259058+00:00",
+  "oddsCreditsRemaining": 307,
+  "oddsCreditsUsed": 193,
   "oddsErrors": [
-    "PL: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_epl/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Ctotals%2Cspr",
-    "PD: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_spain_la_liga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Cto",
-    "SA: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_italy_serie_a/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2Cto",
-    "BL1: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_germany_bundesliga/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h",
-    "FL1: 422 Client Error: Unprocessable Entity for url: https://api.the-odds-api.com/v4/sports/soccer_france_ligue_one/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h%2"
+    "PL: can't subtract offset-naive and offset-aware datetimes",
+    "PD: can't subtract offset-naive and offset-aware datetimes",
+    "SA: can't subtract offset-naive and offset-aware datetimes",
+    "BL1: can't subtract offset-naive and offset-aware datetimes",
+    "FL1: can't subtract offset-naive and offset-aware datetimes"
   ],
   "oddsCoverage": {
-    "eligible": 0,
+    "eligible": 5,
     "matched": 0,
     "updated": 0,
     "retained": 0,
-    "notMatched": 0,
+    "notMatched": 5,
     "byLeague": {
       "PL": {
-        "eligible": 0,
+        "eligible": 1,
         "matched": 0,
         "updated": 0,
         "retained": 0,
-        "notMatched": 0
+        "notMatched": 1
       },
       "PD": {
-        "eligible": 0,
+        "eligible": 1,
         "matched": 0,
         "updated": 0,
         "retained": 0,
-        "notMatched": 0
+        "notMatched": 1
       },
       "SA": {
-        "eligible": 0,
+        "eligible": 1,
         "matched": 0,
         "updated": 0,
         "retained": 0,
-        "notMatched": 0
+        "notMatched": 1
       },
       "BL1": {
-        "eligible": 0,
+        "eligible": 1,
         "matched": 0,
         "updated": 0,
         "retained": 0,
-        "notMatched": 0
+        "notMatched": 1
       },
       "FL1": {
-        "eligible": 0,
+        "eligible": 1,
         "matched": 0,
         "updated": 0,
         "retained": 0,
-        "notMatched": 0
+        "notMatched": 1
       }
     }
   },
   "oddsStatus": "partial_error",
-  "oddsNotice": "На момент последнего обновления подходящих коэффициентов не найдено.",
-  "bsdOddsUpdatedAt": "2026-11-09T12:09:57.765031+00:00",
+  "oddsNotice": "The Odds API не вернул котировок по рынкам модели для сопоставленных матчей.",
+  "bsdOddsUpdatedAt": "2026-11-09T12:27:46.183722+00:00",
   "bsdOddsUpdated": 0
 }
