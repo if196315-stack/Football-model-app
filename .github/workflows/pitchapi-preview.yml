@@ -1,13 +1,19 @@
 name: PitchAPI migration preview
 
 on:
-  # Preview refreshes may consume substantial PitchAPI quota; run only on demand.
+  # Run automatically when the preview branch is updated; manual reruns remain available.
+  push:
+    branches:
+      - feature/pitchapi-data-source
+    paths:
+      - ".github/workflows/pitchapi-preview.yml"
+      - "backend/**"
   workflow_dispatch:
     inputs:
       max_shot_requests:
         description: "Maximum shot/xG requests in this run"
         required: true
-        default: "5000" # One sequential full-history xG backfill; PitchAPI fair-use retries remain enabled.
+        default: "5000"
         type: choice
         options:
           - "50"
