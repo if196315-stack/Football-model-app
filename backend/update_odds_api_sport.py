@@ -232,6 +232,64 @@ def parse_odds(m):
             "bookmakerUpdatedAt":board_updated_at,"bookmakerUpdateAgeSeconds":round(board_age_seconds,3) if board_age_seconds is not None else None,
             "freshnessStatus":freshness,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
+
+def betboom_market_diagnostics(fixtures):
+    """Explain whether BetBoom publishes team totals and whether our parser sees them."""
+    from collections import Counter
+    counts = Counter()
+    examples = {}
+    for fixture in fixtures:
+        board = (fixture.get("oddsBk") or {}).get("betboom") or {}
+        if not isinstance(board, dict):
+            continue
+        counts["fixtures_with_betboom_board"] += 1
+        parsed = parse_odds(fixture).get("best") or {}
+        counts["parsed_team_total_quotes"] += len(parsed.get("teamTotals") or [])
+        for slug, market in (board.get("markets") or {}).items():
+            if not isinstance(market, dict):
+                continue
+            name = market_label(market)
+            kind = market_kind(slug, market)
+            active = market.get("status") == "open" and market.get("stage") == "prematch"
+            team_hint = bool(re.search(r"team|individual|total_team|team_total|итб|индивидуальн|тотал команды|команд", f"{slug} {name}", re.I))
+            if kind == "tt":
+                counts["team_total_markets_classified"] += 1
+                if active:
+                    counts["team_total_markets_open_prematch"] += 1
+                if is_supported_full_time_market(slug, market):
+                    counts["team_total_markets_fulltime"] += 1
+                if active and is_supported_full_time_market(slug, market):
+                    counts["team_total_markets_active_fulltime"] += 1
+            elif team_hint:
+                counts["team_like_markets_not_classified"] += 1
+            if kind == "tt" or team_hint:
+                entry = examples.setdefault(str(slug), {
+                    "name": name, "kind": kind, "status": market.get("status"),
+                    "stage": market.get("stage"), "stakes": {},
+                })
+                for outcome, stake in (market.get("stakes") or {}).items():
+                    if not isinstance(stake, dict):
+                        continue
+                    lines = list(stake.get("lines") or [])
+                    if not lines and stake.get("factor") is not None:
+                        lines = [{"argument": None, "factor": stake.get("factor")}]
+                    entry["stakes"][str(outcome)] = [
+                        {"argument": line.get("argument"), "factor": line.get("factor"),
+                         "suspended": bool(line.get("suspended") or stake.get("suspended"))}
+                        for line in lines[:8] if isinstance(line, dict)
+                    ]
+    return {
+        "fixtures_with_betboom_board": counts["fixtures_with_betboom_board"],
+        "team_total_markets_classified": counts["team_total_markets_classified"],
+        "team_total_markets_open_prematch": counts["team_total_markets_open_prematch"],
+        "team_total_markets_fulltime": counts["team_total_markets_fulltime"],
+        "team_total_markets_active_fulltime": counts["team_total_markets_active_fulltime"],
+        "team_like_markets_not_classified": counts["team_like_markets_not_classified"],
+        "parsed_team_total_quotes": counts["parsed_team_total_quotes"],
+        "market_examples": dict(list(sorted(examples.items()))[:40]),
+    }
+
+
 def main():
     key=os.getenv("API_SPORT_KEY","").strip()
     if not key:raise RuntimeError("API_SPORT_KEY missing from GitHub Secrets")
@@ -267,6 +325,7 @@ def main():
             if quote["best"]:
                 match["odds"]=quote
                 updated+=1
+    market_diagnostics = betboom_market_diagnostics(fixtures)
     data["oddsProvider"]="API-Sport / BetBoom"
     data["oddsBookmaker"]="betboom"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
@@ -274,6 +333,6 @@ def main():
     data["oddsStatus"]="ready" if updated else "no_quotes"
     data["oddsNotice"]=f"BetBoom: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки BetBoom."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched}))
+    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched,"teamTotalDiagnostics":market_diagnostics}, ensure_ascii=False))
 
 if __name__=="__main__":main()
