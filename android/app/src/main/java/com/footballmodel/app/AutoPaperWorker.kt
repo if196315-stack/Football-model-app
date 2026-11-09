@@ -68,7 +68,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         // Settle every pending single from the latest official score feed.
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("status") != "PENDING" || bet.optString("marketKey") == "COUPON") continue
+            if (bet.optString("status") != "PENDING" || bet.optString("source") != "AI_AUTO") continue
             val match = findMatch(feed, bet) ?: continue
             if (settle(bet, match)) changed = true
         }
