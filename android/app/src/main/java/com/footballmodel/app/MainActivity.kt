@@ -1258,22 +1258,13 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
 
-                    // Individual totals are a sibling market card, not a card nested inside the main outcomes.
-                    val individualTotals = card(box)
-                    individualTotals.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply {
-                        cornerRadius = dp(20).toFloat()
-                        setStroke(dp(1), Color.rgb(45, 102, 91))
-                    }
-                    addMarketTitle(individualTotals, "⚽", "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ")
-                    for ((teamIndex, team) in listOf("home" to m.optString("home"), "away" to m.optString("away")).withIndex()) {
-                        val (teamKey, teamName) = team
-                        addTeamMarketTitle(individualTotals, teamName, if (teamIndex == 0) "1" else "2")
-                        addMarketRow(individualTotals, listOf(
-                            Triple("ИТБ 0.5", pct(pred, "${teamKey}Over05"), Color.WHITE),
-                            Triple("ИТБ 1.5", pct(pred, "${teamKey}Over15"), Color.WHITE),
-                            Triple("ИТБ 2.5", pct(pred, "${teamKey}Over25"), Color.WHITE),
-                            Triple("ИТБ 3.5", pct(pred, "${teamKey}Over35"), Color.WHITE)
-                        ), labelColor = Color.WHITE)
+                    addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 9, true, muted)
+                    for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
+                        addText(mainMarkets, teamName, 11, true, accent)
+                        addText(mainMarkets, "ИТБ 0.5: ${pct(pred, "${teamKey}Over05")}", 11, false, Color.WHITE)
+                        addText(mainMarkets, "ИТБ 1.5: ${pct(pred, "${teamKey}Over15")}", 11, false, Color.WHITE)
+                        addText(mainMarkets, "ИТБ 2.5: ${pct(pred, "${teamKey}Over25")}", 11, false, Color.WHITE)
+                        addText(mainMarkets, "ИТБ 3.5: ${pct(pred, "${teamKey}Over35")}", 11, false, Color.WHITE)
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
