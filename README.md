@@ -17,7 +17,7 @@ The production updater is `.github/workflows/update-data.yml`. After deployment 
 - Predictions are generated chronologically; matches on the same date must not leak results into one another.
 - Missing xG remains missing. The pipeline does not impute or fabricate xG values.
 - Historical backtests use a clean cohort with paired, non-null xG and report forecast metrics. Those metrics are not betting ROI.
-- The app displays 1X2 reference prices, supported double-chance and non-zero handicap prices, and available totals/BTTS observations.
+- The app displays 1X2 reference prices, supported double-chance and non-zero handicap prices, and available totals/BTTS observations. BTTS and match totals are informational only and are not offered as bet selections.
 - AH0 / Draw No Bet is excluded. ITB/team-total bookmaker prices are not shown unless the provider actually returns that market; current tested coverage did not confirm it.
 - Odds availability varies by match and bookmaker. Missing prices must remain missing, not be inferred.
 - The app does not place bets automatically. Bet-tracker entries and manually entered stakes remain local to the Android device.
@@ -35,7 +35,7 @@ The Android app reads `docs/data.json` from the repository's GitHub Pages URL. U
 
 ## Quota-conscious diagnostics
 
-The prospective odds-snapshot and market-probe workflow is manual-dispatch only because it consumes The Odds API quota. Do not run it for routine code changes. The regular production workflow refreshes only the configured supported markets.
+The prospective odds-snapshot and market-probe workflows are manual-dispatch only because they consume The Odds API quota. Snapshots retain 1X2, double chance, supported non-zero handicaps and BTTS observations. Do not run it for routine code changes. The regular production workflow refreshes only the configured supported markets.
 
 ## Migration and validation
 
