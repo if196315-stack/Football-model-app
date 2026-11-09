@@ -197932,15 +197932,15 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-09T15:28:56.354930+00:00",
+  "oddsUpdatedAt": "2026-11-09T15:33:48.620818+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsCoverage": {
     "eligible": 1251,
-    "matched": 0,
+    "matched": 42,
     "updated": 0,
-    "noMelbetQuotes": 0,
-    "notMatched": 1251
+    "noMelbetQuotes": 42,
+    "notMatched": 1209
   },
   "oddsStatus": "no_quotes",
   "oddsNotice": "Для ближайших матчей не найдены подходящие котировки Melbet.",
