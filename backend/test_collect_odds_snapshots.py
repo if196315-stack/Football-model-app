@@ -175,6 +175,7 @@ class OddsSnapshotTests(unittest.TestCase):
         self.assertEqual(summary["records_written"], 1)
         self.assertEqual(summary["by_league"]["PL"]["with_1x2"], 1)
         self.assertEqual(summary["by_league"]["PL"]["with_strategy_markets"], 1)
+        self.assertEqual(summary["by_league"]["PL"]["with_btts"], 1)
         self.assertEqual(rows[0]["schema_version"], 2)
         self.assertEqual(rows[0]["bookmakers"][0]["double_chance"][0]["outcome"], "1x")
         self.assertEqual({x["outcome"] for x in rows[0]["bookmakers"][0]["btts"]}, {"yes", "no"})
