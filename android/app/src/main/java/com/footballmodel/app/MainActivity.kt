@@ -407,16 +407,6 @@ class MainActivity : Activity() {
             if (dcOdds.has(key) && !dcOdds.isNull(key) && markets.none { it.key == key })
                 markets.add(BetMarket(key, "Двойной шанс $key"))
         }
-        val teamTotalLines = bestOdds?.optJSONArray("teamTotals")
-        if (teamTotalLines != null) for (i in 0 until teamTotalLines.length()) {
-            val line = teamTotalLines.optJSONObject(i) ?: continue
-            if (line.optString("side") != "over") continue
-            val team = line.optString("team")
-            val point = line.optDouble("point", 0.0)
-            val key = "teamTotal:$team:${String.format(Locale.US, "%.1f", point)}"
-            val teamName = if (team == "home") m.optString("home") else m.optString("away")
-            markets.add(BetMarket(key, "ITB $teamName больше ${fmt(point)}"))
-        }
         val spreadLines = bestOdds?.optJSONArray("spreads")
         if (spreadLines != null) for (i in 0 until spreadLines.length()) {
             val line = spreadLines.optJSONObject(i) ?: continue
@@ -448,15 +438,15 @@ class MainActivity : Activity() {
                 "1x", "x2", "12" -> best.optJSONObject("doubleChance")?.optDouble(marketKey, Double.NaN)
                 "over25" -> t?.optDouble("over25", Double.NaN)
                 "under25" -> t?.optDouble("under25", Double.NaN)
-                else -> if (marketKey.startsWith("teamTotal:")) {
-                    val parts = marketKey.split(":")
+                "homeOver15", "awayOver15" -> {
+                    val team = if (marketKey == "homeOver15") "home" else "away"
                     val rows = best.optJSONArray("teamTotals")
                     (0 until (rows?.length() ?: 0)).mapNotNull { rows?.optJSONObject(it) }
-                        .firstOrNull { it.optString("team") == parts.getOrNull(1) &&
-                            it.optString("side") == "over" &&
-                            kotlin.math.abs(it.optDouble("point") - (parts.getOrNull(2)?.toDoubleOrNull() ?: 999.0)) < 0.001 }
+                        .firstOrNull { it.optString("team") == team && it.optString("side") == "over" &&
+                            kotlin.math.abs(it.optDouble("point") - 1.5) < 0.001 }
                         ?.optDouble("price", Double.NaN)
-                } else if (marketKey.startsWith("spread:")) {
+                }
+                else -> if (marketKey.startsWith("spread:")) {
                     val parts = marketKey.split(":")
                     val lines = best.optJSONArray("spreads")
                     (0 until (lines?.length() ?: 0)).mapNotNull { lines?.optJSONObject(it) }
