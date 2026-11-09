@@ -7,9 +7,9 @@ on:
     paths:
       - "backend/update_data_pitchapi.py"
   workflow_dispatch:
-  schedule:
-    - cron: "17 */6 * * *"
 
+# PitchAPI/xG refresh is manual or code-change driven to avoid unnecessary
+# repeated history pulls. Odds refresh runs independently on its own schedule.
 concurrency:
   group: football-data-json-write
   cancel-in-progress: false
@@ -19,7 +19,6 @@ permissions:
 
 jobs:
   update:
-    # This production updater is activated only after the feature branch is merged to main.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
