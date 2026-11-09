@@ -1418,6 +1418,21 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
+        val highWater = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull() ?: initialBankroll()
+        val currentForRisk = currentBankroll()
+        val drawdownPct = if (highWater > 0.0) ((highWater - currentForRisk) / highWater * 100.0).coerceAtLeast(0.0) else 0.0
+        if (paperStopped || drawdownPct >= 5.0) {
+            val riskCard = card()
+            addText(riskCard, if (paperStopped) "АВТОСТАВКИ ОСТАНОВЛЕНЫ · ПРОСАДКА ≥ 10%" else "ПАУЗА АВТОСТАВОК · ПРОСАДКА ≥ 5%", 11, true, Color.RED)
+            addText(riskCard, "Просадка от локального максимума: ${String.format(Locale.US, "%.1f%%", drawdownPct)}. Новые бумажные ставки не открываются до восстановления или ручного сброса после проверки.", 11, false, muted)
+            if (paperStopped) actionButton(riskCard, "Сбросить после проверки банка") {
+                settingsPrefs.edit().putBoolean("paper_auto_stopped", false)
+                    .putString("paper_high_watermark", currentBankroll().toString()).apply()
+                tabViewCache.clear()
+                render()
+            }
+        }
         val pendingBets = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "PENDING" }
         val betsCountCard = card()
         addText(betsCountCard, "СТАВКИ", 10, true, cyan)
