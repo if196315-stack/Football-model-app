@@ -129,29 +129,30 @@ class OddsMarketParsingTests(unittest.TestCase):
             {"1x": 1.13, "x2": 2.74, "12": 1.23},
         )
 
-    def test_spreads_exclude_zero_and_preserve_sign(self):
+    def test_spreads_keep_only_zero_handicap_for_both_teams(self):
         bookmaker = {"markets": [{"key": "spreads", "outcomes": [
             {"name": "Arsenal", "point": 0, "price": 1.9},
             {"name": "Arsenal", "point": -1.5, "price": 2.2},
-            {"name": "Chelsea", "point": 1.5, "price": 1.7},
+            {"name": "Chelsea", "point": 0, "price": 1.95},
             {"name": "Arsenal", "point": -0.25, "price": 1.95},
         ]}]}
         self.assertEqual(read_market(bookmaker, "spreads", "Arsenal", "Chelsea"), [
-            {"team": "home", "point": -1.5, "price": 2.2},
-            {"team": "away", "point": 1.5, "price": 1.7},
+            {"team": "home", "point": 0.0, "price": 1.9},
+            {"team": "away", "point": 0.0, "price": 1.95},
         ])
 
-    def test_convert_event_never_keeps_ah0(self):
+    def test_convert_event_keeps_only_zero_handicap(self):
         event = {"id": "event-1", "home_team": "Arsenal", "away_team": "Chelsea",
                  "bookmakers": [{"key": "book", "title": "Book", "markets": [
                      {"key": "spreads", "outcomes": [
                          {"name": "Arsenal", "point": 0, "price": 1.9},
                          {"name": "Arsenal", "point": -0.5, "price": 2.0},
+                         {"name": "Chelsea", "point": 0, "price": 1.95},
                      ]}
                  ]}]}
         quote = convert_event(event)
-        self.assertEqual(len(quote["best"]["spreads"]), 1)
-        self.assertEqual(quote["best"]["spreads"][0]["point"], -0.5)
+        self.assertEqual(len(quote["best"]["spreads"]), 2)
+        self.assertEqual({row["point"] for row in quote["best"]["spreads"]}, {0.0})
 
 
     def test_btts_quotes_are_captured_for_observation(self):
