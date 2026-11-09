@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.text.InputType
 import android.os.Bundle
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -31,6 +32,7 @@ class MainActivity : Activity() {
     private lateinit var statusView: TextView
     private lateinit var refreshButton: Button
     private lateinit var leagueBar: LinearLayout
+    private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private lateinit var matchesContainer: LinearLayout
@@ -49,10 +51,18 @@ class MainActivity : Activity() {
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
-        val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true; clipToPadding = false; setPadding(0, 0, 0, 18); overScrollMode = View.OVER_SCROLL_NEVER }
+        val scroll = ScrollView(this).apply {
+            setBackgroundColor(bg)
+            isFillViewport = true
+            clipToPadding = false
+            setPadding(0, 0, 0, dp(18))
+            overScrollMode = View.OVER_SCROLL_NEVER
+            isSmoothScrollingEnabled = true
+            isVerticalScrollBarEnabled = false
+        }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(18, 46, 18, 34)
+            setPadding(dp(16), dp(22), dp(16), dp(28))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
         scroll.addView(root)
@@ -62,12 +72,17 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
+        val crest = ImageView(this).apply {
+            setImageResource(R.drawable.ic_launcher)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            contentDescription = "IQ Match"
+        }
+        top.addView(crest, LinearLayout.LayoutParams(dp(56), dp(56)).apply { rightMargin = dp(11) })
         val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        brand.addView(label("MATCHIQ", 23, true, Color.WHITE))
-        brand.addView(label("FOOTBALL ANALYTICS  ·  MODEL 1.3", 9, true, cyan))
+        brand.addView(label("IQ MATCH", 24, true, Color.WHITE))
+        brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
         refreshButton = Button(this).apply {
-            text = "↻"
             text = "↻"
             textSize = 21f
             isAllCaps = false
@@ -77,24 +92,39 @@ class MainActivity : Activity() {
             setOnClickListener { loadData() }
         }
         top.addView(refreshButton, LinearLayout.LayoutParams(52, 48))
-        root.addView(top)
+        root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
         statusView = label("Подключаюсь к серверу…", 12, false, muted)
-        statusView.setPadding(0, 8, 0, 14)
-        root.addView(statusView)
+        statusView.setPadding(dp(12), dp(9), dp(12), dp(9))
+        statusView.background = GradientDrawable().apply {
+            setColor(Color.rgb(14, 31, 47))
+            cornerRadius = dp(12).toFloat()
+            setStroke(dp(1), Color.rgb(35, 69, 84))
+        }
+        root.addView(statusView, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(12)
+            bottomMargin = dp(8)
+        })
 
         tabBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 72).apply { topMargin = 14; bottomMargin = 12 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 58).apply { topMargin = 16; bottomMargin = 14 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        root.addView(leagueBar)
+        // Create the horizontal scroller once. Reparenting leagueBar during render()
+        // caused "The specified child already has a parent" and crashed the app.
+        leagueScroll = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            overScrollMode = View.OVER_SCROLL_NEVER
+            addView(leagueBar)
+        }
+        root.addView(leagueScroll)
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
@@ -126,9 +156,9 @@ class MainActivity : Activity() {
     private fun card(parent: LinearLayout = matchesContainer): LinearLayout {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(17), dp(18), dp(17))
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(22, 39, 61), Color.rgb(13, 27, 45))).apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), Color.rgb(43, 68, 91)) }
-            elevation = dp(2).toFloat()
+            setPadding(dp(17), dp(17), dp(17), dp(17))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply { cornerRadius = dp(23).toFloat(); setStroke(dp(1), Color.rgb(43, 68, 91)) }
+            elevation = 0f
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
         lp.setMargins(0, 7, 0, 9)
@@ -139,15 +169,79 @@ class MainActivity : Activity() {
         box.addView(label(value, size, bold, color))
     }
 
+    private fun addMatchup(parent: LinearLayout, home: String, away: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(2), dp(7), dp(2), dp(7))
+        }
+        val homeName = label(home, 14, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            maxLines = 2
+            includeFontPadding = false
+        }
+        val awayName = label(away, 14, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            maxLines = 2
+            includeFontPadding = false
+        }
+        val homeBlock = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+        }
+        homeBlock.addView(teamCrest(home, Color.rgb(35, 112, 132)), LinearLayout.LayoutParams(dp(44), dp(44)))
+        homeBlock.addView(homeName)
+        val awayBlock = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+        }
+        awayBlock.addView(teamCrest(away, Color.rgb(119, 77, 91)), LinearLayout.LayoutParams(dp(44), dp(44)))
+        awayBlock.addView(awayName)
+        val versus = label("VS", 10, true, gold).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(11), dp(7), dp(11), dp(7))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(43, 48, 58))
+                cornerRadius = dp(18).toFloat()
+                setStroke(dp(1), Color.rgb(114, 91, 54))
+            }
+        }
+        row.addView(homeBlock, LinearLayout.LayoutParams(0, -2, 1f))
+        row.addView(versus, LinearLayout.LayoutParams(-2, -2).apply {
+            setMargins(dp(8), 0, dp(8), 0)
+        })
+        row.addView(awayBlock, LinearLayout.LayoutParams(0, -2, 1f))
+        parent.addView(row, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(2)
+            bottomMargin = dp(2)
+        })
+    }
+
+    // Shared premium title panel for every secondary screen.
+    private fun screenHeader(eyebrow: String, title: String, description: String) {
+        val hero = card()
+        hero.setPadding(dp(18), dp(17), dp(18), dp(17))
+        hero.background = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(Color.rgb(28, 59, 66), Color.rgb(17, 35, 54), Color.rgb(11, 24, 41))
+        ).apply {
+            cornerRadius = dp(22).toFloat()
+            setStroke(dp(1), Color.rgb(58, 112, 105))
+        }
+        addText(hero, eyebrow.uppercase(Locale.getDefault()), 9, true, gold)
+        addText(hero, title, 22, true, Color.WHITE)
+        addText(hero, description, 11, false, Color.rgb(190, 207, 221))
+    }
+
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
         val best = odds?.optJSONObject("best")
         if (best == null) {
-            addText(parent, "КОЭФФИЦИЕНТЫ MELBET", 9, true, muted)
+            addText(parent, "КОЭФФИЦИЕНТЫ BETBOOM", 9, true, muted)
             addText(parent, "Нет свежих котировок для этого матча", 11, false, muted)
             return
         }
         val panelOdds = card(parent)
-        panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = 18f; setStroke(1, Color.rgb(105, 83, 52)) }
+        panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = dp(18).toFloat(); setStroke(dp(1), Color.rgb(105, 83, 52)) }
         addText(panelOdds, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, gold)
         var shown = 0
         fun validPrice(obj: JSONObject, key: String): Boolean {
@@ -172,22 +266,22 @@ class MainActivity : Activity() {
                 .filter { validPrice(btts, it.first) }
                 .map { Triple(it.second, oddsText(btts, it.first), gold) }
             if (items.isNotEmpty()) {
-                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · MELBET", 10, true, muted)
+                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · BETBOOM", 10, true, muted)
                 addMarketRow(panelOdds, items)
                 shown += items.size
             }
         }
         val matchTotals = best.optJSONArray("totals")
         if (matchTotals != null && matchTotals.length() > 0) {
-            addText(panelOdds, "ТОТАЛ МАТЧА · MELBET", 10, true, muted)
+            addText(panelOdds, "ТОТАЛ МАТЧА · BETBOOM", 10, true, muted)
             for (i in 0 until matchTotals.length()) {
                 val line = matchTotals.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", Double.NaN)
                 val price = line.optDouble("price", Double.NaN)
                 val side = line.optString("side")
                 if (!point.isFinite() || side !in listOf("over", "under") || !price.isFinite() || price <= 1.0) continue
-                val label = if (side == "over") "БОЛЬШЕ" else "МЕНЬШЕ"
-                addMarketRow(panelOdds, listOf(Triple("$label ${fmt(point)}", oddsText(line, "price"), gold)))
+                if (side != "over") continue
+                addMarketRow(panelOdds, listOf(Triple("БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
         }
@@ -198,13 +292,14 @@ class MainActivity : Activity() {
                 val line = spreads.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", Double.NaN)
                 val price = line.optDouble("price", Double.NaN)
-                if (!point.isFinite() || kotlin.math.abs(point) > 0.001 || !price.isFinite() || price <= 1.0) continue
+                if (!point.isFinite() || !price.isFinite() || price <= 1.0) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ФОРА 0 · лучшие цены", 10, true, muted)
+                    addText(panelOdds, "ФОРЫ · лучшие цены BETBOOM", 10, true, muted)
                     headingShown = true
                 }
-                val team = if (line.optString("team") == "home") "Фора 1 (0)" else "Фора 2 (0)"
-                addMarketRow(panelOdds, listOf(Triple(team, oddsText(line,"price"), gold)))
+                val team = if (line.optString("team") == "home") "Фора 1" else "Фора 2"
+                val signedPoint = if (point > 0) "+${fmt(point)}" else fmt(point)
+                addMarketRow(panelOdds, listOf(Triple("$team ($signedPoint)", oddsText(line,"price"), gold)))
                 shown++
             }
         }
@@ -215,15 +310,13 @@ class MainActivity : Activity() {
                 val line = teamTotals.optJSONObject(i) ?: continue
                 val price = line.optDouble("price", Double.NaN)
                 val point = line.optDouble("point", Double.NaN)
-                if (line.optString("side") !in listOf("over", "under") || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                if (line.optString("side") != "over" || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · MELBET", 10, true, muted)
+                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · BETBOOM", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
-                addMarketRow(panelOdds, listOf(Triple(
-                    "$team ${if (line.optString("side") == "over") "БОЛЬШЕ" else "МЕНЬШЕ"} ${fmt(point)}", oddsText(line, "price"), gold
-                )))
+                addMarketRow(panelOdds, listOf(Triple("$team БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
         }
@@ -236,19 +329,161 @@ class MainActivity : Activity() {
     private fun oddsText(obj: JSONObject, key: String): String =
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
-    private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>) {
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        items.forEach { item ->
-            val tile = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(11, 10, 11, 10)
-                background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(29, 67, 74), Color.rgb(18, 42, 58))).apply { cornerRadius = dp(15).toFloat(); setStroke(dp(1), Color.rgb(55, 103, 105)) }
+    private fun teamCrest(team: String, tint: Int): TextView {
+        val initials = team.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+            .take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString("")
+            .ifBlank { "FC" }
+        return label(initials, 14, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(tint, Color.rgb(17, 31, 49))).apply {
+                shape = GradientDrawable.OVAL
+                setStroke(dp(2), Color.rgb(91, 190, 174))
             }
-            tile.addView(label(item.first, 9, true, muted))
-            tile.addView(label(item.second, 19, true, item.third))
-            row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(3, 5, 3, 5) })
+            elevation = 0f
         }
+    }
+
+    private fun addStadiumBanner(parent: LinearLayout) {
+        val banner = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(18), dp(15), dp(15), dp(15))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(5, 39, 61), Color.rgb(8, 23, 42), Color.rgb(10, 54, 57))).apply {
+                cornerRadius = dp(22).toFloat()
+                setStroke(dp(1), Color.rgb(35, 111, 137))
+            }
+            elevation = dp(3).toFloat()
+        }
+        val copy = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        copy.addView(label("IQ MATCH  /  MATCH CENTER", 9, true, gold))
+        copy.addView(label("Матчи и прогнозы", 22, true, Color.WHITE))
+        copy.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
+        val features = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "BETBOOM").forEachIndexed { index, caption ->
+            val chip = label(caption, 7, true, if (index == 2) gold else accent).apply {
+                gravity = Gravity.CENTER
+                setPadding(dp(5), dp(6), dp(5), dp(6))
+                background = GradientDrawable().apply {
+                    setColor(Color.argb(45, 4, 12, 22))
+                    cornerRadius = dp(8).toFloat()
+                    setStroke(dp(1), Color.rgb(59, 91, 103))
+                }
+            }
+            features.addView(chip, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                setMargins(dp(2), dp(7), dp(2), 0)
+            })
+        }
+        copy.addView(features)
+        banner.addView(copy, LinearLayout.LayoutParams(0, -2, 1f))
+        val stadium = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            contentDescription = "Ночной футбольный стадион"
+            background = GradientDrawable().apply {
+                cornerRadius = dp(15).toFloat()
+                setStroke(dp(1), Color.rgb(72, 168, 186))
+            }
+            clipToOutline = true
+            alpha = 0.96f
+        }
+        banner.addView(stadium, LinearLayout.LayoutParams(dp(124), dp(104)).apply {
+            leftMargin = dp(8)
+        })
+        thread {
+            try {
+                val connection = URL("https://images.unsplash.com/photo-1652541090220-c9a0d15edbe4?auto=format&fit=crop&w=900&q=80").openConnection()
+                connection.connectTimeout = 7000
+                connection.readTimeout = 7000
+                connection.getInputStream().use { stream ->
+                    val bitmap = BitmapFactory.decodeStream(stream)
+                    runOnUiThread { stadium.setImageBitmap(bitmap) }
+                }
+            } catch (_: Exception) {
+                runOnUiThread {
+                    stadium.setImageDrawable(null)
+                    stadium.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(Color.rgb(7, 48, 72), Color.rgb(13, 95, 102))).apply {
+                        cornerRadius = dp(15).toFloat()
+                        setStroke(dp(1), Color.rgb(72, 168, 186))
+                    }
+                }
+            }
+        }
+        val lp = LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(10)
+            bottomMargin = dp(8)
+        }
+        parent.addView(banner, lp)
+    }
+
+    private fun addMarketTitle(parent: LinearLayout, symbol: String, title: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(7))
+        }
+        val icon = label(symbol, 17, true, gold).apply {
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 0)
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(29, 67, 69))
+                cornerRadius = dp(11).toFloat()
+                setStroke(dp(1), Color.rgb(66, 131, 116))
+            }
+        }
+        row.addView(icon, LinearLayout.LayoutParams(dp(34), dp(34)).apply { rightMargin = dp(10) })
+        row.addView(label(title, 10, true, accent), LinearLayout.LayoutParams(0, -2, 1f))
         parent.addView(row)
+    }
+
+    private fun addTeamMarketTitle(parent: LinearLayout, team: String, side: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(8), 0, dp(2))
+        }
+        val crest = label(side, 11, true, gold).apply {
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 0)
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(42, 49, 60))
+                cornerRadius = dp(18).toFloat()
+                setStroke(dp(1), Color.rgb(112, 91, 58))
+            }
+        }
+        row.addView(crest, LinearLayout.LayoutParams(dp(28), dp(28)).apply { rightMargin = dp(9) })
+        row.addView(label(team, 11, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+        parent.addView(row)
+    }
+
+    // Compact two-column market grid: four team totals remain readable on phone screens.
+    private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>, labelColor: Int = Color.rgb(177, 198, 207)) {
+        items.chunked(2).forEach { pair ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            pair.forEach { item ->
+                val tile = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(dp(12), dp(10), dp(12), dp(10))
+                    background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(Color.rgb(31, 70, 76), Color.rgb(17, 39, 56))).apply {
+                        cornerRadius = dp(15).toFloat()
+                        setStroke(dp(1), Color.rgb(58, 111, 111))
+                    }
+                }
+                tile.addView(label(item.first, 10, true, labelColor))
+                tile.addView(label(item.second, 20, true, item.third))
+                row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                    setMargins(dp(3), dp(5), dp(3), dp(5))
+                })
+            }
+            if (pair.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+            parent.addView(row)
+        }
     }
 
     private fun pct(o: JSONObject, key: String): String =
@@ -273,6 +508,7 @@ class MainActivity : Activity() {
                     readTimeout = 20000
                     setRequestProperty("Cache-Control", "no-cache")
                 }
+                if (conn.responseCode !in 200..299) throw IllegalStateException("HTTP ${conn.responseCode}")
                 val body = conn.inputStream.bufferedReader().use { it.readText() }
                 conn.disconnect()
                 val json = JSONObject(body)
@@ -293,7 +529,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "МАТЧИ", "day" to "TOP", "history" to "ИСТОРИЯ", "stats" to "АНАЛИЗ", "help" to "СПРАВКА")
+        val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "Банк", "stats" to "Stats", "help" to "Профиль")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -301,7 +537,7 @@ class MainActivity : Activity() {
             items.forEach { item ->
                 val t = label(item.second, 11, true, muted).apply {
                     gravity = Gravity.CENTER
-                    maxLines = 2
+                    maxLines = 1
                     includeFontPadding = false
                     setPadding(dp(3), dp(5), dp(3), dp(5))
                     isClickable = true
@@ -345,9 +581,7 @@ class MainActivity : Activity() {
     )
 
     private fun renderStats(json: JSONObject) {
-        addText(matchesContainer, "PERFORMANCE CENTER", 9, true, cyan)
-        addText(matchesContainer, "Качество прогнозов", 22, true)
-        addText(matchesContainer, "Здесь учитываются только прогнозы, зафиксированные до начала матча. После финального счёта результат добавляется к архиву; исходный прогноз не пересчитывается.", 11, false, muted)
+        screenHeader("PERFORMANCE CENTER", "Статистика и точность модели", "Только прогнозы, зафиксированные до начала матча. Исходные вероятности не пересчитываются после финального свистка.")
         data class BandRow(val label: String, val n: Int, val hits: Int)
         data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
         val metrics = mutableListOf<MetricRow>()
@@ -395,12 +629,7 @@ class MainActivity : Activity() {
         collect("bttsYes", "ОЗ — да", { h,a -> h >= 1 && a >= 1 })
         collect("bttsNo", "ОЗ — нет", { h,a -> h == 0 || a == 0 })
         collect("over15", "ТБ 1.5", { h,a -> h+a >= 2 })
-        collect("under15", "ТМ 1.5", { h,a -> h+a <= 1 })
-        collect("under25", "ТМ 2.5", { h,a -> h+a <= 2 })
         collect("over35", "ТБ 3.5", { h,a -> h+a >= 4 })
-        collect("under35", "ТМ 3.5", { h,a -> h+a <= 3 })
-        collect("homeUnder15", "ИТМ 1.5 · хозяева", { h,_ -> h <= 1 })
-        collect("awayUnder15", "ИТМ 1.5 · гости", { _,a -> a <= 1 })
         collect("homeOver25", "ИТБ 2.5 · хозяева", { h,_ -> h >= 3 })
         collect("awayOver25", "ИТБ 2.5 · гости", { _,a -> a >= 3 })
         if (metrics.isEmpty()) {
@@ -452,13 +681,11 @@ class MainActivity : Activity() {
             for (line in listOf("15", "25", "35")) {
                 val label = when (line) { "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
                 add(BetMarket("over$line","ТБ $label"))
-                add(BetMarket("under$line","ТМ $label"))
             }
             for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
                 for (line in listOf("05", "15", "25", "35")) {
                     val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
                     add(BetMarket("${teamKey}Over$line","ИТБ $label · $teamName"))
-                    add(BetMarket("${teamKey}Under$line","ИТМ $label · $teamName"))
                 }
             }
         }.filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
@@ -487,7 +714,9 @@ class MainActivity : Activity() {
         spin.adapter = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,markets.map { it.label })
         form.addView(spin)
         fun field(h: String) = EditText(this).apply { hint=h; setSingleLine(true); inputType=InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
-        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки")
+        val odds=field("Коэффициент (например 1.85)"); val stake=field("Сумма ставки · ровно 5% банка")
+        val suggestedStake = currentBankroll() * 0.05
+        stake.setText(String.format(Locale.US, "%.2f", suggestedStake))
         form.addView(odds); form.addView(stake)
         fun suggestedOdds(marketKey: String): Double? {
             val best = m.optJSONObject("odds")?.optJSONObject("best") ?: return null
@@ -537,7 +766,7 @@ class MainActivity : Activity() {
             dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val o=odds.text.toString().replace(',','.').toDoubleOrNull()
                 val st=stake.text.toString().replace(',','.').toDoubleOrNull()
-                if(o==null || o<=1.0 || st==null || st<=0.0) { Toast.makeText(this,"Проверь коэффициент и сумму",Toast.LENGTH_LONG).show(); return@setOnClickListener }
+                if(o==null || o<=1.0 || st==null || st<=0.0 || kotlin.math.abs(st - currentBankroll() * 0.05) > 0.01) { Toast.makeText(this,"Сумма ставки должна быть ровно 5% текущего банка",Toast.LENGTH_LONG).show(); return@setOnClickListener }
                 val mk=markets[spin.selectedItemPosition]
                 bets.put(JSONObject().apply {
                     put("id",System.currentTimeMillis().toString())
@@ -597,9 +826,7 @@ class MainActivity : Activity() {
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
     private fun renderBetHistory(j: JSONObject) {
-        addText(matchesContainer,"BET TRACKER",9,true,cyan)
-        addText(matchesContainer,"История ставок",22,true)
-        addText(matchesContainer,"Записи хранятся только на этом устройстве. Коэффициенты вводятся вручную.",11,false,muted)
+        screenHeader("BET TRACKER", "История ставок", "Личная история на этом устройстве · коэффициенты вводятся вручную.")
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue; val m=findMatch(j,b)
             if(m!=null && b.optString("status")=="PENDING") { settleBet(b,m); if(b.optString("status")!="PENDING") changed=true }
@@ -650,20 +877,24 @@ class MainActivity : Activity() {
             addText(box, title, 14, true, accent)
             addText(box, body, 12, false, Color.WHITE)
         }
-        addText(matchesContainer, "КРАТКАЯ СПРАВКА", 9, true, cyan)
-        addText(matchesContainer, "Как пользоваться моделью", 22, true)
+        screenHeader("IQ MATCH · PROFILE", "Профиль и справка", "О платформе, модели, источниках данных и правилах использования.")
+        val profile = card()
+        addText(profile, "IQ MATCH", 18, true, Color.WHITE)
+        addText(profile, "Аналитическая платформа футбольных матчей", 11, false, muted)
+        addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
+        addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / BetBoom", 10, false, muted)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
         section("2. ОСНОВНЫЕ РЫНКИ",
             "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nИТБ 1.5 — команда забьёт минимум 2 гола.\nДля ставок доступны только поддерживаемые ненулевые форы.")
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
-            "ОЗ — да/нет: обе команды забьют хотя бы по одному голу или хотя бы одна команда не забьёт.\nТотал матча больше/меньше 1.5, 2.5 и 3.5.\nИндивидуальные тоталы каждой команды больше/меньше 0.5, 1.5, 2.5 и 3.5.\nВероятности рассчитываются по xG независимым распределением Пуассона; новые рынки отображаются в карточке, анализируются и доступны в ручном трекере ставок. Пока не участвуют в выборе сильнейшего сигнала и TOP.")
-        section("4. TOP И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В TOP попадают матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
+            "ОЗ — да/нет: обе команды забьют хотя бы по одному голу или хотя бы одна команда не забьёт.\nВ карточках отображаются только тоталы БОЛЬШЕ: общие и индивидуальные.\nВероятности рассчитываются по xG независимым распределением Пуассона. Котировки доступны только при наличии свежих данных BetBoom от API-Sport.")
+        section("4. AI И СИЛЬНЕЙШИЙ СИГНАЛ",
+            "В AI показываются матчи на сегодня и ближайшие 14 дней с положительным отклонением от исторической частоты и подтверждённой ценой BetBoom от 1.50. Сильнейший сигнал выбирается среди поддерживаемых рынков. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
         section("5. АНАЛИЗ",
             "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
         section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
-            "PitchAPI — источник расписания, результатов и shot-level xG. API-Sport — источник котировок только Melbet. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты Melbet на момент прогноза и walk-forward проверка.")
+            "PitchAPI — источник расписания, результатов и shot-level xG. API-Sport — источник котировок только BetBoom. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты BetBoom на момент прогноза и walk-forward проверка.")
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
@@ -695,10 +926,94 @@ class MainActivity : Activity() {
         return null
     }
 
+    // Bank = initial bankroll + settled net P/L - stakes reserved on pending bets.
+    private fun currentBankroll(): Double {
+        var bank = 2500.0
+        for (i in 0 until bets.length()) {
+            val b = bets.optJSONObject(i) ?: continue
+            val stake = b.optDouble("stake", 0.0)
+            val odds = b.optDouble("odds", 0.0)
+            when (b.optString("status")) {
+                "WON" -> bank += stake * (odds - 1.0)
+                "LOST" -> bank -= stake
+                "PENDING" -> bank -= stake
+                // PUSH does not change the bankroll.
+            }
+        }
+        return bank.coerceAtLeast(0.0)
+    }
+
+    private fun renderBettingDesk(json: JSONObject) {
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        val target = card()
+        addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 100 000 ₽", 10, true, gold)
+        addText(target, "Для роста в 40 раз за год нужен средний сложный рост около 35.9% в месяц. Это крайне амбициозная математическая цель, не прогноз и не обещание.", 12, true)
+        addText(target, "Не будем повышать риск, догонять проигрыши или ставить ради выполнения календарного плана.", 11, false, muted)
+        val bank = currentBankroll()
+        val stakePlan = bank * 0.05
+        val bankrollCard = card()
+        addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
+        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
+        addText(bankrollCard, "Ставка 5%: " + String.format(Locale.US, "%.2f ₽", stakePlan), 15, true, gold)
+        addText(bankrollCard, "Размер фиксирован: при сохранении ставки сумма пересчитывается от текущего банка. Ожидающие ставки уже зарезервированы.", 10, false, muted)
+        val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
+        val leagues = json.optJSONArray("competitions")
+        if (leagues != null) for (i in 0 until leagues.length()) {
+            val league = leagues.optJSONObject(i) ?: continue
+            val matches = league.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val m = matches.optJSONObject(j) ?: continue
+                if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val matchDay = m.optString("utcDate").take(10)
+                val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
+                val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 14) }
+                val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
+                if (matchDay < today || matchDay > endDay) continue
+                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal") ?: continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
+                val price = topSignalOdds(signal, m) ?: continue
+                if (price < 1.50) continue
+                candidates.add(Triple(m, league.optString("name"), signal))
+            }
+        }
+        val sorted = candidates.sortedByDescending { it.third.optDouble("edgePp") }
+        if (sorted.isEmpty()) {
+            val empty = card()
+            addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
+            addText(empty, "Нужны положительный сигнал и актуальная прематч-котировка BetBoom от 1.50. Не подменяем отсутствующие цены котировками других букмекеров.", 11, false, muted)
+            return
+        }
+        sorted.forEachIndexed { index, item ->
+            val (m, league, signal) = item
+            val p = signal.optDouble("modelProbability", Double.NaN)
+            val baseline = signal.optDouble("baselineProbability", Double.NaN)
+            val edge = signal.optDouble("edgePp", Double.NaN)
+            val odds = topSignalOdds(signal, m) ?: return@forEachIndexed
+            val implied = 1.0 / odds
+            val ev = p * odds - 1.0
+            val box = card()
+            addText(box, "КАНДИДАТ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
+            addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
+            addText(box, date(m.optString("utcDate")), 10, false, muted)
+            addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
+            addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
+            addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
+            addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это фильтр для анализа, но не доказательство value относительно букмекера.", 11, false, muted)
+            addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
+            addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
+            addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
+            addText(box, "РИСКИ", 10, true, gold)
+            addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
+            addText(box, "Это аналитический кандидат, не приказ ставить. При сомнительном преимуществе — NO BET.", 11, true, gold)
+            actionButton(box, "＋ Зафиксировать ставку вручную") { showAddBetDialog(m, league) }
+        }
+        val footer = card()
+        addText(footer, "ПРАВИЛА AI", 10, true, accent)
+        addText(footer, "AI отбирает только сигналы с положительным edge и подтверждённой котировкой BetBoom от 1.50. ОЗ и тоталы показываются в карточках матчей. Котировки — только API-Sport / BetBoom.", 11, false, muted)
+    }
+
     private fun renderDay(json: JSONObject) {
-        addText(matchesContainer, "DAILY SIGNAL FILTER", 9, true, cyan)
-        addText(matchesContainer, "Ставки дня", 22, true)
-        addText(matchesContainer, "Только самые сильные положительные сигналы модели с подтверждённым коэффициентом от 1.50 на выбранную сторону.", 11, false, muted)
+        screenHeader("DAILY SIGNAL FILTER", "Ставки дня", "Сильные положительные сигналы с подтверждённой котировкой от 1.50 на выбранную сторону.")
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
@@ -806,6 +1121,11 @@ class MainActivity : Activity() {
             renderDay(json)
             return
         }
+        if (currentTab == "desk") {
+            leagueBar.visibility = View.GONE
+            renderBettingDesk(json)
+            return
+        }
         if (currentTab == "history") {
             leagueBar.visibility = View.GONE
             renderBetHistory(json)
@@ -823,9 +1143,13 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
-        addText(matchesContainer, "ВЫБЕРИТЕ ЛИГУ", 9, true, muted)
+        addStadiumBanner(matchesContainer)
+        addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
+        addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
+        addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1")
         val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA")
+        // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
                 text = names[index]
@@ -880,8 +1204,10 @@ class MainActivity : Activity() {
                 isClickable = true
                 isFocusable = true
             }
-            heading.addView(label(league.optString("name"), 16, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
-            heading.addView(label("${upcoming.size} матчей", 11, false, muted))
+            val flag = when (leagueCode) { "PL" -> "🏴"; "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
+            heading.addView(label(flag, 20, true, Color.WHITE), LinearLayout.LayoutParams(dp(30), -2).apply { rightMargin = dp(8) })
+            heading.addView(label(league.optString("name"), 14, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+            heading.addView(label("${upcoming.size} матчей", 10, false, muted))
             val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, accent)
             heading.addView(expandIcon)
             heading.setOnClickListener {
@@ -901,22 +1227,20 @@ class MainActivity : Activity() {
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
-                addText(box, date(m.optString("utcDate")), 11, true, accent)
-                addText(box, m.optString("home") + "   —   " + m.optString("away"), 15, true)
+                box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                    intArrayOf(Color.rgb(16, 42, 61), Color.rgb(8, 22, 39), Color.rgb(9, 35, 47))).apply {
+                    cornerRadius = dp(22).toFloat()
+                    setStroke(dp(1), Color.rgb(40, 121, 128))
+                }
+                addText(box, "✦  MATCH FIXTURE  ·  ${date(m.optString("utcDate"))}", 9, true, accent)
+                addMatchup(box, m.optString("home"), m.optString("away"))
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
                     addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
                 } else {
-                    val mainMarkets = card(box)
-                    mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = 20f; setStroke(1, Color.rgb(45, 102, 91)) }
-                    addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ", 10, true, accent)
-                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
-                    addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
-                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 12, true, Color.WHITE)
-                    addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
                     val signal = pred.optJSONObject("strongestSignal")
                     val signalBox = card(box)
-                    signalBox.background = rounded(Color.rgb(24, 37, 58), 17)
+                    signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(32, 55, 66), Color.rgb(17, 34, 52))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(67, 137, 119)) }
                     addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, gold)
                     if (signal == null) {
                         addText(signalBox, "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
@@ -930,22 +1254,30 @@ class MainActivity : Activity() {
                         addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
                         addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
                     }
-                    addText(box, "ВНУТРЕННИЕ ВЕРОЯТНОСТИ ИСХОДА", 10, true, muted)
-                    addText(box, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 13, false, muted)
-                    addText(box, "НОВЫЕ РЫНКИ · ВЕРОЯТНОСТИ МОДЕЛИ", 10, true, cyan)
-                    addText(box, "ОЗ: да ${pct(pred, "bttsYes")} · нет ${pct(pred, "bttsNo")}", 11, false, muted)
-                    for (line in listOf("15", "25", "35")) {
-                        val label = when (line) { "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
-                        addText(box, "Тотал $label: Б ${pct(pred, "over$line")} · М ${pct(pred, "under$line")}", 11, false, muted)
-                    }
+                    val mainMarkets = card(box)
+                    mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
+                    addMarketTitle(mainMarkets, "◈", "ОСНОВНЫЕ ИСХОДЫ")
+                    addMarketRow(mainMarkets, listOf(Triple("1X · хозяева или ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости или ничья", pct(pred, "x2"), Color.WHITE)))
+                    addText(mainMarkets, "ПОБЕДА / НИЧЬЯ", 9, true, muted)
+                    addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
+                    addText(mainMarkets, "ОБЕ ЗАБЬЮТ", 9, true, muted)
+                    addText(mainMarkets, "ОЗ: ДА ${pct(pred, "bttsYes")}     НЕТ ${pct(pred, "bttsNo")}", 11, true, Color.WHITE)
+                    addText(mainMarkets, "ГОЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
+                    addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
+
+                    addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 9, true, muted)
                     for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
-                        addText(box, "ИТ ${teamName}", 10, true, muted)
-                        for (line in listOf("05", "15", "25", "35")) {
-                            val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
-                            addText(box, "$label: Б ${pct(pred, "${teamKey}Over$line")} · М ${pct(pred, "${teamKey}Under$line")}", 11, false, muted)
-                        }
+                        addText(mainMarkets, teamName, 11, true, accent)
+                        addText(mainMarkets, "ИТБ 0.5: ${pct(pred, "${teamKey}Over05")}", 11, false, Color.WHITE)
+                        addText(mainMarkets, "ИТБ 1.5: ${pct(pred, "${teamKey}Over15")}", 11, false, Color.WHITE)
+                        addText(mainMarkets, "ИТБ 2.5: ${pct(pred, "${teamKey}Over25")}", 11, false, Color.WHITE)
+                        addText(mainMarkets, "ИТБ 3.5: ${pct(pred, "${teamKey}Over35")}", 11, false, Color.WHITE)
                     }
-                    addText(box, "Ожидаемые голы  ${String.format(Locale.US, "%.2f : %.2f", pred.optDouble("expectedHomeGoals"), pred.optDouble("expectedAwayGoals"))}", 12, true)
+                    addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
+                    addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
+
                     renderOdds(box, m.optJSONObject("odds"))
                     actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
                 }
@@ -956,6 +1288,6 @@ class MainActivity : Activity() {
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
         addText(footer, "Предстоящих матчей: $totalUpcoming  ·  с прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Источники: PitchAPI (матчи и xG) · API-Sport / Melbet (котировки).", 10, false, muted)
+        addText(footer, "Источники: PitchAPI (матчи и xG) · API-Sport / BetBoom (котировки).", 10, false, muted)
     }
 }

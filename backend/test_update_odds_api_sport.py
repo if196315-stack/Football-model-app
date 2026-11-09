@@ -20,9 +20,9 @@ class ApiSportOddsTests(unittest.TestCase):
         }]
         self.assertIsNotNone(match_fixture(target, source))
 
-    def test_parses_btts_match_totals_and_both_team_total_sides_from_melbet_only(self):
+    def test_parses_btts_match_totals_and_both_team_total_sides_from_betboom_only(self):
         source = {"id": 88, "oddsBk": {
-            "melbet": {"markets": {
+            "betboom": {"markets": {
                 "both_teams_to_score": {"status": "open", "stage": "prematch", "stakes": {
                     "yes": {"factor": 1.82}, "no": {"factor": 1.96}
                 }},
@@ -51,11 +51,11 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual({(x["team"], x["point"], x["side"]) for x in best["teamTotals"]},
                          {("home", 1.5, "over"), ("home", 1.5, "under"),
                           ("away", 0.5, "over"), ("away", 0.5, "under")})
-        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["melbet"])
-        self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "MELBET")
+        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
+        self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "BETBOOM")
 
     def test_parses_double_chance_and_only_zero_handicap(self):
-        source = {"id": 7, "oddsBk": {"melbet": {"markets": {
+        source = {"id": 7, "oddsBk": {"betboom": {"markets": {
             "double_chance": {"status": "open", "stage": "prematch", "stakes": {
                 "1x": {"factor": 1.3}, "x2": {"factor": 2.7}
             }},
@@ -67,18 +67,18 @@ class ApiSportOddsTests(unittest.TestCase):
                 "handicap_2": {"lines": [{"argument": 0, "factor": 1.95}]}
             }}
         }}}}
-        source["oddsBk"]["pari"] = copy.deepcopy(source["oddsBk"]["melbet"])
+        source["oddsBk"]["pari"] = copy.deepcopy(source["oddsBk"]["betboom"])
         source["oddsBk"]["pari"]["markets"]["double_chance"]["stakes"]["1x"]["factor"] = 9.99
         quote = parse_odds(source)
         self.assertEqual(quote["best"]["doubleChance"], {"1x": 1.3, "x2": 2.7})
-        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["melbet"])
-        self.assertEqual(quote["bestBookmakers"]["doubleChance"]["1x"], "MELBET")
+        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
+        self.assertEqual(quote["bestBookmakers"]["doubleChance"]["1x"], "BETBOOM")
         self.assertEqual({(x["team"], x["point"]) for x in quote["best"]["spreads"]},
                          {("home", 0.0), ("away", 0.0)})
 
 
     def test_ignores_live_markets_and_keeps_prematch_quotes(self):
-        source = {"id": 99, "oddsBk": {"melbet": {"markets": {
+        source = {"id": 99, "oddsBk": {"betboom": {"markets": {
             "total_live": {"status": "open", "stage": "live", "stakes": {
                 "over": {"lines": [{"argument": 2.5, "factor": 8.5}]},
                 "under": {"lines": [{"argument": 2.5, "factor": 1.05}]}

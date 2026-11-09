@@ -1,4 +1,4 @@
-"""API-Sport.ru odds ingestion. Fixture/model source remains PitchAPI."""
+"""API-Sport.ru odds ingestion using BetBoom exclusively. Fixture/model source remains PitchAPI."""
 import json, os, re, unicodedata
 from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
@@ -8,7 +8,7 @@ import requests
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/"docs"/"data.json"
 URL="https://api.api-sport.ru/v2/football/matches"
-BOOKS=("melbet",)
+BOOKS=("betboom",)
 
 def norm(v):
     s=unicodedata.normalize("NFKD",str(v or "").lower())
@@ -91,11 +91,11 @@ def parse_odds(m):
     best={"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
     books_best={"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
     book_rows=[]
-    # Melbet is the single reference bookmaker; never mix other prices.
-    melbet=(m.get("oddsBk") or {}).get("melbet")
-    if isinstance(melbet,dict):
-        bk="melbet"; board=melbet
-        row={"key":bk,"title":bk.upper(),"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
+    # BetBoom is the single reference bookmaker; never mix other prices.
+    betboom=(m.get("oddsBk") or {}).get("betboom")
+    if isinstance(betboom,dict):
+        bk="betboom"; board=betboom
+        row={"key":bk,"title":"BETBOOM","doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
         for slug,market in (board.get("markets") or {}).items():
             if (not isinstance(market,dict) or market.get("status")!="open"
                     or market.get("stage")!="prematch"):continue
@@ -159,7 +159,7 @@ def parse_odds(m):
             book_rows.append(row)
     best={k:v for k,v in best.items() if v}
     books_best={k:v for k,v in books_best.items() if v}
-    return {"eventId":str(m.get("id") or ""),"bookmaker":"MELBET","updatedAt":datetime.now(timezone.utc).isoformat(),"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
+    return {"eventId":str(m.get("id") or ""),"bookmaker":"BETBOOM","updatedAt":datetime.now(timezone.utc).isoformat(),"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 def main():
     key=os.getenv("API_SPORT_KEY","").strip()
@@ -188,7 +188,7 @@ def main():
         for match in comp.get("matches",[]):
             if match.get("status") not in ("SCHEDULED","TIMED","IN_PLAY","PAUSED"):continue
             eligible+=1
-            # Clear legacy-provider prices. Never label stale prices as Melbet.
+            # Clear legacy-provider prices. Never label stale prices as BetBoom.
             match.pop("odds",None)
             source=match_fixture(match,fixtures)
             if not source:continue
@@ -196,13 +196,13 @@ def main():
             if quote["best"]:
                 match["odds"]=quote
                 updated+=1
-    data["oddsProvider"]="API-Sport / Melbet"
-    data["oddsBookmaker"]="melbet"
+    data["oddsProvider"]="API-Sport / BetBoom"
+    data["oddsBookmaker"]="betboom"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
-    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"noMelbetQuotes":matched-updated,"notMatched":eligible-matched}
+    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched}
     data["oddsStatus"]="ready" if updated else "no_quotes"
-    data["oddsNotice"]=f"Melbet: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки Melbet."
+    data["oddsNotice"]=f"BetBoom: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки BetBoom."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"provider":"API-Sport / Melbet","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noMelbetQuotes":matched-updated,"notMatched":eligible-matched}))
+    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched}))
 
 if __name__=="__main__":main()
