@@ -119,7 +119,7 @@ class OddsMarketParsingTests(unittest.TestCase):
                  ]}]}
         quote = convert_event(event)
         self.assertEqual(quote["best"]["btts"], {"yes": 1.72, "no": 2.08})
-        self.assertNotIn("btts", quote["bestBookmakers"] if "btts" not in quote["bestBookmakers"] else {})
+        self.assertEqual(quote["bookmakers"][0]["btts"], {"yes": 1.72, "no": 2.08})
 
 if __name__ == "__main__":
     unittest.main()
