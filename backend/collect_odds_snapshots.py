@@ -111,7 +111,7 @@ def extract_snapshot_markets(event):
                 name = str(outcome.get("name", ""))
                 if market_key == "double_chance":
                     label = re.sub(r"[^a-z]+", "", name.lower())
-                    label = label.replace("home", "1").replace("draw", "x").replace("away", "2")
+                    label = label.replace("home", "1").replace("draw", "x").replace("away", "2").replace("or", "")
                     if label in ("1x", "x2", "12"):
                         double_chance.append({"outcome": label, "price": float(price)})
                 elif market_key == "btts":
