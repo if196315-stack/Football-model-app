@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T11:36:23.595985+00:00",
+  "updatedAt": "2026-11-09T12:09:46.499886+00:00",
   "source": "PitchAPI (fixtures, results and shot-level xG); The Odds API (bookmaker odds)",
   "modelVersion": "PitchAPI shot xG · incremental migration",
   "modelConfig": {
@@ -11,7 +11,7 @@
   "xgHistoryMatches": 4324,
   "xgHistoryPairedMatches": 4324,
   "xgHistoryPending": 4409,
-  "xgUpdatedAt": "2026-11-09T11:36:22.516175+00:00",
+  "xgUpdatedAt": "2026-11-09T12:09:45.722364+00:00",
   "status": "ready",
   "notice": "Прогнозы доступны для 904 предстоящих матчей; в истории 4324 матчей с парным xG, ожидают xG: 4409.",
   "dataWarning": "Прогнозы строятся только на завершённых матчах с парным xG PitchAPI. Отсутствующий xG не заменяется нулём.",
@@ -200163,7 +200163,7 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-09T11:36:43.059037+00:00",
+  "oddsUpdatedAt": "2026-11-09T12:10:04.021570+00:00",
   "oddsCreditsRemaining": 322,
   "oddsCreditsUsed": 178,
   "oddsErrors": [
@@ -200219,6 +200219,6 @@
   },
   "oddsStatus": "partial_error",
   "oddsNotice": "На момент последнего обновления подходящих коэффициентов не найдено.",
-  "bsdOddsUpdatedAt": "2026-11-09T11:36:37.266834+00:00",
+  "bsdOddsUpdatedAt": "2026-11-09T12:09:57.765031+00:00",
   "bsdOddsUpdated": 0
 }
