@@ -263,7 +263,7 @@ class MainActivity : Activity() {
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
     // Compact two-column market grid: four team totals remain readable on phone screens.
-    private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>) {
+    private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>, labelColor: Int = Color.rgb(177, 198, 207)) {
         items.chunked(2).forEach { pair ->
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -279,7 +279,7 @@ class MainActivity : Activity() {
                         setStroke(dp(1), Color.rgb(58, 111, 111))
                     }
                 }
-                tile.addView(label(item.first, 10, true, Color.rgb(177, 198, 207)))
+                tile.addView(label(item.first, 10, true, labelColor))
                 tile.addView(label(item.second, 20, true, item.third))
                 row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply {
                     setMargins(dp(3), dp(5), dp(3), dp(5))
@@ -1101,27 +1101,15 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Тотал 1.5: Б ${pct(pred, "over15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 2.5: Б ${pct(pred, "over25")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
-                    val teamTotalsHeading = TextView(this).apply {
-                        text = "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · БОЛЬШЕ"
-                        textSize = 10f
-                        setTypeface(typeface, android.graphics.Typeface.BOLD)
-                        setTextColor(gold)
-                        setPadding(dp(10), dp(9), dp(10), dp(7))
-                        background = GradientDrawable().apply {
-                            setColor(Color.argb(38, 224, 180, 85))
-                            cornerRadius = dp(9).toFloat()
-                            setStroke(dp(1), Color.rgb(112, 88, 48))
-                        }
-                    }
-                    mainMarkets.addView(teamTotalsHeading)
+                    addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · ТОЛЬКО БОЛЬШЕ", 9, true, muted)
                     for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
-                        addText(mainMarkets, "ИТБ · $teamName", 10, true, accent)
+                        addText(mainMarkets, "ИТБ · $teamName", 9, true, muted)
                         addMarketRow(mainMarkets, listOf(
                             Triple("0.5: Б", pct(pred, "${teamKey}Over05"), Color.WHITE),
                             Triple("1.5: Б", pct(pred, "${teamKey}Over15"), Color.WHITE),
                             Triple("2.5: Б", pct(pred, "${teamKey}Over25"), Color.WHITE),
                             Triple("3.5: Б", pct(pred, "${teamKey}Over35"), Color.WHITE)
-                        ))
+                        ), labelColor = Color.WHITE)
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
