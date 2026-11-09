@@ -31,6 +31,7 @@ class MainActivity : Activity() {
     private lateinit var statusView: TextView
     private lateinit var refreshButton: Button
     private lateinit var leagueBar: LinearLayout
+    private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private lateinit var matchesContainer: LinearLayout
@@ -102,7 +103,14 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        root.addView(leagueBar)
+        // Create the horizontal scroller once. Reparenting leagueBar during render()
+        // caused "The specified child already has a parent" and crashed the app.
+        leagueScroll = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            overScrollMode = View.OVER_SCROLL_NEVER
+            addView(leagueBar)
+        }
+        root.addView(leagueScroll)
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
@@ -959,14 +967,7 @@ class MainActivity : Activity() {
         addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ MELBET", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1")
         val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA")
-        val leagueScroll = HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            overScrollMode = View.OVER_SCROLL_NEVER
-            addView(leagueBar)
-        }
-        // Keep league filters in a horizontal scroller so they never squeeze on narrow phones.
-        leagueBar.parent?.let { (it as? android.view.ViewGroup)?.removeView(leagueBar) }
-        matchesContainer.addView(leagueScroll)
+        // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
                 text = names[index]
