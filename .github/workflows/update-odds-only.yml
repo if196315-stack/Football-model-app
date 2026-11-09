@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      - "backend/update_bsd_odds.py"
       - "backend/update_odds.py"
       - "backend/collect_odds_snapshots.py"
       - ".github/workflows/update-odds-only.yml"
@@ -33,10 +32,6 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: python -m pip install requests pandas
-      - name: Refresh base consensus odds via BSD
-        env:
-          BSD_API_KEY: ${{ secrets.BSD_API_KEY }}
-        run: python backend/update_bsd_odds.py
       - name: Fill missing markets via The Odds API
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
