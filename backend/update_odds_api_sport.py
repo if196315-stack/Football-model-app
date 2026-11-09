@@ -128,8 +128,11 @@ def parse_odds(m):
                             books_best["spreads"]=[x for x in books_best["spreads"] if x["team"]!=side]+[{"team":side,"point":0.0,"bookmaker":bk.upper()}]
                         row["spreads"].append(q)
                     elif kind in ("tt","total"):
-                        side_key = ("over" if key in ("over", "больше") or key.startswith("over_") else
-                                    "under" if key in ("under", "меньше") or key.startswith("under_") else None)
+                        # API-Sport may encode the selection as "over", "over_1_5",
+                        # or "Over 1.5". Normalize the selection without relying on
+                        # the exact line suffix; the line itself comes from argument.
+                        side_key = ("over" if key in ("over", "больше") or key.startswith(("over", "больше")) else
+                                    "under" if key in ("under", "меньше") or key.startswith(("under", "меньше")) else None)
                         if side_key is None or arg is None:continue
                         try:
                             point = float(arg)
@@ -143,12 +146,17 @@ def parse_odds(m):
                             market_name = market.get("name") or {}
                             market_name = (market_name.get("en") or market_name.get("ru") or "") if isinstance(market_name, dict) else str(market_name)
                             name_key = re.sub(r"[^a-zа-я0-9]+", " ", market_name.lower()).strip()
-                            team = ("home" if slug.endswith(("_1", "1")) or "home" in slug
-                                    or "home" in name_key or "хозяев" in name_key
-                                    or "team 1" in name_key or "команды 1" in name_key or "команда 1" in name_key else
-                                    "away" if slug.endswith(("_2", "2")) or "away" in slug
-                                    or "away" in name_key or "гостей" in name_key
-                                    or "team 2" in name_key or "команды 2" in name_key or "команда 2" in name_key else None)
+                            slug_tokens = set(re.split(r"[^a-z0-9]+", slug.lower()))
+                            team = ("home" if "home" in slug_tokens or
+                                    ("1" in slug_tokens and "team" in slug_tokens) or
+                                    slug.endswith(("_1", "1")) or "home" in name_key
+                                    or "хозяев" in name_key or "team 1" in name_key
+                                    or "команды 1" in name_key or "команда 1" in name_key else
+                                    "away" if "away" in slug_tokens or
+                                    ("2" in slug_tokens and "team" in slug_tokens) or
+                                    slug.endswith(("_2", "2")) or "away" in name_key
+                                    or "гостей" in name_key or "team 2" in name_key
+                                    or "команды 2" in name_key or "команда 2" in name_key else None)
                             if team is None:continue
                             q={"team":team,"point":point,"side":side_key,"price":price}
                             target=best["teamTotals"]; row_target=row["teamTotals"]; books_target=books_best["teamTotals"]
