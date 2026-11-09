@@ -84,7 +84,7 @@ class MainActivity : Activity() {
             setOnClickListener { loadData() }
         }
         top.addView(refreshButton, LinearLayout.LayoutParams(52, 48))
-        root.addView(top)
+        root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
         statusView = label("Подключаюсь к серверу…", 12, false, muted)
         statusView.setPadding(dp(12), dp(9), dp(12), dp(9))
