@@ -5,8 +5,9 @@ on:
     branches:
       - main
     paths:
-      - "backend/**"
-      - ".github/workflows/update-data.yml"
+      - "backend/update_data_pitchapi.py"
+      - "backend/update_bsd_odds.py"
+      - "backend/update_odds.py"
   workflow_dispatch:
   schedule:
     - cron: "17 */6 * * *"
