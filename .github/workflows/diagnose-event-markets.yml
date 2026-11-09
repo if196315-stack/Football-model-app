@@ -2,6 +2,9 @@ name: Diagnose available odds markets
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/diagnose-event-markets.yml"
 
 permissions:
   contents: read
