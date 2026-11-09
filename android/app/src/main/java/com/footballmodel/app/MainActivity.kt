@@ -189,6 +189,14 @@ class MainActivity : Activity() {
                 Triple("МЕНЬШЕ", oddsText(totals,"under25"), gold)
             ))
         }
+        val btts = best.optJSONObject("btts")
+        if (btts != null) {
+            addText(panelOdds, "ОБЕ ЗАБЬЮТ · ТОЛЬКО НАБЛЮДЕНИЕ", 10, true, muted)
+            addMarketRow(panelOdds, listOf(
+                Triple("ДА", oddsText(btts,"yes"), muted),
+                Triple("НЕТ", oddsText(btts,"no"), muted)
+            ))
+        }
         addText(panelOdds, "Обновлено: " + odds.optString("updatedAt","—").replace("T"," ").take(16) + " UTC", 9, false, muted)
     }
 
