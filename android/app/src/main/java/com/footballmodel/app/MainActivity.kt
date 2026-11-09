@@ -1300,6 +1300,22 @@ class MainActivity : Activity() {
                         }
                         return if (value != null && value.isFinite() && value > 1.0) String.format(Locale.US, "%.2f", value) else "—"
                     }
+
+                    fun totalQuote(point: Double, side: String, team: String? = null): String {
+                        val rows = bestOdds?.optJSONArray(if (team == null) "totals" else "teamTotals") ?: return "—"
+                        for (i in 0 until rows.length()) {
+                            val row = rows.optJSONObject(i) ?: continue
+                            val rowPoint = row.optDouble("point", Double.NaN)
+                            val rowPrice = row.optDouble("price", Double.NaN)
+                            if (row.optString("side").equals(side, ignoreCase = true) &&
+                                (team == null || row.optString("team") == team) &&
+                                rowPoint.isFinite() && kotlin.math.abs(rowPoint - point) < 0.001 &&
+                                rowPrice.isFinite() && rowPrice > 1.0) {
+                                return String.format(Locale.US, "%.2f", rowPrice)
+                            }
+                        }
+                        return "—"
+                    }
                     addText(mainMarkets, "1X · ${pct(pred, "1x")} · кэф ${quote("1x")}       X2 · ${pct(pred, "x2")} · кэф ${quote("x2")}", 12, true, Color.WHITE)
                     addText(mainMarkets, "ПОБЕДА / НИЧЬЯ · без котировок в текущем фиде", 9, true, muted)
                     addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
