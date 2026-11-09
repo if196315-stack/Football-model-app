@@ -35,9 +35,12 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
                                     {"argument": 2.75, "factor": 2.0}]},
                                            "under": {"lines": [{"argument": 2.5, "factor": 1.9}]}}},
                 "total_team_1": {"status": "open", "stage": "prematch",
-                                 "stakes": {"over": {"lines": [
-                                     {"argument": 0.5, "factor": 1.4},
-                                     {"argument": 1.5, "factor": 1.8}]}}},
+                                 "stakes": {
+                                     "over": {"lines": [
+                                         {"argument": 0.5, "factor": 1.4},
+                                         {"argument": 1.5, "factor": 1.8}]},
+                                     "under": {"lines": [{"argument": 1.5, "factor": 2.0}]}
+                                 }},
                 "both_teams_to_score": {"status": "open", "stage": "prematch",
                                         "stakes": {"yes": {"factor": 1.75},
                                                    "no": {"factor": 2.05}}},
@@ -51,17 +54,23 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         }}
         diagnostics = {}
         rows = snapshot_rows(cache, [source], "2026-11-10T12:00:00+00:00", diagnostics)
-        self.assertEqual(len(rows), 2 * 2 + 2 * 2 + 2 * 2 + 2 * 2)  # DC, totals, ITB, BTTS for two UEFA fixtures
+        self.assertEqual(len(rows), 2 * 3 + 2 * 3 + 2 * 3 + 2 * 2)  # DC, totals, ITB, BTTS for two UEFA fixtures
         self.assertEqual({row["league_code"] for row in rows}, {"UCL", "UEL"})
         self.assertEqual({row["market"] for row in rows},
-                         {"double_chance", "match_total_over", "team_total_over", "btts"})
+                         {"double_chance", "match_total_over", "match_total_under_reference",
+                          "team_total_over", "team_total_under_reference", "btts"})
         self.assertTrue(all(row["bookmaker"] == "BETBOOM" for row in rows))
         self.assertTrue(all(row["model_probability"] is None for row in rows))
         self.assertTrue(all(row["captured_at"] == "2026-11-10T12:00:00+00:00" for row in rows))
         self.assertTrue(all(row["freshness_status"] == "fresh" for row in rows))
         self.assertTrue(all(row["bookmaker_update_age_seconds"] == 120.0 for row in rows))
-        self.assertFalse(any(row.get("outcome") == "12" for row in rows))
-        self.assertFalse(any(row.get("side") == "under" for row in rows))
+        dc_12 = [row for row in rows if row.get("outcome") == "12"]
+        under_refs = [row for row in rows if row.get("reference_only") and row.get("side") == "under"]
+        self.assertEqual(len(dc_12), 2)
+        self.assertTrue(all(not row["candidate_market"] for row in dc_12))
+        self.assertTrue(all(not row["candidate_market"] and row["side"] == "under" for row in under_refs))
+        self.assertTrue(any(row["market"] == "match_total_under_reference" for row in under_refs))
+        self.assertTrue(any(row["market"] == "team_total_under_reference" for row in under_refs))
         self.assertFalse(any(row.get("point") == 2.75 for row in rows))
         self.assertEqual(diagnostics["eligible_uefa_upcoming_fixtures_in_cache"], 2)
         self.assertEqual(diagnostics["api_sport_provider_fixtures"], 1)
