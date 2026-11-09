@@ -1,0 +1,35 @@
+name: Collect prospective bookmaker odds snapshots
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/pitchapi-data-source
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: pip install requests
+      - name: Collect current 1X2, double-chance and handicap snapshots
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: |
+          mkdir -p artifacts
+          python backend/collect_odds_snapshots.py \
+            --input docs/data.json \
+            --output artifacts/odds-snapshots.jsonl
+      - name: Upload odds archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: prospective-multi-market-odds-snapshots
+          path: artifacts/odds-snapshots.jsonl
+          if-no-files-found: error
+          retention-days: 90

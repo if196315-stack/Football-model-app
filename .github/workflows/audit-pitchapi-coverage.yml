@@ -1,0 +1,156 @@
+name: Audit PitchAPI coverage and xG
+
+on:
+  workflow_dispatch:
+    inputs:
+      audit_mode:
+        description: "Sampled check or all finished historical matches"
+        required: true
+        default: "sample"
+        type: choice
+        options:
+          - sample
+          - full_history
+      sample_limit:
+        description: "Finished matches to inspect per league-season (1-50)"
+        required: false
+        default: "20"
+        type: string
+  push:
+    branches:
+      - feature/pitchapi-data-source
+    paths:
+      - "backend/probe_pitchapi_coverage.py"
+      - "backend/test_probe_pitchapi_coverage.py"
+      - "backend/recheck_pitchapi_exceptions.py"
+      - "backend/export_pitchapi_results.py"
+      - "backend/backtest_pitchapi.py"
+      - "backend/export_pitchapi_backtest.py"
+      - "backend/test_export_pitchapi_backtest.py"
+      - "backend/test_backtest_pitchapi.py"
+      - "backend/collect_odds_snapshots.py"
+      - "backend/test_collect_odds_snapshots.py"
+      - "backend/update_odds.py"
+      - "backend/test_update_odds.py"
+      - "backend/pitchapi_data_source.py"
+      - "backend/test_pitchapi_data_source.py"
+      - "backend/update_data_pitchapi.py"
+      - "backend/test_update_data_pitchapi.py"
+      - ".github/workflows/audit-pitchapi-coverage.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: python -m pip install requests pandas
+      - name: Run probe unit tests
+        run: python -m unittest discover -s backend -p "test_*.py" -v
+
+  targeted-recheck:
+    needs: unit-tests
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[targeted-recheck]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Recheck only known PitchAPI exceptions
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/recheck_pitchapi_exceptions.py
+
+  results-export:
+    needs: unit-tests
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[results-export]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Export PitchAPI fixture results only
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/export_pitchapi_results.py
+      - name: Upload fixture results export
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-results-export
+          path: pitchapi-results-export.json
+          if-no-files-found: error
+          retention-days: 14
+
+  pitchapi-audit:
+    needs: unit-tests
+    # Manual dispatch may run a sample or a full-history audit. Pushes run an
+    # explicitly authorized sample or full-history audit only with a marker.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (contains(github.event.head_commit.message, '[sample-audit]') || contains(github.event.head_commit.message, '[full-history-audit]')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Fetch league, season and shot-level xG coverage
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: |
+          if { [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.audit_mode || 'sample' }}" = "full_history" ]; } || { [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.event.head_commit.message }}" == *"[full-history-audit]"* ]]; }; then
+            python backend/probe_pitchapi_coverage.py --full-history --output pitchapi-coverage-audit.json
+          else
+            python backend/probe_pitchapi_coverage.py --sample-limit "${{ inputs.sample_limit || '20' }}" --output pitchapi-coverage-audit.json
+          fi
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-coverage-audit
+          path: pitchapi-coverage-audit.json
+          if-no-files-found: error
+          retention-days: 14
+
+# Results-only export is deliberately triggered by a dedicated commit marker; it never calls shot/xG endpoints.
+
+  odds-snapshot:
+    needs: unit-tests
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[collect-odds-snapshot]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependency
+        run: python -m pip install requests
+      - name: Collect prospective 1X2, double-chance and handicap snapshots
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: |
+          mkdir -p artifacts
+          python backend/collect_odds_snapshots.py \
+            --input docs/data.json \
+            --output artifacts/odds-snapshots.jsonl
+      - name: Upload prospective odds archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: prospective-multi-market-odds-snapshots
+          path: artifacts/odds-snapshots.jsonl
+          if-no-files-found: error
+          retention-days: 90
+
+# Full-history runs are invoked only with the explicit [full-history-audit] commit marker.

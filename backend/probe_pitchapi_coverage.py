@@ -1,0 +1,555 @@
+"""Read-only PitchAPI coverage and shot-level xG audit.
+
+Reads PITCHAPI_API_KEY from the environment. No application or production data
+is modified. Supports stratified samples or exhaustive inspection of all
+provider-finished matches in each target league-season.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+from datetime import datetime, timezone
+import os
+import sys
+import time
+from collections import Counter
+from typing import Any
+
+import requests
+
+BASE_URL = "https://api.pitchapi.dev/v1"
+TARGETS = {
+    "ENG": {"premier league"},
+    "ESP": {"laliga", "la liga"},
+    "ITA": {"serie a"},
+    "GER": {"bundesliga"},
+    "FRA": {"ligue 1"},
+}
+TIMEOUT = 30
+SAMPLE_LIMIT = 5
+
+# PitchAPI's has_playoff flag is not reliable: this confirmed Serie A
+# relegation playoff was returned with has_playoff=false. Keep the fixture in
+# the raw/xG audit, but exclude it from regular-season team-count integrity.
+MANUAL_MATCH_CLASSIFICATIONS = {
+    "m_3ir3kE": {
+        "classification": "relegation_playoff",
+        "exclude_from_regular_season_integrity": True,
+        "reason": "Confirmed Serie A 2022/23 relegation playoff; provider has_playoff=false",
+    },
+}
+
+
+def norm(value: Any) -> str:
+    return " ".join(str(value or "").casefold().replace("-", " ").split())
+
+
+def fetch(session: Any, path: str, api_key: str, params: dict | None = None) -> dict:
+    """GET a PitchAPI resource, retrying transient transport and gateway errors."""
+    retryable_statuses = {429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
+    for attempt in range(3):
+        try:
+            response = session.get(
+                f"{BASE_URL}{path}", params=params or {},
+                headers={"X-API-KEY": api_key}, timeout=TIMEOUT,
+            )
+            if response.status_code in retryable_statuses and attempt < 2:
+                time.sleep(1 * (attempt + 1))
+                continue
+            response.raise_for_status()
+            body = response.json()
+            if not isinstance(body, dict) or "data" not in body:
+                raise ValueError(f"Unexpected response envelope for {path}")
+            if "error" in body:
+                raise ValueError(f"API returned an error for {path}")
+            return body["data"]
+        except requests.RequestException:
+            if attempt >= 2:
+                raise
+            time.sleep(1 * (attempt + 1))
+    raise RuntimeError(f"Unreachable retry state for {path}")
+
+
+def season_start(season: Any) -> int | None:
+    if not isinstance(season, str):
+        return None
+    first = season.split("/", 1)[0]
+    try:
+        year = int(first)
+    except ValueError:
+        return None
+    return year if year >= 2021 else None
+
+
+def choose_samples(matches: list[dict], limit: int = SAMPLE_LIMIT) -> list[dict]:
+    """Choose evenly spaced finished matches from the full season chronology."""
+    valid = [m for m in matches if isinstance(m, dict) and m.get("id")
+             and m.get("status") == "finished"]
+    if len(valid) <= limit:
+        return valid
+    if limit <= 1:
+        return [valid[0]]
+    indexes = [round(i * (len(valid) - 1) / (limit - 1)) for i in range(limit)]
+    return [valid[i] for i in indexes]
+
+
+
+def select_xg_matches(matches: list[dict], limit: int, full_history: bool = False) -> list[dict]:
+    """Return either a stratified sample or every provider-finished match."""
+    if full_history:
+        return [m for m in matches if isinstance(m, dict) and m.get("id")
+                and norm(m.get("status")) == "finished"]
+    return choose_samples(matches, limit)
+
+
+def match_integrity(matches: list[dict], season: str | None = None,
+                    excluded_match_ids: set[str] | None = None) -> dict:
+    """Detect duplicate provider IDs and duplicate same-day team pairings."""
+    rows = [m for m in matches if isinstance(m, dict)]
+    ids = Counter(str(m.get("id")) for m in rows if m.get("id") is not None)
+    fixtures = Counter()
+    fixture_labels = {}
+    for match in rows:
+        home_id = (match.get("home_team") or {}).get("id")
+        away_id = (match.get("away_team") or {}).get("id")
+        date = str(match.get("date") or "")[:10]
+        if date and home_id is not None and away_id is not None:
+            pair = tuple(sorted((str(home_id), str(away_id))))
+            key = (date, pair)
+            fixtures[key] += 1
+            fixture_labels[key] = {"date": date, "teamIds": list(pair)}
+    duplicate_ids = sorted(match_id for match_id, count in ids.items() if count > 1)
+    duplicate_fixtures = [fixture_labels[key] for key, count in sorted(fixtures.items()) if count > 1]
+    appearances = Counter()
+    home_appearances = Counter()
+    away_appearances = Counter()
+    team_names = {}
+    excluded_match_ids = excluded_match_ids or set()
+    # Regular-season integrity excludes explicitly canceled/awarded fixtures.
+    # These remain visible in statusCounts but must not inflate played-match
+    # appearances or expected round-robin totals.
+    countable_rows = [
+        m for m in rows
+        if norm(m.get("status")) not in {"canceled", "cancelled", "awarded"}
+        and str(m.get("id")) not in excluded_match_ids
+    ]
+    pair_counts = Counter()
+    pair_names = {}
+    for match in countable_rows:
+        home = match.get("home_team") or {}
+        away = match.get("away_team") or {}
+        home_id, away_id = home.get("id"), away.get("id")
+        if home_id is not None and away_id is not None:
+            pair = tuple(sorted((str(home_id), str(away_id))))
+            pair_counts[pair] += 1
+            pair_names[pair] = sorted([home.get("name"), away.get("name")], key=lambda value: str(value or ""))
+    team_pairings = [
+        {"teamIds": list(pair), "teams": pair_names[pair], "matches": count}
+        for pair, count in sorted(pair_counts.items())
+    ]
+    missing_pairings = [row for row in team_pairings if row["matches"] < 2]
+    extra_pairings = [row for row in team_pairings if row["matches"] > 2]
+    for match in countable_rows:
+        home = match.get("home_team") or {}
+        away = match.get("away_team") or {}
+        home_id, away_id = home.get("id"), away.get("id")
+        if home_id is not None:
+            appearances[str(home_id)] += 1
+            home_appearances[str(home_id)] += 1
+            team_names[str(home_id)] = home.get("name")
+        if away_id is not None:
+            appearances[str(away_id)] += 1
+            away_appearances[str(away_id)] += 1
+            team_names[str(away_id)] = away.get("name")
+    season_year = season_start(season)
+    active_season = season_year is not None and season_year >= datetime.now(timezone.utc).year
+    expected_per_team = None if active_season else max(0, (len(appearances) - 1) * 2)
+    team_match_counts = [
+        {"teamId": team_id, "team": team_names.get(team_id),
+         "matches": appearances[team_id], "home": home_appearances[team_id],
+         "away": away_appearances[team_id]}
+        for team_id in sorted(appearances, key=lambda key: (team_names.get(key) or "", key))
+    ]
+    team_count_outliers = (
+        [] if expected_per_team is None else
+        [row for row in team_match_counts if row["matches"] != expected_per_team]
+    )
+    outlier_ids = {row["teamId"] for row in team_count_outliers}
+    team_fixture_lists = {team_id: [] for team_id in sorted(outlier_ids)}
+    for match in sorted(countable_rows, key=lambda item: str(item.get("date") or "")):
+        home = match.get("home_team") or {}
+        away = match.get("away_team") or {}
+        home_id, away_id = str(home.get("id")), str(away.get("id"))
+        if home_id in outlier_ids:
+            team_fixture_lists[home_id].append({
+                "date": match.get("date"), "home": home.get("name"),
+                "away": away.get("name"), "status": match.get("status"),
+                "matchId": match.get("id"),
+            })
+        if away_id in outlier_ids:
+            team_fixture_lists[away_id].append({
+                "date": match.get("date"), "home": home.get("name"),
+                "away": away.get("name"), "status": match.get("status"),
+                "matchId": match.get("id"),
+            })
+    return {
+        "uniqueMatchIds": len(ids),
+        "duplicateMatchIds": duplicate_ids,
+        "uniqueFixtures": len(fixtures),
+        "duplicateFixtures": duplicate_fixtures,
+        "teamCount": len(appearances),
+        "expectedMatchesPerTeam": expected_per_team,
+        "teamCountsComparable": expected_per_team is not None,
+        "teamMatchCounts": team_match_counts,
+        "teamCountOutliers": team_count_outliers,
+        "teamFixtureLists": team_fixture_lists,
+        "teamPairingCounts": team_pairings,
+        "missingReturnFixtures": missing_pairings,
+        "extraPairings": extra_pairings,
+    }
+
+def match_context(match: dict) -> dict:
+    """Expose only compact provider fields that may distinguish league stages."""
+    keys = (
+        "round", "round_name", "stage", "stage_name", "matchday", "match_day",
+        "phase", "group", "leg", "has_playoff", "competition_type", "competition_name",
+        "tournament", "league",
+    )
+    context = {}
+    for key in keys:
+        value = match.get(key)
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            if key in match:
+                context[key] = value
+        elif isinstance(value, dict):
+            compact = {
+                nested: value[nested]
+                for nested in ("id", "name", "type", "slug")
+                if isinstance(value.get(nested), (str, int, float, bool))
+            }
+            if compact:
+                context[key] = compact
+    return context
+
+
+def inspect_match_metadata(session: Any, match_id: str, api_key: str) -> dict:
+    """Fetch documented match-level fields needed to identify playoff fixtures."""
+    data = fetch(session, f"/matches/{match_id}", api_key)
+    if not isinstance(data, dict):
+        raise ValueError(f"Unexpected match metadata for {match_id}")
+    return {
+        "matchId": data.get("id", match_id),
+        "round_name": data.get("round_name"),
+        "has_playoff": data.get("has_playoff"),
+        "hasPlayoffFieldPresent": "has_playoff" in data,
+        "status": data.get("status"),
+        "date": data.get("date"),
+        "home_team": (data.get("home_team") or {}).get("name"),
+        "away_team": (data.get("away_team") or {}).get("name"),
+    }
+
+
+def flatten_shots(data: dict) -> list[dict]:
+    """PitchAPI groups shots under periods[].shots."""
+    if not isinstance(data, dict):
+        return []
+    direct = data.get("shots")
+    if isinstance(direct, list):
+        return [shot for shot in direct if isinstance(shot, dict)]
+    periods = data.get("periods", [])
+    if not isinstance(periods, list):
+        return []
+    return [shot for period in periods if isinstance(period, dict)
+            for shot in (period.get("shots") or []) if isinstance(shot, dict)]
+
+
+def inspect_shots(session: Any, match: dict, api_key: str) -> dict:
+    try:
+        data = fetch(session, f"/matches/{match['id']}/shots", api_key)
+    except requests.RequestException as exc:
+        return {
+            "matchId": match.get("id"),
+            "home": (match.get("home_team") or {}).get("name"),
+            "away": (match.get("away_team") or {}).get("name"),
+            "date": match.get("date"),
+            "status": match.get("status"),
+            "shotCount": None,
+            "validXgShots": None,
+            "homeXgFromShots": None,
+            "awayXgFromShots": None,
+            "pairedXgPresent": False,
+            "xgFetchError": type(exc).__name__,
+        }
+    shots = flatten_shots(data)
+    teams = {match.get("home_team", {}).get("id"), match.get("away_team", {}).get("id")}
+    totals = Counter()
+    valid_shots = 0
+    for shot in shots if isinstance(shots, list) else []:
+        if not isinstance(shot, dict):
+            continue
+        team_id = shot.get("team_id")
+        xg = shot.get("expected_goals")
+        if team_id in teams and isinstance(xg, (int, float)) and not isinstance(xg, bool):
+            if 0 <= xg <= 1:
+                totals[team_id] += float(xg)
+                valid_shots += 1
+    home_id = (match.get("home_team") or {}).get("id")
+    away_id = (match.get("away_team") or {}).get("id")
+    return {
+        "matchId": match.get("id"),
+        "home": (match.get("home_team") or {}).get("name"),
+        "away": (match.get("away_team") or {}).get("name"),
+        "date": match.get("date"),
+        "status": match.get("status"),
+        "shotCount": len(shots),
+        "validXgShots": valid_shots,
+        "homeXgFromShots": round(totals[home_id], 4) if home_id in totals else None,
+        "awayXgFromShots": round(totals[away_id], 4) if away_id in totals else None,
+        "pairedXgPresent": home_id in totals and away_id in totals,
+    }
+
+
+def run_audit(api_key: str, session: Any = requests, pause_seconds: float = 0.15,
+              sample_limit: int = SAMPLE_LIMIT, full_history: bool = False) -> dict:
+    if not isinstance(sample_limit, int) or isinstance(sample_limit, bool) or not 1 <= sample_limit <= 50:
+        raise ValueError("sample_limit must be an integer between 1 and 50")
+    if not isinstance(full_history, bool):
+        raise ValueError("full_history must be a boolean")
+    catalogue = fetch(session, "/leagues", api_key)
+    leagues = catalogue.get("leagues", []) if isinstance(catalogue, dict) else []
+    matched: dict[str, dict] = {}
+    for league in leagues if isinstance(leagues, list) else []:
+        code, name = league.get("country_code"), norm(league.get("name"))
+        if code in TARGETS and name in TARGETS[code]:
+            matched[code] = league
+
+    report = {
+        "provider": "PitchAPI",
+        "auditType": "read_only_full_history_xg" if full_history else "read_only_sampled_xg",
+        "xgMode": "all_provider_finished_matches" if full_history else "stratified_sample",
+        "xgSampleLimitPerSeason": None if full_history else sample_limit,
+        "xgEligibilityPolicy": (
+            "All matches with provider status finished are inspected, including any playoff candidates; "
+            "do not use as a model-training cohort until match classification is complete."
+            if full_history else
+            "Only sampled provider-finished matches are inspected; this is not a full-history cohort."
+        ),
+        "targetLeagueCount": len(TARGETS),
+        "matchedLeagueCount": len(matched),
+        "missingTargets": sorted(set(TARGETS) - set(matched)),
+        "leagues": [],
+        "notes": [
+            "Season match totals come from the provider's league match listing.",
+            (
+                "Shot-level xG is checked for every provider-finished match in every target league-season."
+                if full_history else
+                "xG is checked on up to xgSampleLimitPerSeason evenly spaced finished matches per season using shot-level expected_goals."
+            ),
+            (
+                "Full-history mode includes playoff candidates in the raw xG audit; playoff eligibility remains a separate classification task."
+                if full_history else
+                "This is a sample, not a full match-by-match xG completeness measurement."
+            ),
+            "Canceled and awarded matches remain in statusCounts but are excluded from regular-season team appearance integrity counts.",
+            "Provider-finished playoff candidates remain in the raw xG audit; only independently classified exclusions are removed from regular-season integrity counts.",
+            "Transient API errors are retried; final per-match shot-fetch failures are recorded as unavailable, never as zero xG.",
+            "Shot xG is summed by team from periods[].shots; zero is not treated as missing when valid shots exist.",
+        ],
+    }
+    for code in sorted(matched):
+        league = matched[code]
+        seasons = [s for s in (league.get("seasons") or []) if season_start(s) is not None]
+        league_row = {
+            "countryCode": code, "leagueId": league.get("id"),
+            "leagueName": league.get("name"), "seasons": [],
+        }
+        for season in sorted(set(seasons), key=lambda s: season_start(s) or 0):
+            data = fetch(session, f"/leagues/{league['id']}/matches", api_key,
+                         {"season": season, "status": "played"})
+            matches = data.get("matches", []) if isinstance(data, dict) else []
+            status_counts = Counter(m.get("status", "missing") for m in matches if isinstance(m, dict))
+            integrity = match_integrity(matches, season)
+            # The league listing may omit stage flags. For teams with anomalous
+            # appearance counts, inspect their individual match records and exclude
+            # only matches explicitly marked has_playoff=true from league totals.
+            candidate_ids = sorted({
+                str(fixture.get("matchId"))
+                for fixtures in integrity.get("teamFixtureLists", {}).values()
+                for fixture in fixtures
+                if fixture.get("matchId") is not None
+            })
+            playoff_details = []
+            metadata_inspections = []
+            for match_id in candidate_ids:
+                try:
+                    detail = inspect_match_metadata(session, match_id, api_key)
+                    metadata_inspections.append(detail)
+                    if detail.get("has_playoff") is True:
+                        playoff_details.append(detail)
+                except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
+                    error_detail = {
+                        "matchId": match_id,
+                        "metadataFetchError": type(exc).__name__,
+                    }
+                    metadata_inspections.append(error_detail)
+                    playoff_details.append(error_detail)
+                if pause_seconds:
+                    time.sleep(pause_seconds)
+            provider_playoff_ids = {
+                str(item["matchId"]) for item in playoff_details
+                if item.get("has_playoff") is True
+            }
+            manual_classifications = [
+                {"matchId": match_id, **classification}
+                for match_id, classification in MANUAL_MATCH_CLASSIFICATIONS.items()
+                if any(str(match.get("id")) == match_id for match in matches)
+            ]
+            manually_excluded_ids = {
+                item["matchId"] for item in manual_classifications
+                if item.get("exclude_from_regular_season_integrity") is True
+            }
+            excluded_integrity_ids = provider_playoff_ids | manually_excluded_ids
+            if excluded_integrity_ids:
+                integrity = match_integrity(matches, season, excluded_integrity_ids)
+            samples = select_xg_matches(matches, sample_limit, full_history)
+            inspected = []
+            for match in samples:
+                inspected.append(inspect_shots(session, match, api_key))
+                if pause_seconds:
+                    time.sleep(pause_seconds)
+            league_row["seasons"].append({
+                "season": season,
+                "listedMatches": len(matches) if isinstance(matches, list) else None,
+                "finishedMatches": status_counts.get("finished", 0),
+                "statusCounts": dict(status_counts),
+                "providerMatchFields": sorted({
+                    key for match in matches if isinstance(match, dict) for key in match
+                }),
+                "sampleMatchContext": [
+                    {"matchId": match.get("id"), "date": match.get("date"),
+                     **match_context(match)}
+                    for match in samples
+                ],
+                **integrity,
+                "playoffMatchDetails": playoff_details,
+                "matchMetadataInspections": metadata_inspections,
+                "matchMetadataSummary": {
+                    "candidateCount": len(candidate_ids),
+                    "successfulCount": sum("metadataFetchError" not in item for item in metadata_inspections),
+                    "errorCount": sum("metadataFetchError" in item for item in metadata_inspections),
+                    "hasPlayoffFieldPresentCount": sum(item.get("hasPlayoffFieldPresent") is True for item in metadata_inspections),
+                    "hasPlayoffTrueCount": sum(item.get("has_playoff") is True for item in metadata_inspections),
+                    "hasPlayoffFalseCount": sum(item.get("has_playoff") is False for item in metadata_inspections),
+                    "hasPlayoffNullOrMissingCount": sum(item.get("has_playoff") is None for item in metadata_inspections),
+                },
+                "excludedPlayoffMatchIds": sorted(provider_playoff_ids),
+                "manualClassificationOverrides": manual_classifications,
+                "excludedFromRegularSeasonIntegrityMatchIds": sorted(excluded_integrity_ids),
+                "xgSampleSize": len(inspected),
+                "xgPairedSamples": sum(bool(x["pairedXgPresent"]) for x in inspected),
+                "xgSamples": inspected,
+            })
+            if pause_seconds:
+                time.sleep(pause_seconds)
+        report["leagues"].append(league_row)
+        if pause_seconds:
+            time.sleep(pause_seconds)
+    report["summary"] = summarize_report(report)
+    return report
+
+
+def summarize_report(report: dict) -> dict:
+    """Aggregate xG coverage and calendar-integrity anomalies across seasons."""
+    listed = finished = inspected = paired = fetch_failures = partial = 0
+    duplicate_ids = duplicate_fixtures = team_outliers = missing_returns = extra_pairings = metadata_errors = 0
+    seasons = 0
+    integrity_findings = []
+    for league in report.get("leagues", []):
+        code = league.get("countryCode")
+        for season in league.get("seasons", []):
+            seasons += 1
+            listed += season.get("listedMatches") or 0
+            finished += season.get("finishedMatches") or 0
+            inspected += season.get("xgSampleSize") or 0
+            paired += season.get("xgPairedSamples") or 0
+            for item in season.get("xgSamples", []):
+                if item.get("pairedXgPresent"):
+                    continue
+                if item.get("xgFetchError"):
+                    fetch_failures += 1
+                else:
+                    partial += 1
+
+            season_duplicate_ids = len(season.get("duplicateMatchIds") or [])
+            season_duplicate_fixtures = len(season.get("duplicateFixtures") or [])
+            season_team_outliers = len(season.get("teamCountOutliers") or [])
+            season_missing_returns = len(season.get("missingReturnFixtures") or [])
+            season_extra_pairings = len(season.get("extraPairings") or [])
+            season_metadata_errors = (season.get("matchMetadataSummary") or {}).get("errorCount", 0)
+            duplicate_ids += season_duplicate_ids
+            duplicate_fixtures += season_duplicate_fixtures
+            team_outliers += season_team_outliers
+            missing_returns += season_missing_returns
+            extra_pairings += season_extra_pairings
+            metadata_errors += season_metadata_errors
+            if any((season_duplicate_ids, season_duplicate_fixtures, season_team_outliers,
+                    season_missing_returns, season_extra_pairings, season_metadata_errors)):
+                integrity_findings.append({
+                    "league": code,
+                    "season": season.get("season"),
+                    "duplicateMatchIds": season_duplicate_ids,
+                    "duplicateFixtures": season_duplicate_fixtures,
+                    "teamCountOutliers": season_team_outliers,
+                    "missingReturnFixtures": season_missing_returns,
+                    "extraPairings": season_extra_pairings,
+                    "matchMetadataErrors": season_metadata_errors,
+                })
+    return {
+        "seasonsAudited": seasons,
+        "listedMatches": listed,
+        "finishedMatches": finished,
+        "xgInspectedMatches": inspected,
+        "pairedXgMatches": paired,
+        "unpairedXgMatches": inspected - paired,
+        "shotFetchFailures": fetch_failures,
+        "missingOrPartialShotXg": partial,
+        "pairedXgCoverageRate": round(paired / inspected, 6) if inspected else None,
+        "duplicateMatchIdCount": duplicate_ids,
+        "duplicateFixtureCount": duplicate_fixtures,
+        "teamCountOutlierCount": team_outliers,
+        "missingReturnFixtureCount": missing_returns,
+        "extraPairingCount": extra_pairings,
+        "matchMetadataErrorCount": metadata_errors,
+        "integrityFindings": integrity_findings,
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", help="Optional JSON report path")
+    parser.add_argument("--sample-limit", type=int, default=SAMPLE_LIMIT,
+                        help="Finished matches to inspect per league-season in sampled mode (1-50; default: 5)")
+    parser.add_argument("--full-history", action="store_true",
+                        help="Inspect shot-level xG for every provider-finished match in every target league-season")
+    args = parser.parse_args(argv)
+    if not 1 <= args.sample_limit <= 50:
+        parser.error("--sample-limit must be between 1 and 50")
+    key = os.environ.get("PITCHAPI_API_KEY")
+    if not key:
+        parser.error("Set PITCHAPI_API_KEY in the environment; never pass it on the command line")
+    try:
+        report = run_audit(key, sample_limit=args.sample_limit, full_history=args.full_history)
+    except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
+        print(f"PitchAPI audit failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    rendered = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as stream:
+            stream.write(rendered)
+    else:
+        print(rendered, end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

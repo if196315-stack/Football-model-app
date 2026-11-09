@@ -159,12 +159,42 @@ class MainActivity : Activity() {
                 Triple("П2", oddsText(h2h,"away"), gold)
             ))
         }
+        val dc = best.optJSONObject("doubleChance")
+        if (dc != null) {
+            addText(panelOdds, "ДВОЙНОЙ ШАНС · лучшие цены", 10, true, muted)
+            addMarketRow(panelOdds, listOf(
+                Triple("1X", oddsText(dc,"1x"), gold),
+                Triple("X2", oddsText(dc,"x2"), gold),
+                Triple("12", oddsText(dc,"12"), gold)
+            ))
+        }
+        val spreads = best.optJSONArray("spreads")
+        if (spreads != null && spreads.length() > 0) {
+            addText(panelOdds, "ФОРА · только ненулевые линии", 10, true, muted)
+            for (i in 0 until spreads.length()) {
+                val line = spreads.optJSONObject(i) ?: continue
+                val point = line.optDouble("point", 0.0)
+                if (kotlin.math.abs(point) < 0.001 ||
+                    kotlin.math.abs(point * 2.0 - kotlin.math.round(point * 2.0)) > 0.001) continue
+                val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
+                val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
+                addMarketRow(panelOdds, listOf(Triple("$team $signed", oddsText(line,"price"), gold)))
+            }
+        }
         val totals = best.optJSONObject("totals")
         if (totals != null) {
-            addText(panelOdds, "ТОТАЛ 2.5 · лучшие цены", 10, true, muted)
+            addText(panelOdds, "ТОТАЛ 2.5 · ТОЛЬКО НАБЛЮДЕНИЕ", 10, true, muted)
             addMarketRow(panelOdds, listOf(
-                Triple("БОЛЬШЕ", oddsText(totals,"over25"), gold),
-                Triple("МЕНЬШЕ", oddsText(totals,"under25"), gold)
+                Triple("БОЛЬШЕ", oddsText(totals,"over25"), muted),
+                Triple("МЕНЬШЕ", oddsText(totals,"under25"), muted)
+            ))
+        }
+        val btts = best.optJSONObject("btts")
+        if (btts != null) {
+            addText(panelOdds, "ОБЕ ЗАБЬЮТ · ТОЛЬКО НАБЛЮДЕНИЕ", 10, true, muted)
+            addMarketRow(panelOdds, listOf(
+                Triple("ДА", oddsText(btts,"yes"), muted),
+                Triple("НЕТ", oddsText(btts,"no"), muted)
             ))
         }
         addText(panelOdds, "Обновлено: " + odds.optString("updatedAt","—").replace("T"," ").take(16) + " UTC", 9, false, muted)
@@ -326,8 +356,6 @@ class MainActivity : Activity() {
         }
         collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h,a -> h >= a })
         collect("x2", "X2 · гости победят ИЛИ будет ничья", { h,a -> a >= h })
-        collect("dnbHome", "Фора 0 · хозяева", { h,a -> h > a }, true)
-        collect("dnbAway", "Фора 0 · гости", { h,a -> a > h }, true)
         collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h,a -> h + a >= 3 })
@@ -345,7 +373,7 @@ class MainActivity : Activity() {
                 addText(box, "${band.label}: ${band.hits}/${band.n} ($rate)", 11, false, if (band.n > 0) Color.WHITE else muted)
             }
             addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
-            addText(box, if (metric.name.startsWith("Фора 0")) "Фора 0: победа — выигрыш, ничья — возврат, поражение — проигрыш. Вероятность считается без ничьих." else "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
+            addText(box, "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
         }
         val explainer = card()
         addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
@@ -371,13 +399,29 @@ class MainActivity : Activity() {
     private fun showAddBetDialog(m: JSONObject, league: String) {
         val p = m.optJSONObject("prediction") ?: return
         val markets = listOf(
-            BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"), BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
-            BetMarket("dnbHome","Фора 0 · ${m.optString("home")}"), BetMarket("dnbAway","Фора 0 · ${m.optString("away")}"), BetMarket("1","П1"),
-            BetMarket("x","Ничья"), BetMarket("2","П2"), BetMarket("over25","ТБ 2.5"),
-            BetMarket("under25","ТМ 2.5"), BetMarket("bttsYes","Обе забьют · Да"),
-            BetMarket("bttsNo","Обе забьют · Нет"), BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
+            BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"),
+            BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
+            BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
             BetMarket("awayOver15","ИТБ 1.5 · ${m.optString("away")}")
-        ).filter { p.has(it.key) && !p.isNull(it.key) }
+        ).filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
+        val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
+        val dcOdds = bestOdds?.optJSONObject("doubleChance")
+        if (dcOdds != null) listOf("1x", "x2", "12").forEach { key ->
+            if (dcOdds.has(key) && !dcOdds.isNull(key) && markets.none { it.key == key })
+                markets.add(BetMarket(key, "Двойной шанс $key"))
+        }
+        val spreadLines = bestOdds?.optJSONArray("spreads")
+        if (spreadLines != null) for (i in 0 until spreadLines.length()) {
+            val line = spreadLines.optJSONObject(i) ?: continue
+            val point = line.optDouble("point", 0.0)
+            if (kotlin.math.abs(point) < 0.001 ||
+                kotlin.math.abs(point * 2.0 - kotlin.math.round(point * 2.0)) > 0.001) continue
+            val team = line.optString("team")
+            val key = "spread:$team:${String.format(Locale.US, "%.1f", point)}"
+            val teamName = if (team == "home") m.optString("home") else m.optString("away")
+            val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
+            markets.add(BetMarket(key, "Фора $teamName $signed"))
+        }
         if (markets.isEmpty()) return
         val form = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(20,8,20,0) }
         form.addView(label(m.optString("home")+" — "+m.optString("away"),16,true))
@@ -394,9 +438,17 @@ class MainActivity : Activity() {
                 "1" -> h?.optDouble("home", Double.NaN)
                 "x" -> h?.optDouble("draw", Double.NaN)
                 "2" -> h?.optDouble("away", Double.NaN)
+                "1x", "x2", "12" -> best.optJSONObject("doubleChance")?.optDouble(marketKey, Double.NaN)
                 "over25" -> t?.optDouble("over25", Double.NaN)
                 "under25" -> t?.optDouble("under25", Double.NaN)
-                else -> null
+                else -> if (marketKey.startsWith("spread:")) {
+                    val parts = marketKey.split(":")
+                    val lines = best.optJSONArray("spreads")
+                    (0 until (lines?.length() ?: 0)).mapNotNull { lines?.optJSONObject(it) }
+                        .firstOrNull { it.optString("team") == parts.getOrNull(1) &&
+                            kotlin.math.abs(it.optDouble("point") - (parts.getOrNull(2)?.toDoubleOrNull() ?: 999.0)) < 0.001 }
+                        ?.optDouble("price", Double.NaN)
+                } else null
             }
             return value?.takeIf { it.isFinite() && it > 1.0 }
         }
@@ -441,10 +493,18 @@ class MainActivity : Activity() {
         if(b.optString("status")!="PENDING" || m.optString("status")!="FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) return
         val h=m.optInt("homeScore"); val a=m.optInt("awayScore")
         val won: Boolean?=when(b.optString("marketKey")) {
-            "1x"->h>=a; "x2"->a>=h; "dnbHome"->if(h==a)null else h>a; "dnbAway"->if(h==a)null else a>h
+            "1x"->h>=a; "x2"->a>=h; "12"->h!=a
             "1"->h>a; "x"->h==a; "2"->a>h; "over25"->h+a>=3; "under25"->h+a<=2
             "bttsYes"->h>0&&a>0; "bttsNo"->h==0||a==0; "homeOver15"->h>=2; "awayOver15"->a>=2
-            else->null
+            else -> if(b.optString("marketKey").startsWith("spread:")) {
+                val parts = b.optString("marketKey").split(":")
+                val handicap = parts.getOrNull(2)?.toDoubleOrNull()
+                when(parts.getOrNull(1)) {
+                    "home" -> handicap?.let { when { h + it > a -> true; h + it < a -> false; else -> null } }
+                    "away" -> handicap?.let { when { a + it > h -> true; a + it < h -> false; else -> null } }
+                    else -> null
+                }
+            } else null
         }
         b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a")
     }
@@ -506,17 +566,17 @@ class MainActivity : Activity() {
         addText(matchesContainer, "КРАТКАЯ СПРАВКА", 9, true, cyan)
         addText(matchesContainer, "Как пользоваться моделью", 22, true)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
-            "Модель оценивает ожидаемые голы команд по историческим данным Openplay и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
+            "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
         section("2. ОСНОВНЫЕ РЫНКИ",
-            "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nФора 0 — победа выбранной команды; при ничьей возврат.\nИТБ 1.5 — команда забьёт минимум 2 гола.")
+            "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nИТБ 1.5 — команда забьёт минимум 2 гола.\nДля ставок доступны только поддерживаемые ненулевые форы.")
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
             "ТБ 2.5 — в матче будет минимум 3 гола.\nОбе забьют (BTTS) — каждая команда забьёт минимум 1 гол.\nЭти рынки отображаются в карточках и оцениваются в разделе «Анализ», но пока не участвуют в выборе сильнейшего сигнала и списке TOP.")
         section("4. TOP И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В TOP попадают матчи на сегодня с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2, форы 0 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
+            "В TOP попадают матчи на сегодня с положительным отклонением от исторической частоты. Сильнейший сигнал выбирается среди 1X, X2 и ИТБ 1.5 обеих команд. Для расчёта базы нужно не менее 100 прошлых матчей лиги. Это не гарантия value или прибыли.")
         section("5. АНАЛИЗ",
-            "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Для форы 0 ничьи исключаются. Чем ниже Brier Score и Log Loss, тем лучше.")
+            "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
         section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
-            "Openplay — источник исторических xG-данных; Football-Data.org — расписание и результаты. Если команду нельзя надёжно сопоставить с Openplay или нет подходящих данных, прогноз не строится. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты на момент прогноза.")
+            "PitchAPI — источник расписания, результатов и shot-level xG. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. The Odds API — отдельный источник букмекерских котировок. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты на момент прогноза.")
     }
 
     private fun renderDay(json: JSONObject) {
@@ -723,7 +783,6 @@ class MainActivity : Activity() {
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = 20f; setStroke(1, Color.rgb(45, 102, 91)) }
                     addText(mainMarkets, "✦  ОСНОВНЫЕ РЫНКИ", 10, true, accent)
                     addMarketRow(mainMarkets, listOf(Triple("1X · хозяева победят ИЛИ будет ничья", pct(pred, "1x"), Color.WHITE), Triple("X2 · гости победят ИЛИ будет ничья", pct(pred, "x2"), Color.WHITE)))
-                    addMarketRow(mainMarkets, listOf(Triple("Фора 0 · ${m.optString("home")}", pct(pred, "dnbHome"), accent), Triple("Фора 0 · ${m.optString("away")}", pct(pred, "dnbAway"), cyan)))
                     addText(mainMarkets, "ГОЛЫ КОМАНД · МИНИМУМ 2", 9, true, muted)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 12, true, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 12, true, Color.WHITE)
@@ -757,6 +816,6 @@ class MainActivity : Activity() {
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
         addText(footer, "Предстоящих матчей: $totalUpcoming  ·  с прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Источник исторических данных: Openplay (Noah Bair), CC BY 4.0.", 10, false, muted)
+        addText(footer, "Источники: PitchAPI (матчи и xG) · The Odds API (котировки).", 10, false, muted)
     }
 }

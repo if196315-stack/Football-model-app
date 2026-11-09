@@ -90,7 +90,7 @@ def read_market(bookmaker, key, home, away):
     market = next((x for x in bookmaker.get("markets", []) if x.get("key") == key), None)
     if not market:
         return None
-    out = {}
+    out = [] if key == "spreads" else {}
     for outcome in market.get("outcomes", []):
         name = str(outcome.get("name", ""))
         price = outcome.get("price")
@@ -111,8 +111,33 @@ def read_market(bookmaker, key, home, away):
                 out["over25"] = float(price)
             elif name.lower() == "under":
                 out["under25"] = float(price)
+        elif key == "double_chance":
+            label = re.sub(r"[^a-z]+", "", name.lower()).replace("home", "1").replace("draw", "x").replace("away", "2").replace("or", "")
+            if label in ("1x", "x2", "12"):
+                out[label] = float(price)
+        elif key == "btts":
+            label = name.strip().lower()
+            if label in ("yes", "no"):
+                out[label] = float(price)
+        elif key == "spreads":
+            point = outcome.get("point")
+            if point is None:
+                continue
+            try:
+                point = float(point)
+            except (TypeError, ValueError):
+                continue
+            # AH0 / DNB is deliberately excluded.
+            if abs(point) < 0.001:
+                continue
+            # The local tracker supports whole- and half-goal settlement only.
+            # Skip quarter lines rather than recording inaccurate full win/loss results.
+            if abs(point * 2 - round(point * 2)) > 0.001:
+                continue
+            if norm(name) in (norm(home), norm(away)):
+                out.append({"team": "home" if norm(name) == norm(home) else "away",
+                            "point": point, "price": float(price)})
     return out or None
-
 
 def event_for_match(match, events, league):
     target_time = parse_time(match.get("utcDate", ""))
@@ -138,35 +163,52 @@ def event_for_match(match, events, league):
 
 def convert_event(event):
     books = []
-    best = {"h2h": {}, "totals": {}}
+    best = {"h2h": {}, "totals": {}, "doubleChance": {}, "btts": {}, "spreads": []}
     for raw in event.get("bookmakers", []):
-        h2h = read_market(raw, "h2h", event.get("home_team", ""), event.get("away_team", "")) or {}
-        totals = read_market(raw, "totals", event.get("home_team", ""), event.get("away_team", "")) or {}
-        item = {
-            "key": raw.get("key"),
-            "title": raw.get("title"),
-            "lastUpdate": raw.get("last_update"),
-            "h2h": h2h,
-            "totals": totals,
+        markets = {
+            "h2h": read_market(raw, "h2h", event.get("home_team", ""), event.get("away_team", "")) or {},
+            "totals": read_market(raw, "totals", event.get("home_team", ""), event.get("away_team", "")) or {},
+            "doubleChance": read_market(raw, "double_chance", event.get("home_team", ""), event.get("away_team", "")) or {},
+            "btts": read_market(raw, "btts", event.get("home_team", ""), event.get("away_team", "")) or {},
+            "spreads": read_market(raw, "spreads", event.get("home_team", ""), event.get("away_team", "")) or [],
         }
-        if h2h or totals:
+        item = {
+            "key": raw.get("key"), "title": raw.get("title"),
+            "lastUpdate": raw.get("last_update"),
+            **markets,
+        }
+        if any(markets.values()):
             books.append(item)
-        for market_key, values in (("h2h", h2h), ("totals", totals)):
-            for outcome, price in values.items():
+        for market_key in ("h2h", "totals", "doubleChance", "btts"):
+            for outcome, price in markets[market_key].items():
                 old = best[market_key].get(outcome)
                 if old is None or price > old["price"]:
                     best[market_key][outcome] = {
-                        "price": price,
-                        "bookmaker": raw.get("title", raw.get("key", ""))
+                        "price": price, "bookmaker": raw.get("title", raw.get("key", ""))
                     }
+        for quote in markets["spreads"]:
+            candidate = {**quote, "bookmaker": raw.get("title", raw.get("key", ""))}
+            old = next((x for x in best["spreads"]
+                        if x["team"] == candidate["team"] and abs(x["point"] - candidate["point"]) < 0.001), None)
+            if old is None:
+                best["spreads"].append(candidate)
+            elif candidate["price"] > old["price"]:
+                old.update(candidate)
     compact_best = {
         market: {key: value["price"] for key, value in values.items()}
-        for market, values in best.items() if values
+        for market, values in best.items() if market != "spreads" and values
     }
+    if best["spreads"]:
+        compact_best["spreads"] = best["spreads"]
     best_books = {
         market: {key: value["bookmaker"] for key, value in values.items()}
-        for market, values in best.items() if values
+        for market, values in best.items() if market != "spreads" and values
     }
+    if best["spreads"]:
+        best_books["spreads"] = [
+            {"team": x["team"], "point": x["point"], "bookmaker": x["bookmaker"]}
+            for x in best["spreads"]
+        ]
     return {
         "eventId": event.get("id"),
         "updatedAt": datetime.now(timezone.utc).isoformat(),
@@ -212,7 +254,7 @@ def main():
                 params={
                     "apiKey": api_key,
                     "regions": "eu",
-                    "markets": "h2h,totals",
+                    "markets": "h2h,totals,spreads,double_chance,btts",
                     "oddsFormat": "decimal",
                     "dateFormat": "iso",
                 },
