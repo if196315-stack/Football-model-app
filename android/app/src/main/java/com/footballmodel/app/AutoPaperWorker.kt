@@ -17,6 +17,8 @@ import java.util.TimeZone
 import kotlin.math.abs
 import kotlin.math.max
 
+internal object AutoPaperExecutionLock
+
 class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
     private val prefs = context.getSharedPreferences("bet_history", Context.MODE_PRIVATE)
     private val settings = context.getSharedPreferences("bank_settings", Context.MODE_PRIVATE)
@@ -27,7 +29,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
             val bets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
-            val changed = process(domestic, bets)
+            val changed = synchronized(AutoPaperExecutionLock) { process(domestic, bets) }
             if (changed) prefs.edit().putString("bets", bets.toString()).commit()
             Result.success()
         } catch (_: Exception) {
