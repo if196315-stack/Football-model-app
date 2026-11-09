@@ -1,0 +1,30 @@
+name: Diagnose direct MelBet pre-match feed
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/diagnose_melbet_direct.py'
+      - '.github/workflows/diagnose-melbet-direct.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: melbet-direct-readonly-diagnostics
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install diagnostic dependency
+        run: python -m pip install requests
+      - name: Probe public MelBet match feeds
+        run: python backend/diagnose_melbet_direct.py
