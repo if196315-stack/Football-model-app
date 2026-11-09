@@ -15,6 +15,13 @@ import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.*
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import org.json.JSONObject
 import org.json.JSONArray
 import java.net.HttpURLConnection
@@ -23,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.GZIPInputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 class MainActivity : Activity() {
@@ -62,6 +70,28 @@ class MainActivity : Activity() {
             if (refreshButton.isEnabled && currentTab in listOf("matches", "history", "desk")) loadData()
             liveRefreshHandler.postDelayed(this, 30_000)
         }
+    }
+
+    private fun scheduleAutoPaperWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val periodic = PeriodicWorkRequestBuilder<AutoPaperWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "iq_match_auto_paper_periodic",
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodic
+        )
+        val immediate = OneTimeWorkRequestBuilder<AutoPaperWorker>()
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+            "iq_match_auto_paper_initial",
+            ExistingWorkPolicy.KEEP,
+            immediate
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -146,6 +176,7 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        scheduleAutoPaperWorker()
         // Мгновенный старт: показываем последний успешный снимок до сетевого обновления.
         feedCache.getString("merged_json", null)?.let { cached ->
             try {
@@ -167,6 +198,13 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        val latestBets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        if (latestBets.toString() != bets.toString()) {
+            bets = latestBets
+            tabViewCache.clear()
+            renderedKey = null
+            if (data != null) render()
+        }
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
         liveRefreshHandler.postDelayed(liveRefreshTask, 30_000)
     }
