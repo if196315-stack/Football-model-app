@@ -79,6 +79,64 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertEqual(diagnostics["matches_with_active_prematch_board"], 2)
         self.assertEqual(diagnostics["matches_with_selected_markets"], 2)
 
+    def test_attaches_model_probabilities_to_matching_quote_rows(self):
+        source = {
+            "id": 9001,
+            "startTimestamp": 1795287600000,
+            "homeTeam": {"name": "Arsenal"},
+            "awayTeam": {"name": "Chelsea"},
+            "oddsBk": {"betboom": {
+                "updatedAt": 1794311880000,
+                "updatedAtByStage": {"prematch": 1794311880000},
+                "isBettingActiveByStage": {"prematch": True},
+                "markets": {
+                    "double_chance": {"status": "open", "stage": "prematch",
+                                      "stakes": {"1x": {"factor": 1.3}, "x2": {"factor": 2.7},
+                                                 "12": {"factor": 1.4}}},
+                    "total_goals": {"status": "open", "stage": "prematch",
+                                    "stakes": {"over": {"lines": [
+                                        {"argument": 1.5, "factor": 1.2},
+                                        {"argument": 2.5, "factor": 1.9}]},
+                                               "under": {"lines": [{"argument": 2.5, "factor": 1.9}]}}},
+                    "total_team_1": {"status": "open", "stage": "prematch",
+                                     "stakes": {"over": {"lines": [
+                                         {"argument": 0.5, "factor": 1.4}]}}},
+                    "both_teams_to_score": {"status": "open", "stage": "prematch",
+                                            "stakes": {"yes": {"factor": 1.75},
+                                                       "no": {"factor": 2.05}}},
+                }},
+        }
+        cache = {"matches": {
+            "ucl-1": {"id": "ucl-1", "leagueCode": "UCL", "season": "2026/2027",
+                      "date": "2026-11-21T19:00:00Z", "status": "not_started",
+                      "home": "Arsenal", "away": "Chelsea"},
+        }}
+        markets = {
+            "double_chance": {"1x": 0.65, "x2": 0.60, "12": 0.55},
+            "match_total": {"over": {"1.5": 0.80, "2.5": 0.70},
+                            "under": {"2.5": 0.30}},
+            "team_total": {"home": {"over": {"0.5": 0.90}, "under": {}},
+                           "away": {"over": {}, "under": {}}},
+            "btts": {"yes": 0.60, "no": 0.40},
+        }
+        predictions = {"ucl-1": {
+            "model_version": "uefa-xg-poisson-v1",
+            "predicted_at": "2026-11-10T12:00:00+00:00",
+            "history_max_date": "2026-11-05",
+            "markets": markets,
+        }}
+        diagnostics = {}
+        rows = snapshot_rows(cache, [source], "2026-11-10T12:00:00+00:00",
+                             diagnostics, predictions)
+        self.assertTrue(rows)
+        self.assertTrue(all(row["model_probability_status"] == "available" for row in rows))
+        self.assertTrue(all(row["model_version"] == "uefa-xg-poisson-v1" for row in rows))
+        dc = next(row for row in rows if row["market"] == "double_chance" and row["outcome"] == "1x")
+        self.assertEqual(dc["model_probability"], 0.65)
+        over = next(row for row in rows if row["market"] == "match_total_over" and row["point"] == 2.5)
+        self.assertEqual(over["model_probability"], 0.70)
+        self.assertEqual(diagnostics["matches_with_model_prediction"], 1)
+
     def test_empty_provider_data_produces_no_snapshots(self):
         cache = {"matches": {"1": {
             "leagueCode": "UCL", "status": "not_started",
