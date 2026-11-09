@@ -1,0 +1,22 @@
+name: Diagnose API-Football odds coverage
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install diagnostic dependency
+        run: python -m pip install requests
+      - name: Check five leagues (maximum five API requests)
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: python backend/diagnose_api_football_odds.py
