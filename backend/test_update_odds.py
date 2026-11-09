@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds import read_market, convert_event
+from update_odds import read_market, convert_event, merge_quote
 
 
 class OddsMarketParsingTests(unittest.TestCase):
@@ -120,6 +120,65 @@ class OddsMarketParsingTests(unittest.TestCase):
         quote = convert_event(event)
         self.assertEqual(quote["best"]["btts"], {"yes": 1.72, "no": 2.08})
         self.assertEqual(quote["bookmakers"][0]["btts"], {"yes": 1.72, "no": 2.08})
+
+    def test_team_totals_parse_home_and_away_lines(self):
+        bookmaker = {"markets": [{"key": "team_totals", "outcomes": [
+            {"name": "Over", "description": "Arsenal", "point": 1.5, "price": 1.82},
+            {"name": "Under", "description": "Arsenal", "point": 1.5, "price": 2.02},
+            {"name": "Over", "description": "Chelsea", "point": 0.5, "price": 1.74},
+            {"name": "Over", "description": "Unknown FC", "point": 0.5, "price": 1.9},
+            {"name": "Over", "description": "Arsenal", "point": 1.5, "price": 1.0},
+        ]}]}
+        self.assertEqual(read_market(bookmaker, "team_totals", "Arsenal", "Chelsea"), [
+            {"team": "home", "point": 1.5, "side": "over", "price": 1.82},
+            {"team": "home", "point": 1.5, "side": "under", "price": 2.02},
+            {"team": "away", "point": 0.5, "side": "over", "price": 1.74},
+        ])
+
+    def test_convert_event_serializes_team_totals_and_best_bookmaker(self):
+        event = {"id": "event-team-totals", "home_team": "Arsenal", "away_team": "Chelsea",
+                 "bookmakers": [{"key": "book", "title": "Bookmaker", "markets": [
+                     {"key": "team_totals", "outcomes": [
+                         {"name": "Over", "description": "Arsenal", "point": 1.5, "price": 1.82},
+                         {"name": "Under", "description": "Chelsea", "point": 0.5, "price": 1.95},
+                     ]}
+                 ]}]}
+        quote = convert_event(event)
+        self.assertEqual(len(quote["best"]["teamTotals"]), 2)
+        self.assertEqual(quote["best"]["teamTotals"][0]["team"], "home")
+        self.assertEqual(quote["best"]["teamTotals"][0]["side"], "over")
+        self.assertEqual(quote["bestBookmakers"]["teamTotals"][0]["bookmaker"], "Bookmaker")
+
+    def test_merge_quote_fills_missing_markets_without_overwriting_bsd(self):
+        existing = {
+            "eventId": "bsd-event",
+            "best": {"h2h": {"home": 2.1, "draw": 3.2}, "totals": {"over25": 1.9}},
+            "bestBookmakers": {"h2h": {"home": "BSD consensus"}},
+            "bookmakers": [{"key": "bsd_consensus", "title": "BSD consensus"}],
+        }
+        incoming = {
+            "eventId": "odds-event",
+            "updatedAt": "2026-11-09T12:00:00+00:00",
+            "best": {
+                "h2h": {"home": 2.3, "away": 3.4},
+                "doubleChance": {"1x": 1.3},
+                "teamTotals": [{"team": "home", "point": 1.5, "side": "over", "price": 1.8}],
+            },
+            "bestBookmakers": {
+                "h2h": {"home": "Book A", "away": "Book B"},
+                "doubleChance": {"1x": "Book A"},
+                "teamTotals": [{"team": "home", "point": 1.5, "side": "over", "bookmaker": "Book A"}],
+            },
+            "bookmakers": [{"key": "book-a", "title": "Book A"}],
+        }
+        merged = merge_quote(existing, incoming)
+        self.assertEqual(merged["best"]["h2h"]["home"], 2.1)
+        self.assertEqual(merged["best"]["h2h"]["away"], 3.4)
+        self.assertEqual(merged["best"]["totals"]["over25"], 1.9)
+        self.assertEqual(merged["best"]["doubleChance"]["1x"], 1.3)
+        self.assertEqual(len(merged["best"]["teamTotals"]), 1)
+        self.assertEqual(merged["eventId"], "bsd-event")
+        self.assertEqual(len(merged["bookmakers"]), 2)
 
 if __name__ == "__main__":
     unittest.main()
