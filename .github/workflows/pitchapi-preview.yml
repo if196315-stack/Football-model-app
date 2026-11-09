@@ -57,7 +57,6 @@ jobs:
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
           PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '5000' }}
-          PITCHAPI_RETRY_UNRESOLVED: "true"
           PITCHAPI_PREVIOUS_DATA_PATH: backend/cache/previous_odds_data.json
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
