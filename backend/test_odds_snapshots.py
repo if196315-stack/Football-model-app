@@ -30,7 +30,7 @@ class OddsSnapshotTests(unittest.TestCase):
                         {"point": 2.5, "side": "under", "price": 1.99},
                     ],
                 },
-                "bestBookmakers": {"doubleChance": {"1x": "Book A"}}
+                "bestBookmakers": {"doubleChance": {"1x": "MELBET"}}
             }
         }]}]}
 
@@ -45,6 +45,7 @@ class OddsSnapshotTests(unittest.TestCase):
         self.assertEqual(len(spread_rows), 2)
         self.assertTrue(all(abs(row["point"]) < 0.001 for row in spread_rows))
         self.assertTrue(all(row["retrieved_at"] == "2026-11-09T12:00:00+00:00" for row in rows))
+        self.assertTrue(all(row["bookmaker"] == "MELBET" for row in rows))
 
     def test_append_preserves_prior_history(self):
         with tempfile.TemporaryDirectory() as tmp:
