@@ -1031,6 +1031,8 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Тотал 3.5: Б ${pct(pred, "over35")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("home")}: ${pct(pred, "homeOver15")}", 11, false, Color.WHITE)
                     addText(mainMarkets, "ИТБ 1.5 · ${m.optString("away")}: ${pct(pred, "awayOver15")}", 11, false, Color.WHITE)
+                    addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
+                    addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
                     addText(box, "ДОПОЛНИТЕЛЬНЫЕ ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · БОЛЬШЕ", 10, true, cyan)
                     for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
                         addText(box, "ИТ ${teamName}", 10, true, muted)
@@ -1039,7 +1041,7 @@ class MainActivity : Activity() {
                             addText(box, "$label: Б ${pct(pred, "${teamKey}Over$line")}", 11, false, muted)
                         }
                     }
-                    addText(box, "Ожидаемые голы  ${String.format(Locale.US, "%.2f : %.2f", pred.optDouble("expectedHomeGoals"), pred.optDouble("expectedAwayGoals"))}", 12, true)
+
                     renderOdds(box, m.optJSONObject("odds"))
                     actionButton(box, "＋ Добавить ставку") { showAddBetDialog(m, league.optString("name")) }
                 }
