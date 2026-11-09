@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "backend/update_odds.py"
+      - "backend/update_odds_api_sport.py"
       - "backend/collect_odds_snapshots.py"
       - ".github/workflows/update-odds-only.yml"
   workflow_dispatch:
@@ -32,10 +32,10 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: python -m pip install requests pandas
-      - name: Fill missing markets via The Odds API
+      - name: Refresh bookmaker odds via API-Sport
         env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-        run: python backend/update_odds.py
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/update_odds_api_sport.py
       - name: Append immutable model-market odds snapshots
         run: python backend/collect_odds_snapshots.py --input docs/data.json --output artifacts/odds-snapshots.jsonl
       - name: Commit refreshed odds and snapshot history
