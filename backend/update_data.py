@@ -130,6 +130,7 @@ def markets(lh,la):
             if x and y:btts+=p
     result={"1":p1,"x":px,"2":p2,"1x":p1+px,"x2":px+p2,
             "bttsYes":btts,"bttsNo":1-btts,
+            "ahMinus05Home":p1,"ahPlus05Home":p1+px,
             "expectedHomeGoals":lh,"expectedAwayGoals":la}
     for line in (1.5,2.5,3.5):
         threshold=int(line)+1
