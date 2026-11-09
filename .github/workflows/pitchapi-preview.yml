@@ -1,13 +1,7 @@
 name: PitchAPI migration preview
 
 on:
-  push:
-    branches:
-      - feature/pitchapi-data-source
-    paths:
-      - 'backend/update_data_pitchapi.py'
-      - 'backend/pitchapi_data_source.py'
-      - '.github/workflows/pitchapi-preview.yml'
+  # Preview refreshes may consume substantial PitchAPI quota; run only on demand.
   workflow_dispatch:
     inputs:
       max_shot_requests:
