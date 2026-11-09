@@ -639,6 +639,7 @@ class MainActivity : Activity() {
                     if (changed) {
                         data = json
                         lastPayload = payload
+                        processAutoPaperBets(json)
                         tabViewCache.clear()
                         renderedKey = null
                         render()
@@ -824,10 +825,118 @@ class MainActivity : Activity() {
     }
 
 
+    private fun marketKeyForAutoSignal(signal: JSONObject, match: JSONObject): String? {
+        val side = signal.optString("side")
+        if (side == "1X") return "1x"
+        if (side == "X2") return "x2"
+        if (side == "ОЗ ДА") return "bttsYes"
+        if (side.startsWith("ТБ ")) {
+            val line = side.removePrefix("ТБ ").trim().toDoubleOrNull() ?: return null
+            return "over" + (line * 10.0).toInt().toString().padStart(2, '0')
+        }
+        if (side.startsWith("ИТБ ")) {
+            val line = side.removePrefix("ИТБ ").substringBefore("·").trim().toDoubleOrNull() ?: return null
+            val team = side.substringAfter("·", "").trim()
+            val prefix = when (team) {
+                match.optString("home") -> "homeOver"
+                match.optString("away") -> "awayOver"
+                else -> return null
+            }
+            return prefix + (line * 10.0).toInt().toString().padStart(2, '0')
+        }
+        return null
+    }
+
+    // Open only after a changed odds/feed snapshot, on match day,
+    // with kickoff within 12 hours and a BetBoom quote updated inside that window.
+    private fun processAutoPaperBets(json: JSONObject) {
+        val now = System.currentTimeMillis()
+        var changed = false
+        for (i in 0 until bets.length()) {
+            val existing = bets.optJSONObject(i) ?: continue
+            if (existing.optString("status") == "PENDING" && existing.optString("marketKey") != "COUPON") {
+                val match = findMatch(json, existing) ?: continue
+                val before = existing.optString("status")
+                settleBet(existing, match)
+                if (before != existing.optString("status")) changed = true
+            }
+        }
+        val competitions = json.optJSONArray("competitions")
+        if (competitions != null) for (i in 0 until competitions.length()) {
+            val competition = competitions.optJSONObject(i) ?: continue
+            val matches = competition.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val match = matches.optJSONObject(j) ?: continue
+                if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val kickoff = parseFeedTimeMillis(match.optString("utcDate")) ?: continue
+                val hoursToKickoff = (kickoff - now) / 3600000.0
+                if (hoursToKickoff < 0.0 || hoursToKickoff > 12.0) continue
+                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                val today = dayFormat.format(java.util.Date(now))
+                if (dayFormat.format(java.util.Date(kickoff)) != today) continue
+                val odds = match.optJSONObject("odds") ?: continue
+                val quoteAge = currentBookmakerQuoteAgeSeconds(odds) ?: continue
+                if (quoteAge < 0.0 || quoteAge > 300.0) continue
+                val quoteUpdatedAt = now - (quoteAge * 1000.0).toLong()
+                if (quoteUpdatedAt < kickoff - 12L * 60L * 60L * 1000L) continue
+                val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                    ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaPaperSignal(match) else null
+                    ?: continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
+                val price = topSignalOdds(signal, match) ?: continue
+                val probability = signal.optDouble("modelProbability", Double.NaN)
+                val edge = signal.optDouble("edgePp", Double.NaN)
+                val ev = probability * price - 1.0
+                if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
+                val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
+                val matchId = match.optString("id", match.optString("utcDate") + match.optString("home") + match.optString("away"))
+                val id = "AI_AUTO:" + matchId + ":" + marketKey
+                var duplicate = false
+                for (k in 0 until bets.length()) {
+                    if (bets.optJSONObject(k)?.optString("id") == id) { duplicate = true; break }
+                }
+                if (duplicate) continue
+                val bank = currentBankroll()
+                val stake = maxOf(bank * 0.005, 25.0)
+                if (stake > bank * 0.01 + 0.000001) continue
+                val localDay = dayFormat.format(java.util.Date(kickoff))
+                var dailyExposure = 0.0
+                for (k in 0 until bets.length()) {
+                    val prior = bets.optJSONObject(k) ?: continue
+                    if (prior.optString("date").take(10) == localDay &&
+                        prior.optString("status") in listOf("PENDING", "WON", "LOST")) dailyExposure += prior.optDouble("stake", 0.0)
+                }
+                bets.put(JSONObject()
+                    .put("id", id)
+                    .put("source", "AI_AUTO")
+                    .put("status", "PENDING")
+                    .put("matchId", matchId)
+                    .put("league", competition.optString("name"))
+                    .put("date", match.optString("utcDate"))
+                    .put("home", match.optString("home"))
+                    .put("away", match.optString("away"))
+                    .put("market", signal.optString("side"))
+                    .put("marketKey", marketKey)
+                    .put("odds", price)
+                    .put("stake", stake)
+                    .put("probability", probability)
+                    .put("edgePp", edge)
+                    .put("expectedValue", ev)
+                    .put("quoteUpdatedAt", odds.optString("updatedAt"))
+                    .put("createdAt", now)
+                    .put("matchStatus", "SCHEDULED")
+                    .put("score", ""))
+                changed = true
+            }
+        }
+        if (changed) saveBets()
+    }
+
     private fun saveBets() {
         betPrefs.edit().putString("bets", bets.toString()).apply()
         tabViewCache.remove("history|ALL")
         tabViewCache.remove("desk|ALL")
+        tabViewCache.remove("stats|ALL")
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
         val b = Button(this).apply {
