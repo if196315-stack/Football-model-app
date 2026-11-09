@@ -255,6 +255,8 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
     window_active_team_markets = 0
     window_active_fulltime_team_markets = 0
     window_parsed_team_total_quotes = 0
+    window_team_market_examples = []
+    unknown_active_fulltime_examples = []
     for fixture in fixtures:
         stamp = fixture.get("startTimestamp")
         try:
@@ -293,7 +295,17 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
                     counts["team_total_markets_active_fulltime"] += 1
             elif team_hint:
                 counts["team_like_markets_not_classified"] += 1
+                if active and is_supported_full_time_market(slug, market) and len(unknown_active_fulltime_examples) < 30:
+                    unknown_active_fulltime_examples.append({
+                        "slug": str(slug), "name": name, "fixture_date": str(fixture_date),
+                    })
             if kind == "tt" or team_hint:
+                if in_window and len(window_team_market_examples) < 30:
+                    window_team_market_examples.append({
+                        "slug": str(slug), "name": name, "kind": kind,
+                        "status": market.get("status"), "stage": market.get("stage"),
+                        "fixture_date": str(fixture_date),
+                    })
                 entry = examples.setdefault(str(slug), {
                     "name": name, "kind": kind, "status": market.get("status"),
                     "stage": market.get("stage"), "stakes": {}, "fixture_date": str(fixture_date) if fixture_date else None,
@@ -318,6 +330,15 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
         "team_total_markets_active_fulltime": counts["team_total_markets_active_fulltime"],
         "team_like_markets_not_classified": counts["team_like_markets_not_classified"],
         "parsed_team_total_quotes": counts["parsed_team_total_quotes"],
+        "request_window": {
+            "start": str(window_start), "end": str(window_end),
+            "provider_fixtures": window_fixtures,
+            "active_team_total_markets": window_active_team_markets,
+            "active_fulltime_team_total_markets": window_active_fulltime_team_markets,
+            "parsed_team_total_quotes": window_parsed_team_total_quotes,
+        },
+        "window_team_market_examples": window_team_market_examples,
+        "unknown_active_fulltime_examples": unknown_active_fulltime_examples,
         "market_examples": dict(list(sorted(examples.items()))[:40]),
     }
 
