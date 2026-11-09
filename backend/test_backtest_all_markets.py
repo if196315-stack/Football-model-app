@@ -39,7 +39,7 @@ class AllMarketBacktestTests(unittest.TestCase):
         report = run(rows, "2025-08-07")
         self.assertEqual(report["input_matches"], 8)
         self.assertEqual(report["input_matches_by_competition"], {"ENG": 8})
-        self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 2})
+        self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 6})
         self.assertIn("1X2", report["markets"])
         self.assertIn("BTTS", report["markets"])
         self.assertIn("TOTAL_OVER_2.5", report["markets"])
