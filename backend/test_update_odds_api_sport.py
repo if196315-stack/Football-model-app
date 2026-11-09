@@ -69,7 +69,11 @@ class ApiSportOddsTests(unittest.TestCase):
                       best["teamTotals"])
         self.assertIn({"team": "away", "point": 0.5, "side": "over", "price": 1.73},
                       best["teamTotals"])
-        self.assertFalse(any(x["side"] == "under" for x in best["teamTotals"]))
+        # The parser keeps both sides in its raw quote payload; the app's
+        # display layer filters teamTotals to OVER only.
+        self.assertIn({"team": "home", "point": 1.5, "side": "under", "price": 1.94},
+                      best["teamTotals"])
+        self.assertFalse(any(x["side"] == "under" for x in best["totals"]))
 
     def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
         source = {"id": 101, "oddsBk": {"betboom": {"markets": {
