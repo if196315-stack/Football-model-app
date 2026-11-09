@@ -1,7 +1,6 @@
 name: PitchAPI migration preview
 
 on:
-  # Run automatically when the preview branch is updated; manual reruns remain available.
   push:
     branches:
       - feature/pitchapi-data-source
@@ -23,7 +22,7 @@ on:
           - "5000"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: pitchapi-preview-${{ github.ref }}
@@ -36,6 +35,8 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -68,6 +69,13 @@ jobs:
             --input artifacts/pitchapi-clean-candidate.csv \
             --output artifacts/pitchapi-backtest-report.json \
             --holdout-from 2026-07-01
+      - name: Publish machine-readable summary to preview branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/pitchapi-backtest-report.json artifacts/pitchapi-clean-candidate-manifest.json
+          git commit -m "data: publish PitchAPI backtest summary [skip ci]" || echo "No report changes to publish"
+          git push
       - name: Upload preview and refreshed cache
         uses: actions/upload-artifact@v4
         with:
