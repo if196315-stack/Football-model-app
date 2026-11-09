@@ -1,8 +1,7 @@
-"""PitchAPI-backed replacement updater for docs/data.json.
+"""PitchAPI-backed production updater for docs/data.json.
 
-Kept separate from the legacy production updater until explicitly activated.
-The Odds API remains a separate provider and existing quotes are carried
-forward by stable fixture identity (competition, teams, kickoff), not provider ID.
+The Odds API remains a separate provider; existing quotes are carried forward
+by stable fixture identity (competition, teams, kickoff), not provider ID.
 """
 from __future__ import annotations
 
