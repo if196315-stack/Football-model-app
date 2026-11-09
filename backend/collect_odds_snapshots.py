@@ -37,7 +37,7 @@ def snapshot_rows(data, retrieved_at=None):
             for outcome, price in (best.get("doubleChance") or {}).items():
                 if outcome in ("1x", "x2", "12") and valid_price(price):
                     yield {**common, "market": "double_chance", "outcome": outcome,
-                           "price": float(price), "bookmaker": "MELBET"
+                           "price": float(price), "bookmaker": "MELBET"}
 
             for quote in best.get("spreads") or []:
                 if quote.get("team") not in ("home", "away") or not valid_price(quote.get("price")):
