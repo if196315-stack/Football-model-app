@@ -28,6 +28,44 @@ class OddsMarketParsingTests(unittest.TestCase):
         self.assertNotIn("dnbAway", prediction)
         self.assertNotIn("ah0Home", prediction)
         self.assertIsNone(prediction["strongestSignal"])
+
+    def test_prediction_archive_sanitizes_existing_and_new_entries(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        import update_data
+
+        with tempfile.TemporaryDirectory() as tmp:
+            old_out = update_data.OUT
+            update_data.OUT = Path(tmp) / "data.json"
+            old_prediction = {
+                "dnbHome": 0.61, "ah0Away": 0.39,
+                "strongestSignal": {"market": "DNB", "side": "Draw No Bet"}
+            }
+            update_data.OUT.write_text(json.dumps({
+                "predictionArchive": {"matches": {
+                    "old-id": {"prediction": old_prediction, "status": "SCHEDULED"}
+                }}
+            }), encoding="utf-8")
+            new_prediction = {
+                "dnbAway": 0.4,
+                "strongestSignal": {"market": "Фора 0 гостей", "side": "Фора 0"}
+            }
+            payload = {"competitions": [{"name": "Test League", "matches": [{
+                "id": "new-id", "status": "SCHEDULED",
+                "utcDate": "2099-01-01T12:00:00Z",
+                "home": "Home", "away": "Away", "prediction": new_prediction
+            }]}]}
+            try:
+                archive = update_data.update_prediction_archive(payload)
+                for match_id in ("old-id", "new-id"):
+                    prediction = archive["matches"][match_id]["prediction"]
+                    self.assertFalse(any(k in prediction for k in (
+                        "dnbHome", "dnbAway", "ah0Home", "ah0Away"
+                    )))
+                    self.assertIsNone(prediction["strongestSignal"])
+            finally:
+                update_data.OUT = old_out
     def test_double_chance_labels(self):
         bookmaker = {"markets": [{"key": "double_chance", "outcomes": [
             {"name": "Home/Draw", "price": 1.35},
