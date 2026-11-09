@@ -53,7 +53,7 @@ class MainActivity : Activity() {
         val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true; clipToPadding = false; setPadding(0, 0, 0, 18); overScrollMode = View.OVER_SCROLL_NEVER }
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(16, 34, 16, 28)
+            setPadding(16, 22, 16, 28)
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
         scroll.addView(root)
@@ -63,12 +63,23 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
+        val crest = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(104, 82, 43), Color.rgb(39, 37, 34))).apply {
+                cornerRadius = dp(17).toFloat()
+                setStroke(dp(1), Color.rgb(177, 137, 65))
+            }
+            addView(label("🏆", 22, true, gold).apply { gravity = Gravity.CENTER })
+            addView(label("IQ", 8, true, Color.WHITE).apply { gravity = Gravity.CENTER })
+        }
+        top.addView(crest, LinearLayout.LayoutParams(dp(54), dp(54)).apply { rightMargin = dp(12) })
         val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        brand.addView(label("IQ Match", 25, true, Color.WHITE))
-        brand.addView(label("SMART FOOTBALL INTELLIGENCE", 9, true, cyan))
+        brand.addView(label("IQ MATCH", 24, true, Color.WHITE))
+        brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
         refreshButton = Button(this).apply {
-            text = "↻"
             text = "↻"
             textSize = 21f
             isAllCaps = false
@@ -97,7 +108,7 @@ class MainActivity : Activity() {
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 64).apply { topMargin = 12; bottomMargin = 14 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 58).apply { topMargin = 16; bottomMargin = 14 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -142,8 +153,8 @@ class MainActivity : Activity() {
     private fun card(parent: LinearLayout = matchesContainer): LinearLayout {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(15), dp(16), dp(15))
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), Color.rgb(34, 57, 78)) }
+            setPadding(dp(17), dp(17), dp(17), dp(17))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply { cornerRadius = dp(23).toFloat(); setStroke(dp(1), Color.rgb(43, 68, 91)) }
             elevation = dp(2).toFloat()
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
@@ -251,19 +262,32 @@ class MainActivity : Activity() {
     private fun oddsText(obj: JSONObject, key: String): String =
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
+    // Compact two-column market grid: four team totals remain readable on phone screens.
     private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>) {
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        items.forEach { item ->
-            val tile = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(dp(11), dp(10), dp(11), dp(10))
-                background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(29, 67, 74), Color.rgb(18, 42, 58))).apply { cornerRadius = dp(15).toFloat(); setStroke(dp(1), Color.rgb(55, 103, 105)) }
+        items.chunked(2).forEach { pair ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
             }
-            tile.addView(label(item.first, 9, true, muted))
-            tile.addView(label(item.second, 19, true, item.third))
-            row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(3), dp(5), dp(3), dp(5)) })
+            pair.forEach { item ->
+                val tile = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(dp(12), dp(10), dp(12), dp(10))
+                    background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(Color.rgb(31, 70, 76), Color.rgb(17, 39, 56))).apply {
+                        cornerRadius = dp(15).toFloat()
+                        setStroke(dp(1), Color.rgb(58, 111, 111))
+                    }
+                }
+                tile.addView(label(item.first, 10, true, Color.rgb(177, 198, 207)))
+                tile.addView(label(item.second, 20, true, item.third))
+                row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                    setMargins(dp(3), dp(5), dp(3), dp(5))
+                })
+            }
+            if (pair.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+            parent.addView(row)
         }
-        parent.addView(row)
     }
 
     private fun pct(o: JSONObject, key: String): String =
