@@ -41,7 +41,7 @@ def uefa_rows(path):
 
 def market_outcomes(hg,ag):
     total=hg+ag
-    d={"1X2":str(1 if hg>ag else 2 if hg<ag else 0),
+    d={"1X2":str("1" if hg>ag else "2" if hg<ag else "X"),
        "DC_1X":int(hg>=ag),"DC_X2":int(ag>=hg),
        "BTTS":int(hg>0 and ag>0),
        "DNB_HOME":str("W" if hg>ag else "L" if hg<ag else "P"),
