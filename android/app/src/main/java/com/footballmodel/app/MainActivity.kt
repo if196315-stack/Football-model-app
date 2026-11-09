@@ -680,6 +680,7 @@ class MainActivity : Activity() {
     private fun saveBets() {
         betPrefs.edit().putString("bets", bets.toString()).apply()
         tabViewCache.remove("history|ALL")
+        tabViewCache.remove("desk|ALL")
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
         val b = Button(this).apply {
