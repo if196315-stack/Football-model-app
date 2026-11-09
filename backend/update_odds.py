@@ -294,10 +294,15 @@ def main():
     data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
     api_key = os.getenv("ODDS_API_KEY", "").strip()
     if not api_key:
-        data["oddsStatus"] = "missing_api_key"
-        data["oddsNotice"] = "Добавьте ODDS_API_KEY в GitHub Secrets, чтобы получать коэффициенты."
+        bsd_count = int(data.get("bsdOddsUpdated") or 0)
+        data["oddsStatus"] = "ready" if bsd_count else "missing_api_key"
+        data["oddsNotice"] = (
+            f"BSD обновил базовые котировки для {bsd_count} матчей; The Odds API не настроен."
+            if bsd_count else
+            "Добавьте ODDS_API_KEY в GitHub Secrets, чтобы дополнять рынки котировками букмекеров."
+        )
         DATA_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-        print("ODDS_API_KEY is not configured; model data left unchanged.")
+        print(f"The Odds API skipped; BSD supplied odds for {bsd_count} matches.")
         return
 
     quota_remaining = None
