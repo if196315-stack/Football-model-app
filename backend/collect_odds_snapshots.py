@@ -64,12 +64,14 @@ def append_snapshots(input_path, output_path, retrieved_at=None):
     data = json.loads(Path(input_path).read_text(encoding="utf-8"))
     rows = list(snapshot_rows(data, retrieved_at))
     output = Path(output_path)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open("a", encoding="utf-8") as handle:
-        for row in rows:
-            handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+    if rows:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with output.open("a", encoding="utf-8") as handle:
+            for row in rows:
+                handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
     summary = {"retrieved_at": retrieved_at or datetime.now(timezone.utc).isoformat(),
-               "records_appended": len(rows), "archive": str(output)}
+               "records_appended": len(rows), "archive": str(output),
+               "archive_written": bool(rows)}
     print(json.dumps(summary, ensure_ascii=False))
     return summary
 
