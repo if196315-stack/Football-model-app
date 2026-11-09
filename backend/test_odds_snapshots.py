@@ -14,6 +14,7 @@ class OddsSnapshotTests(unittest.TestCase):
             "id": 123, "utcDate": "2026-11-10T17:30:00Z",
             "home": "Arsenal", "away": "Chelsea",
             "odds": {
+                "bookmaker": "MELBET",
                 "best": {
                     "doubleChance": {"1x": 1.31, "x2": 1.88, "12": 1.29},
                     "spreads": [
