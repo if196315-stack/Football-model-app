@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds import read_market, convert_event, merge_quote
+from update_odds import read_market, convert_event, merge_quote, event_for_match, parse_time
 from update_bsd_odds import make_quote
 
 
@@ -68,6 +68,36 @@ class OddsMarketParsingTests(unittest.TestCase):
                     self.assertIsNone(prediction["strongestSignal"])
             finally:
                 update_data.OUT = old_out
+    def test_date_only_fixture_matches_provider_event_without_timezone_error(self):
+        match = {
+            "utcDate": "2026-11-20",
+            "home": "Arsenal",
+            "away": "Chelsea",
+            "status": "SCHEDULED",
+        }
+        events = [{
+            "commence_time": "2026-11-20T20:00:00Z",
+            "home_team": "Arsenal",
+            "away_team": "Chelsea",
+            "id": "provider-event-1",
+        }]
+        self.assertEqual(event_for_match(match, events, "PL")["id"], "provider-event-1")
+
+    def test_timestamp_matching_normalizes_naive_and_aware_datetimes(self):
+        match = {
+            "utcDate": "2026-11-20T20:00:00",
+            "home": "Arsenal",
+            "away": "Chelsea",
+        }
+        events = [{
+            "commence_time": "2026-11-20T20:00:00+00:00",
+            "home_team": "Arsenal",
+            "away_team": "Chelsea",
+            "id": "provider-event-2",
+        }]
+        self.assertEqual(event_for_match(match, events, "PL")["id"], "provider-event-2")
+        self.assertEqual(parse_time("2026-11-20T20:00:00").tzinfo, parse_time("2026-11-20T20:00:00Z").tzinfo)
+
     def test_double_chance_labels(self):
         bookmaker = {"markets": [{"key": "double_chance", "outcomes": [
             {"name": "Home or Draw", "price": 1.35},
