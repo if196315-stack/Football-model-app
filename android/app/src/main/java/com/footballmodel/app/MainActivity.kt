@@ -217,7 +217,7 @@ class MainActivity : Activity() {
                 val point = line.optDouble("point", Double.NaN)
                 if (line.optString("side") !in listOf("over", "under") || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЙ ТОТАЛ БОЛЬШЕ · ITB", 10, true, muted)
+                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · MELBET", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
@@ -431,12 +431,27 @@ class MainActivity : Activity() {
     }
     private fun showAddBetDialog(m: JSONObject, league: String) {
         val p = m.optJSONObject("prediction") ?: return
-        val markets = listOf(
+        val markets = mutableListOf(
             BetMarket("1x","1X · хозяева победят ИЛИ будет ничья"),
-            BetMarket("x2","X2 · гости победят ИЛИ будет ничья"),
-            BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"),
-            BetMarket("awayOver15","ИТБ 1.5 · ${m.optString("away")}")
-        ).filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
+            BetMarket("x2","X2 · гости победят ИЛИ будет ничья")
+        ).apply {
+            add(BetMarket("homeOver15","ИТБ 1.5 · ${m.optString("home")}"))
+            add(BetMarket("awayOver15","ИТБ 1.5 · ${m.optString("away")}"))
+            add(BetMarket("bttsYes","ОЗ — да"))
+            add(BetMarket("bttsNo","ОЗ — нет"))
+            for (line in listOf("15", "25", "35")) {
+                val label = when (line) { "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
+                add(BetMarket("over$line","ТБ $label"))
+                add(BetMarket("under$line","ТМ $label"))
+            }
+            for ((teamKey, teamName) in listOf("home" to m.optString("home"), "away" to m.optString("away"))) {
+                for (line in listOf("05", "15", "25", "35")) {
+                    val label = when (line) { "05" -> "0.5"; "15" -> "1.5"; "25" -> "2.5"; else -> "3.5" }
+                    add(BetMarket("${teamKey}Over$line","ИТБ $label · $teamName"))
+                    add(BetMarket("${teamKey}Under$line","ИТМ $label · $teamName"))
+                }
+            }
+        }.filter { p.has(it.key) && !p.isNull(it.key) }.toMutableList()
         val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
         val dcOdds = bestOdds?.optJSONObject("doubleChance")
         if (dcOdds != null) listOf("1x", "x2", "12").forEach { key ->
@@ -472,24 +487,29 @@ class MainActivity : Activity() {
                 "x" -> h?.optDouble("draw", Double.NaN)
                 "2" -> h?.optDouble("away", Double.NaN)
                 "1x", "x2", "12" -> best.optJSONObject("doubleChance")?.optDouble(marketKey, Double.NaN)
-                "over25" -> t?.optDouble("over25", Double.NaN)
-                "under25" -> t?.optDouble("under25", Double.NaN)
-                "homeOver15", "awayOver15" -> {
-                    val team = if (marketKey == "homeOver15") "home" else "away"
-                    val rows = best.optJSONArray("teamTotals")
-                    (0 until (rows?.length() ?: 0)).mapNotNull { rows?.optJSONObject(it) }
-                        .firstOrNull { it.optString("team") == team && it.optString("side") == "over" &&
-                            kotlin.math.abs(it.optDouble("point") - 1.5) < 0.001 }
-                        ?.optDouble("price", Double.NaN)
+                "bttsYes", "bttsNo" -> best.optJSONObject("btts")?.optDouble(if (marketKey == "bttsYes") "yes" else "no", Double.NaN)
+                else -> {
+                    val side = when {
+                        marketKey.startsWith("over") || marketKey.contains("Over") -> "over"
+                        marketKey.startsWith("under") || marketKey.contains("Under") -> "under"
+                        else -> null
+                    }
+                    val point = marketKey.takeLast(2).toDoubleOrNull()?.div(10.0)
+                    if (side == null || point == null) null
+                    else if (marketKey.startsWith("home") || marketKey.startsWith("away")) {
+                        val team = if (marketKey.startsWith("home")) "home" else "away"
+                        val rows = best.optJSONArray("teamTotals")
+                        (0 until (rows?.length() ?: 0)).mapNotNull { rows?.optJSONObject(it) }
+                            .firstOrNull { it.optString("team") == team && it.optString("side") == side &&
+                                kotlin.math.abs(it.optDouble("point") - point) < 0.001 }
+                            ?.optDouble("price", Double.NaN)
+                    } else {
+                        val rows = best.optJSONArray("totals")
+                        (0 until (rows?.length() ?: 0)).mapNotNull { rows?.optJSONObject(it) }
+                            .firstOrNull { it.optString("side") == side && kotlin.math.abs(it.optDouble("point") - point) < 0.001 }
+                            ?.optDouble("price", Double.NaN)
+                    }
                 }
-                else -> if (marketKey.startsWith("spread:")) {
-                    val parts = marketKey.split(":")
-                    val lines = best.optJSONArray("spreads")
-                    (0 until (lines?.length() ?: 0)).mapNotNull { lines?.optJSONObject(it) }
-                        .firstOrNull { it.optString("team") == parts.getOrNull(1) &&
-                            kotlin.math.abs(it.optDouble("point") - (parts.getOrNull(2)?.toDoubleOrNull() ?: 999.0)) < 0.001 }
-                        ?.optDouble("price", Double.NaN)
-                } else null
             }
             return value?.takeIf { it.isFinite() && it > 1.0 }
         }
@@ -537,15 +557,31 @@ class MainActivity : Activity() {
             "1x"->h>=a; "x2"->a>=h; "12"->h!=a
             "1"->h>a; "x"->h==a; "2"->a>h; "over25"->h+a>=3; "under25"->h+a<=2
             "bttsYes"->h>0&&a>0; "bttsNo"->h==0||a==0; "homeOver15"->h>=2; "awayOver15"->a>=2
-            else -> if(b.optString("marketKey").startsWith("spread:")) {
+            else -> {
+                val marketKey = b.optString("marketKey")
+                val line = marketKey.takeLast(2).toDoubleOrNull()?.div(10.0)
+                val wonTotal = when {
+                    marketKey.startsWith("over") && line != null -> (h + a).toDouble() > line
+                    marketKey.startsWith("under") && line != null -> (h + a).toDouble() < line
+                    marketKey.startsWith("homeOver") && line != null -> h.toDouble() > line
+                    marketKey.startsWith("homeUnder") && line != null -> h.toDouble() < line
+                    marketKey.startsWith("awayOver") && line != null -> a.toDouble() > line
+                    marketKey.startsWith("awayUnder") && line != null -> a.toDouble() < line
+                    else -> false
+                }
+                if (marketKey.startsWith("spread:")) {
                 val parts = b.optString("marketKey").split(":")
                 val handicap = parts.getOrNull(2)?.toDoubleOrNull()
-                when(parts.getOrNull(1)) {
-                    "home" -> handicap?.let { when { h + it > a -> true; h + it < a -> false; else -> null } }
-                    "away" -> handicap?.let { when { a + it > h -> true; a + it < h -> false; else -> null } }
-                    else -> null
-                }
-            } else null
+                    when(parts.getOrNull(1)) {
+                        "home" -> handicap?.let { when { h + it > a -> true; h + it < a -> false; else -> null } }
+                        "away" -> handicap?.let { when { a + it > h -> true; a + it < h -> false; else -> null } }
+                        else -> null
+                    }
+                } else if (marketKey.startsWith("over") || marketKey.startsWith("under") ||
+                    marketKey.startsWith("homeOver") || marketKey.startsWith("homeUnder") ||
+                    marketKey.startsWith("awayOver") || marketKey.startsWith("awayUnder")) wonTotal
+                else null
+            }
         }
         b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a")
     }
@@ -910,6 +946,6 @@ class MainActivity : Activity() {
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
         addText(footer, "Предстоящих матчей: $totalUpcoming  ·  с прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Источники: PitchAPI (матчи и xG) · The Odds API (котировки).", 10, false, muted)
+        addText(footer, "Источники: PitchAPI (матчи и xG) · API-Sport / Melbet (котировки).", 10, false, muted)
     }
 }
