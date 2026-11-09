@@ -68,6 +68,40 @@ def match_fixture(target,candidates):
     if not ranked or (len(ranked)>1 and ranked[0][0]-ranked[1][0]<.08):return None
     return ranked[0][1]
 
+def market_label(market):
+    name = market.get("name") or {}
+    return (name.get("en") or name.get("ru") or "") if isinstance(name, dict) else str(name)
+
+
+def is_supported_full_time_market(slug, market):
+    slug = slug.lower()
+    name = market_label(market).lower()
+    excluded = (
+        "first_half", "firsthalf", "1st_half", "first half", "1st half",
+        "second_half", "secondhalf", "2nd_half", "second half", "2nd half",
+        "half_time", "half time", "halftime", "period",
+        "corner", "corners", "card", "cards", "shot", "shots",
+        "offside", "offsides", "player",
+    )
+    if any(token in slug or token in name for token in excluded):
+        return False
+    return True
+
+
+def market_group(slug, market):
+    name = market_label(market).lower()
+    if name:
+        normalized = re.sub(r"[^a-zа-я0-9]+", " ", name)
+        normalized = re.sub(r"\\b(over|under|больше|меньше)\\b", " ", normalized)
+        normalized = re.sub(r"\\b\\d+(?:[.,]\\d+)?\\b", " ", normalized)
+        normalized = re.sub(r"\\s+", " ", normalized).strip()
+        if normalized:
+            return normalized
+    normalized_slug = re.sub(r"(^|[_-])(over|under)(?=[_-]|$)", "_", slug.lower())
+    normalized_slug = re.sub(r"[_-]\\d+[_-]\\d+$", "", normalized_slug)
+    return normalized_slug.strip("_-")
+
+
 def market_kind(slug,market):
     slug=slug.lower()
     name=(market.get("name") or {})
@@ -99,8 +133,11 @@ def parse_odds(m):
         for slug,market in (board.get("markets") or {}).items():
             if (not isinstance(market,dict) or market.get("status")!="open"
                     or market.get("stage")!="prematch"):continue
+            if not is_supported_full_time_market(slug, market):continue
             kind=market_kind(slug,market)
             if not kind:continue
+            market_name = market_label(market)
+            market_key = market_group(slug, market)
             for outcome,stake in (market.get("stakes") or {}).items():
                 if not isinstance(stake,dict) or stake.get("suspended"):continue
                 for line in lines(stake):
@@ -120,7 +157,8 @@ def parse_odds(m):
                     elif kind=="spread":
                         side="home" if key in ("handicap_1","w1","home","1") or slug.endswith("_1") else ("away" if key in ("handicap_2","w2","away","2") or slug.endswith("_2") else None)
                         if side is None or arg is None or abs(float(arg))>.001:continue
-                        q={"team":side,"point":0.0,"price":price}
+                        q={"team":side,"point":0.0,"price":price,
+                           "market_slug":slug,"market_group":market_key,"market_name":market_name}
                         old=next((x for x in best["spreads"] if x["team"]==side),None)
                         if old is None or price>old["price"]:
                             if old:best["spreads"].remove(old)
@@ -158,13 +196,15 @@ def parse_odds(m):
                                     or "гостей" in name_key or "team 2" in name_key
                                     or "команды 2" in name_key or "команда 2" in name_key else None)
                             if team is None:continue
-                            q={"team":team,"point":point,"side":side_key,"price":price}
+                            q={"team":team,"point":point,"side":side_key,"price":price,
+                               "market_slug":slug,"market_group":market_key,"market_name":market_name}
                             target=best["teamTotals"]; row_target=row["teamTotals"]; books_target=books_best["teamTotals"]
-                            identity=lambda x:x.get("team")==team and x.get("point")==q["point"] and x.get("side")==side_key
+                            identity=lambda x:x.get("team")==team and x.get("point")==q["point"] and x.get("side")==side_key and x.get("market_group")==market_key
                         else:
-                            q={"point":point,"side":side_key,"price":price}
+                            q={"point":point,"side":side_key,"price":price,
+                               "market_slug":slug,"market_group":market_key,"market_name":market_name}
                             target=best["totals"]; row_target=row["totals"]; books_target=books_best["totals"]
-                            identity=lambda x:x.get("point")==q["point"] and x.get("side")==side_key
+                            identity=lambda x:x.get("point")==q["point"] and x.get("side")==side_key and x.get("market_group")==market_key
                         old=next((x for x in target if identity(x)),None)
                         if old is None or price>old["price"]:
                             if old:target.remove(old)
