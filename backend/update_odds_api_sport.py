@@ -32,18 +32,30 @@ def kickoff(m):
         return d.replace(tzinfo=timezone.utc) if d.tzinfo is None else d.astimezone(timezone.utc)
     except (ValueError,TypeError): return None
 
+def team_names(team):
+    if not isinstance(team,dict):return []
+    values=[team.get("name"),team.get("fullName")]
+    translations=team.get("translations") or {}
+    if isinstance(translations,dict):values.extend(translations.values())
+    return [str(x) for x in values if x]
+
+def team_similarity(target_name,team):
+    names=team_names(team)
+    return max((sim(target_name,name) for name in names),default=0.0)
+
 def match_fixture(target,candidates):
     t=kickoff(target)
     if not t:return None
     ranked=[]
     for m in candidates:
         mt=kickoff(m)
-        if not mt or abs((mt-t).total_seconds())>18*3600:continue
-        h=sim(target.get("home"),(m.get("homeTeam") or {}).get("name"))
-        a=sim(target.get("away"),(m.get("awayTeam") or {}).get("name"))
-        if h>=.84 and a>=.84:ranked.append((h+a,m))
+        if not mt or abs((mt-t).total_seconds())>6*3600:continue
+        h=team_similarity(target.get("home"),m.get("homeTeam"))
+        a=team_similarity(target.get("away"),m.get("awayTeam"))
+        # Provider and model may use short/long club names (e.g. Man City).
+        if h>=.68 and a>=.68 and h+a>=1.48:ranked.append((h+a,m))
     ranked.sort(key=lambda x:x[0],reverse=True)
-    if not ranked or (len(ranked)>1 and ranked[0][0]-ranked[1][0]<.1):return None
+    if not ranked or (len(ranked)>1 and ranked[0][0]-ranked[1][0]<.08):return None
     return ranked[0][1]
 
 def market_kind(slug,market):
@@ -116,8 +128,21 @@ def main():
     today=datetime.now(timezone.utc).date()
     params={"date_from":today.isoformat(),"date_to":(today+timedelta(days=14)).isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
     session=requests.Session();session.headers.update({"Authorization":key})
+    # API pages are capped at 500 fixtures; walk every page in the 14-day window.
+    params["page"]=1
     resp=session.get(URL,params=params,timeout=60);resp.raise_for_status()
-    payload=resp.json();fixtures=payload if isinstance(payload,list) else payload.get("matches") or []
+    payload=resp.json()
+    if isinstance(payload,list):
+        fixtures=payload
+    else:
+        fixtures=list(payload.get("matches") or [])
+        total_pages=min(int(payload.get("totalPages") or 1),100)
+        for page in range(2,total_pages+1):
+            page_params={**params,"page":page}
+            page_resp=session.get(URL,params=page_params,timeout=60)
+            page_resp.raise_for_status()
+            page_payload=page_resp.json()
+            fixtures.extend(page_payload if isinstance(page_payload,list) else page_payload.get("matches") or [])
     eligible=matched=updated=retained=0
     for comp in data.get("competitions",[]):
         for match in comp.get("matches",[]):
@@ -138,6 +163,6 @@ def main():
     data["oddsStatus"]="ready" if updated else "no_quotes"
     data["oddsNotice"]=f"Melbet: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки Melbet."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"provider":"API-Sport","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"retained":retained}))
+    print(json.dumps({"provider":"API-Sport / Melbet","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noMelbetQuotes":matched-updated,"notMatched":eligible-matched}))
 
 if __name__=="__main__":main()
