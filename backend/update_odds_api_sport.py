@@ -35,6 +35,12 @@ def kickoff(m):
         return d.replace(tzinfo=timezone.utc) if d.tzinfo is None else d.astimezone(timezone.utc)
     except (ValueError,TypeError): return None
 
+def is_in_date_window(match, start_date, end_date):
+    """Return True only for fixtures whose kickoff date is inside the requested odds horizon."""
+    value = kickoff(match)
+    return value is not None and start_date <= value.date() <= end_date
+
+
 def team_names(team):
     if not isinstance(team,dict):return []
     values=[team.get("name"),team.get("fullName")]
@@ -350,7 +356,8 @@ def main():
     if not key:raise RuntimeError("API_SPORT_KEY missing from GitHub Secrets")
     data=json.loads(DATA.read_text(encoding="utf-8"))
     today=datetime.now(timezone.utc).date()
-    params={"date_from":today.isoformat(),"date_to":(today+timedelta(days=30)).isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
+    window_end = today + timedelta(days=30)
+    params={"date_from":today.isoformat(),"date_to":window_end.isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
     session=requests.Session();session.headers.update({"Authorization":key})
     # API pages are capped at 500 fixtures; walk every page in the 14-day window.
     params["page"]=1
@@ -375,6 +382,7 @@ def main():
     for comp in data.get("competitions",[]):
         for match in comp.get("matches",[]):
             if match.get("status") not in ("SCHEDULED","TIMED","IN_PLAY","PAUSED"):continue
+            if not is_in_date_window(match, today, window_end):continue
             eligible+=1
             comp_code = str(comp.get("code") or comp.get("name") or "unknown")
             comp_stats = coverage_by_competition.setdefault(
@@ -410,7 +418,7 @@ def main():
                                  "away": (source.get("awayTeam") or {}).get("name")},
                     "team_totals": team_total_quotes[:8],
                 })
-    market_diagnostics = betboom_market_diagnostics(fixtures, today, today + timedelta(days=30))
+    market_diagnostics = betboom_market_diagnostics(fixtures, today, window_end)
     data["oddsProvider"]="API-Sport / BetBoom"
     data["oddsBookmaker"]="betboom"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
