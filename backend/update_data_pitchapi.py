@@ -29,8 +29,8 @@ from update_data import (
 OUT = ROOT / "docs" / "data.json"
 # Cohorts with known fixture/season integrity defects are not model training data.
 EXCLUDED_SEASONS = {
+    # PitchAPI omits Mallorca–Girona (2024-03-03) from this season's listing.
     ("ESP", "2023/24"), ("ESP", "2023/2024"),
-    ("GER", "2024/25"), ("GER", "2024/2025"),
     ("ITA", "2022/23"), ("ITA", "2022/2023"),
 }
 EXCLUDED_MATCH_IDS = {"m_3ir3kE"}  # Spezia–Hellas Verona relegation playoff
