@@ -237,7 +237,8 @@ class MainActivity : Activity() {
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
     private fun addMarketRow(parent: LinearLayout, items: List<Triple<String, String, Int>>) {
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }        items.forEach { item ->
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        items.forEach { item ->
             val tile = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(11, 10, 11, 10)
@@ -476,7 +477,8 @@ class MainActivity : Activity() {
             val team = line.optString("team")
             val key = "spread:$team:${String.format(Locale.US, "%.1f", point)}"
             val teamName = if (team == "home") m.optString("home") else m.optString("away")
-            val signed = if (point > 0) "+${fmt(point)}" else fmt(point)            markets.add(BetMarket(key, "Фора $teamName $signed"))
+            val signed = if (point > 0) "+${fmt(point)}" else fmt(point)
+            markets.add(BetMarket(key, "Фора $teamName $signed"))
         }
         if (markets.isEmpty()) return
         val form = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(20,8,20,0) }
@@ -696,11 +698,11 @@ class MainActivity : Activity() {
     private fun renderBettingDesk(json: JSONObject) {
         addText(matchesContainer, "BETTING DESK · STRATEGY ROOM", 9, true, cyan)
         addText(matchesContainer, "Разбор рекомендованных ставок", 22, true)
-        addText(matchesContainer, "Каждый кандидат проходит проверку модели, исторической базы и реальной котировки Melbet. Объяснение показывает, почему рынок выбран и какие есть ограничения.", 11, false, muted)
+        addText(matchesContainer, "Каждая рекомендация содержит обоснование, проверку цены и ограничения модели.", 11, false, muted)
         val target = card()
         addText(target, "ГОДОВАЯ ЦЕЛЬ · 2 500 ₽ → 1 000 000 ₽", 10, true, gold)
-        addText(target, "Рост в 400 раз за 12 месяцев требует около 66.7% сложного роста каждый месяц. Это математический ориентир, не прогноз и не обещание.", 12, true)
-        addText(target, "Мы не будем увеличивать риск, догонять проигрыши или выдавать обязательный план ставок. Сохранность банка важнее срока.", 11, false, muted)
+        addText(target, "Для роста в 400 раз за год нужен средний сложный рост около 66.7% в месяц. Это математическая цель, не прогноз и не обещание.", 12, true)
+        addText(target, "Не будем повышать риск, догонять проигрыши или ставить ради выполнения календарного плана.", 11, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -719,8 +721,8 @@ class MainActivity : Activity() {
         val sorted = candidates.sortedByDescending { it.third.optDouble("edgePp") }
         if (sorted.isEmpty()) {
             val empty = card()
-            addText(empty, "Сейчас нет подтверждённых рекомендаций.", 15, true, gold)
-            addText(empty, "Нужны одновременно положительный сигнал, коэффициент Melbet от 1.50 и актуальные прематч-котировки. Не подменяем отсутствующие цены котировками других букмекеров.", 11, false, muted)
+            addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
+            addText(empty, "Нужны положительный сигнал и актуальная прематч-котировка Melbet от 1.50. Не подменяем отсутствующие цены котировками других букмекеров.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
@@ -737,19 +739,19 @@ class MainActivity : Activity() {
             addText(box, date(m.optString("utcDate")), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · Melbet ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
-            addText(box, "Модель оценивает вероятность в ${String.format(Locale.US, "%.1f", p * 100)}%. Историческая база для этого сигнала — ${String.format(Locale.US, "%.1f", baseline * 100)}% на выборке из ${signal.optInt("baselineMatches")} матчей.", 11, false, Color.WHITE)
-            addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это причина вынести матч на проверку, но не доказательство преимущества над линией букмекера.", 11, false, muted)
+            addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
+            addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это фильтр для анализа, но не доказательство value относительно букмекера.", 11, false, muted)
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
-            addText(box, "Вероятность безубыточности по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}% на единицу ставки.", 11, false, Color.WHITE)
-            addText(box, "EV рассчитано как p × коэффициент − 1, без поправки на маржу и ошибку калибровки. Не считать его гарантированной доходностью.", 10, false, muted)
-            addText(box, "РИСКИ И ОГРАНИЧЕНИЯ", 10, true, gold)
-            addText(box, "Историческая частота может не отражать текущую силу команд; выборка и модель могут ошибаться. Проверь фактический коэффициент в Melbet непосредственно перед ставкой. Если он ниже 1.50 или заметно хуже указанного — пропускаем.", 11, false, muted)
-            addText(box, "Рекомендация не является приказом ставить. При отсутствии уверенного Value — NO BET.", 11, true, gold)
+            addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
+            addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
+            addText(box, "РИСКИ", 10, true, gold)
+            addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в Melbet перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
+            addText(box, "Это аналитический кандидат, не приказ ставить. При сомнительном преимуществе — NO BET.", 11, true, gold)
             actionButton(box, "＋ Зафиксировать ставку вручную") { showAddBetDialog(m, league) }
         }
         val footer = card()
-        addText(footer, "ПРАВИЛО DESK", 10, true, accent)
-        addText(footer, "TOP остаётся ограничен ITB 1.5, точной нулевой форой и Double Chance. ОЗ и тоталы доступны в карточках матчей, но не добавляются в TOP. Источник котировок — только API-Sport / Melbet.", 11, false, muted)
+        addText(footer, "ПРАВИЛА DESK", 10, true, accent)
+        addText(footer, "TOP: только ITB 1.5, точная нулевая фора и Double Chance. ОЗ и тоталы остаются в карточках матчей вне TOP. Котировки — только API-Sport / Melbet.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
@@ -774,7 +776,8 @@ class MainActivity : Activity() {
                 val matchDay = m.optString("utcDate").take(10)
                 if (matchDay < today || matchDay > endDate) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
-                val signal = prediction.optJSONObject("strongestSignal") ?: continue                val edge = signal.optDouble("edgePp", 0.0)
+                val signal = prediction.optJSONObject("strongestSignal") ?: continue
+                val edge = signal.optDouble("edgePp", 0.0)
                 if (signal.optBoolean("noPositiveSignal") || edge <= 0.0) continue
                 // Require a real quote for the exact strongest side, at decimal odds >= 1.50.
                 if (topSignalOdds(signal, m) == null) continue
