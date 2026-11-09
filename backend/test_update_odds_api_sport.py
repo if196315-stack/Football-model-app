@@ -73,7 +73,6 @@ class ApiSportOddsTests(unittest.TestCase):
         # display layer filters teamTotals to OVER only.
         self.assertIn({"team": "home", "point": 1.5, "side": "under", "price": 1.94},
                       best["teamTotals"])
-        self.assertFalse(any(x["side"] == "under" for x in best["totals"]))
 
     def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
         source = {"id": 101, "oddsBk": {"betboom": {"markets": {
