@@ -107,6 +107,28 @@ class OddsMarketParsingTests(unittest.TestCase):
         self.assertEqual(read_market(bookmaker, "double_chance", "Arsenal", "Chelsea"),
                          {"1x": 1.35, "x2": 1.65, "12": 1.25})
 
+    def test_double_chance_actual_team_names_from_odds_api(self):
+        bookmaker = {"markets": [{"key": "double_chance", "outcomes": [
+            {"name": "Fulham or Draw", "price": 2.79},
+            {"name": "Manchester City or Draw", "price": 1.14},
+            {"name": "Fulham or Manchester City", "price": 1.21},
+        ]}]}
+        self.assertEqual(
+            read_market(bookmaker, "double_chance", "Manchester City", "Fulham"),
+            {"x2": 2.79, "1x": 1.14, "12": 1.21},
+        )
+
+    def test_double_chance_team_aliases_are_matched(self):
+        bookmaker = {"markets": [{"key": "double_chance", "outcomes": [
+            {"name": "Athletic Bilbao or Draw", "price": 1.13},
+            {"name": "Espanyol or Draw", "price": 2.74},
+            {"name": "Athletic Bilbao or Espanyol", "price": 1.23},
+        ]}]}
+        self.assertEqual(
+            read_market(bookmaker, "double_chance", "Athletic Club", "Espanyol"),
+            {"1x": 1.13, "x2": 2.74, "12": 1.23},
+        )
+
     def test_spreads_exclude_zero_and_preserve_sign(self):
         bookmaker = {"markets": [{"key": "spreads", "outcomes": [
             {"name": "Arsenal", "point": 0, "price": 1.9},

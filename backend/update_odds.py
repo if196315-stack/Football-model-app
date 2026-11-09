@@ -64,8 +64,27 @@ ALIASES = {
 
 def canonical(value, league):
     value = norm(value)
-    aliases = ALIASES.get(league, {})
+    if league is None:
+        aliases = {key: alias for group in ALIASES.values() for key, alias in group.items()}
+    else:
+        aliases = ALIASES.get(league, {})
     return norm(aliases.get(value, value))
+
+
+def team_side_from_label(value, home, away):
+    """Identify a team named inside a bookmaker double-chance outcome."""
+    label = norm(value)
+    if label in ("home", "1"):
+        return "home"
+    if label in ("away", "2"):
+        return "away"
+    home_score = similarity(value, home)
+    away_score = similarity(value, away)
+    if home_score >= 0.86 and home_score > away_score:
+        return "home"
+    if away_score >= 0.86 and away_score > home_score:
+        return "away"
+    return None
 
 
 def similarity(a, b, league=None):
@@ -128,8 +147,24 @@ def read_market(bookmaker, key, home, away):
             elif name.lower() == "under":
                 out["under25"] = float(price)
         elif key == "double_chance":
-            label = re.sub(r"[^a-z]+", "", name.lower()).replace("home", "1").replace("draw", "x").replace("away", "2").replace("or", "")
-            if label in ("1x", "x2", "12"):
+            # The Odds API names outcomes with actual team names, e.g.
+            # "Fulham or Draw", not only generic "Home or Draw" labels.
+            parts = re.split(r"\s+or\s+", name.strip(), flags=re.IGNORECASE)
+            if len(parts) == 2:
+                draw_part = next((part for part in parts if norm(part) in ("draw", "tie")), None)
+                team_parts = [part for part in parts if part is not draw_part]
+                if draw_part is not None and len(team_parts) == 1:
+                    side = team_side_from_label(team_parts[0], home, away)
+                    label = "1x" if side == "home" else "x2" if side == "away" else None
+                elif draw_part is None:
+                    sides = [team_side_from_label(part, home, away) for part in parts]
+                    label = "12" if set(sides) == {"home", "away"} else None
+                else:
+                    label = None
+            else:
+                compact = re.sub(r"[^a-z0-9]+", "", name.lower())
+                label = compact if compact in ("1x", "x2", "12") else None
+            if label:
                 out[label] = float(price)
         elif key == "btts":
             label = name.strip().lower()
