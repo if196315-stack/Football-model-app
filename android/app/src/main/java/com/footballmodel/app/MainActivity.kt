@@ -1446,6 +1446,15 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        val workerCard = card()
+        val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
+        val workerStatus = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
+        val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
+        val workerTime = if (workerRunAt > 0L) SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date(workerRunAt)) else "ещё не запускался"
+        addText(workerCard, "ФОНОВАЯ АВТОМАТИКА", 10, true, cyan)
+        addText(workerCard, if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
+        addText(workerCard, workerMessage, 11, false, muted)
+        addText(workerCard, "Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
         val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
         val highWater = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull() ?: initialBankroll()
         val currentForRisk = currentBankroll()
