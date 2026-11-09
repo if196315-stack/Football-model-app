@@ -243,6 +243,51 @@ def convert_event(event):
     }
 
 
+def merge_quote(existing, incoming):
+    """Add missing markets from The Odds API without replacing BSD consensus."""
+    if not existing:
+        return incoming
+    if not incoming:
+        return existing
+    merged = dict(existing)
+    merged["best"] = dict(existing.get("best") or {})
+    merged["bestBookmakers"] = dict(existing.get("bestBookmakers") or {})
+    for market, values in (incoming.get("best") or {}).items():
+        if market in ("spreads", "teamTotals"):
+            old_rows = list(merged["best"].get(market) or [])
+            identity = ("team", "point") if market == "spreads" else ("team", "point", "side")
+            for row in values or []:
+                if not any(all(old.get(k) == row.get(k) for k in identity) for old in old_rows):
+                    old_rows.append(row)
+            if old_rows:
+                merged["best"][market] = old_rows
+        else:
+            old_values = dict(merged["best"].get(market) or {})
+            for key, value in (values or {}).items():
+                old_values.setdefault(key, value)
+            if old_values:
+                merged["best"][market] = old_values
+    for market, values in (incoming.get("bestBookmakers") or {}).items():
+        if market in ("spreads", "teamTotals"):
+            old_rows = list(merged["bestBookmakers"].get(market) or [])
+            old_rows.extend(row for row in (values or []) if row not in old_rows)
+            if old_rows:
+                merged["bestBookmakers"][market] = old_rows
+        else:
+            old_values = dict(merged["bestBookmakers"].get(market) or {})
+            for key, value in (values or {}).items():
+                old_values.setdefault(key, value)
+            if old_values:
+                merged["bestBookmakers"][market] = old_values
+    merged["bookmakers"] = list(existing.get("bookmakers") or []) + [
+        book for book in (incoming.get("bookmakers") or [])
+        if book not in (existing.get("bookmakers") or [])
+    ]
+    merged["updatedAt"] = incoming.get("updatedAt") or existing.get("updatedAt")
+    merged["eventId"] = existing.get("eventId") or incoming.get("eventId")
+    return merged
+
+
 def main():
     if not DATA_FILE.exists():
         raise RuntimeError("docs/data.json does not exist")
@@ -302,7 +347,7 @@ def main():
                     matched += 1
                     quote = convert_event(event)
                     if quote.get("best"):
-                        match["odds"] = quote
+                        match["odds"] = merge_quote(match.get("odds"), quote)
                         updated += 1
                         league_updated += 1
                     elif match.get("odds"):
