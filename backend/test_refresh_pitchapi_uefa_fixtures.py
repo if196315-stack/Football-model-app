@@ -73,9 +73,10 @@ class UefaFixtureHistoryTests(unittest.TestCase):
             )
             requests = [params for url, params in session.calls if "/matches" in url]
             self.assertEqual(len(requests), 4)
-            self.assertTrue(all(params == {"season": season, "status": "all"}
-                                for params in requests
-                                for season in ("2025/2026", "2026/2027")))
+            self.assertEqual(
+                {(params["season"], params["status"]) for params in requests},
+                {("2025/2026", "all"), ("2026/2027", "all")},
+            )
 
     def test_missing_api_key_fails_before_network_call(self):
         with self.assertRaises(ValueError):
