@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.text.InputType
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -48,6 +50,13 @@ class MainActivity : Activity() {
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
     private var renderedKey: String? = null
+    private val liveRefreshHandler = Handler(Looper.getMainLooper())
+    private val liveRefreshTask = object : Runnable {
+        override fun run() {
+            if (refreshButton.isEnabled && currentTab in listOf("matches", "history")) loadData()
+            liveRefreshHandler.postDelayed(this, 30_000)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,6 +147,17 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        liveRefreshHandler.removeCallbacks(liveRefreshTask)
+        liveRefreshHandler.postDelayed(liveRefreshTask, 30_000)
+    }
+
+    override fun onPause() {
+        liveRefreshHandler.removeCallbacks(liveRefreshTask)
+        super.onPause()
     }
 
     private fun countryFlagView(flag: String): View =
@@ -958,7 +978,7 @@ class MainActivity : Activity() {
                             return@setOnClickListener
                         }
                         b.put("odds", value)
-                        b.put("oddsEditedAt", java.time.Instant.now().toString())
+                        b.put("oddsEditedAt", System.currentTimeMillis())
                         saveBets()
                         dialog.dismiss()
                         render()
@@ -1365,7 +1385,7 @@ class MainActivity : Activity() {
                 val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
                 val hasTrackedBet = (0 until bets.length()).any { bets.optJSONObject(it)?.optString("matchId") == matchId }
                 if ((matchStatus in listOf("SCHEDULED", "TIMED") && m.optJSONObject("prediction") != null) ||
-                    (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED") && (m.optJSONObject("prediction") != null || hasTrackedBet)) ||
+                    (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) ||
                     (matchStatus == "FINISHED" && hasTrackedBet)) {
                     upcoming.add(m)
                     totalUpcoming++
