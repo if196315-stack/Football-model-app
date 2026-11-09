@@ -1258,7 +1258,7 @@ class MainActivity : Activity() {
                 val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
                 if (matchDay < today || matchDay > endDay) continue
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null
+                    ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0) continue
                 val price = topSignalOdds(signal, m) ?: continue
