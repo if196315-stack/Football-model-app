@@ -54,7 +54,7 @@ class PitchApiUpdaterTests(unittest.TestCase):
                                "hasPlayoff": False},
         }}
         history, base, results = build_model_frames(cache)
-        self.assertEqual(len(history), 2)
+        self.assertEqual(len(history), 4)
         self.assertIsNone(history.date.dt.tz)
         self.assertIsNone(results.date.dt.tz)
         self.assertEqual(len(results), 2)
