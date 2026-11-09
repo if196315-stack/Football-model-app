@@ -3,10 +3,6 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "android/**"
-      - ".github/workflows/build-apk.yml"
   push:
     paths:
       - "android/**"
