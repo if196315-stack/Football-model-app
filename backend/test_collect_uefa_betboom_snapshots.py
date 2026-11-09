@@ -105,7 +105,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
                                             "stakes": {"yes": {"factor": 1.75},
                                                        "no": {"factor": 2.05}}},
                 }},
-        }
+        }}
         cache = {"matches": {
             "ucl-1": {"id": "ucl-1", "leagueCode": "UCL", "season": "2026/2027",
                       "date": "2026-11-21T19:00:00Z", "status": "not_started",
