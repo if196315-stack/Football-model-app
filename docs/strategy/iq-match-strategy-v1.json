@@ -1,0 +1,42 @@
+{
+  "strategyVersion": "1.0",
+  "status": "INITIAL_PROVISIONAL",
+  "selectionMode": "STRICT",
+  "riskMode": "MODERATE",
+  "launchMode": "LIMITED",
+  "bookmaker": "betboom",
+  "oddsProvider": "API-Sport",
+  "minimumModelProbability": 0.60,
+  "minimumEdge": 0.05,
+  "minimumEV": 0.05,
+  "maxOddsAgeMinutes": 5,
+  "baseStakePercent": 0.5,
+  "reducedStakePercent": 0.25,
+  "maxStakePercent": 1.0,
+  "maxMatchExposurePercent": 1.0,
+  "maxDailyExposurePercent": 2.0,
+  "drawdownPausePercent": 5.0,
+  "drawdownStopPercent": 10.0,
+  "minimumHistoricalSignals": 500,
+  "minimumPaperSignals": 500,
+  "preferredMinimumSignalsPerMarket": 150,
+  "paperTradingRequired": true,
+  "allowedMarkets": [
+    "DOUBLE_CHANCE_1X",
+    "DOUBLE_CHANCE_X2",
+    "MATCH_TOTAL_OVER",
+    "TEAM_TOTAL_OVER",
+    "BTTS_YES",
+    "BTTS_NO",
+    "HANDICAP_EXACT_LINE_ONLY"
+  ],
+  "hiddenMarkets": [
+    "MATCH_TOTAL_UNDER",
+    "TEAM_TOTAL_UNDER"
+  ],
+  "disabledUntilOddsIngested": [
+    "MATCH_1X2"
+  ],
+  "kellyEnabled": false,
+  "automaticBetPlacement": false
+}
