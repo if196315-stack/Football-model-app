@@ -128,8 +128,10 @@ def parse_odds(m):
                             market_name = (market_name.get("en") or market_name.get("ru") or "") if isinstance(market_name, dict) else str(market_name)
                             name_key = re.sub(r"[^a-zа-я0-9]+", " ", market_name.lower()).strip()
                             team = ("home" if slug.endswith(("_1", "1")) or "home" in slug
+                                    or "home" in name_key or "хозяев" in name_key
                                     or "team 1" in name_key or "команды 1" in name_key or "команда 1" in name_key else
                                     "away" if slug.endswith(("_2", "2")) or "away" in slug
+                                    or "away" in name_key or "гостей" in name_key
                                     or "team 2" in name_key or "команды 2" in name_key or "команда 2" in name_key else None)
                             if team is None:continue
                             q={"team":team,"point":float(arg),"side":side_key,"price":price}
