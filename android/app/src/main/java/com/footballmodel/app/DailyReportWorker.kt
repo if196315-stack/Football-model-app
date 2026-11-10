@@ -9,7 +9,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
-import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import org.json.JSONArray
@@ -39,11 +38,12 @@ class DailyReportWorker(context: Context, params: WorkerParameters) : Worker(con
             .put("wins", wins).put("losses", losses).put("pending", pending)
             .put("profit", profit)
         val history = try { JSONArray(intelligence.getString("daily_reports", "[]") ?: "[]") } catch (_: Exception) { JSONArray() }
-        if (history.length() == 0 || history.optJSONObject(history.length() - 1)?.optString("date") != day) history.put(report)
+        val isNewReport = history.length() == 0 || history.optJSONObject(history.length() - 1)?.optString("date") != day
+        if (isNewReport) history.put(report)
         while (history.length() > 60) history.remove(0)
-        val unread = intelligence.getInt("unread_count", 0) + 1
+        val unread = intelligence.getInt("unread_count", 0) + if (isNewReport) 1 else 0
         intelligence.edit().putString("daily_reports", history.toString()).putInt("unread_count", unread).commit()
-        showNotification(wins, losses, pending, bets.length())
+        if (isNewReport) showNotification(wins, losses, pending, bets.length())
         return Result.success()
     }
 
