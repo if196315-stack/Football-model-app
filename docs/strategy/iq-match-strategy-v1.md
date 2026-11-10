@@ -68,8 +68,8 @@ For multi-outcome market analysis, account for bookmaker margin when comparing m
 - Aggregate daily exposure: maximum 5%.
 - Correlated bets must be treated as combined exposure.
 - No chasing losses, no automatic stake increase after wins, and no full Kelly in v1.1.
-- 5% drawdown from the local bank peak: pause new real bets and audit.
-- 10% drawdown from the local bank peak: stop real betting until explicit review and approval.
+- 5% drawdown from the local bank peak: pause new automatic paper entries and audit.
+- 10% drawdown from the local bank peak: stop automatic paper entries and any real betting until explicit review and approval.
 
 The 1% value is both the base stake and the absolute ceiling per bet; the bookmaker minimum may make a stake inadmissible when it exceeds that ceiling. Any stake calculation must respect all aggregate caps.
 
@@ -140,8 +140,8 @@ A positive backtest alone is insufficient. Require out-of-sample and paper-tradi
 - Widespread fixture/market mapping errors: block new BET decisions.
 - Invalid or abnormal model probabilities: block new BET decisions.
 - Daily exposure cap reached: block further bets for the day.
-- 5% drawdown: pause and audit.
-- 10% drawdown: stop real betting pending explicit review.
+- 5% drawdown: pause automatic paper entries and audit.
+- 10% drawdown: stop automatic paper entries and any real betting pending explicit review.
 
 A pause must not silently reset the next day. Resumption requires checking the cause.
 
