@@ -917,7 +917,7 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Базовая и минимальная ставка — 1% текущего банка (но не ниже минимума букмекера 25 ₽); максимум — 1% на одну ставку. Суммарно на матч — не более 1%; дневная экспозиция — не более 5%. Коррелированные ставки считаются совместно.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Расчётная ставка — 1% текущего банка, но букмекер принимает не меньше 25 ₽. Если 25 ₽ превышают 1% банка (банк ниже 2 500 ₽), ставка не открывается: превышать лимит нельзя. Например, при 2 500 ₽ ставка 25 ₽ допустима; при 2 499 ₽ один процент — 24,99 ₽, поэтому минимальные 25 ₽ уже нарушают лимит и ставка пропускается. Максимум на матч — 1% банка; дневная суммарная экспозиция — 5%.", 11, false, Color.WHITE)
         addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
@@ -1549,6 +1549,14 @@ class MainActivity : Activity() {
         val bankrollCard = card()
         addText(bankrollCard, "БАЛАНС", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 26, true, Color.WHITE)
+
+        val strategyCard = card()
+        addText(strategyCard, "КАК РАБОТАЕТ СТРАТЕГИЯ", 11, true, accent)
+        addText(strategyCard, "1% от текущего баланса — базовый лимит одной ставки. Минимум BetBoom — 25 ₽. Если минимальные 25 ₽ превышают лимит 1%, ставка пропускается.", 11, false, Color.WHITE)
+        addText(strategyCard, "Пример: баланс 2 500 ₽ → 1% = 25 ₽, ставка допустима. Баланс 2 499 ₽ → 1% = 24,99 ₽; поставить 24,99 ₽ нельзя, а 25 ₽ уже больше лимита 1%, поэтому новая ставка не создаётся.", 11, false, muted)
+        addText(strategyCard, "Дневной лимит — 5% текущего баланса на все ставки вместе. На один матч — максимум 1%. Если дневной лимит исчерпан или минимальная ставка букмекера превышает 1%, автоматическая paper-ставка пропускается.", 11, false, Color.WHITE)
+        addText(strategyCard, "В AI показывается текущий баланс, без цели накопления и прогресса до цели. Баланс учитывает результаты завершённых ставок и резервирование сумм по ожидающим ставкам.", 10, false, muted)
+
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
