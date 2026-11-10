@@ -180,8 +180,12 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
         upcoming.append((match_id, row, kickoff))
 
     # Only look up fixture dates required by selected AI matches without a mapped ID.
-    dates = sorted({kickoff.date().isoformat() for _, row, kickoff in upcoming
-                    if row.get("footballApiFixtureId") is None})
+    dates = sorted({
+        kickoff.date().isoformat()
+        for _, row, kickoff in upcoming
+        if row.get("footballApiFixtureId") is None
+        and current - timedelta(minutes=30) <= kickoff <= current + timedelta(minutes=55)
+    })
     for day in dates:
         cached = date_fixtures.get(day)
         cached_at = _utc(cached.get("fetchedAt")) if isinstance(cached, dict) else None
