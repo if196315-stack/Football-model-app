@@ -449,7 +449,7 @@ class MainActivity : Activity() {
         if (shown == 0) {
             addText(panelOdds, "Источник пока не вернул котировки по нужным рынкам", 11, false, muted)
         }
-        addText(panelOdds, "Обновлено: " + odds.optString("updatedAt","—").replace("T"," ").take(16) + " UTC", 9, false, muted)
+        addText(panelOdds, "Обновлено: " + formatSourceTimestamp(odds.optString("updatedAt")) + " · местное время", 9, false, muted)
     }
 
     private fun oddsText(obj: JSONObject, key: String): String =
@@ -1749,7 +1749,7 @@ class MainActivity : Activity() {
             val summary = card()
             addText(summary, "●  LIVE MODEL DASHBOARD", 9, true, cyan)
             addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
-            addText(summary, "Обновлено: ${json.optString("updatedAt", "—").replace("T", " ").take(16)}", 10, false, muted)
+            addText(summary, "Обновлено: ${formatSourceTimestamp(json.optString("updatedAt"))} · местное время", 10, false, muted)
         }
 
         if (currentTab == "day") {
