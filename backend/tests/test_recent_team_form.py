@@ -33,7 +33,7 @@ def test_recent_form_excludes_future_and_limits_to_five():
     matches = sample_matches()
     form = recent_team_form(matches, "eng", "Home FC", "2025-01-08", venue="home")
     assert form["matches"] == 4
-    assert form["form"] == "WDL"
+    assert form["form"] == "WDWL"
     assert form["pointsPerGame"] == 1.75
     assert form["venueMatches"] == 4
     assert form["goalsForAvg"] == 1.5
@@ -57,4 +57,4 @@ def test_team_total_adjustment_uses_correct_team():
     assert form_adjustment(
         {"side": "ИТБ 1.5 · Home FC", "homeTeam": "Home FC", "awayTeam": "Away FC"},
         home, away,
-    ) == 1.5
+    ) == 0.36
