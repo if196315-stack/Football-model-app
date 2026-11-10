@@ -1212,7 +1212,7 @@ class MainActivity : Activity() {
                 if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, match) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
-                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0
+                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0) + signal.optDouble("lineupAdjustmentPp", 0.0)
                 val ev = probability * price - 1.0
                 if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
                 val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
@@ -1564,7 +1564,7 @@ class MainActivity : Activity() {
         workerCard.addView(workerMessageTextView)
         workerCard.addView(workerCountTextView)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
-            "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
+            "Модель оценивает ожидаемые голы по историческим данным PitchAPI и рассчитывает вероятности распределением Пуассона. В AI дополнительно учитывается форма последних 5 матчей и домашняя/гостевая форма из уже загруженных результатов. Она влияет на фильтр сильных ставок ограниченной поправкой, но не переписывает вероятность xG. Параметры xG: последние 30 матчей, half-life 12, shrinkage 3.")
         section("2. ОСНОВНЫЕ РЫНКИ",
             "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nИТБ 1.5 — команда забьёт минимум 2 гола.\nДля ставок доступны только поддерживаемые ненулевые форы.")
         section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
@@ -1780,7 +1780,7 @@ class MainActivity : Activity() {
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 || signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("selectionEdgePp", signal.optDouble("edgePp")) <= 0.0 || signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
                 candidates.add(Triple(m, league.optString("name"), signal))
@@ -1795,7 +1795,7 @@ class MainActivity : Activity() {
             if (signal.optBoolean("paperOnly")) {
                 probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
             } else {
-                val impliedEdge = probability - 1.0 / price
+                val impliedEdge = probability - 1.0 / price + (signal.optDouble("formAdjustmentPp", 0.0) + signal.optDouble("lineupAdjustmentPp", 0.0)) / 100.0
                 probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
             }
         }.sortedWith(
@@ -1820,6 +1820,8 @@ class MainActivity : Activity() {
             val p = signal.optDouble("modelProbability", Double.NaN)
             val baseline = signal.optDouble("baselineProbability", Double.NaN)
             val edge = signal.optDouble("edgePp", Double.NaN)
+            val formAdjustment = signal.optDouble("formAdjustmentPp", 0.0)
+            val lineupAdjustment = signal.optDouble("lineupAdjustmentPp", 0.0)
             val odds = topSignalOdds(signal, m) ?: return@forEachIndexed
             val implied = 1.0 / odds
             val ev = p * odds - 1.0
@@ -1836,11 +1838,38 @@ class MainActivity : Activity() {
                 addText(box, "Преимущество над рыночным порогом: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
             } else {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
-                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Это фильтр для анализа, но не доказательство value относительно букмекера.", 11, false, muted)
+                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Поправка формы: ${if (formAdjustment >= 0) "+" else ""}${String.format(Locale.US, "%.1f", formAdjustment)} п.п.; поправка подтверждённого состава: ${String.format(Locale.US, "%.1f", lineupAdjustment)} п.п. учитываются в фильтре, но не меняют вероятность xG.", 11, false, muted)
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
+            val form = m.optJSONObject("prediction")?.optJSONObject("teamForm")
+            if (form != null) {
+                val hf = form.optJSONObject("home") ?: JSONObject()
+                val af = form.optJSONObject("away") ?: JSONObject()
+                addText(box, "ФОРМА · ПОСЛЕДНИЕ 5 МАТЧЕЙ", 10, true, cyan)
+                addText(box, "${m.optString("home")}: ${hf.optString("form", "нет данных")} · ${hf.optInt("matches")} матчей · ${hf.optString("pointsPerGame", "—")} очка/матч · дома: ${hf.optString("venueForm", "—")}", 10, false, Color.WHITE)
+                addText(box, "${m.optString("away")}: ${af.optString("form", "нет данных")} · ${af.optInt("matches")} матчей · ${af.optString("pointsPerGame", "—")} очка/матч · в гостях: ${af.optString("venueForm", "—")}", 10, false, Color.WHITE)
+                addText(box, "Форма влияет на фильтр сильной ставки ограниченной поправкой до ±1,5 п.п.; вероятность модели не переписывается.", 10, false, muted)
+            }
+            val lineups = m.optJSONObject("lineups")
+            if (lineups != null) {
+                addText(box, "СОСТАВЫ · PITCHAPI", 10, true, cyan)
+                fun lineupSummary(sideKey: String, teamName: String): String {
+                    val side = lineups.optJSONObject(sideKey) ?: return "$teamName: состав не получен"
+                    val confirmed = side.optBoolean("confirmed", false)
+                    val status = if (confirmed) "подтверждён" else "прогноз"
+                    val formation = side.optString("formation").takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""
+                    val starters = side.optJSONArray("starters") ?: JSONArray()
+                    val names = (0 until starters.length()).mapNotNull { starters.optJSONObject(it)?.optString("name")?.takeIf { n -> n.isNotBlank() } }
+                    val preview = names.take(5).joinToString(", ")
+                    val suffix = if (names.size > 5) " и ещё ${names.size - 5}" else ""
+                    return "$teamName: $status$formation · XI ${names.size}/11" + if (preview.isNotBlank()) " · $preview$suffix" else ""
+                }
+                addText(box, lineupSummary("home", m.optString("home")), 10, false, Color.WHITE)
+                addText(box, lineupSummary("away", m.optString("away")), 10, false, Color.WHITE)
+                addText(box, "Прогнозный состав не считается подтверждённым. Отсутствие игрока в списке не трактуется как травма.", 10, false, muted)
+            }
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
         }

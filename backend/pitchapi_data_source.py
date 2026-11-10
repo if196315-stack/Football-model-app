@@ -156,7 +156,7 @@ def normalize_match(match: dict, league_code: str, league: dict, season: str) ->
         "id": str(match_id), "provider": "PitchAPI",
         "leagueCode": league_code, "leagueId": league.get("id"),
         "leagueName": league.get("name"), "season": season,
-        "date": date, "status": str(match.get("status") or "").casefold(),
+        "date": date, "timeUtc": match.get("time_utc"), "status": str(match.get("status") or "").casefold(),
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
         "homeScore": match.get("score_home"), "awayScore": match.get("score_away"),
@@ -199,11 +199,27 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
                     for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError"):
                         if field in previous:
                             row[field] = previous[field]
+                    same_lineup_fixture = (
+                        norm(previous.get("home")) == norm(row.get("home"))
+                        and norm(previous.get("away")) == norm(row.get("away"))
+                        and (previous.get("timeUtc") or previous.get("date"))
+                        == (row.get("timeUtc") or row.get("date"))
+                    )
+                    if same_lineup_fixture:
+                        for field in ("footballApiFixtureId", "footballApiFixtureMappedAt",
+                                      "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
+                            if field in previous:
+                                row[field] = previous[field]
+                        previous_lineups = previous.get("lineups")
+                        if isinstance(previous_lineups, dict) and previous_lineups.get("source") == "API-Football":
+                            row["lineups"] = previous_lineups
                     stored[row["id"]] = row
             except (requests.RequestException, ValueError, RuntimeError, TypeError) as exc:
                 errors.append(f"{code} {season}: {type(exc).__name__}")
             if pause_seconds:
                 time.sleep(pause_seconds)
+
+    lineup_summary = {}
 
     # Backfill chronologically from the oldest finished matches first. Recent
     # xG is already well covered; older seasons are needed for a longer,
@@ -253,7 +269,8 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
     cache["lastRefresh"] = datetime.now(timezone.utc).isoformat()
     cache["lastRefreshSummary"] = {
         "listedMatches": listing_count, "cachedMatches": len(stored),
-        "shotRequests": shot_requests, "shotAttempts": shot_attempts, "pendingShotXg": sum(
+        "shotRequests": shot_requests, "shotAttempts": shot_attempts,
+        **lineup_summary, "pendingShotXg": sum(
             1 for row in stored.values()
             if row.get("status") == "finished"
             and (row.get("homeXg") is None or row.get("awayXg") is None)

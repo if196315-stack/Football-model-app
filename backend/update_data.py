@@ -157,7 +157,8 @@ def historical_baselines(matches, comp, target_date):
     return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
       "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
 
-def strongest_signal(pred, baseline, home, away):
+def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
+                     lineups=None, predicted_lineups=None):
     if not baseline:return None
     candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
@@ -170,19 +171,149 @@ def strongest_signal(pred, baseline, home, away):
       else: side,mp,bp=no,1-p,1-b
       edge=mp-bp
       item={"market":title,"side":side,"modelProbability":mp,"baselineProbability":bp,
-        "edgePp":edge*100.0,"baselineMatches":baseline["matches"]}
-      if best is None or edge>best["edgePp"]/100.0:best=item
-    if best is not None and best["edgePp"]<=0:best["noPositiveSignal"]=True
+        "edgePp":edge*100.0,"baselineMatches":baseline["matches"],
+        "homeTeam":home,"awayTeam":away}
+      adjustment = form_adjustment(item, home_form or {}, away_form or {})
+      item["formAdjustmentPp"] = adjustment
+      lineup_adjustment, lineup_context = lineup_selection_adjustment(
+          item, lineups or {}, predicted_lineups or {}
+      )
+      item["lineupAdjustmentPp"] = lineup_adjustment
+      item["lineupContext"] = lineup_context
+      item["selectionEdgePp"] = round(item["edgePp"] + adjustment + lineup_adjustment, 2)
+      item["formContextUsed"] = adjustment != 0.0
+      item["lineupContextUsed"] = lineup_adjustment != 0.0
+      if best is None or item["selectionEdgePp"] > best["selectionEdgePp"]:best=item
+    if best is not None and best["selectionEdgePp"]<=0:best["noPositiveSignal"]=True
     return best
 
-def predict(c,home,away,st,base,names,matches,target_date):
+def recent_team_form(matches, comp, team, target_date, venue=None, limit=5):
+    """Recent score-based form from cached results, excluding the target date and future."""
+    empty = {"matches": 0, "form": "", "pointsPerGame": None,
+             "goalsForAvg": None, "goalsAgainstAvg": None, "venueMatches": 0,
+             "venuePointsPerGame": None, "venueForm": ""}
+    if matches is None or matches.empty or not team:
+        return empty.copy()
+    cutoff = pd.to_datetime(target_date, errors="coerce")
+    if pd.isna(cutoff):
+        return empty.copy()
+    rows = matches[(matches.comp == comp) & (matches.date < cutoff)]
+    played = []
+    for _, row in rows.iterrows():
+        is_home = str(row.get("home_team") or "") == str(team)
+        is_away = str(row.get("away_team") or "") == str(team)
+        if not (is_home or is_away):
+            continue
+        gf = int(row.home_score if is_home else row.away_score)
+        ga = int(row.away_score if is_home else row.home_score)
+        points = 3 if gf > ga else (1 if gf == ga else 0)
+        played.append({"date": row.date, "gf": gf, "ga": ga, "points": points,
+                       "venue": "home" if is_home else "away",
+                       "result": "W" if points == 3 else ("D" if points == 1 else "L")})
+    played.sort(key=lambda item: item["date"])
+    recent = played[-limit:]
+    venue_rows = [item for item in played if item["venue"] == venue][-limit:] if venue else []
+    def summarize(items):
+        if not items:
+            return {"matches": 0, "form": "", "pointsPerGame": None,
+                    "goalsForAvg": None, "goalsAgainstAvg": None}
+        return {"matches": len(items), "form": "".join(x["result"] for x in items),
+                "pointsPerGame": round(sum(x["points"] for x in items) / len(items), 3),
+                "goalsForAvg": round(sum(x["gf"] for x in items) / len(items), 3),
+                "goalsAgainstAvg": round(sum(x["ga"] for x in items) / len(items), 3)}
+    summary = summarize(recent)
+    venue_summary = summarize(venue_rows)
+    return {**summary, "venueMatches": venue_summary["matches"],
+            "venuePointsPerGame": venue_summary["pointsPerGame"],
+            "venueForm": venue_summary["form"]}
+
+
+def form_adjustment(signal, home_form, away_form):
+    """Capped selection adjustment from recent form; never changes xG probabilities."""
+    if home_form.get("matches", 0) < 3 or away_form.get("matches", 0) < 3:
+        return 0.0
+    side = str(signal.get("side") or "")
+    if side == "1X":
+        home_ppg = home_form.get("venuePointsPerGame")
+        away_ppg = away_form.get("venuePointsPerGame")
+        raw = (home_ppg if home_ppg is not None else home_form["pointsPerGame"]) - (away_ppg if away_ppg is not None else away_form["pointsPerGame"])
+        scale = 0.55
+    elif side == "X2":
+        away_ppg = away_form.get("venuePointsPerGame")
+        home_ppg = home_form.get("venuePointsPerGame")
+        raw = (away_ppg if away_ppg is not None else away_form["pointsPerGame"]) - (home_ppg if home_ppg is not None else home_form["pointsPerGame"])
+        scale = 0.55
+    elif side.startswith("ИТБ 1.5"):
+        team_name = side.split("·", 1)[1].strip() if "·" in side else ""
+        if team_name == signal.get("homeTeam"):
+            raw = home_form["goalsForAvg"] - away_form["goalsAgainstAvg"]
+        elif team_name == signal.get("awayTeam"):
+            raw = away_form["goalsForAvg"] - home_form["goalsAgainstAvg"]
+        else:
+            return 0.0
+        scale = 0.45
+    else:
+        return 0.0
+    return round(max(-1.5, min(1.5, raw * scale)), 2)
+
+
+def lineup_selection_adjustment(signal, lineups, predicted_lineups):
+    """Conservatively penalize confirmed XI deviations from PitchAPI's prior predicted XI."""
+    if not isinstance(lineups, dict) or not isinstance(predicted_lineups, dict):
+        return 0.0, {"used": False, "reason": "no_comparable_lineup"}
+    sides = {}
+    for side in ("home", "away"):
+        actual = lineups.get(side) or {}
+        predicted = predicted_lineups.get(side) or {}
+        if actual.get("confirmed") is not True or not isinstance(predicted.get("starters"), list):
+            return 0.0, {"used": False, "reason": "lineup_not_confirmed_or_no_prediction"}
+        expected_names = {
+            key(player.get("name")) for player in predicted["starters"]
+            if isinstance(player, dict) and player.get("name")
+        }
+        actual_names = {
+            key(player.get("name")) for player in (actual.get("starters") or [])
+            if isinstance(player, dict) and player.get("name")
+        }
+        sides[side] = sorted(name for name in expected_names - actual_names if name)
+    selected_side = str(signal.get("side") or "")
+    if selected_side == "1X":
+        relevant = "home"
+    elif selected_side == "X2":
+        relevant = "away"
+    elif selected_side.startswith("ИТБ 1.5"):
+        team = selected_side.split("·", 1)[1].strip() if "·" in selected_side else ""
+        relevant = "home" if team == signal.get("homeTeam") else ("away" if team == signal.get("awayTeam") else None)
+    else:
+        relevant = None
+    if relevant is None:
+        return 0.0, {"used": False, "reason": "market_not_supported"}
+    missing = sides[relevant]
+    # A lineup change is not labelled as an injury; this is only a small,
+    # one-sided confidence haircut when a confirmed XI omits prior predicted starters.
+    adjustment = -min(1.5, 0.35 * len(missing))
+    return round(adjustment, 2), {
+        "used": bool(missing), "side": relevant,
+        "unexpectedOmissions": len(missing), "players": missing,
+        "homeConfirmed": True, "awayConfirmed": True,
+    }
+
+
+def predict(c,home,away,st,base,names,matches,target_date,lineups=None,predicted_lineups=None):
     hn=match_name(home,names.get(c,[]),c); an=match_name(away,names.get(c,[]),c)
     if not hn or not an:return None,"Не удалось надёжно сопоставить команды с исторической базой xG"
     hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
     lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
     pred=markets(lh,la)
-    pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
+    home_form = recent_team_form(matches, c, hn, target_date, venue="home")
+    away_form = recent_team_form(matches, c, an, target_date, venue="away")
+    pred["teamForm"] = {"source": "cached_results", "window": 5,
+                        "home": home_form, "away": away_form}
+    pred["strongestSignal"] = strongest_signal(
+        pred, historical_baselines(matches,c,target_date), home, away, home_form, away_form,
+        lineups, predicted_lineups
+    )
     return pred,None
 
 def strip_forbidden_market_fields(prediction):

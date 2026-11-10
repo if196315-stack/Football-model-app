@@ -19,7 +19,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from pitchapi_data_source import CACHE_PATH, model_history_rows, refresh_history
+from pitchapi_data_source import CACHE_PATH, model_history_rows, refresh_history, save_cache
+from football_api_lineups import refresh_lineups as refresh_football_lineups
 from update_odds import BASE_URL as ODDS_BASE_URL, LEAGUES as ODDS_LEAGUES, convert_event as convert_odds_event, similarity as odds_similarity
 from update_data import (
     COMPS, MAP, WINDOW, HALF_LIFE, SHRINKAGE, _similarity, key,
@@ -60,9 +61,9 @@ def build_model_frames(cache: dict):
                         "xg": home_xg, "xg_against": away_xg})
         history.append({**common, "team": row["away"], "side": "away",
                         "xg": away_xg, "xg_against": home_xg})
-        results.append({**common, "home_score": home_score, "away_score": away_score})
+        results.append({**common, "home_team": row["home"], "away_team": row["away"], "home_score": home_score, "away_score": away_score})
     s = pd.DataFrame(history, columns=["comp", "date", "match_id", "team", "side", "xg", "xg_against"])
-    matches = pd.DataFrame(results, columns=["comp", "date", "match_id", "home_score", "away_score"])
+    matches = pd.DataFrame(results, columns=["comp", "date", "match_id", "home_team", "away_team", "home_score", "away_score"])
     if s.empty:
         base = {(c, side): None for c in MAP for side in ("home", "away")}
         return s, base, matches
@@ -318,6 +319,17 @@ def run() -> dict:
     shot_limit = int(os.environ.get("PITCHAPI_MAX_SHOT_REQUESTS", "5000"))
     refreshed = refresh_history(api_key, max_shot_requests=shot_limit)
     cache = refreshed["cache"]
+    football_key = os.environ.get("API_FOOTBALL_KEY", "").strip()
+    if football_key:
+        lineup_summary = refresh_football_lineups(
+            cache, football_key,
+            max_lineup_requests=int(os.environ.get("FOOTBALL_API_MAX_LINEUP_REQUESTS", "10")),
+        )
+        cache["lastRefreshSummary"].update(lineup_summary)
+        save_cache(cache)
+    else:
+        lineup_summary = {"lineupAttempts": 0, "lineupsFetched": 0,
+                          "lineupErrors": 0, "footballApiSkipped": "API_FOOTBALL_KEY not configured"}
     s, base, results = build_model_frames(cache)
     st = strengths(s, base) if not s.empty else {}
     names = {code: sorted(s.loc[s.comp == code, "team"].dropna().unique().tolist())
@@ -361,7 +373,10 @@ def run() -> dict:
                 elif min(st[(league, hn)]["matches"], st[(league, an)]["matches"]) < 5:
                     warning = "Для прогноза требуется не менее 5 матчей истории каждой команды"
                 else:
-                    pred, warning = predict(league, home, away, st, base, names, results, date[:10])
+                    pred, warning = predict(
+                        league, home, away, st, base, names, results, date[:10],
+                        lineups=row.get("lineups"), predicted_lineups=row.get("predictedLineups"),
+                    )
             # Keep unsupported upcoming fixtures out of the app feed entirely.
             # Only publish a scheduled fixture once both teams have sufficient paired xG history.
             if status in ("SCHEDULED", "TIMED") and pred is None:
@@ -371,6 +386,8 @@ def run() -> dict:
                 "home": home, "away": away,
                 "homeScore": row.get("homeScore"), "awayScore": row.get("awayScore"),
                 "prediction": pred, "predictionWarning": warning,
+                **({"lineups": row["lineups"], "lineupsFetchedAt": row.get("lineupsFetchedAt")}
+                   if isinstance(row.get("lineups"), dict) else {}),
             })
         item["matches"].sort(key=lambda x: x.get("utcDate") or "")
         payload["competitions"].append(item)
