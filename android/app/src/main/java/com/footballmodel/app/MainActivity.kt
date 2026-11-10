@@ -154,6 +154,24 @@ class MainActivity : Activity() {
         brand.addView(label("IQ MATCH", 24, true, Color.WHITE))
         brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
+        val notificationsButton = TextView(this).apply {
+            text = "♧"
+            textSize = 25f
+            gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+            background = rounded(surface, 15)
+            contentDescription = "Ежедневный отчёт и аналитика"
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                currentTab = "notifications"
+                tabViewCache.clear()
+                renderedKey = null
+                if (data != null) render()
+                loadData()
+            }
+        }
+        top.addView(notificationsButton, LinearLayout.LayoutParams(dp(46), dp(48)).apply { rightMargin = dp(7) })
         refreshButton = Button(this).apply {
             text = "↻"
             textSize = 21f
@@ -794,7 +812,7 @@ class MainActivity : Activity() {
                     }
                 }
                 // Download the append-only archives only when Stats is opened; match refreshes stay lightweight.
-                if (currentTab == "stats") {
+                if (currentTab == "stats" || currentTab == "notifications") {
                     val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
                     val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
                     json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
@@ -1751,6 +1769,95 @@ class MainActivity : Activity() {
         return bank.coerceAtLeast(0.0)
     }
 
+    private fun renderDailyInsights(json: JSONObject) {
+        screenHeader("IQ MATCH · DAILY REVIEW", "Отчёт и наблюдения", "Разбор результатов, качества сигналов и идей для улучшения. Аналитика не меняет правила ставок.")
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val dayBets = mutableListOf<JSONObject>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val day = bet.optString("betDay").ifBlank { bet.optString("date").take(10) }
+            if (day == today) dayBets.add(bet)
+        }
+        val wins = dayBets.count { it.optString("status") == "WON" }
+        val losses = dayBets.count { it.optString("status") == "LOST" }
+        val pushes = dayBets.count { it.optString("status") == "PUSH" }
+        val pending = dayBets.count { it.optString("status") == "PENDING" }
+        val profit = dayBets.sumOf {
+            val stake = it.optDouble("stake", 0.0)
+            when (it.optString("status")) {
+                "WON" -> stake * (it.optDouble("odds", 0.0) - 1.0)
+                "LOST" -> -stake
+                else -> 0.0
+            }
+        }
+        val summary = card()
+        addText(summary, "СЕГОДНЯ · $today", 10, true, cyan)
+        addText(summary, "Бумажные ставки: ${dayBets.size}", 16, true, Color.WHITE)
+        addText(summary, "WIN $wins · LOSS $losses · возврат $pushes · ожидают $pending", 12, true, accent)
+        addText(summary, "Результат рассчитанных ставок: ${String.format(Locale.US, "%+.2f ₽", profit)}", 13, true, if (profit >= 0) accent else gold)
+        addText(summary, "Текущий бумажный банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, false, muted)
+
+        val observations = json.optJSONArray("marketObservationResults") ?: JSONArray()
+        val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
+        var observedWins = 0
+        var observedLosses = 0
+        var observedPushes = 0
+        var observedPending = 0
+        var observedProfit = 0.0
+        for (i in 0 until observations.length()) {
+            val row = observations.optJSONObject(i) ?: continue
+            when (row.optString("result")) {
+                "WIN" -> observedWins++
+                "LOSS" -> observedLosses++
+                "PUSH" -> observedPushes++
+                else -> observedPending++
+            }
+            observedProfit += row.optDouble("profit_units", 0.0)
+        }
+        val observationCard = card()
+        addText(observationCard, "НАБЛЮДАТЕЛЬНЫЕ СТАВКИ", 10, true, cyan)
+        addText(observationCard, "Снимков котировок: ${snapshots.length()} · завершённых наблюдений: ${observations.length()}", 12, true, Color.WHITE)
+        addText(observationCard, "WIN $observedWins · LOSS $observedLosses · PUSH $observedPushes · ожидают $observedPending", 12, true, accent)
+        if (observations.length() > 0) {
+            val settled = observedWins + observedLosses + observedPushes
+            val roi = if (settled > 0) observedProfit / settled * 100.0 else 0.0
+            addText(observationCard, "Условный результат: ${String.format(Locale.US, "%+.2f ед.", observedProfit)} · ROI ${String.format(Locale.US, "%+.2f%%", roi)}", 12, true, gold)
+            addText(observationCard, "Это исследовательская статистика архива, не фактическая прибыль и не изменение бумажного банка.", 10, false, muted)
+        } else {
+            addText(observationCard, "Архив результатов пока пуст. Выводы по наблюдениям появятся после накопления и расчёта матчей.", 11, false, muted)
+        }
+
+        val strengths = mutableListOf<String>()
+        val improvements = mutableListOf<String>()
+        if (dayBets.isEmpty()) strengths.add("Сегодня нет записей ставок по дате матча. Подходящих сигналов могло не быть.")
+        else {
+            if (wins > losses) strengths.add("По рассчитанным paper-ставкам больше побед, чем поражений ($wins:$losses).")
+            if (pending > 0) strengths.add("$pending ставок ещё ожидают расчёта — не считаем их выигрышами или проигрышами.")
+            if (losses > wins) improvements.add("Поражений больше, чем побед ($losses против $wins). Проверим рынки и цену, но не будем менять пороги по одному дню.")
+            if (profit < 0) improvements.add("Дневной результат отрицательный. Сначала накопим выборку и сравним рынки, не повышая риск.")
+        }
+        if (observations.length() == 0) {
+            improvements.add("Нужно накопить завершённые наблюдательные матчи: пока нельзя честно выделить лучшие рынки.")
+        } else {
+            val settled = observedWins + observedLosses
+            if (settled >= 10 && observedLosses > observedWins) improvements.add("В архиве наблюдений поражений больше побед. Проверим точные рынки и линии отдельно, прежде чем что-либо менять.")
+            else if (settled >= 10 && observedWins > observedLosses) strengths.add("Наблюдательная выборка показывает больше WIN, чем LOSS. Проверим устойчивость результата по рынкам.")
+            else improvements.add("Выборка наблюдений пока небольшая; выводы по ROI и отдельным рынкам предварительные.")
+        }
+        val strengthsCard = card()
+        addText(strengthsCard, "ЧТО ХОРОШО", 10, true, accent)
+        strengths.forEach { addText(strengthsCard, "• $it", 12, false, Color.WHITE) }
+        val improveCard = card()
+        addText(improveCard, "ЧТО УЛУЧШИТЬ", 10, true, gold)
+        improvements.forEach { addText(improveCard, "• $it", 12, false, Color.WHITE) }
+
+        val recommendations = card()
+        addText(recommendations, "МОИ ВЫВОДЫ", 10, true, cyan)
+        addText(recommendations, "1. Сравнивать рабочие ставки и наблюдательные сигналы отдельно: это разные выборки.", 12, false, Color.WHITE)
+        addText(recommendations, "2. Искать устойчивые закономерности по рынку и линии только на завершённых матчах с достаточным объёмом данных.", 12, false, Color.WHITE)
+        addText(recommendations, "3. Не менять пороги вероятности, edge, EV и риск-менеджмент автоматически. Любые изменения — только после отдельной проверки и согласования.", 12, false, muted)
+    }
+
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
         val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
@@ -1973,6 +2080,11 @@ class MainActivity : Activity() {
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
             renderDay(json)
+            return
+        }
+        if (currentTab == "notifications") {
+            leagueBar.visibility = View.GONE
+            renderDailyInsights(json)
             return
         }
         if (currentTab == "desk") {
