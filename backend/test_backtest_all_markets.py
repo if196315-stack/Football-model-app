@@ -53,6 +53,8 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertIn("ENG", report["markets"]["1X2"]["all_by_competition"])
         self.assertIn("brier_skill", report["markets"]["1X2"]["holdout"])
         self.assertIn("limitations", report)
+        self.assertEqual(report["independent_market_count"], 15)
+        self.assertIn("DNB_HOME", report["market_relationships"])
         self.assertIn("calibration_global", report["markets"]["1X2"])
         self.assertEqual(report["markets"]["1X2"]["calibration_global"]["calibrator"]["train_n"], 4)
         self.assertFalse(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
