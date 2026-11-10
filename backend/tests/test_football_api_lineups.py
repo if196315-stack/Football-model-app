@@ -128,3 +128,30 @@ def test_daily_api_football_budget_counts_all_endpoint_requests(monkeypatch):
     assert result["apiFootballRequestsThisRun"] == 0
     assert result["apiFootballRequestsToday"] == 100
     assert result["lineupsFetched"] == 0
+
+
+
+def test_lineup_count_is_not_artificially_capped_at_twenty(monkeypatch):
+    now = datetime(2026, 11, 11, 11, 30, tzinfo=timezone.utc)
+    matches = {
+        f"pitch-{i}": {
+            "status": "scheduled", "timeUtc": "2026-11-11T12:00:00Z",
+            "home": "Home FC", "away": "Away FC", "footballApiFixtureId": 900 + i,
+        }
+        for i in range(25)
+    }
+    cache = {"matches": matches}
+    calls = []
+
+    def fake_get(session, path, api_key, params=None):
+        calls.append((path, params))
+        return api_lineups()
+
+    monkeypatch.setattr(source, "_api_get", fake_get)
+    result = source.refresh_lineups(
+        cache, "secret", session=object(), now=now, pause_seconds=0,
+        max_lineup_requests=None, max_api_requests=100, daily_request_limit=100,
+    )
+    assert result["lineupsFetched"] == 25
+    assert result["apiFootballRequestsThisRun"] == 25
+    assert len(calls) == 25
