@@ -14,8 +14,24 @@ def norm(v):
     s=unicodedata.normalize("NFKD",str(v or "").lower())
     s="".join(c for c in s if not unicodedata.combining(c))
     s=" ".join(re.sub(r"[^a-z0-9]+"," ",s).split())
-    aliases={"man city":"manchester city","man utd":"manchester united",
-             "man united":"manchester united","spurs":"tottenham hotspur"}
+    aliases={
+        "man city":"manchester city","man utd":"manchester united",
+        "man united":"manchester united","spurs":"tottenham hotspur",
+        # PitchAPI uses short city/club labels; API-Sport commonly uses official names.
+        "racing santander":"real racing club","real racing club":"real racing club",
+        "nice":"ogc nice","ogc nice":"ogc nice",
+        "strasbourg":"rc strasbourg","rc strasbourg":"rc strasbourg",
+        "brest":"stade brestois","stade brestois 29":"stade brestois",
+        "stade brestois":"stade brestois",
+        "lille":"losc lille","losc lille":"losc lille",
+        "lyon":"olympique lyonnais","olympique lyon":"olympique lyonnais",
+        "olympique lyonnais":"olympique lyonnais",
+        "rennes":"stade rennais","stade rennais":"stade rennais",
+        "marseille":"olympique marseille","olympique de marseille":"olympique marseille",
+        "olympique marseille":"olympique marseille",
+        "auxerre":"aj auxerre","aj auxerre":"aj auxerre",
+        "levante":"levante ud","levante ud":"levante ud",
+    }
     return aliases.get(s,s)
 
 def sim(a,b):
