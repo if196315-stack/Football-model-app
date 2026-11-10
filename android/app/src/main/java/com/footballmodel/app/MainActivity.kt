@@ -76,7 +76,11 @@ class MainActivity : Activity() {
     private val liveRefreshTask = object : Runnable {
         override fun run() {
             refreshWorkerStatusUi()
-            if (refreshButton.isEnabled && currentTab in listOf("matches", "history", "desk")) loadData()
+            // Keep the lightweight status refresh frequent, but avoid polling both feeds
+            // every 30 seconds while the user is reading the app. Manual refresh remains immediate.
+            val lastFeedCheck = feedCache.getLong("last_successful_check_ms", 0L)
+            val feedIsStale = lastFeedCheck <= 0L || System.currentTimeMillis() - lastFeedCheck >= 120_000L
+            if (refreshButton.isEnabled && feedIsStale && currentTab in listOf("matches", "history", "desk")) loadData()
             liveRefreshHandler.postDelayed(this, 30_000)
         }
     }
