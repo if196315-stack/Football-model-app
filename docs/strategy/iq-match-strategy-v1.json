@@ -26,7 +26,6 @@
     "MATCH_TOTAL_OVER",
     "TEAM_TOTAL_OVER",
     "BTTS_YES",
-    "BTTS_NO",
     "HANDICAP_EXACT_LINE_ONLY"
   ],
   "hiddenMarkets": [
