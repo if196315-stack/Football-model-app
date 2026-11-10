@@ -66,12 +66,28 @@ class MainActivity : Activity() {
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
     private var renderedKey: String? = null
+    private var workerStatusTextView: TextView? = null
+    private var workerMessageTextView: TextView? = null
+    private var workerCountTextView: TextView? = null
     private val liveRefreshHandler = Handler(Looper.getMainLooper())
     private val liveRefreshTask = object : Runnable {
         override fun run() {
+            refreshWorkerStatusUi()
             if (refreshButton.isEnabled && currentTab in listOf("matches", "history", "desk")) loadData()
             liveRefreshHandler.postDelayed(this, 30_000)
         }
+    }
+
+    private fun refreshWorkerStatusUi() {
+        val lastRun = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
+        val status = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
+        val message = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
+        workerStatusTextView?.text = if (status == "SUCCESS") "Последняя проверка: ${formatLocalTimestamp(lastRun)}"
+            else if (status == "ERROR") "Ошибка · ${formatLocalTimestamp(lastRun)}"
+            else "Ожидание первого запуска"
+        workerStatusTextView?.setTextColor(if (status == "ERROR") Color.RED else Color.WHITE)
+        workerMessageTextView?.text = message
+        workerCountTextView?.text = "Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут"
     }
 
     private fun scheduleAutoPaperWorker() {
@@ -1491,9 +1507,12 @@ class MainActivity : Activity() {
         val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
         val workerTime = if (workerRunAt > 0L) SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date(workerRunAt)) else "ещё не запускался"
         addText(workerCard, "ФОНОВАЯ АВТОМАТИКА", 10, true, cyan)
-        addText(workerCard, if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
-        addText(workerCard, workerMessage, 11, false, muted)
-        addText(workerCard, "Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
+        workerStatusTextView = label(if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
+        workerMessageTextView = label(workerMessage, 11, false, muted)
+        workerCountTextView = label("Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
+        workerCard.addView(workerStatusTextView)
+        workerCard.addView(workerMessageTextView)
+        workerCard.addView(workerCountTextView)
         val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
         val highWater = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull() ?: initialBankroll()
         val currentForRisk = currentBankroll()
