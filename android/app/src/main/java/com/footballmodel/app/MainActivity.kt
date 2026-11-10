@@ -1466,6 +1466,7 @@ class MainActivity : Activity() {
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 28, true, Color.WHITE)
         addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
+        addText(bankrollCard, "Правило ставки: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽.", 12, true, accent)
 
         val strategyCard = card()
         addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
@@ -1703,8 +1704,8 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "2500")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 2500.0
+    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "5000")
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 5000.0
 
     private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
@@ -1730,11 +1731,9 @@ class MainActivity : Activity() {
                     return@setOnClickListener
                 }
                 settingsPrefs.edit().putString(key, value.toString()).apply()
-                // Стартовый банк отображается в профиле и на экране «Банк».
-                // Сбрасываем оба кеша, чтобы новые значения появились сразу без перезапуска.
-                if (key == "initial_bankroll") {
-                    tabViewCache.remove("history|ALL")
-                    tabViewCache.remove("help|ALL")
+                // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
+                if (key == "initial_bankroll" || key == "minimum_stake") {
+                    tabViewCache.clear()
                 }
                 dialog.dismiss()
                 render()
