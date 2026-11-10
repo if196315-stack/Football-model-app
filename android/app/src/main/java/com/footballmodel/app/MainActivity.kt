@@ -1200,6 +1200,7 @@ class MainActivity : Activity() {
         // Reload persisted worker changes before foreground processing.
         bets = try { JSONArray(betPrefs.getString("bets", bets.toString())) } catch (_: Exception) { bets }
         val now = System.currentTimeMillis()
+        val localDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now))
         var changed = false
         val newAutoBets = mutableListOf<JSONObject>()
         for (i in 0 until bets.length()) {
