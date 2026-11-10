@@ -125,6 +125,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
         val competitions = feed.optJSONArray("competitions") ?: return changed
         val now = System.currentTimeMillis()
+        val dayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now))
         val bankBeforeEntries = currentBank(bets)
         val storedHigh = settings.getString("paper_high_watermark", null)?.toDoubleOrNull()
         val highWater = max(storedHigh ?: bankBeforeEntries, bankBeforeEntries)
