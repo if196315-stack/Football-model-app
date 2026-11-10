@@ -40,3 +40,26 @@ The prospective odds-snapshot and market-probe workflows are manual-dispatch onl
 ## Migration and validation
 
 PitchAPI coverage audits, clean-cohort exports, and chronological backtests are available as GitHub Actions workflows. The CI unit-test job runs the backend regression suite. The migration preview is branch-only and does not publish production data.
+
+
+## Domestic market observation archive
+
+The scheduled BetBoom odds refresh appends immutable quote snapshots to
+`artifacts/odds-snapshots.jsonl` every six hours. Each observation retains
+the fixture, league, market, exact line, capture time, bookmaker update time,
+price, and the model probability when that probability is present in the
+published fixture forecast. Missing model probabilities remain explicitly
+null; they are never inferred from bookmaker prices.
+
+When the domestic prediction archive contains a final score, the scheduled
+job appends one result per captured quote to
+`artifacts/market-observation-results.jsonl`. Results are deduplicated by
+snapshot identity. This evaluates the historical price at the time it was
+captured, not a hypothetical bet placed later. The archive is descriptive
+research data and does not change candidate markets, paper bets, or risk rules.
+
+The current domestic odds parser does not expose a complete 1X2 BetBoom board;
+therefore 1X2 prices are not claimed as archived until that provider mapping is
+implemented. The existing archive does retain double chance, match/team
+totals (including UNDER reference quotes), BTTS YES/NO, and supported
+zero-handicap quotes when BetBoom supplies them.
