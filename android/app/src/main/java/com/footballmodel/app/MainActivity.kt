@@ -1055,9 +1055,28 @@ class MainActivity : Activity() {
             selector.addView(item, LinearLayout.LayoutParams(0, -2, 1f))
         }
         matchesContainer.addView(selector, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
-        val wins = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "WON" }
-        val losses = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "LOST" }
-        val pending = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "PENDING" }
+        val todayCalendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val todayStart = todayCalendar.timeInMillis
+        todayCalendar.add(Calendar.DAY_OF_YEAR, 1)
+        val todayEnd = todayCalendar.timeInMillis
+        var todayBets = 0
+        var wins = 0
+        var losses = 0
+        var pending = 0
+        var todayProfit = 0.0
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val createdAt = bet.optLong("createdAt", -1L)
+            if (createdAt < todayStart || createdAt >= todayEnd) continue
+            todayBets++
+            when (bet.optString("status")) {
+                "WON" -> { wins++; todayProfit += bet.optDouble("stake") * (bet.optDouble("odds") - 1.0) }
+                "LOST" -> { losses++; todayProfit -= bet.optDouble("stake") }
+                "PENDING" -> pending++
+            }
+        }
         val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
         val results = json.optJSONArray("marketObservationResults") ?: JSONArray()
         when (intelligenceSection) {
@@ -1065,8 +1084,9 @@ class MainActivity : Activity() {
                 val box = card()
                 addText(box, "ЕЖЕДНЕВНЫЙ ОТЧЁТ", 10, true, accent)
                 addText(box, SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date()), 18, true)
-                addText(box, "Paper-ставки: " + bets.length(), 13, true)
+                addText(box, "Ставки, созданные сегодня: " + todayBets, 13, true)
                 addText(box, "WIN " + wins + " · LOSS " + losses + " · ОЖИДАЮТ " + pending, 12, true, cyan)
+                addText(box, "Результат этих ставок: " + String.format(Locale("ru", "RU"), "%+.2f ₽", todayProfit), 12, true, if (todayProfit >= 0) cyan else Color.rgb(235, 110, 110))
                 addText(box, "Снимков котировок: " + snapshots.length(), 12, false)
                 addText(box, "Завершённых наблюдений: " + results.length(), 12, false)
                 addText(box, "Текущий баланс: " + String.format(Locale("ru", "RU"), "%.2f ₽", currentBankroll()), 14, true, gold)
