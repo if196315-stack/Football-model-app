@@ -17,7 +17,7 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 from diagnose_seven_competition_api_sport import all_upcoming_fixtures
-from update_odds_api_sport import match_fixture
+from update_odds_api_sport import match_fixture, team_names, sim
 
 BASE = "https://api.api-sport.ru/v2/football/matches"
 USAGE_URL = "https://api.api-sport.ru/v2/account/usage"
@@ -175,6 +175,33 @@ def main():
             if item["matchInAnyTournament"] is not None
         ),
     }
+    # Name-only comparison: deliberately ignore kickoff and tournament so that
+    # spelling/translation/alias differences can be distinguished from missing fixtures.
+    api_team_names = set()
+    for row in all_rows:
+        for key in ("homeTeam", "awayTeam"):
+            api_team_names.update(team_names(row.get(key)))
+    unmatched_name_checks = []
+    for code, result in results.items():
+        for target in result["unmatchedTargets"]:
+            for side in ("home", "away"):
+                target_name = target[side]
+                ranked = sorted(
+                    ((round(sim(target_name, candidate), 3), candidate)
+                     for candidate in api_team_names),
+                    reverse=True,
+                )[:8]
+                unmatched_name_checks.append({
+                    "competition": code,
+                    "date": target["date"],
+                    "fixture": target["home"] + " - " + target["away"],
+                    "side": side,
+                    "pitchApiName": target_name,
+                    "closestApiSportNames": [
+                        {"similarity": score, "name": name} for score, name in ranked
+                    ],
+                })
+    print("UNMATCHED_TEAM_NAME_CANDIDATES=" + json.dumps(unmatched_name_checks, ensure_ascii=False))
     print("LEAGUE_ID_CROSSCHECK=" + json.dumps(results, ensure_ascii=False))
     print("SUMMARY=" + json.dumps(summary, ensure_ascii=False))
 
