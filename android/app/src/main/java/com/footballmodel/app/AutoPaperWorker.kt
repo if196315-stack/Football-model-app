@@ -273,8 +273,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     }
 
     private fun currentBank(bets: JSONArray): Double {
-        val start = settings.getString("initial_bankroll", "2500")?.replace(',', '.')?.toDoubleOrNull()
-            ?.takeIf { it.isFinite() && it > 0.0 } ?: 2500.0
+        val start = settings.getString("initial_bankroll", "5000")?.replace(',', '.')?.toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 } ?: 5000.0
         var bank = start
         for (i in 0 until bets.length()) {
             val b = bets.optJSONObject(i) ?: continue
