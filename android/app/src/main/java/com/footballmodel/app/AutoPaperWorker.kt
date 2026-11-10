@@ -204,7 +204,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     }
                     if (duplicate || autoStopped || drawdownPaused) continue
                     val bank = currentBank(bets)
-                    val stake = max(bank * 0.01, 25.0)
+                    val minimumStake = settings.getString("minimum_stake", "25")?.replace(',', '.')?.toDoubleOrNull()
+                        ?.takeIf { it.isFinite() && it > 0.0 } ?: 25.0
+                    val stake = max(bank * 0.01, minimumStake)
                     bets.put(JSONObject()
                         .put("id", id).put("source", "AI_AUTO").put("status", "PENDING")
                         .put("matchId", matchId).put("league", competition.optString("name"))
