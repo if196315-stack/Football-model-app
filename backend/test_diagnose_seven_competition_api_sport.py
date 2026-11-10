@@ -1,7 +1,7 @@
 import unittest
 from datetime import date, datetime, timezone
 
-from backend.diagnose_seven_competition_api_sport import upcoming_one_per_competition
+from backend.diagnose_seven_competition_api_sport import all_upcoming_fixtures, upcoming_one_per_competition
 
 
 class SevenCompetitionSampleTests(unittest.TestCase):
@@ -34,6 +34,20 @@ class SevenCompetitionSampleTests(unittest.TestCase):
         self.assertEqual(result[0]["id"], "pl-1")
         self.assertEqual(result[2]["competition"], "SA")
         self.assertEqual(result[5]["utcDate"], "2026-11-24")
+
+    def test_collects_all_future_fixtures_and_deduplicates_sources(self):
+        domestic = {"competitions": [{"code": "PL", "matches": [
+            {"id": "pl-1", "utcDate": "2026-11-20T10:00:00Z", "status": "SCHEDULED", "home": "A", "away": "B"},
+            {"id": "pl-2", "utcDate": "2026-11-21T10:00:00Z", "status": "TIMED", "home": "C", "away": "D"},
+            {"id": "old", "utcDate": "2026-11-10T10:00:00Z", "status": "SCHEDULED", "home": "E", "away": "F"},
+            {"id": "live", "utcDate": "2026-11-22T10:00:00Z", "status": "IN_PLAY", "home": "G", "away": "H"},
+        ]}]}
+        uefa = {"competitions": [{"code": "UCL", "matches": [
+            {"id": "ucl-1", "utcDate": "2026-11-24", "status": "SCHEDULED", "home": "I", "away": "J"}
+        ]}]}
+        result = all_upcoming_fixtures(domestic, uefa, today=date(2026, 11, 11))
+        self.assertEqual([row["id"] for row in result], ["pl-1", "pl-2", "ucl-1"])
+        self.assertEqual(len({row["id"] for row in result}), 3)
 
     def test_handles_naive_and_aware_timestamps_in_same_competition(self):
         data = {"competitions": [{"code": "PL", "matches": [
