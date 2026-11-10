@@ -650,6 +650,54 @@ class MainActivity : Activity() {
         return formatLocalTimestamp(millis)
     }
 
+
+    private fun matchAnalysisText(match: JSONObject, signal: JSONObject, odds: Double): String {
+        val home = match.optString("home", "Хозяева")
+        val away = match.optString("away", "Гости")
+        val prediction = match.optJSONObject("prediction") ?: JSONObject()
+        val homeXg = prediction.optDouble("expectedHomeGoals", Double.NaN)
+        val awayXg = prediction.optDouble("expectedAwayGoals", Double.NaN)
+        val probability = signal.optDouble("modelProbability", Double.NaN)
+        val edge = signal.optDouble("edgePp", Double.NaN)
+        val ev = probability * odds - 1.0
+        val parts = mutableListOf<String>()
+        if (homeXg.isFinite() && awayXg.isFinite()) {
+            val total = homeXg + awayXg
+            val lean = when {
+                homeXg - awayXg >= 0.35 -> "модельный перевес у $home"
+                awayXg - homeXg >= 0.35 -> "модельный перевес у $away"
+                else -> "по ожидаемым голам силы близки"
+            }
+            parts.add("Модельная картина: ожидаемые голы $home — ${String.format(Locale.US, "%.2f", homeXg)}, $away — ${String.format(Locale.US, "%.2f", awayXg)} (всего ${String.format(Locale.US, "%.2f", total)}); $lean.")
+        } else {
+            parts.add("Ожидаемые голы по командам в фиде отсутствуют — этот фактор нельзя надёжно оценить.")
+        }
+        val form = match.optJSONObject("recentForm") ?: prediction.optJSONObject("recentForm")
+        if (form != null) {
+            val hf = form.optString("home", "").ifBlank { form.optString("homeForm", "") }
+            val af = form.optString("away", "").ifBlank { form.optString("awayForm", "") }
+            if (hf.isNotBlank() || af.isNotBlank()) parts.add("Последние результаты: $home — ${hf.ifBlank { "нет данных" }}; $away — ${af.ifBlank { "нет данных" }}.")
+        } else {
+            parts.add("Форма команд: отдельная последовательность последних результатов в фиде не передаётся; модель использует исторический xG-профиль команд.")
+        }
+        val lineup = match.optJSONObject("lineups")
+        val homeXi = lineup?.optJSONArray("home") ?: match.optJSONArray("homeLineup")
+        val awayXi = lineup?.optJSONArray("away") ?: match.optJSONArray("awayLineup")
+        if ((homeXi?.length() ?: 0) > 0 || (awayXi?.length() ?: 0) > 0) {
+            parts.add("Составы: в фиде есть стартовые составы — $home: ${homeXi?.length() ?: 0} игроков, $away: ${awayXi?.length() ?: 0} игроков. Проверь изменения и отсутствие ключевых исполнителей перед матчем.")
+        } else {
+            parts.add("Составы и травмы: подтверждённые стартовые XI и список отсутствующих игроков в текущем фиде не передаются. Моё мнение: составной фактор пока неопределён; не считать предполагаемые XI подтверждёнными и не повышать риск до публикации составов. Особенно перепроверь центральных защитников, опорную зону и основного нападающего.")
+        }
+        val implied = 1.0 / odds
+        val valueText = if (probability.isFinite()) "вероятность модели ${String.format(Locale.US, "%.1f", probability * 100)}%, безубыточный порог ${String.format(Locale.US, "%.1f", implied * 100)}%" else "вероятность модели не указана"
+        val edgeText = if (edge.isFinite()) "edge ${if (edge >= 0) "+" else ""}${String.format(Locale.US, "%.1f", edge)} п.п." else "edge не рассчитан"
+        parts.add("Рынок и цена: ${signal.optString("side")} по ${String.format(Locale.US, "%.2f", odds)}; $valueText, $edgeText, EV ${String.format(Locale.US, "%+.1f", ev * 100)}%. Положительное EV — оценка модели, не гарантия результата.")
+        val oddsUpdated = match.optJSONObject("odds")?.optString("updatedAt").orEmpty()
+        val oddsTime = if (oddsUpdated.isBlank()) "без отметки времени" else formatSourceTimestamp(oddsUpdated) + " (местное время)"
+        parts.add("Контекст: матч ${kickoffLabel(match)}; котировка BetBoom обновлена $oddsTime. Если цена ухудшилась или данные изменились — сигнал нужно пересмотреть.")
+        return parts.joinToString("\n\n")
+    }
+
     private fun date(raw: String): String = try {
         val input = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
         input.timeZone = java.util.TimeZone.getTimeZone("UTC")
@@ -883,7 +931,7 @@ class MainActivity : Activity() {
 
         // IQ MATCH Strategy v1.0 — постоянно доступная памятка с правилами отбора и риска.
         val strategyIntro = card()
-        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.0", 10, true, accent)
+        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.1", 10, true, accent)
         addText(strategyIntro, "СТРОГИЙ ОТБОР · УМЕРЕННЫЙ РИСК · ОГРАНИЧЕННЫЙ ЗАПУСК", 13, true, Color.WHITE)
         addText(strategyIntro, "Ставка допускается только после проверки данных, вероятности, value и риска. Если хотя бы один обязательный фильтр не пройден — WAIT или REJECT. Отсутствие ставки является полноценным решением.", 11, false, muted)
 
@@ -900,7 +948,7 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Базовая ставка — 0.5% текущего банка; сниженная — 0.25%; максимум — 1% на одну ставку. Суммарно на матч — не более 1%; дневная экспозиция — не более 2%. Коррелированные ставки считаются совместно.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Базовая и минимальная ставка — 1% текущего банка (но не ниже минимума букмекера 25 ₽); максимум — 1% на одну ставку. Суммарно на матч — не более 1%; дневная экспозиция — не более 5%. Коррелированные ставки считаются совместно.", 11, false, Color.WHITE)
         addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
@@ -910,7 +958,7 @@ class MainActivity : Activity() {
 
         val strategyTesting = card()
         addText(strategyTesting, "5. ТЕСТИРОВАНИЕ И ДОПУСК К ЗАПУСКУ", 11, true, accent)
-        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных BetBoom котировках без реальных ставок. Этап 4 — ограниченный запуск с 0.25–0.5% банка. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
+        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных BetBoom котировках без реальных ставок. Этап 4 — ограниченный запуск с базовой ставкой 1% банка, при сохранении лимита 1% на матч и 5% на день. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
         addText(strategyTesting, "Стартовые ориентиры: ≥500 исторических сигналов и ≥500 paper-сигналов; желательно ≥150–200 наблюдений на оцениваемый рынок. Эти объёмы не гарантируют статистическую надёжность: показывать доверительные интервалы и учитывать неопределённость.", 11, false, muted)
 
         val strategyMetrics = card()
@@ -1025,7 +1073,7 @@ class MainActivity : Activity() {
                 }
                 if (duplicate || autoStopped || drawdownPaused) continue
                 val bank = currentBankroll()
-                val stake = maxOf(bank * 0.005, 25.0)
+                val stake = maxOf(bank * 0.01, 25.0)
                 if (stake > bank * 0.01 + 0.000001) continue
                 val localDay = dayFormat.format(java.util.Date(kickoff))
                 var dailyExposure = 0.0
@@ -1034,7 +1082,7 @@ class MainActivity : Activity() {
                     if ((prior.optString("betDay").ifBlank { prior.optString("date").take(10) } == localDay) &&
                         prior.optString("status") in listOf("PENDING", "WON", "LOST")) dailyExposure += prior.optDouble("stake", 0.0)
                 }
-                if (dailyExposure + stake > bank * 0.02 + 0.000001) continue
+                if (dailyExposure + stake > bank * 0.05 + 0.000001) continue
                 bets.put(JSONObject()
                     .put("id", id)
                     .put("source", "AI_AUTO")
@@ -1535,7 +1583,7 @@ class MainActivity : Activity() {
         addText(target, "ЦЕЛЬ БАНКА · ${fmt(initialBankroll())} ₽ → ${fmt(goal)} ₽", 10, true, gold)
         addText(target, "Прогресс: ${String.format(Locale.US, "%.1f%%", progress)} · осталось ${fmt((goal - bank).coerceAtLeast(0.0))} ₽", 12, true)
         addText(target, "Цель — ориентир, не прогноз и не повод повышать риск или догонять проигрыши. Стратегия отбора сигналов не зависит от цели.", 11, false, muted)
-        val baseStake = bank * 0.005
+        val baseStake = bank * 0.01
         val maxStake = bank * 0.01
         val minimumBookmakerStake = 25.0
         // Raise a smaller model stake to the bookmaker minimum, without breaking the existing 1% cap.
@@ -1545,14 +1593,14 @@ class MainActivity : Activity() {
         addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
         addText(bankrollCard, "Рекомендуемая сумма: ${fmt(recommendedStake)} ₽", 15, true, if (recommendedStakeAllowed) gold else Color.RED)
-        addText(bankrollCard, "Расчёт: максимум из 0,5% банка (${fmt(baseStake)} ₽) и минимума букмекера 25 ₽. Верхний лимит 1%: ${fmt(maxStake)} ₽.", 10, false, muted)
+        addText(bankrollCard, "Расчёт: максимум из 1% банка (${fmt(baseStake)} ₽) и минимума букмекера 25 ₽. Верхний лимит 1%: ${fmt(maxStake)} ₽.", 10, false, muted)
         val minimumStakeNote = if (recommendedStakeAllowed) {
             "Сумма учитывает минимум букмекера и не превышает лимит риска на матч (${String.format(Locale.US, "%.2f%%", recommendedStake / bank * 100.0)} банка). При большем банке рекомендованная сумма растёт по стратегии."
         } else {
             "Минимум 25 ₽ выше лимита 1% банка. При текущем банке нельзя одновременно выполнить минимум букмекера и лимит стратегии — сигнал не ставить."
         }
         addText(bankrollCard, minimumStakeNote, 10, true, if (recommendedStakeAllowed) gold else Color.RED)
-        addText(bankrollCard, "Стратегия без изменений: базовый риск 0,5%; диапазон 0,25–1%; лимит на матч 1%, на день 2%.", 10, false, muted)
+        addText(bankrollCard, "Стратегия: базовая ставка 1%; лимит на ставку и матч 1%, дневная экспозиция 5%.", 10, false, muted)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -1624,7 +1672,7 @@ class MainActivity : Activity() {
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
             addText(box, kickoffLabel(m), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
-            val candidateStake = maxOf(bank * 0.005, 25.0)
+            val candidateStake = maxOf(bank * 0.01, 25.0)
             val candidateStakeAllowed = candidateStake <= bank * 0.01 + 0.000001
             addText(box, if (candidateStakeAllowed) "Сумма по стратегии с минимумом БК: ${fmt(candidateStake)} ₽" else "Ставка недопустима: минимум 25 ₽ выше лимита 1% банка", 12, true, if (candidateStakeAllowed) accent else Color.RED)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
@@ -1638,9 +1686,11 @@ class MainActivity : Activity() {
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
+            addText(box, "РАЗБОР МАТЧА · КЛЮЧЕВЫЕ ФАКТОРЫ", 10, true, cyan)
+            addText(box, matchAnalysisText(m, signal, odds), 11, false, Color.WHITE)
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
-            addText(box, "Купон не отправляется букмекеру автоматически. Сверь цену в приложении BetBoom, исправь её при необходимости и только затем подтверди фиксацию.", 11, true, gold)
+            addText(box, "", 11, true, gold)
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
@@ -1677,7 +1727,7 @@ class MainActivity : Activity() {
         }
         val sorted = items.sortedByDescending { it.third.optDouble("edgePp") }
         val summary = card()
-        addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · КУПОНЫ К ПОДТВЕРЖДЕНИЮ", 9, true, accent)
+        addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · AI-СИГНАЛЫ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
         addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена BetBoom. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой.", 11, false, muted)
         if (sorted.isEmpty()) {
