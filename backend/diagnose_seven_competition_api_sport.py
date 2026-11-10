@@ -41,7 +41,7 @@ def upcoming_one_per_competition(domestic, uefa, today=None):
                 dt, match = min(candidates, key=lambda item: item[0])
                 chosen[code] = {
                     "competition": code, "id": match.get("id"),
-                    "utcDate": str(raw).strip() if len(str(raw).strip()) == 10 else dt.isoformat(), "date": dt.date().isoformat(),
+                    "utcDate": (str(match.get("utcDate")).strip() if len(str(match.get("utcDate") or "").strip()) == 10 else dt.isoformat()), "date": dt.date().isoformat(),
                     "home": match.get("home"), "away": match.get("away"),
                 }
     return [chosen[code] for code in ("PL", "PD", "SA", "BL", "FL", "UCL", "UEL") if code in chosen]
