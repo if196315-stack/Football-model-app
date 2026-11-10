@@ -965,7 +965,7 @@ class MainActivity : Activity() {
 
         val strategyMarkets = card()
         addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
-        addText(strategyMarkets, "Только BetBoom через API-Sport. Допускать только рынки с точной загруженной ценой и соответствующей вероятностью модели: Double Chance 1X/X2, Match Total OVER, Team Total OVER, BTTS YES/NO. Форы — только при наличии точной линии и коэффициента. 1X2 не допускать без корректной загрузки цены. UNDER не показывать в текущем пользовательском сценарии.", 11, false, Color.WHITE)
+        addText(strategyMarkets, "Только BetBoom через API-Sport. Рабочие рынки: Double Chance 1X/X2, Match Total OVER, Team Total OVER и BTTS YES — только при точной загруженной цене и прохождении фильтров AI. BTTS NO, UNDER, 12, 1X2 без подтверждённой цены и форы отображаются только как наблюдаемые рынки и не создают paper-ставки.", 11, false, Color.WHITE)
         addText(strategyMarkets, "Нельзя подставлять коэффициенты другого букмекера, угадывать отсутствующую цену или сравнивать разные линии.", 10, false, muted)
 
         val strategyTesting = card()
@@ -2054,6 +2054,7 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "ДВОЙНОЙ ШАНС", 9, true, muted)
                     marketRow("1X", pct(pred, "1x"), quote("1x"), true)
                     marketRow("X2", pct(pred, "x2"), quote("x2"), true)
+                    marketRow("12", "—", quote("12"), false)
                     addText(mainMarkets, "П1 / НИЧЬЯ / П2 · справочные вероятности без цены в текущем фиде", 10, false, muted)
                     marketRow("П1", pct(pred, "1"), "—", false)
                     marketRow("X", pct(pred, "x"), "—", false)
