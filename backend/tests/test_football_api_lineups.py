@@ -68,7 +68,7 @@ def test_refresh_maps_fixture_and_fetches_official_lineup(monkeypatch):
     assert row["lineups"]["source"] == "API-Football"
     assert result["fixtureDateLookups"] == 1
     assert result["lineupsFetched"] == 1
-    assert calls == [("/fixtures", {"date": "2026-11-11"}),
+    assert calls == [("/fixtures", {"date": "2026-11-11", "timezone": "UTC"}),
                      ("/fixtures/lineups", {"fixture": 987})]
 
 
