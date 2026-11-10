@@ -1241,56 +1241,67 @@ class MainActivity : Activity() {
                 val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
                 // Lock the visible BetBoom quote when the candidate first qualifies in the AI window.
                 if (quoteUpdatedAt > now) continue
-                val signal = (match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaPaperSignal(match) else null)
-                    ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                    signal.optString("side") == "ОЗ НЕТ") continue
-                val price = topSignalOdds(signal, match) ?: continue
-                val probability = signal.optDouble("modelProbability", Double.NaN)
-                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
-                val ev = probability * price - 1.0
-                if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
-                val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
-                val matchId = match.optString("id", match.optString("utcDate") + match.optString("home") + match.optString("away"))
-                val id = "AI_AUTO:" + matchId + ":" + marketKey
-                var duplicate = false
-                for (k in 0 until bets.length()) {
-                    val prior = bets.optJSONObject(k) ?: continue
-                    if (prior.optString("id") == id ||
-                        (prior.optString("matchId") == matchId && prior.optString("status") in listOf("PENDING", "WON", "LOST"))) {
-                        duplicate = true
-                        break
+                val prediction = match.optJSONObject("prediction")
+                val signals = mutableListOf<JSONObject>()
+                prediction?.optJSONObject("strongestSignal")?.let { signals.add(it) }
+                for (field in listOf("signals", "paperSignals")) {
+                    val rows = prediction?.optJSONArray(field) ?: continue
+                    for (si in 0 until rows.length()) rows.optJSONObject(si)?.let { signals.add(it) }
+                }
+                if (competition.optString("code") in listOf("UCL", "UEL")) {
+                    val rows = match.optJSONArray("paperSignals")
+                    if (rows != null) for (si in 0 until rows.length()) {
+                        val row = rows.optJSONObject(si) ?: continue
+                        val side = when (row.optString("market")) {
+                            "double_chance" -> when (row.optString("outcome")) { "1x" -> "1X"; "x2" -> "X2"; else -> "" }
+                            "match_total_over" -> "ТБ " + row.optDouble("point").toString()
+                            "team_total_over" -> "ИТБ " + row.optDouble("point").toString() + " · " + if (row.optString("team") == "home") match.optString("home") else match.optString("away")
+                            "btts" -> if (row.optString("outcome") == "yes") "ОЗ ДА" else ""
+                            else -> ""
+                        }
+                        if (side.isBlank()) continue
+                        val probability = row.optDouble("model_probability", Double.NaN)
+                        val signal = JSONObject().put("side", side).put("modelProbability", probability)
+                            .put("edgePp", row.optDouble("edge", Double.NaN) * 100.0).put("paperOnly", true)
+                        val price = topSignalOdds(signal, match) ?: continue
+                        if (kotlin.math.abs(price - row.optDouble("price", Double.NaN)) < 0.005 &&
+                            probability.isFinite() && row.optDouble("edge", Double.NaN) >= 0.05 &&
+                            row.optDouble("expected_value", Double.NaN) >= 0.05) signals.add(signal)
                     }
                 }
-                if (duplicate || autoStopped || drawdownPaused) continue
-                val bank = currentBankroll()
-                val stake = maxOf(bank * 0.01, 25.0)
-                // No daily exposure cap: every qualifying AI signal is paper-logged.
-                val newBet = JSONObject()
-                    .put("id", id)
-                    .put("source", "AI_AUTO")
-                    .put("status", "PENDING")
-                    .put("matchId", matchId)
-                    .put("league", competition.optString("name"))
-                    .put("date", match.optString("utcDate"))
-                    .put("betDay", localDay)
-                    .put("home", match.optString("home"))
-                    .put("away", match.optString("away"))
-                    .put("market", signal.optString("side"))
-                    .put("marketKey", marketKey)
-                    .put("odds", price)
-                    .put("stake", stake)
-                    .put("probability", probability)
-                    .put("edgePp", edge)
-                    .put("expectedValue", ev)
-                    .put("quoteUpdatedAt", odds.optString("updatedAt"))
-                    .put("createdAt", now)
-                    .put("matchStatus", "SCHEDULED")
-                    .put("score", "")
-                bets.put(newBet)
-                newAutoBets.add(JSONObject(newBet.toString()))
-                changed = true
+                val matchId = match.optString("id", match.optString("utcDate") + match.optString("home") + match.optString("away"))
+                for (signal in signals) {
+                    if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                        signal.optString("side") == "ОЗ НЕТ") continue
+                    val price = topSignalOdds(signal, match) ?: continue
+                    val probability = signal.optDouble("modelProbability", Double.NaN)
+                    val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
+                    val ev = probability * price - 1.0
+                    if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
+                    val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
+                    val id = "AI_AUTO:" + matchId + ":" + marketKey
+                    var duplicate = false
+                    for (k in 0 until bets.length()) {
+                        val prior = bets.optJSONObject(k) ?: continue
+                        if (prior.optString("id") == id) { duplicate = true; break }
+                    }
+                    if (duplicate || autoStopped || drawdownPaused) continue
+                    val bank = currentBankroll()
+                    val stake = maxOf(bank * 0.01, 25.0)
+                    val newBet = JSONObject()
+                        .put("id", id).put("source", "AI_AUTO").put("status", "PENDING")
+                        .put("matchId", matchId).put("league", competition.optString("name"))
+                        .put("date", match.optString("utcDate")).put("betDay", localDay)
+                        .put("home", match.optString("home")).put("away", match.optString("away"))
+                        .put("market", signal.optString("side")).put("marketKey", marketKey)
+                        .put("odds", price).put("stake", stake).put("probability", probability)
+                        .put("edgePp", edge).put("expectedValue", ev)
+                        .put("quoteUpdatedAt", odds.optString("updatedAt")).put("createdAt", now)
+                        .put("matchStatus", "SCHEDULED").put("score", "")
+                    bets.put(newBet)
+                    newAutoBets.add(JSONObject(newBet.toString()))
+                    changed = true
+                }
             }
         }
         if (changed) saveBets()
