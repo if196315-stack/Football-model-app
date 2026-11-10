@@ -46,6 +46,36 @@ def upcoming_one_per_competition(domestic, uefa, today=None):
                 }
     return [chosen[code] for code in ("PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL") if code in chosen]
 
+def all_upcoming_fixtures(domestic, uefa, today=None):
+    """Return every scheduled fixture in the seven target competitions, deduplicated."""
+    today = today or datetime.now(timezone.utc).date()
+    found = {}
+    for source in (domestic, uefa):
+        for comp in source.get("competitions", []):
+            code = comp.get("code") or comp.get("id")
+            if code not in {"PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL"}:
+                continue
+            for match in comp.get("matches", []):
+                if match.get("status") not in ("SCHEDULED", "TIMED"):
+                    continue
+                raw = match.get("utcDate")
+                try:
+                    dt = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    dt = dt.astimezone(timezone.utc)
+                except (TypeError, ValueError):
+                    continue
+                if dt.date() < today:
+                    continue
+                row = {"competition": code, "id": match.get("id"),
+                       "utcDate": (str(raw).strip() if len(str(raw or "").strip()) == 10 else dt.isoformat()),
+                       "date": dt.date().isoformat(), "home": match.get("home"), "away": match.get("away")}
+                identity = (code, str(row["id"] or ""), row["date"], row["home"], row["away"])
+                found[identity] = row
+    return sorted(found.values(), key=lambda x: (x["date"], x["competition"], str(x["home"]), str(x["away"])))
+
+
 def response_items(payload):
     if isinstance(payload, list):
         return payload
@@ -61,10 +91,22 @@ def main():
         raise SystemExit("API_SPORT_KEY is missing; no request was made.")
     domestic = json.loads((ROOT / "docs" / "data.json").read_text(encoding="utf-8"))
     uefa = json.loads((ROOT / "docs" / "uefa-data.json").read_text(encoding="utf-8"))
-    samples = upcoming_one_per_competition(domestic, uefa)
-    print("MODEL_FIXTURES=" + json.dumps(samples, ensure_ascii=False))
-    if not samples:
-        raise SystemExit("No upcoming fixtures found in the seven target competitions.")
+    fixtures = all_upcoming_fixtures(domestic, uefa)
+    already_checked = {
+        ("PL", "Manchester City", "Fulham", "2026-11-21"),
+        ("PD", "Athletic Club", "Espanyol", "2026-11-20"),
+        ("SA", "Lazio", "Lecce", "2026-11-21"),
+        ("BL1", "Bayern München", "1. FC Köln", "2026-11-20"),
+        ("FL1", "Troyes", "Le Havre", "2026-11-20"),
+        ("UCL", "Arsenal", "Borussia Dortmund", "2026-11-24"),
+        ("UEL", "Beşiktaş", "Hapoel Beer Sheva", "2026-11-26"),
+    }
+    fixtures = [x for x in fixtures if (x["competition"], x["home"], x["away"], x["date"]) not in already_checked]
+    print("FIXTURE_COUNT=" + str(len(fixtures)))
+    print("FIXTURE_SAMPLE=" + json.dumps(fixtures[:12], ensure_ascii=False))
+    print("EXCLUDED_ALREADY_CHECKED=" + str(len(already_checked)))
+    if not fixtures:
+        raise SystemExit("No untested upcoming fixtures found in the seven target competitions.")
 
     session = requests.Session()
     session.headers.update({"Authorization": key, "Accept": "application/json"})
@@ -157,11 +199,11 @@ def main():
             })
     print("COMPETITION_RESULTS=" + json.dumps(exact_rows, ensure_ascii=False))
     print("SUMMARY=" + json.dumps({
-        "requestedCompetitions": len(samples),
+        "requestedFixtures": len(fixtures),\n        "checkedFixtures": len(exact_rows),
         "matchedFixtures": sum(row["matched"] for row in exact_rows),
         "betboomBoards": sum(row["betboomBoard"] for row in exact_rows),
         "productionParserAccepted": sum(row.get("productionParserAccepted", False) for row in exact_rows),
-        "competitionsWithNoSample": sorted({"PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL"} - {x["competition"] for x in samples}),
+        "competitionsCovered": sorted({x["competition"] for x in fixtures}),\n        "truncatedDatesAtPageLimit": truncated_dates,
         "apiRequests": request_count,
         "readOnly": True,
     }, ensure_ascii=False))
