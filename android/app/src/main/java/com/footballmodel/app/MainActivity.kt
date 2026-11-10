@@ -2,9 +2,6 @@ package com.footballmodel.app
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
 import android.text.InputType
 import android.os.Bundle
 import android.os.Handler
