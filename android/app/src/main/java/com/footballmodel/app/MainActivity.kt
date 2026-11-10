@@ -53,6 +53,7 @@ class MainActivity : Activity() {
     private lateinit var refreshButton: Button
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
+    private lateinit var leagueHint: TextView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private var statsSubsection = "working"
@@ -222,12 +223,20 @@ class MainActivity : Activity() {
         }
         // Create the horizontal scroller once. Reparenting leagueBar during render()
         // caused "The specified child already has a parent" and crashed the app.
+        leagueHint = label("ТУРНИРЫ  ·  ЛИСТАЙ ВПРАВО  →", 9, true, accent).apply {
+            setPadding(dp(4), dp(8), dp(4), dp(2))
+            letterSpacing = 0.08f
+        }
+        root.addView(leagueHint, LinearLayout.LayoutParams(-1, -2))
         leagueScroll = HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            overScrollMode = View.OVER_SCROLL_NEVER
+            isHorizontalScrollBarEnabled = true
+            isHorizontalFadingEdgeEnabled = true
+            fadingEdgeLength = dp(22)
+            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+            setPadding(dp(2), dp(2), dp(12), dp(2))
             addView(leagueBar)
         }
-        root.addView(leagueScroll)
+        root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2))
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
@@ -255,6 +264,7 @@ class MainActivity : Activity() {
         // Сначала показываем оболочку, затем параллельно восстанавливаем кэш и обновляем сеть.
         renderTabs()
         leagueBar.visibility = View.VISIBLE
+            leagueHint.visibility = View.VISIBLE
         val loadingCard = card()
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
@@ -2099,6 +2109,7 @@ class MainActivity : Activity() {
 
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
+            leagueHint.visibility = View.GONE
             renderDay(json)
             return
         }
@@ -2132,16 +2143,16 @@ class MainActivity : Activity() {
         addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
         addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL")
-        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL")
+        val names = listOf("Все лиги", "Англия", "Испания", "Италия", "Германия", "Франция", "Лига чемпионов", "Лига Европы")
         // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
                 text = names[index]
-                textSize = 10f
+                textSize = if (index >= 6) 11f else 10f
                 typeface = Typeface.DEFAULT_BOLD
-                letterSpacing = 0.06f
+                letterSpacing = 0.02f
                 gravity = Gravity.CENTER
-                setPadding(dp(16), dp(12), dp(16), dp(12))
+                setPadding(dp(if (index >= 6) 14 else 16), dp(12), dp(if (index >= 6) 14 else 16), dp(12))
                 setTextColor(if (selectedLeague == code) bg else muted)
                 background = if (selectedLeague == code) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() } else rounded(surface, 28)
                 setOnClickListener { selectedLeague = code; render() }
