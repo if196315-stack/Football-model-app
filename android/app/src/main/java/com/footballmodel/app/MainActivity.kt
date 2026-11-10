@@ -55,6 +55,9 @@ class MainActivity : Activity() {
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private var statsSubsection = "working"
+    private val intelligencePrefs by lazy { getSharedPreferences("intelligence_center", MODE_PRIVATE) }
+    private var intelligenceSection = "today"
+    private var notificationBadge: TextView? = null
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
     private var bets = JSONArray()
@@ -163,7 +166,15 @@ class MainActivity : Activity() {
             background = rounded(surface, 16)
             setOnClickListener { loadData() }
         }
-        top.addView(refreshButton, LinearLayout.LayoutParams(52, 48))
+        val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val bell = FrameLayout(this).apply { background = rounded(surface, 16); isClickable = true; setOnClickListener { currentTab = "intel"; intelligencePrefs.edit().putInt("unread_count", 0).apply(); updateNotificationBadge(); tabViewCache.clear(); renderedKey = null; render(); loadData() } }
+        bell.addView(label("🔔", 22, true, Color.WHITE).apply { gravity = Gravity.CENTER }, FrameLayout.LayoutParams(-1, -1))
+        notificationBadge = label("", 9, true, Color.WHITE).apply { gravity = Gravity.CENTER; background = rounded(Color.rgb(235, 76, 91), 20); visibility = View.GONE }
+        bell.addView(notificationBadge, FrameLayout.LayoutParams(dp(18), dp(18), Gravity.TOP or Gravity.END))
+        actions.addView(bell, LinearLayout.LayoutParams(dp(46), dp(46)).apply { rightMargin = dp(7) })
+        actions.addView(refreshButton, LinearLayout.LayoutParams(dp(46), dp(46)))
+        top.addView(actions)
+        updateNotificationBadge()
         root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
         statusView = label("Подключаюсь к серверу…", 12, false, muted)
@@ -757,7 +768,7 @@ class MainActivity : Activity() {
                     }
                 }
                 // Download the append-only archives only when Stats is opened; match refreshes stay lightweight.
-                if (currentTab == "stats") {
+                if (currentTab == "stats" || currentTab == "intel") {
                     val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
                     val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
                     json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
@@ -989,6 +1000,83 @@ class MainActivity : Activity() {
         addText(strategyMetrics, "Пороговые значения — стартовая конфигурация для проверки, а не доказанное преимущество и не гарантия прибыли. Изменения правил должны получать новую версию и проверяться на независимых данных.", 10, false, muted)
     }
 
+
+
+    private fun updateNotificationBadge() {
+        val count = intelligencePrefs.getInt("unread_count", 0)
+        notificationBadge?.apply {
+            text = if (count > 9) "9+" else count.toString()
+            visibility = if (count > 0) View.VISIBLE else View.GONE
+        }
+    }
+
+    private fun renderIntelligenceCenter(json: JSONObject) {
+        screenHeader("IQ MATCH INTELLIGENCE", "Центр аналитики", "Ежедневная картина модели и наблюдений")
+        val sections = listOf("today" to "СЕГОДНЯ", "insights" to "AI-ВЫВОДЫ", "markets" to "НАБЛЮДЕНИЯ", "system" to "РАБОТА МОДЕЛИ", "history" to "ИСТОРИЯ")
+        val selector = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(dp(3), dp(3), dp(3), dp(3)); background = rounded(Color.rgb(13, 23, 39), 15) }
+        sections.forEach { pair ->
+            val key = pair.first
+            val item = label(pair.second, 8, true, if (intelligenceSection == key) bg else muted).apply {
+                gravity = Gravity.CENTER; setPadding(dp(4), dp(12), dp(4), dp(12)); isClickable = true
+                background = if (intelligenceSection == key) rounded(accent, 10) else rounded(Color.TRANSPARENT, 10)
+                setOnClickListener { intelligenceSection = key; tabViewCache.clear(); renderedKey = null; render() }
+            }
+            selector.addView(item, LinearLayout.LayoutParams(0, -2, 1f))
+        }
+        matchesContainer.addView(selector, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+        val wins = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "WON" }
+        val losses = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "LOST" }
+        val pending = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "PENDING" }
+        val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
+        val results = json.optJSONArray("marketObservationResults") ?: JSONArray()
+        when (intelligenceSection) {
+            "today" -> {
+                val box = card()
+                addText(box, "ЕЖЕДНЕВНЫЙ ОТЧЁТ", 10, true, accent)
+                addText(box, SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date()), 18, true)
+                addText(box, "Paper-ставки: " + bets.length(), 13, true)
+                addText(box, "WIN " + wins + " · LOSS " + losses + " · ОЖИДАЮТ " + pending, 12, true, cyan)
+                addText(box, "Снимков котировок: " + snapshots.length(), 12, false)
+                addText(box, "Завершённых наблюдений: " + results.length(), 12, false)
+                addText(box, "Текущий баланс: " + String.format(Locale("ru", "RU"), "%.2f ₽", currentBankroll()), 14, true, gold)
+                addText(box, "Показатели берутся из реальной локальной истории и архивов. При отсутствии данных значения не подменяются.", 10, false, muted)
+                val status = card()
+                addText(status, "ПОСЛЕДНЕЕ ОБНОВЛЕНИЕ", 10, true, accent)
+                addText(status, "Фид: " + formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L)), 12, false)
+                addText(status, "Worker: " + (settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"), 12, true)
+                addText(status, settingsPrefs.getString("paper_worker_last_message", "Ожидается первая проверка") ?: "Ожидается первая проверка", 11, false, muted)
+            }
+            "insights" -> {
+                val box = card()
+                addText(box, "AI-ВЫВОДЫ", 10, true, accent)
+                addText(box, "Подключение серверного AI-аналитика", 16, true)
+                addText(box, "Здесь будут ежедневные выводы по точности прогнозов, качеству рынков, движению коэффициентов и причинам ошибок. Отдельная AI-интеграция пока не подключена, поэтому приложение не показывает выдуманные рекомендации.", 12, false, muted)
+            }
+            "markets" -> {
+                val box = card()
+                addText(box, "НАБЛЮДЕНИЯ", 10, true, accent)
+                addText(box, "Снимков: " + snapshots.length() + " · результатов: " + results.length(), 16, true)
+                addText(box, snapshots.length() == 0 ? "Архив пока пуст. Данные появятся после публикации первых снимков." : "Подробная разбивка доступна в Stats → Наблюдаемые котировки.", 11, false, muted)
+            }
+            "system" -> {
+                val box = card()
+                addText(box, "СОСТОЯНИЕ МОДЕЛИ", 10, true, accent)
+                addText(box, "Последняя загрузка: " + formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L)), 12, false)
+                addText(box, "Worker: " + (settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"), 13, true, accent)
+                addText(box, settingsPrefs.getString("paper_worker_last_message", "Ожидается первая проверка") ?: "Ожидается первая проверка", 11, false, muted)
+                addText(box, "Paper-ставок: " + settingsPrefs.getInt("paper_worker_total_bets", 0) + " · ожидают: " + settingsPrefs.getInt("paper_worker_pending_auto", 0), 12, false)
+                val refresh = Button(this).apply { text = "Обновить данные"; isAllCaps = false; setTextColor(bg); background = rounded(accent, 12); setOnClickListener { loadData() } }
+                box.addView(refresh, LinearLayout.LayoutParams(-1, dp(46)))
+            }
+            "history" -> {
+                val box = card()
+                addText(box, "ИСТОРИЯ ОТЧЁТОВ", 10, true, accent)
+                addText(box, "Paper-ставки: " + bets.length() + " · WIN " + wins + " · LOSS " + losses + " · ожидают " + pending, 12, false)
+                addText(box, "Архив наблюдений: " + snapshots.length() + " снимков · " + results.length() + " расчётов", 12, false)
+                addText(box, "Сохранение ежедневных снимков отчёта добавим следующим этапом.", 11, false, muted)
+            }
+        }
+    }
 
     private fun renderObservedMarketStats(json: JSONObject) {
         screenHeader("MARKET RESEARCH", "Наблюдаемые котировки", "Архивные цены BetBoom. Снимки отображаются сразу, не дожидаясь завершения матча.")
@@ -1966,7 +2054,7 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.GONE
             renderStats(json)
             return
-        } else if (currentTab == "help") {
+        } else if (currentTab == "intel") {\n            leagueBar.visibility = View.GONE\n            renderIntelligenceCenter(json)\n            return\n        } else if (currentTab == "help") {
             leagueBar.visibility = View.GONE
             renderHelp()
             return
