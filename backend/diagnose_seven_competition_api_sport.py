@@ -202,11 +202,13 @@ def main():
             })
     print("COMPETITION_RESULTS=" + json.dumps(exact_rows, ensure_ascii=False))
     print("SUMMARY=" + json.dumps({
-        "requestedFixtures": len(fixtures),\n        "checkedFixtures": len(exact_rows),
+        "requestedFixtures": len(fixtures),
+        "checkedFixtures": len(exact_rows),
         "matchedFixtures": sum(row["matched"] for row in exact_rows),
         "betboomBoards": sum(row["betboomBoard"] for row in exact_rows),
         "productionParserAccepted": sum(row.get("productionParserAccepted", False) for row in exact_rows),
-        "competitionsCovered": sorted({x["competition"] for x in fixtures}),\n        "truncatedDatesAtPageLimit": truncated_dates,
+        "competitionsCovered": sorted({x["competition"] for x in fixtures}),
+        "truncatedDatesAtPageLimit": truncated_dates,
         "apiRequests": request_count,
         "readOnly": True,
     }, ensure_ascii=False))
