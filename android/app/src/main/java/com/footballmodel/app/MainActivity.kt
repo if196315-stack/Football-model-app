@@ -1230,7 +1230,19 @@ class MainActivity : Activity() {
     }
 
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "История ставок", "Записанные ставки и их результаты.")
+        screenHeader("BET TRACKER", "Банк", "Текущий баланс, правила расчёта ставки и история бумажных ставок.")
+        val bank = currentBankroll()
+        val bankrollCard = card()
+        addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
+        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 28, true, Color.WHITE)
+        addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
+
+        val strategyCard = card()
+        addText(strategyCard, "КАК РАБОТАЕТ СТРАТЕГИЯ", 11, true, accent)
+        addText(strategyCard, "Размер одной ставки — 1% от текущего баланса, но не меньше 25 ₽: это минимальная сумма, которую принимает BetBoom.", 11, false, Color.WHITE)
+        addText(strategyCard, "Примеры: баланс 2 500 ₽ → 1% = 25 ₽, ставка 25 ₽; баланс 2 499 ₽ → 1% = 24,99 ₽, но фактическая ставка всё равно 25 ₽ из-за минимума букмекера.", 11, false, muted)
+        addText(strategyCard, "На один матч — не более 1% банка по расчётной доле. Дневная нагрузка — не более 5% текущего банка на все ставки вместе. Если дневной лимит исчерпан, новые автоматические paper-ставки не создаются.", 11, false, Color.WHITE)
+        addText(strategyCard, "Это автоматические бумажные ставки для проверки стратегии, а не размещение реальных ставок у букмекера. Догон и увеличение риска после проигрыша не используются.", 10, false, muted)
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             if (b.optString("marketKey") == "COUPON") {
@@ -1545,16 +1557,6 @@ class MainActivity : Activity() {
             }
         }
         val bank = currentBankroll()
-        val bankrollCard = card()
-        addText(bankrollCard, "БАЛАНС", 10, true, cyan)
-        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 26, true, Color.WHITE)
-
-        val strategyCard = card()
-        addText(strategyCard, "КАК РАБОТАЕТ СТРАТЕГИЯ", 11, true, accent)
-        addText(strategyCard, "Размер ставки — 1% от текущего баланса, но не меньше 25 ₽: это минимальная сумма, которую принимает BetBoom. Поэтому если баланс 2 499 ₽ и 1% равен 24,99 ₽, ставка округляется до минимума букмекера — 25 ₽.", 11, false, Color.WHITE)
-        addText(strategyCard, "Примеры: баланс 2 500 ₽ → ставка 25 ₽; баланс 2 499 ₽ → расчётные 24,99 ₽, фактическая ставка 25 ₽ из-за минимума букмекера.", 11, false, muted)
-        addText(strategyCard, "Дневной лимит — 5% текущего баланса на все ставки вместе. На один матч — максимум 1%. Если дневной лимит исчерпан или минимальная ставка букмекера превышает 1%, автоматическая paper-ставка пропускается.", 11, false, Color.WHITE)
-        addText(strategyCard, "В AI показывается текущий баланс, без цели накопления и прогресса до цели. Баланс учитывает результаты завершённых ставок и резервирование сумм по ожидающим ставкам.", 10, false, muted)
 
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
