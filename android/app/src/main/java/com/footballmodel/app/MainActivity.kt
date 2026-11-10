@@ -751,11 +751,16 @@ class MainActivity : Activity() {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
                 }
-                // Observation archives are optional until the first scheduled collector run publishes them.
-                val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
-                val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
-                json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
-                json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
+                // Download the append-only archives only when Stats is opened; match refreshes stay lightweight.
+                if (currentTab == "stats") {
+                    val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
+                    val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
+                    json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
+                    json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
+                } else {
+                    json.put("marketObservationSnapshots", JSONArray())
+                    json.put("marketObservationResults", JSONArray())
+                }
                 val payload = json.toString()
                 feedCache.edit()
                     .putString("merged_json", payload)
@@ -807,7 +812,7 @@ class MainActivity : Activity() {
                         if (currentTab != item.first) {
                             currentTab = item.first
                             render()
-                            if (currentTab == "desk") loadData()
+                            if (currentTab == "desk" || currentTab == "stats") loadData()
                         }
                     }
                 }
