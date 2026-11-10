@@ -31,6 +31,7 @@ import java.util.zip.GZIPInputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -115,6 +116,19 @@ class MainActivity : Activity() {
             "iq_match_auto_paper_initial",
             ExistingWorkPolicy.KEEP,
             immediate
+        )
+        val now = Calendar.getInstance()
+        val nextMorning = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 9); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            if (timeInMillis <= now.timeInMillis) add(Calendar.DAY_OF_YEAR, 1)
+        }
+        val daily = PeriodicWorkRequestBuilder<DailyReportWorker>(24, TimeUnit.HOURS)
+            .setInitialDelay(nextMorning.timeInMillis - now.timeInMillis, TimeUnit.MILLISECONDS)
+            .build()
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "iq_match_daily_intelligence_report",
+            ExistingPeriodicWorkPolicy.KEEP,
+            daily
         )
     }
 
@@ -1074,7 +1088,13 @@ class MainActivity : Activity() {
                 addText(box, "ИСТОРИЯ ОТЧЁТОВ", 10, true, accent)
                 addText(box, "Paper-ставки: " + bets.length() + " · WIN " + wins + " · LOSS " + losses + " · ожидают " + pending, 12, false)
                 addText(box, "Архив наблюдений: " + snapshots.length() + " снимков · " + results.length() + " расчётов", 12, false)
-                addText(box, "Сохранение ежедневных снимков отчёта добавим следующим этапом.", 11, false, muted)
+                val reports = try { JSONArray(intelligencePrefs.getString("daily_reports", "[]") ?: "[]") } catch (_: Exception) { JSONArray() }
+                addText(box, "Сохранено отчётов: " + reports.length(), 12, true, accent)
+                for (i in reports.length() - 1 downTo 0) {
+                    val report = reports.optJSONObject(i) ?: continue
+                    addText(box, report.optString("date") + " · WIN " + report.optInt("wins") + " · LOSS " + report.optInt("losses") + " · ожидают " + report.optInt("pending"), 11, false, Color.WHITE)
+                }
+                if (reports.length() == 0) addText(box, "Первый ежедневный отчёт будет сохранён после планового запуска.", 11, false, muted)
             }
         }
     }
