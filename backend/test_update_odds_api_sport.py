@@ -11,6 +11,17 @@ class ApiSportOddsTests(unittest.TestCase):
     def test_team_similarity_accepts_common_club_name_variants(self):
         self.assertGreaterEqual(sim("Manchester City", "Man City"), 0.84)
 
+    def test_normalizes_common_french_and_spanish_official_club_names(self):
+        self.assertEqual(sim("Nice", "OGC Nice"), 1.0)
+        self.assertEqual(sim("Strasbourg", "RC Strasbourg"), 1.0)
+        self.assertEqual(sim("Brest", "Stade Brestois"), 1.0)
+        self.assertEqual(sim("Lille", "LOSC Lille"), 1.0)
+        self.assertEqual(sim("Lyon", "Olympique Lyonnais"), 1.0)
+        self.assertEqual(sim("Rennes", "Stade Rennais"), 1.0)
+        self.assertEqual(sim("Marseille", "Olympique de Marseille"), 1.0)
+        self.assertEqual(sim("Racing Santander", "Real Racing Club"), 1.0)
+        self.assertEqual(sim("Auxerre", "AJ Auxerre"), 1.0)
+
     def test_matches_provider_fixture_by_team_and_kickoff(self):
         target = {"utcDate": "2026-11-21T15:00:00Z", "home": "Manchester City", "away": "Fulham"}
         source = [{
