@@ -1,0 +1,29 @@
+name: AI form context tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/update_data.py"
+      - "backend/update_data_pitchapi.py"
+      - "backend/tests/**"
+  push:
+    branches:
+      - "feature/ai-contextual-form"
+    paths:
+      - "backend/update_data.py"
+      - "backend/update_data_pitchapi.py"
+      - "backend/tests/**"
+
+jobs:
+  recent-form:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: python -m pip install pandas pytest
+      - name: Test cached recent-form calculation
+        run: python -m pytest backend/tests/test_recent_team_form.py -q
