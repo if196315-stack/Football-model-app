@@ -2102,6 +2102,7 @@ class MainActivity : Activity() {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
             leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+            leagueHint.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
             renderedKey = targetKey
             return
         }
@@ -2115,28 +2116,34 @@ class MainActivity : Activity() {
         }
         if (currentTab == "desk") {
             leagueBar.visibility = View.GONE
+            leagueHint.visibility = View.GONE
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
             leagueBar.visibility = View.GONE
+            leagueHint.visibility = View.GONE
             renderBetHistory(json)
             return
         }
         if (currentTab == "stats") {
             leagueBar.visibility = View.GONE
+            leagueHint.visibility = View.GONE
             renderStats(json)
             return
         } else if (currentTab == "intel") {
             leagueBar.visibility = View.GONE
+            leagueHint.visibility = View.GONE
             renderIntelligenceCenter(json)
             return
         } else if (currentTab == "help") {
             leagueBar.visibility = View.GONE
+            leagueHint.visibility = View.GONE
             renderHelp()
             return
         } else {
             leagueBar.visibility = View.VISIBLE
+            leagueHint.visibility = View.VISIBLE
         }
 
         addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
