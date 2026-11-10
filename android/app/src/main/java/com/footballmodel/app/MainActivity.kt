@@ -729,8 +729,9 @@ class MainActivity : Activity() {
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    statusView.text = if (data != null) "Нет сети · показаны последние данные" else
-                        "Нет соединения · ${e.message ?: "проверьте интернет"}"
+                    val lastCheck = formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))
+                    statusView.text = (if (data != null) "Нет сети · показаны последние данные" else
+                        "Нет соединения · ${e.message ?: "проверьте интернет"}") + " · последняя успешная проверка: $lastCheck"
                     refreshButton.isEnabled = true
                     loadInProgress.set(false)
                 }
@@ -1541,7 +1542,14 @@ class MainActivity : Activity() {
             for (j in 0 until matches.length()) {
                 val m = matches.optJSONObject(j) ?: continue
                 if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
-                val matchDay = m.optString("utcDate").take(10)
+                val matchDay = m.optString("utcDate").take(10).ifBlank {
+                    m.optString("dateEvent").take(10).ifBlank {
+                        kickoffTimestamp(m)?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                            timeZone = java.util.TimeZone.getTimeZone("UTC")
+                        }.format(Date(it)) }.orEmpty()
+                    }
+                }
+                if (matchDay.isBlank()) continue
                 val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
                 val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 30) }
                 val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
