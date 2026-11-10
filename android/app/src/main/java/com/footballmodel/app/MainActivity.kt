@@ -413,6 +413,12 @@ class MainActivity : Activity() {
     }
 
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
+        val quoteAge = currentBookmakerQuoteAgeSeconds(odds)
+        if (quoteAge == null || quoteAge !in 0.0..300.0) {
+            addText(parent, "КОЭФФИЦИЕНТЫ BETBOOM", 9, true, muted)
+            addText(parent, "Нет свежих котировок: цена старше 5 минут или время источника недоступно", 11, false, muted)
+            return
+        }
         val best = odds?.optJSONObject("best")
         if (best == null) {
             addText(parent, "КОЭФФИЦИЕНТЫ BETBOOM", 9, true, muted)
@@ -1598,6 +1604,7 @@ class MainActivity : Activity() {
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
+        if (!hasFreshBookmakerQuote(match)) return null
         val side = signal.optString("side")
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
         fun acceptable(value: Double) = value.isFinite() && value >= 1.50
@@ -2042,7 +2049,7 @@ class MainActivity : Activity() {
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · AI-СИГНАЛЫ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена BetBoom. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку, не более 1% на матч без дневного лимита суммарной нагрузки.", 11, false, muted)
+        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и свежая цена BetBoom не старше 5 минут; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку, не более 1% на матч без дневного лимита суммарной нагрузки.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)
