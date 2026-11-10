@@ -46,7 +46,7 @@ internal object AiMatchNotifications {
                 val matchDay = match.optString("utcDate").take(10)
                 if (matchDay.isBlank() || matchDay < today || matchDay > endDay) continue
                 val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaSignal(match) else null
+                    ?: (if (competition.optString("code") in listOf("UCL", "UEL")) uefaSignal(match) else null)
                     ?: continue
                 if (!qualifies(signal, match)) continue
                 val id = match.optString("id").ifBlank {
