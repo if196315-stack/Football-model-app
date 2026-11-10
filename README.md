@@ -1,65 +1,58 @@
 # Football Model App
 
-Android client and scheduled football-data pipeline.
+Android-клиент IQ Match и конвейер футбольных данных, прогнозов и paper-оценки.
 
-## Data sources
+## Источники данных
 
-- **PitchAPI** supplies fixtures, results and shot-level expected goals (xG).
-- **The Odds API** supplies bookmaker prices where supported by the event and bookmaker.
-- No Openplay or Football-Data.org integration is used by the active pipeline.
+- **PitchAPI** — матчи, результаты и shot-level expected goals (xG).
+- **API-Sport** — букмекерские коэффициенты BetBoom. Используется секрет GitHub Actions `API_SPORT_KEY`.
+- Другие букмекерские источники не подменяют BetBoom; отсутствующие котировки остаются отсутствующими.
 
-The production updater is `.github/workflows/update-data.yml`. After deployment to `main`, it refreshes PitchAPI data and then bookmaker odds every six hours. The odds refresh is a separate step in the same workflow so the two providers remain independently configured. A single production workflow avoids duplicate scheduled odds requests.
+## Поддерживаемые соревнования
 
-## Model and data rules
+Основной национальный контур:
+- ENG — Англия, Premier League.
+- ESP — Испания, La Liga.
+- ITA — Италия, Serie A.
+- GER — Германия, Bundesliga.
+- FRA — Франция, Ligue 1.
 
-- Competitions: ENG, ESP, ITA, GER, FRA.
-- The forecasting model uses the last 30 team matches, half-life 12 and shrinkage 3, with independent Poisson score probabilities.
-- Predictions are generated chronologically; matches on the same date must not leak results into one another.
-- Missing xG remains missing. The pipeline does not impute or fabricate xG values.
-- Historical backtests use a clean cohort with paired, non-null xG and report forecast metrics. Those metrics are not betting ROI.
-- The app displays 1X2 reference prices, supported double-chance and non-zero handicap prices, and available totals/BTTS observations. BTTS and match totals are informational only and are not offered as bet selections.
-- AH0 / Draw No Bet is excluded. ITB/team-total bookmaker prices are not shown unless the provider actually returns that market; current tested coverage did not confirm it.
-- Odds availability varies by match and bookmaker. Missing prices must remain missing, not be inferred.
-- The app does not place bets automatically. Bet-tracker entries and manually entered stakes remain local to the Android device.
+Отдельный еврокубковый контур:
+- UCL — UEFA Champions League.
+- UEL — UEFA Europa League.
 
-## GitHub setup
+Национальные соревнования публикуются в `docs/data.json`; еврокубки — в `docs/uefa-data.json`. Для семи соревнований ведутся отдельные отчёты по историческому качеству прогнозов и покрытию данных в `docs/strategy/`.
 
-1. Add repository secrets under **Settings → Secrets and variables → Actions**:
-   - `PITCHAPI_API_KEY`
-   - `ODDS_API_KEY`
-2. Enable GitHub Pages from the `main` branch, folder `/docs`.
-3. Run **Update football data** from Actions for a manual refresh, or let the six-hour schedule run.
-4. Build the Android app from the `android/` folder using Android Studio, or use the APK artifact from the build workflow.
+## Модель и контроль качества
 
-The Android app reads `docs/data.json` from the repository's GitHub Pages URL. Until Pages is enabled and a successful data update is published, it may show a data-unavailable message.
+- Национальная xG-модель использует до 30 последних матчей команды, half-life 12 и shrinkage 3, независимые распределения Пуассона.
+- Прогнозы строятся хронологически. Результаты матчей той же календарной даты не должны попадать в историю для прогнозов на эту дату.
+- Отсутствующий xG не подменяется нулём и не импутируется.
+- Исторические оценки качества вероятностей (Brier Score, Log Loss, calibration) не равны ROI и не доказывают прибыльность ставок.
+- Параметры калибровки, исследованные на holdout, остаются исследовательскими и не применяются к production-вероятностям без отдельного подтверждения.
+- Котировки показываются только при точном сопоставлении матча, рынка и линии; неизвестные или устаревшие цены не восстанавливаются искусственно.
 
-## Quota-conscious diagnostics
+## Обновление данных
 
-The prospective odds-snapshot and market-probe workflows are manual-dispatch only because they consume The Odds API quota. Snapshots retain 1X2, double chance, supported non-zero handicaps and BTTS observations. Do not run it for routine code changes. The regular production workflow refreshes only the configured supported markets.
+- `.github/workflows/update-data.yml` обновляет матчи, результаты и xG из PitchAPI, затем запускает обновление коэффициентов через API-Sport.
+- `.github/workflows/update-odds-only.yml` обновляет BetBoom odds через API-Sport и добавляет неизменяемые временные снимки котировок каждые шесть часов.
+- `.github/workflows/collect-uefa-betboom-snapshots.yml` обновляет еврокубковый контур, снимки BetBoom, paper-сигналы, расчёт результатов и feed каждые три часа.
+- Секреты GitHub Actions: `PITCHAPI_API_KEY` и `API_SPORT_KEY`.
+- Android-приложение получает национальный feed из `docs/data.json` и отдельный UEFA feed из `docs/uefa-data.json`.
 
-## Migration and validation
+## Архивы и диагностика
 
-PitchAPI coverage audits, clean-cohort exports, and chronological backtests are available as GitHub Actions workflows. The CI unit-test job runs the backend regression suite. The migration preview is branch-only and does not publish production data.
+- `artifacts/odds-snapshots.jsonl` — временные снимки национальных BetBoom-котировок.
+- `artifacts/uefa-betboom-odds-snapshots.jsonl` — снимки еврокубковых BetBoom-котировок.
+- `artifacts/market-observation-results.jsonl` и UEFA paper-архивы — результаты наблюдений и paper-сигналов.
+- `backend/diagnose_api_sport.py` — read-only диагностика доступности API-Sport, квоты и BetBoom-рынков.
+- `backend/backtest_pitchapi.py` — воспроизводимый хронологический backtest национального xG-контура.
+- `backend/predict_uefa_markets.py` и `backend/evaluate_uefa_paper_signals.py` — отдельная walk-forward оценка и paper-контур UCL/UEL.
+- Подробные результаты и ограничения: `docs/strategy/seven-competition-calibration-report-2026-11-10.md`, `docs/strategy/seven-competition-data-and-odds-coverage-2026-11-10.md` и `docs/strategy/seven-competition-audit-2026-11-11.md`.
 
+## Ограничения и безопасность
 
-## Domestic market observation archive
-
-The scheduled BetBoom odds refresh appends immutable quote snapshots to
-`artifacts/odds-snapshots.jsonl` every six hours. Each observation retains
-the fixture, league, market, exact line, capture time, bookmaker update time,
-price, and the model probability when that probability is present in the
-published fixture forecast. Missing model probabilities remain explicitly
-null; they are never inferred from bookmaker prices.
-
-When the domestic prediction archive contains a final score, the scheduled
-job appends one result per captured quote to
-`artifacts/market-observation-results.jsonl`. Results are deduplicated by
-snapshot identity. This evaluates the historical price at the time it was
-captured, not a hypothetical bet placed later. The archive is descriptive
-research data and does not change candidate markets, paper bets, or risk rules.
-
-The current domestic odds parser does not expose a complete 1X2 BetBoom board;
-therefore 1X2 prices are not claimed as archived until that provider mapping is
-implemented. The existing archive does retain double chance, match/team
-totals (including UNDER reference quotes), BTTS YES/NO, and supported
-zero-handicap quotes when BetBoom supplies them.
+- Paper-сигналы и paper-ставки не размещают реальные ставки у букмекера.
+- Нельзя считать вероятность, edge, EV или ROI подтверждёнными только по факту успешной сборки приложения.
+- Историческая xG-выборка без исторических BetBoom-котировок позволяет оценить качество вероятностей, но не восстановить историческую доходность.
+- Не запускать квотозатратные ручные сборы без необходимости; использовать существующие архивы и кеш.
