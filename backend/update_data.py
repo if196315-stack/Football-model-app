@@ -157,14 +157,14 @@ def historical_baselines(matches, comp, target_date):
     return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
       "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
 
-def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None):
-    if not baseline:return None
-    candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
+def signal_candidates(pred, baseline, home, away, home_form=None, away_form=None):
+    if not baseline:return []
+    definitions=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
       ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15",f"ИТБ 1.5 · {home}",f"ИТМ 1.5 · {home}"),
       ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15",f"ИТБ 1.5 · {away}",f"ИТМ 1.5 · {away}")]
-    best=None
-    for key,title,field,yes,no in candidates:
+    items=[]
+    for key,title,field,yes,no in definitions:
       p=float(pred[field]); b=float(baseline[field])
       if p>=0.5: side,mp,bp=yes,p,b
       else: side,mp,bp=no,1-p,1-b
@@ -176,7 +176,12 @@ def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None)
       item["formAdjustmentPp"] = adjustment
       item["selectionEdgePp"] = round(item["edgePp"] + adjustment, 2)
       item["formContextUsed"] = adjustment != 0.0
-      if best is None or item["selectionEdgePp"] > best["selectionEdgePp"]:best=item
+      items.append(item)
+    return items
+
+def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None):
+    items = signal_candidates(pred, baseline, home, away, home_form, away_form)
+    best = max(items, key=lambda item: item["selectionEdgePp"], default=None)
     if best is not None and best["selectionEdgePp"]<=0:best["noPositiveSignal"]=True
     return best
 
@@ -262,8 +267,10 @@ def predict(c,home,away,st,base,names,matches,target_date):
     away_form = recent_team_form(matches, c, an, target_date, venue="away")
     pred["teamForm"] = {"source": "cached_results", "window": 5,
                         "home": home_form, "away": away_form}
+    baselines = historical_baselines(matches,c,target_date)
+    pred["signals"] = signal_candidates(pred, baselines, home, away, home_form, away_form)
     pred["strongestSignal"] = strongest_signal(
-        pred, historical_baselines(matches,c,target_date), home, away, home_form, away_form
+        pred, baselines, home, away, home_form, away_form
     )
     return pred,None
 
