@@ -1,25 +1,23 @@
 """Read-only lookup of API-Sport tournament IDs for IQ Match's seven competitions.
 
-This deliberately makes only seven search requests and does not touch production
+This makes a bounded set of search requests and does not touch production
 fixtures, odds ingestion, caches, predictions, or paper bets.
 """
 import json
 import os
-import sys
-from pathlib import Path
 
 import requests
 
 BASE = "https://api.api-sport.ru/v2/football/tournaments"
 TIMEOUT = 30
 TARGETS = {
-    "PL": "Premier League",
-    "PD": "La Liga",
-    "SA": "Serie A",
-    "BL1": "Bundesliga",
-    "FL1": "Ligue 1",
-    "UCL": "UEFA Champions League",
-    "UEL": "UEFA Europa League",
+    "PL": ["Premier League"],
+    "PD": ["LaLiga", "Primera Division"],
+    "SA": ["Serie A"],
+    "BL1": ["Bundesliga"],
+    "FL1": ["Ligue 1"],
+    "UCL": ["UEFA Champions League"],
+    "UEL": ["UEFA Europa League"],
 }
 
 
@@ -55,19 +53,22 @@ def main():
     session = requests.Session()
     session.headers.update({"Authorization": key, "Accept": "application/json"})
     output = {}
-    for code, query in TARGETS.items():
-        response = session.get(BASE, params={"q": query}, timeout=TIMEOUT)
-        response.raise_for_status()
-        payload = response.json()
-        rows = [compact(row) for row in tournament_items(payload) if isinstance(row, dict)]
-        output[code] = {"query": query, "results": rows[:20], "totalReturned": len(rows)}
+    request_count = 0
+    for code, queries in TARGETS.items():
+        searches = {}
+        for query in queries:
+            response = session.get(BASE, params={"q": query}, timeout=TIMEOUT)
+            response.raise_for_status()
+            request_count += 1
+            rows = [compact(row) for row in tournament_items(response.json()) if isinstance(row, dict)]
+            searches[query] = rows[:30]
+        output[code] = {"searches": searches}
     print("TOURNAMENT_ID_LOOKUP=" + json.dumps(output, ensure_ascii=False))
     print("SUMMARY=" + json.dumps({
         "competitionsQueried": len(TARGETS),
-        "queries": list(TARGETS),
-        "apiRequests": len(TARGETS),
+        "apiRequests": request_count,
         "readOnly": True,
-        "note": "Search results identify candidate tournament IDs; they do not prove fixture-to-competition linkage."
+        "note": "Search results identify candidate tournament IDs; fixture-to-competition linkage still requires checking tournament.id in each matched match."
     }, ensure_ascii=False))
 
 
