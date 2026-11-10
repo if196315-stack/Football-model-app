@@ -177,7 +177,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
                 val bank = currentBank(bets)
                 val stake = max(bank * 0.01, 25.0)
-                if (stake > bank * 0.01 + 0.000001) continue
                 val dayKey = kickoffDate
                 var daily = 0.0
                 for (bi in 0 until bets.length()) {
