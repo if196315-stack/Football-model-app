@@ -252,6 +252,8 @@ def refresh_upcoming_lineups(cache: dict, api_key: str, session: Any = requests,
             lineups = normalize_lineups(payload)
             if lineups is not None:
                 row["lineups"] = lineups
+                if not (lineups["home"]["confirmed"] and lineups["away"]["confirmed"]):
+                    row["predictedLineups"] = lineups
                 row["lineupsFetchedAt"] = current.isoformat()
                 row.pop("lineupsFetchError", None)
                 fetched += 1
@@ -300,7 +302,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
                     previous = stored.get(row["id"], {})
                     # Preserve validated xG only for the exact provider match ID.
                     for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError",
-                                  "lineups", "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
+                                  "lineups", "predictedLineups", "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
                         if field in previous:
                             row[field] = previous[field]
                     stored[row["id"]] = row
