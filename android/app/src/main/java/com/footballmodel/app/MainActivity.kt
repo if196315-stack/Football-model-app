@@ -1084,7 +1084,7 @@ class MainActivity : Activity() {
                 for (k in 0 until bets.length()) {
                     val prior = bets.optJSONObject(k) ?: continue
                     if ((prior.optString("betDay").ifBlank { prior.optString("date").take(10) } == localDay) &&
-                        prior.optString("status") in listOf("PENDING", "WON", "LOST")) dailyExposure += prior.optDouble("stake", 0.0)
+                        prior.optString("status") in listOf("PENDING", "WON", "LOST", "PUSH")) dailyExposure += prior.optDouble("stake", 0.0)
                 }
                 if (dailyExposure + stake > bank * 0.05 + 0.000001) continue
                 bets.put(JSONObject()
