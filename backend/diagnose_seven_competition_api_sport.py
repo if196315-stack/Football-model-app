@@ -30,6 +30,8 @@ def upcoming_one_per_competition(domestic, uefa, today=None):
                 raw = match.get("utcDate")
                 try:
                     dt = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
                     if dt.date() < today:
                         continue
                 except (TypeError, ValueError):
