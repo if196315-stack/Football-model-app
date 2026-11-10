@@ -157,7 +157,7 @@ def historical_baselines(matches, comp, target_date):
     return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
       "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
 
-def strongest_signal(pred, baseline, home, away):
+def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None):
     if not baseline:return None
     candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
@@ -170,9 +170,14 @@ def strongest_signal(pred, baseline, home, away):
       else: side,mp,bp=no,1-p,1-b
       edge=mp-bp
       item={"market":title,"side":side,"modelProbability":mp,"baselineProbability":bp,
-        "edgePp":edge*100.0,"baselineMatches":baseline["matches"]}
-      if best is None or edge>best["edgePp"]/100.0:best=item
-    if best is not None and best["edgePp"]<=0:best["noPositiveSignal"]=True
+        "edgePp":edge*100.0,"baselineMatches":baseline["matches"],
+        "homeTeam":home,"awayTeam":away}
+      adjustment = form_adjustment(item, home_form or {}, away_form or {})
+      item["formAdjustmentPp"] = adjustment
+      item["selectionEdgePp"] = round(item["edgePp"] + adjustment, 2)
+      item["formContextUsed"] = adjustment != 0.0
+      if best is None or item["selectionEdgePp"] > best["selectionEdgePp"]:best=item
+    if best is not None and best["selectionEdgePp"]<=0:best["noPositiveSignal"]=True
     return best
 
 def recent_team_form(matches, comp, team, target_date, venue=None, limit=5):
@@ -252,19 +257,13 @@ def predict(c,home,away,st,base,names,matches,target_date):
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
     lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
     pred=markets(lh,la)
-    signal = strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
-    home_form = recent_team_form(matches, c, home, target_date, venue="home")
-    away_form = recent_team_form(matches, c, away, target_date, venue="away")
+    home_form = recent_team_form(matches, c, hn, target_date, venue="home")
+    away_form = recent_team_form(matches, c, an, target_date, venue="away")
     pred["teamForm"] = {"source": "cached_results", "window": 5,
                         "home": home_form, "away": away_form}
-    if signal is not None:
-        signal["homeTeam"] = home
-        signal["awayTeam"] = away
-        adjustment = form_adjustment(signal, home_form, away_form)
-        signal["formAdjustmentPp"] = adjustment
-        signal["selectionEdgePp"] = round(signal["edgePp"] + adjustment, 2)
-        signal["formContextUsed"] = adjustment != 0.0
-    pred["strongestSignal"] = signal
+    pred["strongestSignal"] = strongest_signal(
+        pred, historical_baselines(matches,c,target_date), home, away, home_form, away_form
+    )
     return pred,None
 
 def strip_forbidden_market_fields(prediction):
