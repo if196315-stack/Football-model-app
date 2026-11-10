@@ -2,6 +2,9 @@ package com.footballmodel.app
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.text.InputType
 import android.os.Bundle
 import android.os.Handler
@@ -181,7 +184,15 @@ class MainActivity : Activity() {
             setOnClickListener { loadData() }
         }
         val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        val bell = FrameLayout(this).apply { background = rounded(surface, 16); isClickable = true; setOnClickListener { currentTab = "intel"; intelligencePrefs.edit().putInt("unread_count", 0).apply(); updateNotificationBadge(); tabViewCache.clear(); renderedKey = null; render(); loadData() } }
+        val bell = FrameLayout(this).apply { background = rounded(surface, 16); isClickable = true; setOnClickListener {
+            if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 7402)
+            }
+            currentTab = "intel"
+            intelligencePrefs.edit().putInt("unread_count", 0).apply()
+            updateNotificationBadge()
+            tabViewCache.clear(); renderedKey = null; render(); loadData()
+        } }
         bell.addView(label("🔔", 22, true, Color.WHITE).apply { gravity = Gravity.CENTER }, FrameLayout.LayoutParams(-1, -1))
         val badge = label("", 9, true, Color.WHITE).apply { gravity = Gravity.CENTER; background = rounded(Color.rgb(235, 76, 91), 20); visibility = View.GONE }
         notificationBadge = badge
