@@ -34,19 +34,20 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Set up Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.9"
-          cache-provider: basic
+      - name: Install Gradle 8.9
+        run: |
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://services.gradle.org/distributions/gradle-8.9-bin.zip \
+            --output "$RUNNER_TEMP/gradle-8.9-bin.zip"
+          unzip -q "$RUNNER_TEMP/gradle-8.9-bin.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/gradle-8.9/bin" >> "$GITHUB_PATH"
 
       - name: Verify build environment
         run: |
           java -version
           gradle --version
-          echo "ANDROID_HOME=$ANDROID_HOME"
           sdkmanager --list_installed
 
       - name: Build debug APK
