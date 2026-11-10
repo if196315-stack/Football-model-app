@@ -25,6 +25,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         private const val TAG = "IQMatchAutoPaper"
     }
 
+    @Volatile private var lastDownloadFailure: String? = null
+
     override fun doWork(): Result {
         val startedAt = System.currentTimeMillis()
         Log.i(TAG, "Auto-paper worker started; attempt=$runAttemptCount")
@@ -66,7 +68,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         }
     }
 
-    private fun download(url: String): String = downloadOrNull(url) ?: error("Feed unavailable")
+    private fun download(url: String): String = downloadOrNull(url) ?: error(lastDownloadFailure ?: "Feed unavailable")
 
     private fun downloadOrNull(url: String): String? {
         var connection: HttpURLConnection? = null
@@ -76,8 +78,13 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 readTimeout = 18000
                 requestMethod = "GET"
             }
-            if (connection.responseCode !in 200..299) return null
+            val code = connection.responseCode
+            if (code !in 200..299) throw IllegalStateException("HTTP $code from ${URL(url).host}")
             connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        } catch (error: Exception) {
+            lastDownloadFailure = "${error.javaClass.simpleName}: ${error.message ?: "network or feed error"}"
+            Log.w(TAG, "Feed request failed: $url", error)
+            null
         } finally { connection?.disconnect() }
     }
 
