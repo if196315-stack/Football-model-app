@@ -201,7 +201,40 @@ def main():
                         {"similarity": score, "name": name} for score, name in ranked
                     ],
                 })
+    # Enrich the closest non-exact names with the actual API-Sport team IDs
+    # and tournament IDs observed in the downloaded fixture catalogue.
+    name_candidate_details = []
+    for check in unmatched_name_checks:
+        if check["closestApiSportNames"][0]["similarity"] == 1:
+            continue
+        candidates = []
+        for ranked in check["closestApiSportNames"][:4]:
+            if ranked["similarity"] < 0.60:
+                continue
+            occurrences = {}
+            for row in all_rows:
+                for key in ("homeTeam", "awayTeam"):
+                    team = row.get(key) or {}
+                    if ranked["name"] in team_names(team):
+                        identity = (str(team.get("id") or ""), str(tournament_id(row) or ""),
+                                    str(team.get("name") or ""))
+                        occurrences[identity] = occurrences.get(identity, 0) + 1
+            candidates.append({
+                "candidateName": ranked["name"],
+                "similarity": ranked["similarity"],
+                "observedTeams": [
+                    {"apiSportTeamId": identity[0], "tournamentId": identity[1],
+                     "canonicalName": identity[2], "fixtureRows": count}
+                    for identity, count in sorted(occurrences.items())
+                ],
+            })
+        name_candidate_details.append({
+            "competition": check["competition"],
+            "pitchApiName": check["pitchApiName"],
+            "candidateDetails": candidates,
+        })
     print("UNMATCHED_TEAM_NAME_CANDIDATES=" + json.dumps(unmatched_name_checks, ensure_ascii=False))
+    print("TEAM_NAME_CANDIDATE_IDS=" + json.dumps(name_candidate_details, ensure_ascii=False))
     print("LEAGUE_ID_CROSSCHECK=" + json.dumps(results, ensure_ascii=False))
     print("SUMMARY=" + json.dumps(summary, ensure_ascii=False))
 
