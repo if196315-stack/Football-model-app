@@ -157,9 +157,7 @@ def historical_baselines(matches, comp, target_date):
     return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
       "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
 
-def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
-                     lineups=None, predicted_lineups=None):
-    # Lineup arguments are accepted for compatibility but intentionally ignored.
+def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None):
     if not baseline:return None
     candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
@@ -176,8 +174,6 @@ def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
         "homeTeam":home,"awayTeam":away}
       adjustment = form_adjustment(item, home_form or {}, away_form or {})
       item["formAdjustmentPp"] = adjustment
-      # API-Football lineups are descriptive context only and never affect
-      # probabilities, EV, signal ranking, or selection filters.
       item["selectionEdgePp"] = round(item["edgePp"] + adjustment, 2)
       item["formContextUsed"] = adjustment != 0.0
       if best is None or item["selectionEdgePp"] > best["selectionEdgePp"]:best=item
@@ -254,8 +250,8 @@ def form_adjustment(signal, home_form, away_form):
     return round(max(-1.5, min(1.5, raw * scale)), 2)
 
 
-def predict(c,home,away,st,base,names,matches,target_date,lineups=None,predicted_lineups=None):
-    """Calculate probabilities; lineup arguments are retained for caller compatibility only."""
+def predict(c,home,away,st,base,names,matches,target_date):
+    """Calculate probabilities from PitchAPI xG and cached match form."""
     hn=match_name(home,names.get(c,[]),c); an=match_name(away,names.get(c,[]),c)
     if not hn or not an:return None,"Не удалось надёжно сопоставить команды с исторической базой xG"
     hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))

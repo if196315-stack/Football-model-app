@@ -1837,7 +1837,7 @@ class MainActivity : Activity() {
                 addText(box, "Преимущество над рыночным порогом: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
             } else {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
-                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Поправка формы: ${if (formAdjustment >= 0) "+" else ""}${String.format(Locale.US, "%.1f", formAdjustment)} п.п. учитывается в фильтре. Данные API-Football о составах носят справочный характер и не влияют на расчёты.", 11, false, muted)
+                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Поправка формы: ${if (formAdjustment >= 0) "+" else ""}${String.format(Locale.US, "%.1f", formAdjustment)} п.п. учитывается в фильтре.", 11, false, muted)
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
@@ -1850,25 +1850,6 @@ class MainActivity : Activity() {
                 addText(box, "${m.optString("home")}: ${hf.optString("form", "нет данных")} · ${hf.optInt("matches")} матчей · ${hf.optString("pointsPerGame", "—")} очка/матч · дома: ${hf.optString("venueForm", "—")}", 10, false, Color.WHITE)
                 addText(box, "${m.optString("away")}: ${af.optString("form", "нет данных")} · ${af.optInt("matches")} матчей · ${af.optString("pointsPerGame", "—")} очка/матч · в гостях: ${af.optString("venueForm", "—")}", 10, false, Color.WHITE)
                 addText(box, "Форма влияет на фильтр сильной ставки ограниченной поправкой до ±1,5 п.п.; вероятность модели не переписывается.", 10, false, muted)
-            }
-            val lineups = m.optJSONObject("lineups")
-            if (lineups != null) {
-                addText(box, "СОСТАВЫ · API-FOOTBALL", 10, true, cyan)
-                fun lineupSummary(sideKey: String, teamName: String): String {
-                    val side = lineups.optJSONObject(sideKey) ?: return "$teamName: состав не получен"
-                    val confirmed = side.optBoolean("confirmed", false)
-                    val status = if (confirmed) "подтверждён" else "прогноз"
-                    val formation = side.optString("formation").takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""
-                    val starters = side.optJSONArray("starters") ?: JSONArray()
-                    val names = (0 until starters.length()).mapNotNull { starters.optJSONObject(it)?.optString("name")?.takeIf { n -> n.isNotBlank() } }
-                    val preview = names.take(5).joinToString(", ")
-                    val suffix = if (names.size > 5) " и ещё ${names.size - 5}" else ""
-                    return "$teamName: $status$formation · XI ${names.size}/11" + if (preview.isNotBlank()) " · $preview$suffix" else ""
-                }
-                addText(box, lineupSummary("home", m.optString("home")), 10, false, Color.WHITE)
-                addText(box, lineupSummary("away", m.optString("away")), 10, false, Color.WHITE)
-                addText(box, "Справочная информация: составы не изменяют вероятности модели, EV или отбор AI-сигналов.", 10, false, muted)
-                addText(box, "Прогнозный состав не считается подтверждённым. Отсутствие игрока в списке не трактуется как травма.", 10, false, muted)
             }
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)

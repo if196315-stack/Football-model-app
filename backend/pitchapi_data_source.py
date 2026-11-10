@@ -174,6 +174,13 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
     """
     cache = load_cache(cache_path)
     stored = cache["matches"]
+    # Purge legacy API-Football fixture mappings and lineup data from the persisted cache.
+    cache.pop("footballApiFixturesByDate", None)
+    for cached_match in stored.values():
+        for field in ("footballApiFixtureId", "footballApiFixtureMappedAt", "lineups",
+                      "predictedLineups", "lineupsFetchedAt", "lineupsAttemptedAt",
+                      "lineupsFetchError"):
+            cached_match.pop(field, None)
     leagues = discover_leagues(session, api_key)
     listing_count = 0
     shot_requests = 0
@@ -199,27 +206,11 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
                     for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError"):
                         if field in previous:
                             row[field] = previous[field]
-                    same_lineup_fixture = (
-                        norm(previous.get("home")) == norm(row.get("home"))
-                        and norm(previous.get("away")) == norm(row.get("away"))
-                        and (previous.get("timeUtc") or previous.get("date"))
-                        == (row.get("timeUtc") or row.get("date"))
-                    )
-                    if same_lineup_fixture:
-                        for field in ("footballApiFixtureId", "footballApiFixtureMappedAt",
-                                      "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
-                            if field in previous:
-                                row[field] = previous[field]
-                        previous_lineups = previous.get("lineups")
-                        if isinstance(previous_lineups, dict) and previous_lineups.get("source") == "API-Football":
-                            row["lineups"] = previous_lineups
                     stored[row["id"]] = row
             except (requests.RequestException, ValueError, RuntimeError, TypeError) as exc:
                 errors.append(f"{code} {season}: {type(exc).__name__}")
             if pause_seconds:
                 time.sleep(pause_seconds)
-
-    lineup_summary = {}
 
     # Backfill chronologically from the oldest finished matches first. Recent
     # xG is already well covered; older seasons are needed for a longer,
@@ -270,7 +261,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
     cache["lastRefreshSummary"] = {
         "listedMatches": listing_count, "cachedMatches": len(stored),
         "shotRequests": shot_requests, "shotAttempts": shot_attempts,
-        **lineup_summary, "pendingShotXg": sum(
+        "pendingShotXg": sum(
             1 for row in stored.values()
             if row.get("status") == "finished"
             and (row.get("homeXg") is None or row.get("awayXg") is None)
