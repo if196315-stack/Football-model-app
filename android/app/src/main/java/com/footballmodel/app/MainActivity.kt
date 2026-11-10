@@ -651,57 +651,6 @@ class MainActivity : Activity() {
     }
 
 
-    private fun matchAnalysisText(match: JSONObject, signal: JSONObject, odds: Double): String {
-        val home = match.optString("home", "Хозяева")
-        val away = match.optString("away", "Гости")
-        val prediction = match.optJSONObject("prediction") ?: JSONObject()
-        val homeXg = prediction.optDouble("expectedHomeGoals", Double.NaN)
-        val awayXg = prediction.optDouble("expectedAwayGoals", Double.NaN)
-        val probability = signal.optDouble("modelProbability", Double.NaN)
-        val baseline = signal.optDouble("baselineProbability", Double.NaN)
-        val baselineMatches = signal.optInt("baselineMatches", 0)
-        val edge = signal.optDouble("edgePp", Double.NaN)
-        val ev = probability * odds - 1.0
-        val parts = mutableListOf<String>()
-        if (homeXg.isFinite() && awayXg.isFinite()) {
-            val total = homeXg + awayXg
-            val lean = when {
-                homeXg - awayXg >= 0.35 -> "модельный перевес у $home"
-                awayXg - homeXg >= 0.35 -> "модельный перевес у $away"
-                else -> "по ожидаемым голам силы близки"
-            }
-            parts.add("Модельная картина: ожидаемые голы $home — ${String.format(Locale.US, "%.2f", homeXg)}, $away — ${String.format(Locale.US, "%.2f", awayXg)} (всего ${String.format(Locale.US, "%.2f", total)}); $lean.")
-        } else {
-            parts.add("Ожидаемые голы по командам в фиде отсутствуют — этот фактор нельзя надёжно оценить.")
-        }
-        val form = match.optJSONObject("recentForm") ?: prediction.optJSONObject("recentForm")
-        if (form != null) {
-            val hf = form.optString("home", "").ifBlank { form.optString("homeForm", "") }
-            val af = form.optString("away", "").ifBlank { form.optString("awayForm", "") }
-            if (hf.isNotBlank() || af.isNotBlank()) parts.add("Последние результаты: $home — ${hf.ifBlank { "нет данных" }}; $away — ${af.ifBlank { "нет данных" }}.")
-        } else {
-            parts.add("Форма команд: отдельная последовательность последних результатов в фиде не передаётся; модель использует исторический xG-профиль команд.")
-        }
-        val lineup = match.optJSONObject("lineups")
-        val homeXi = lineup?.optJSONArray("home") ?: match.optJSONArray("homeLineup")
-        val awayXi = lineup?.optJSONArray("away") ?: match.optJSONArray("awayLineup")
-        if ((homeXi?.length() ?: 0) > 0 || (awayXi?.length() ?: 0) > 0) {
-            parts.add("Составы: в фиде есть стартовые составы — $home: ${homeXi?.length() ?: 0} игроков, $away: ${awayXi?.length() ?: 0} игроков. Проверь изменения и отсутствие ключевых исполнителей перед матчем.")
-        } else {
-            parts.add("Составы и травмы: подтверждённые стартовые XI и список отсутствующих игроков в текущем фиде не передаются. Моё мнение: составной фактор пока неопределён; не считать предполагаемые XI подтверждёнными и не повышать риск до публикации составов. Особенно перепроверь центральных защитников, опорную зону и основного нападающего.")
-        }
-        val implied = 1.0 / odds
-        val valueText = if (probability.isFinite()) "вероятность модели ${String.format(Locale.US, "%.1f", probability * 100)}%, безубыточный порог ${String.format(Locale.US, "%.1f", implied * 100)}%" else "вероятность модели не указана"
-        val edgeText = if (edge.isFinite()) "edge ${if (edge >= 0) "+" else ""}${String.format(Locale.US, "%.1f", edge)} п.п." else "edge не рассчитан"
-        val baselineText = if (baseline.isFinite()) "историческая база ${String.format(Locale.US, "%.1f", baseline * 100)}% на $baselineMatches матчах" else "историческая база не указана"
-        parts.add("Рынок и цена: ${signal.optString("side")} по ${String.format(Locale.US, "%.2f", odds)}; $valueText, $baselineText, $edgeText, EV ${String.format(Locale.US, "%+.1f", ev * 100)}%. Положительное EV — оценка модели, не гарантия результата.")
-        parts.add("Дополнительный контекст: турнирное положение, мотивация, плотность календаря и риск ротации не представлены в текущем фиде; перед выводом о матче их нужно проверить отдельно.")
-        val oddsUpdated = match.optJSONObject("odds")?.optString("updatedAt").orEmpty()
-        val oddsTime = if (oddsUpdated.isBlank()) "без отметки времени" else formatSourceTimestamp(oddsUpdated) + " (местное время)"
-        parts.add("Контекст: матч ${kickoffLabel(match)}; котировка BetBoom обновлена $oddsTime. Если цена ухудшилась или данные изменились — сигнал нужно пересмотреть.")
-        return parts.joinToString("\n\n")
-    }
-
     private fun date(raw: String): String = try {
         val input = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
         input.timeZone = java.util.TimeZone.getTimeZone("UTC")
@@ -1690,8 +1639,6 @@ class MainActivity : Activity() {
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
-            addText(box, "РАЗБОР МАТЧА · КЛЮЧЕВЫЕ ФАКТОРЫ", 10, true, cyan)
-            addText(box, matchAnalysisText(m, signal, odds), 11, false, Color.WHITE)
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
         }
