@@ -1,5 +1,8 @@
 # UEFA walk-forward model report — 2026-11-09
 
+> **Historical UEFA model report:** current xG history, feed coverage, snapshots and calibration are consolidated in [seven-competition-audit-2026-11-11](./seven-competition-audit-2026-11-11.md). This file remains as the original 2026-11-09 baseline.
+
+
 ## Executive summary
 
 This is a historical **probability-quality** test of the existing xG/Poisson model on UEFA Champions League (UCL) and UEFA Europa League (UEL) fixtures. It is **not a betting ROI report**: historical BetBoom prices at the time of each match were not available in the source artifacts, so EV, edge, CLV, profit, drawdown and BET/WAIT/REJECT counts cannot be reconstructed.
