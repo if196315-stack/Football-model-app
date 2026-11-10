@@ -1936,8 +1936,6 @@ class MainActivity : Activity() {
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
             addText(box, kickoffLabel(m), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
-            val candidateStake = maxOf(bank * 0.01, 25.0)
-            addText(box, "Сумма ставки с учётом минимума BetBoom: ${fmt(candidateStake)} ₽", 12, true, accent)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
             if (signal.optBoolean("paperOnly")) {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; рыночный порог для оценки: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
