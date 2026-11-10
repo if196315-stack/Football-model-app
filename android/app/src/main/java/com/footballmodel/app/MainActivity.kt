@@ -999,7 +999,7 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее минимальной ставки BetBoom 25 ₽. Поэтому при балансе 2 500 ₽ ставка 25 ₽, а при 2 499 ₽ (1% = 24,99 ₽) всё равно ставится 25 ₽ — это обязательный минимум букмекера. Дневная суммарная нагрузка остаётся не более 5% банка; новые ставки не открываются, если дневной лимит исчерпан.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее минимальной ставки BetBoom 25 ₽. Поэтому при балансе 2 500 ₽ ставка 25 ₽, а при 2 499 ₽ (1% = 24,99 ₽) всё равно ставится 25 ₽ — это обязательный минимум букмекера. Дневного лимита суммарной нагрузки нет: фиксируются все сигналы, прошедшие критерии стратегии.", 11, false, Color.WHITE)
         addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
@@ -1009,7 +1009,7 @@ class MainActivity : Activity() {
 
         val strategyTesting = card()
         addText(strategyTesting, "5. ТЕСТИРОВАНИЕ И ДОПУСК К ЗАПУСКУ", 11, true, accent)
-        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных BetBoom котировках без реальных ставок. Этап 4 — ограниченный запуск с базовой ставкой 1% банка, при сохранении лимита 1% на матч и 5% на день. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
+        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных BetBoom котировках без реальных ставок. Этап 4 — ограниченный запуск с базовой ставкой 1% банка, без дневного лимита суммарной нагрузки. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
         addText(strategyTesting, "Стартовые ориентиры: ≥500 исторических сигналов и ≥500 paper-сигналов; желательно ≥150–200 наблюдений на оцениваемый рынок. Эти объёмы не гарантируют статистическую надёжность: показывать доверительные интервалы и учитывать неопределённость.", 11, false, muted)
 
         val strategyMetrics = card()
@@ -1264,14 +1264,7 @@ class MainActivity : Activity() {
                 if (duplicate || autoStopped || drawdownPaused) continue
                 val bank = currentBankroll()
                 val stake = maxOf(bank * 0.01, 25.0)
-                val localDay = dayFormat.format(java.util.Date(kickoff))
-                var dailyExposure = 0.0
-                for (k in 0 until bets.length()) {
-                    val prior = bets.optJSONObject(k) ?: continue
-                    if ((prior.optString("betDay").ifBlank { prior.optString("date").take(10) } == localDay) &&
-                        prior.optString("status") in listOf("PENDING", "WON", "LOST", "PUSH")) dailyExposure += prior.optDouble("stake", 0.0)
-                }
-                if (dailyExposure + stake > bank * 0.05 + 0.000001) continue
+                // No daily exposure cap: every qualifying AI signal is paper-logged.
                 val newBet = JSONObject()
                     .put("id", id)
                     .put("source", "AI_AUTO")
@@ -1465,7 +1458,7 @@ class MainActivity : Activity() {
         addText(strategyCard, "КАК РАБОТАЕТ СТРАТЕГИЯ", 11, true, accent)
         addText(strategyCard, "Размер одной ставки — 1% от текущего баланса, но не меньше 25 ₽: это минимальная сумма, которую принимает BetBoom.", 11, false, Color.WHITE)
         addText(strategyCard, "Примеры: баланс 2 500 ₽ → 1% = 25 ₽, ставка 25 ₽; баланс 2 499 ₽ → 1% = 24,99 ₽, но фактическая ставка всё равно 25 ₽ из-за минимума букмекера.", 11, false, muted)
-        addText(strategyCard, "Обычный расчёт — 1% банка на матч, но если 1% меньше 25 ₽, применяется минимум BetBoom 25 ₽. Поэтому при балансе ниже 2 500 ₽ фактическая ставка может быть чуть больше 1%. Общая дневная нагрузка ограничена 5% текущего банка; если дневной лимит исчерпан, новые автоматические paper-ставки не создаются.", 11, false, Color.WHITE)
+        addText(strategyCard, "Обычный расчёт — 1% банка на матч, но если 1% меньше 25 ₽, применяется минимум BetBoom 25 ₽. Поэтому при балансе ниже 2 500 ₽ фактическая ставка может быть чуть больше 1%. Дневного лимита суммарной нагрузки нет: все сигналы, прошедшие критерии стратегии, автоматически фиксируются как paper-ставки.", 11, false, Color.WHITE)
         addText(strategyCard, "Это автоматические бумажные ставки для проверки стратегии, а не размещение реальных ставок у букмекера. Догон и увеличение риска после проигрыша не используются.", 10, false, muted)
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
@@ -1984,7 +1977,7 @@ class MainActivity : Activity() {
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Окно отбора — 30 дней. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Только реальные котировки BetBoom; фильтра давности в 5 минут нет. Риск: ставка 1% банка (минимум БК 25 ₽), максимум 1% на матч и 5% суммарно за день.", 11, false, muted)
+        addText(footer, "Окно отбора — 30 дней. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Только реальные котировки BetBoom; фильтра давности в 5 минут нет. Риск: ставка 1% банка (минимум БК 25 ₽), максимум 1% на матч без дневного лимита суммарной нагрузки.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
@@ -2019,7 +2012,7 @@ class MainActivity : Activity() {
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · AI-СИГНАЛЫ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена BetBoom. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку, не более 1% на матч и 5% за день.", 11, false, muted)
+        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена BetBoom. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку, не более 1% на матч без дневного лимита суммарной нагрузки.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)
