@@ -223,44 +223,10 @@ class MainActivity : Activity() {
             overScrollMode = View.OVER_SCROLL_NEVER
             addView(leagueBar)
         }
-        val leagueLeft = TextView(this).apply {
-            text = "‹"
-            textSize = 25f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setTextColor(muted)
-            background = rounded(surface, 10)
-            contentDescription = "Прокрутить лиги влево"
-            setOnClickListener { leagueScroll.smoothScrollBy(-dp(190), 0) }
-        }
-        val leagueRight = TextView(this).apply {
-            text = "›"
-            textSize = 25f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setTextColor(muted)
-            background = rounded(surface, 10)
-            contentDescription = "Прокрутить лиги вправо"
-            setOnClickListener { leagueScroll.smoothScrollBy(dp(190), 0) }
-        }
-        fun updateLeagueArrowState() {
-            val maxScroll = (leagueScroll.getChildAt(0)?.width ?: 0) - leagueScroll.width
-            leagueLeft.alpha = if (leagueScroll.scrollX <= 0) 0.28f else 1f
-            leagueRight.alpha = if (maxScroll <= 0 || leagueScroll.scrollX >= maxScroll - dp(2)) 0.28f else 1f
-        }
-        leagueScroll.setOnScrollChangeListener { _, _, _, _, _ -> updateLeagueArrowState() }
-        val leagueNavigation = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(leagueLeft, LinearLayout.LayoutParams(dp(34), dp(42)).apply { rightMargin = dp(5) })
-            addView(leagueScroll, LinearLayout.LayoutParams(0, -2, 1f))
-            addView(leagueRight, LinearLayout.LayoutParams(dp(34), dp(42)).apply { leftMargin = dp(5) })
-        }
-        root.addView(leagueNavigation, LinearLayout.LayoutParams(-1, -2).apply {
+        root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(2)
             bottomMargin = dp(2)
         })
-        leagueScroll.post { updateLeagueArrowState() }
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
