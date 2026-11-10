@@ -1,7 +1,8 @@
 """Read-only API-Sport quota and BetBoom market diagnostics.
 
 This script never writes model data or odds snapshots and never prints credentials.
-It performs one quota request and one bounded football matches request.
+Run only as a bounded, one-off audit: it checks quota, a capped fixture sample,
+exact matched-fixture boards, and a capped BetBoom market sample.
 """
 import json
 import os
