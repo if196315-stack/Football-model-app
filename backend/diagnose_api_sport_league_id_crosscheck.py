@@ -1,4 +1,7 @@
-"""Read-only league-ID cross-check for all upcoming PitchAPI fixtures in seven competitions."""
+"""Read-only league-ID cross-check for all upcoming PitchAPI fixtures in seven competitions.
+
+Uses the canonical API-Sport tournament IDs resolved by the companion lookup.
+"""
 import json
 import os
 import sys
