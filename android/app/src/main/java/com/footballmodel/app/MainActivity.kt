@@ -1,6 +1,9 @@
 package com.footballmodel.app
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import android.app.AlertDialog
 import android.text.InputType
 import android.os.Bundle
@@ -194,6 +197,11 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        AutoPaperNotifications.createChannel(applicationContext)
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 4107)
+        }
         scheduleAutoPaperWorker()
         // Мгновенный старт: показываем последний успешный снимок до сетевого обновления.
         feedCache.getString("merged_json", null)?.let { cached ->
