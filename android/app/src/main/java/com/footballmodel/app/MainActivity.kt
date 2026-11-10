@@ -1851,6 +1851,24 @@ class MainActivity : Activity() {
                 addText(box, "${m.optString("away")}: ${af.optString("form", "нет данных")} · ${af.optInt("matches")} матчей · ${af.optString("pointsPerGame", "—")} очка/матч · в гостях: ${af.optString("venueForm", "—")}", 10, false, Color.WHITE)
                 addText(box, "Форма влияет на фильтр сильной ставки ограниченной поправкой до ±1,5 п.п.; вероятность модели не переписывается.", 10, false, muted)
             }
+            val lineups = m.optJSONObject("lineups")
+            if (lineups != null) {
+                addText(box, "СОСТАВЫ · PITCHAPI", 10, true, cyan)
+                fun lineupSummary(sideKey: String, teamName: String): String {
+                    val side = lineups.optJSONObject(sideKey) ?: return "$teamName: состав не получен"
+                    val confirmed = side.optBoolean("confirmed", false)
+                    val status = if (confirmed) "подтверждён" else "прогноз"
+                    val formation = side.optString("formation").takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""
+                    val starters = side.optJSONArray("starters") ?: JSONArray()
+                    val names = (0 until starters.length()).mapNotNull { starters.optJSONObject(it)?.optString("name")?.takeIf { n -> n.isNotBlank() } }
+                    val preview = names.take(5).joinToString(", ")
+                    val suffix = if (names.size > 5) " и ещё ${names.size - 5}" else ""
+                    return "$teamName: $status$formation · XI ${names.size}/11" + if (preview.isNotBlank()) " · $preview$suffix" else ""
+                }
+                addText(box, lineupSummary("home", m.optString("home")), 10, false, Color.WHITE)
+                addText(box, lineupSummary("away", m.optString("away")), 10, false, Color.WHITE)
+                addText(box, "Прогнозный состав не считается подтверждённым. Отсутствие игрока в списке не трактуется как травма.", 10, false, muted)
+            }
             addText(box, "РИСКИ", 10, true, gold)
             addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
         }
