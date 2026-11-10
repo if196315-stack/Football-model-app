@@ -185,9 +185,6 @@ class MainActivity : Activity() {
         }
         val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val bell = FrameLayout(this).apply { background = rounded(surface, 16); isClickable = true; setOnClickListener {
-            if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 7402)
-            }
             currentTab = "intel"
             intelligencePrefs.edit().putInt("unread_count", 0).apply()
             updateNotificationBadge()
