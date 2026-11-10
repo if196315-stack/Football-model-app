@@ -292,6 +292,11 @@ def run(rows, holdout):
         },
         "competitions": sorted({row["league"] for row in rows}),
         "markets": {},
+        "independent_market_count": 15,
+        "market_relationships": {
+            "DNB_HOME": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
+            "DNB_AWAY": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
+        },
         "baseline_definition": "Expanding historical frequency within each competition, Laplace +1 smoothing; only results before the fixture date are used.",
         "model_definition": f"Independent Poisson using prior paired-xG team history; window={WINDOW}, half_life={HALF_LIFE}, shrinkage={SHRINKAGE}; same-calendar-day leakage prevented.",
         "limitations": [
@@ -377,6 +382,10 @@ def main():
             "calibrated_log_loss": holdout_metrics["log_loss"] if holdout_metrics else None,
             "log_loss_delta_vs_raw": cal["log_loss_delta_vs_raw"],
         }
+        # DNB_HOME/AWAY reuse the same W/P/L partition as 1X2; exclude them
+        # from competition-level aggregate improvement counts to avoid double weight.
+        if market in ("DNB_HOME", "DNB_AWAY"):
+            continue
         for league, league_cal in metrics["calibration_by_competition"].items():
             target = calibration_by_competition.setdefault(league, {"markets_tested": 0, "markets_brier_improved": 0,
                                                                        "brier_delta_sum": 0.0, "log_loss_delta_sum": 0.0})
@@ -398,6 +407,8 @@ def main():
     print(json.dumps({
         "input_matches": report["input_matches"],
         "input_matches_by_competition": report["input_matches_by_competition"],
+        "independent_market_count": report["independent_market_count"],
+        "market_relationships": report["market_relationships"],
         "predicted_matches_by_competition": report["predicted_matches_by_competition"],
         "market_holdout_n": {
             market: metrics["holdout"]["model"]["n"] if metrics["holdout"] else 0
