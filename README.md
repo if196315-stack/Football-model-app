@@ -47,7 +47,7 @@ Android-клиент IQ Match и конвейер футбольных данн�
 - `artifacts/market-observation-results.jsonl` и UEFA paper-архивы — результаты наблюдений и paper-сигналов.
 - `backend/diagnose_api_sport.py` — read-only диагностика доступности API-Sport, квоты и BetBoom-рынков.
 - `backend/backtest_pitchapi.py` — воспроизводимый хронологический backtest национального xG-контура.
-- `backend/backtest_all_markets.py` — offline walk-forward оценка 15 независимых рынков для всех семи соревнований, с paired bootstrap CI для калибровки; DNB labels помечены как дублирующие 1X2.
+- `backend/backtest_all_markets.py` — offline walk-forward оценка 15 независимых рынков для всех семи соревнований, сравнение с expanding-frequency baseline и paired bootstrap CI для калибровки; DNB labels помечены как дублирующие 1X2.
 - `.github/workflows/seven-competition-model-audit.yml` — воспроизводимый all-market аудит и исследовательская калибровка на main.
 - `backend/predict_uefa_markets.py` и `backend/evaluate_uefa_paper_signals.py` — отдельная walk-forward оценка и paper-контур UCL/UEL.
 - Подробные результаты и ограничения: `docs/strategy/seven-competition-calibration-report-2026-11-10.md`, `docs/strategy/seven-competition-data-and-odds-coverage-2026-11-10.md` и `docs/strategy/seven-competition-audit-2026-11-11.md`.
