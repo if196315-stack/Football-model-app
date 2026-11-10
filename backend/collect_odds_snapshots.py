@@ -34,10 +34,37 @@ def _number(value: Any) -> float | None:
         return None
 
 
+def _model_probability(common: dict, market: str, fields: dict) -> float | None:
+    prediction = common.get("_prediction") or {}
+    if market == "double_chance":
+        key = fields.get("outcome")
+        value = prediction.get(key) if key in ("1x", "x2") else None
+    elif market == "match_total":
+        key = f"{fields.get('side')}{str(fields.get('point')).replace('.', '')}"
+        value = prediction.get(key)
+    elif market == "team_total":
+        key = f"{fields.get('team')}{str(fields.get('side')).title()}{str(fields.get('point')).replace('.', '')}"
+        value = prediction.get(key)
+    elif market == "btts":
+        value = prediction.get("bttsYes" if fields.get("outcome") == "yes" else "bttsNo")
+    else:
+        value = None
+    try:
+        probability = float(value)
+    except (TypeError, ValueError):
+        return None
+    return probability if 0.0 <= probability <= 1.0 else None
+
+
 def _quote(common: dict, market: str, price: Any, **fields) -> dict | None:
     if not valid_price(price):
         return None
-    return {**common, "market": market, "price": float(price), **fields}
+    probability = _model_probability(common, market, fields)
+    row = {key: value for key, value in common.items() if key != "_prediction"}
+    return {**row, "market": market, "price": float(price),
+            "model_probability": probability,
+            "model_probability_status": "available" if probability is not None else "not_available",
+            **fields}
 
 
 def snapshot_rows(data: dict, captured_at: str | None = None):
@@ -75,6 +102,9 @@ def snapshot_rows(data: dict, captured_at: str | None = None):
                 "bookmaker_update_age_seconds": odds.get("bookmakerUpdateAgeSeconds"),
                 "freshness_status": odds.get("freshnessStatus") or "unknown",
                 "market_parser_version": PARSER_VERSION,
+                "model_version": data.get("modelVersion"),
+                "model_prediction_captured_at": match.get("predictionCapturedAt"),
+                "_prediction": match.get("prediction") or {},
             }
 
             for outcome, price in (board.get("doubleChance") or {}).items():
