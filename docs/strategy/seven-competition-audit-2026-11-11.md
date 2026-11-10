@@ -213,3 +213,40 @@ Bootstrap CI условны на параметрах уже обученног�
 - [UEFA walk-forward 2026-11-09](./uefa-walk-forward-report-2026-11-09.md)
 - [Спецификация стратегии IQ Match](./iq-match-strategy-v1.md)
 - [Reproducible all-market audit workflow](../../.github/workflows/seven-competition-model-audit.yml)
+
+
+## 10. Повторная проверка GitHub Actions и production feed
+
+### Seven-competition audit workflow
+
+Run [42914090260](https://github.com/if196315-stack/Football-model-app/actions/runs/42914090260) завершился успешно (2026-11-10 22:23 UTC). Все шаги зелёные: восстановление кеша PitchAPI, unit tests all-market walk-forward/calibration, экспорт clean paired-xG cohort, семичемпионатный chronological audit и upload трёх артефактов.
+
+Результаты непосредственно из лога этого run:
+- Входной cohort: **10 031 матч**.
+- Предсказания построены для **9 798 матчей**.
+- Вход / прогнозы по соревнованиям: ENG 2 000 / 1 981; ESP 1 638 / 1 619; FRA 1 767 / 1 751; GER 1 305 / 1 288; ITA 1 628 / 1 611; UCL 823 / 766; UEL 870 / 782.
+- Holdout после 2026-07-01: 619 матчей; по 619 наблюдений на каждый из 15 независимых рынков.
+- Относительно expanding-frequency baseline на holdout Brier skill положительный для всех 15 рынков: 1X2 10.14%; DC 1X 12.01%; DC X2 13.92%; BTTS 2.35%; totals 1.5/2.5/3.5: 3.53% / 5.57% / 3.55%; home totals 0.5/1.5/2.5/3.5: 5.78% / 11.06% / 9.20% / 11.38%; away totals 0.5/1.5/2.5/3.5: 5.01% / 8.04% / 4.35% / 4.85%.
+- По 1X2 Brier skill положительный в каждом соревновании: ENG 6.51%, ESP 9.12%, FRA 9.90%, GER 8.89%, ITA 17.15%, UCL 14.36%, UEL 3.62%. Наименьший holdout N — UEL 61, UCL 66, GER 79; не трактовать эти значения как точные рейтинги силы лиг.
+- DNB_HOME/AWAY не являются дополнительными независимыми рынками: это та же W/P/L разбивка исхода 1X2 с push; отчёт корректно исключает их из числа независимых рынков и агрегатов.
+
+Артефакт воспроизводимого запуска: [seven-competition-model-audit-8](https://github.com/if196315-stack/Football-model-app/actions/runs/42914090260/artifacts/13807499722), содержит clean cohort CSV, manifest и полный JSON отчёт.
+
+### Read-only API-Sport diagnostic
+
+Run [42909406938](https://github.com/if196315-stack/Football-model-app/actions/runs/42909406938) завершился успешно 2026-11-10 21:53 UTC. Диагностика не меняла данные и не создавала odds snapshots.
+- API account usage: план 50 000 запросов/день; remaining 50 000 в account usage payload. Rate-limit header после диагностического прогона: 49 992 — выполнено 8 запросов.
+- В качестве целевого примера взята ближайшая дата из национального feed — 2026-11-21. В ограниченном пятистраничном скане найдено 1 188 API-Sport fixtures.
+- Все 5 проверенных ближайших модельных матчей Premier League были найдены в API-Sport по командам/дате; у всех пяти exact fixture details подтвердили BetBoom board и открытые prematch markets.
+- Это точечная проверка только 5 ENG fixtures на одну дату, а не полное покрытие всех семи соревнований. Нельзя экстраполировать её на ESP/ITA/GER/FRA/UCL/UEL.
+- В общем sample из 100 API-Sport fixtures BetBoom board был у всех 100; основные открытые рынки result/double chance/total — 100, BTTS/handicap — 97. Team-total slugs встретились у 18/100, но выборка смешанная и не даёт league-specific coverage для пяти целевых лиг.
+
+### Интерпретация калибровки
+
+Новый workflow подтверждает преимущество raw Poisson модели над expanding-frequency baseline на holdout по всем 15 независимым рынкам. Это не означает, что найденная vector scaling калибровка должна быть включена в production: paired bootstrap CI часто пересекает ноль, а per-competition calibration неоднородна. Калибровка остаётся исследовательской; production probability, edge, EV thresholds и paper-bet policy не менялись.
+
+### Статус полного аудита
+
+Подтверждено: исторический хронологический backtest воспроизводится, unit tests проходят, текущая read-only диагностика API-Sport отработала без изменения данных, а проверенные 5 ENG fixtures имеют BetBoom prematch boards.
+
+Остаётся не подтверждено: актуальное league-by-league fixture/market coverage для всех семи турниров на одной временной точке, длительная price-aware доходность/CLV и устойчивость калибровки на следующем независимом временном окне. Для закрытия этих пунктов нужен отдельный ограниченный API-Sport/PitchAPI coverage run и дальнейшее накопление snapshot + settlement истории; это не следует подменять общим mixed-league sample.
