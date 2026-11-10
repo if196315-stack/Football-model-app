@@ -1503,6 +1503,12 @@ class MainActivity : Activity() {
                     return@setOnClickListener
                 }
                 settingsPrefs.edit().putString(key, value.toString()).apply()
+                // Стартовый банк отображается в профиле и на экране «Банк».
+                // Сбрасываем оба кеша, чтобы новые значения появились сразу без перезапуска.
+                if (key == "initial_bankroll") {
+                    tabViewCache.remove("history|ALL")
+                    tabViewCache.remove("help|ALL")
+                }
                 dialog.dismiss()
                 render()
             }
