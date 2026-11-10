@@ -393,6 +393,14 @@ def main():
             match.pop("odds",None)
             source=match_fixture(match,fixtures)
             if not source:continue
+            # PitchAPI sometimes supplies only YYYY-MM-DD. Once the fixture is
+            # confidently matched by date and both team names, enrich it with
+            # the provider's actual kickoff timestamp rather than showing midnight.
+            raw_target_date = match.get("utcDate") or match.get("dateEvent")
+            source_kickoff = kickoff(source)
+            if (isinstance(raw_target_date, str) and len(raw_target_date.strip()) == 10
+                    and source_kickoff is not None):
+                match["utcDate"] = source_kickoff.isoformat(timespec="seconds").replace("+00:00", "Z")
             matched+=1;quote=parse_odds(source)
             comp_stats["matched"] += 1
             team_total_quotes = quote["best"].get("teamTotals") or []

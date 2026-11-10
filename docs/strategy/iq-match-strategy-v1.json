@@ -1,22 +1,21 @@
 {
-  "strategyVersion": "1.0",
+  "strategyVersion": "1.1",
   "status": "INITIAL_PROVISIONAL",
   "selectionMode": "STRICT",
   "riskMode": "MODERATE",
   "launchMode": "LIMITED",
   "bookmaker": "betboom",
   "oddsProvider": "API-Sport",
-  "minimumModelProbability": 0.60,
+  "minimumModelProbability": 0.6,
   "minimumEdge": 0.05,
   "minimumEV": 0.05,
-  "maxOddsAgeMinutes": 5,
-  "baseStakePercent": 0.5,
-  "reducedStakePercent": 0.25,
-  "maxStakePercent": 1.0,
-  "maxMatchExposurePercent": 1.0,
-  "maxDailyExposurePercent": 2.0,
-  "drawdownPausePercent": 5.0,
-  "drawdownStopPercent": 10.0,
+  "baseStakePercent": 1,
+  "reducedStakePercent": 1,
+  "maxStakePercent": 1,
+  "maxMatchExposurePercent": 1,
+  "maxDailyExposurePercent": 5,
+  "drawdownPausePercent": 5,
+  "drawdownStopPercent": 10,
   "minimumHistoricalSignals": 500,
   "minimumPaperSignals": 500,
   "preferredMinimumSignalsPerMarket": 150,
@@ -27,7 +26,6 @@
     "MATCH_TOTAL_OVER",
     "TEAM_TOTAL_OVER",
     "BTTS_YES",
-    "BTTS_NO",
     "HANDICAP_EXACT_LINE_ONLY"
   ],
   "hiddenMarkets": [
@@ -38,5 +36,6 @@
     "MATCH_1X2"
   ],
   "kellyEnabled": false,
-  "automaticBetPlacement": false
+  "automaticBetPlacement": false,
+  "maxQuoteAgeBeforeKickoffHours": 12
 }
