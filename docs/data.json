@@ -22064,9 +22064,9 @@
           "odds": {
             "eventId": "16363661",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 31.766,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.224,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22319,9 +22319,9 @@
           "odds": {
             "eventId": "16363658",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 31.862,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.289,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22604,9 +22604,9 @@
           "odds": {
             "eventId": "16363655",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 31.963,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.357,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22859,9 +22859,9 @@
           "odds": {
             "eventId": "16363654",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.05,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.417,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22895,7 +22895,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.22,
+                    "price": 1.23,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -22903,7 +22903,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.75,
+                    "price": 1.76,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -22911,7 +22911,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 2.75,
+                    "price": 2.82,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -22919,7 +22919,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 3.79,
+                    "price": 3.7,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -22927,7 +22927,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.02,
+                    "price": 2.0,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -22935,15 +22935,15 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.4,
+                    "price": 1.38,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.7,
-                  "no": 2.03
+                  "yes": 1.72,
+                  "no": 2.0
                 }
               }
             ],
@@ -22975,7 +22975,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.22,
+                  "price": 1.23,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -22983,7 +22983,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.75,
+                  "price": 1.76,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -22991,7 +22991,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 2.75,
+                  "price": 2.82,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -22999,7 +22999,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 3.79,
+                  "price": 3.7,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -23007,7 +23007,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.02,
+                  "price": 2.0,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -23015,15 +23015,15 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.4,
+                  "price": 1.38,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.7,
-                "no": 2.03
+                "yes": 1.72,
+                "no": 2.0
               }
             },
             "bestBookmakers": {
@@ -23144,9 +23144,9 @@
           "odds": {
             "eventId": "16363657",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.132,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.472,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23399,9 +23399,9 @@
           "odds": {
             "eventId": "16363663",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.229,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.535,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23410,7 +23410,7 @@
                 "doubleChance": {
                   "12": 1.21,
                   "1x": 1.15,
-                  "x2": 2.26
+                  "x2": 2.25
                 },
                 "spreads": [
                   {
@@ -23491,7 +23491,7 @@
               "doubleChance": {
                 "12": 1.21,
                 "1x": 1.15,
-                "x2": 2.26
+                "x2": 2.25
               },
               "spreads": [
                 {
@@ -23684,9 +23684,9 @@
           "odds": {
             "eventId": "16363662",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.317,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.592,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23939,9 +23939,9 @@
           "odds": {
             "eventId": "16363659",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.402,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.65,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24224,9 +24224,9 @@
           "odds": {
             "eventId": "16363660",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.482,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.705,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24509,9 +24509,9 @@
           "odds": {
             "eventId": "16363656",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.497,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.715,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24794,9 +24794,9 @@
           "odds": {
             "eventId": "16363673",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.524,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.735,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24804,14 +24804,14 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "12": 1.3,
-                  "1x": 1.54,
-                  "x2": 1.38
+                  "1x": 1.5,
+                  "x2": 1.42
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 2.08,
+                    "price": 1.98,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -24819,7 +24819,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 1.7,
+                    "price": 1.78,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -24830,7 +24830,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.23,
+                    "price": 1.21,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -24838,7 +24838,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.76,
+                    "price": 1.71,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -24846,7 +24846,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 2.78,
+                    "price": 2.68,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -24854,7 +24854,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 3.7,
+                    "price": 3.88,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -24862,7 +24862,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.0,
+                    "price": 2.07,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -24870,29 +24870,29 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.39,
+                    "price": 1.42,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.61,
-                  "no": 2.17
+                  "yes": 1.58,
+                  "no": 2.25
                 }
               }
             ],
             "best": {
               "doubleChance": {
                 "12": 1.3,
-                "1x": 1.54,
-                "x2": 1.38
+                "1x": 1.5,
+                "x2": 1.42
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.08,
+                  "price": 1.98,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -24900,7 +24900,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.7,
+                  "price": 1.78,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -24910,7 +24910,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.23,
+                  "price": 1.21,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -24918,7 +24918,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.76,
+                  "price": 1.71,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -24926,7 +24926,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 2.78,
+                  "price": 2.68,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -24934,7 +24934,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 3.7,
+                  "price": 3.88,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -24942,7 +24942,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.0,
+                  "price": 2.07,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -24950,15 +24950,15 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.39,
+                  "price": 1.42,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.61,
-                "no": 2.17
+                "yes": 1.58,
+                "no": 2.25
               }
             },
             "bestBookmakers": {
@@ -25049,24 +25049,24 @@
           "odds": {
             "eventId": "16363671",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.6,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.788,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "12": 1.22,
-                  "1x": 1.15,
-                  "x2": 2.19
+                  "12": 1.23,
+                  "1x": 1.17,
+                  "x2": 2.12
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 1.22,
+                    "price": 1.24,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -25074,7 +25074,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 3.79,
+                    "price": 3.61,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -25132,22 +25132,22 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.84,
-                  "no": 1.87
+                  "yes": 1.8,
+                  "no": 1.9
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "12": 1.22,
-                "1x": 1.15,
-                "x2": 2.19
+                "12": 1.23,
+                "1x": 1.17,
+                "x2": 2.12
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.22,
+                  "price": 1.24,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -25155,7 +25155,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 3.79,
+                  "price": 3.61,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -25212,8 +25212,8 @@
                 }
               ],
               "btts": {
-                "yes": 1.84,
-                "no": 1.87
+                "yes": 1.8,
+                "no": 1.9
               }
             },
             "bestBookmakers": {
@@ -25334,24 +25334,24 @@
           "odds": {
             "eventId": "16363672",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.677,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.841,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "12": 1.28,
-                  "1x": 1.34,
-                  "x2": 1.63
+                  "12": 1.27,
+                  "1x": 1.33,
+                  "x2": 1.66
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 1.58,
+                    "price": 1.56,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -25359,7 +25359,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 2.27,
+                    "price": 2.31,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -25370,7 +25370,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.17,
+                    "price": 1.16,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25378,7 +25378,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.58,
+                    "price": 1.54,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25386,7 +25386,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 2.38,
+                    "price": 2.31,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25394,7 +25394,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 4.34,
+                    "price": 4.47,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25402,7 +25402,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.27,
+                    "price": 2.35,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25410,29 +25410,29 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.53,
+                    "price": 1.56,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.51,
-                  "no": 2.4
+                  "yes": 1.49,
+                  "no": 2.46
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "12": 1.28,
-                "1x": 1.34,
-                "x2": 1.63
+                "12": 1.27,
+                "1x": 1.33,
+                "x2": 1.66
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.58,
+                  "price": 1.56,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -25440,7 +25440,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 2.27,
+                  "price": 2.31,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -25450,7 +25450,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.17,
+                  "price": 1.16,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25458,7 +25458,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.58,
+                  "price": 1.54,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25466,7 +25466,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 2.38,
+                  "price": 2.31,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25474,7 +25474,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 4.34,
+                  "price": 4.47,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25482,7 +25482,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.27,
+                  "price": 2.35,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25490,15 +25490,15 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.53,
+                  "price": 1.56,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.51,
-                "no": 2.4
+                "yes": 1.49,
+                "no": 2.46
               }
             },
             "bestBookmakers": {
@@ -25589,24 +25589,24 @@
           "odds": {
             "eventId": "16363670",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.752,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.892,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "12": 1.28,
-                  "1x": 1.65,
-                  "x2": 1.33
+                  "12": 1.27,
+                  "1x": 1.69,
+                  "x2": 1.31
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 2.31,
+                    "price": 2.4,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -25614,7 +25614,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 1.56,
+                    "price": 1.52,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -25625,7 +25625,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.17,
+                    "price": 1.16,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25633,7 +25633,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.58,
+                    "price": 1.56,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25641,7 +25641,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 2.4,
+                    "price": 2.35,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25649,7 +25649,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 4.34,
+                    "price": 4.47,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25657,7 +25657,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.27,
+                    "price": 2.31,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25665,7 +25665,7 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.52,
+                    "price": 1.54,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -25673,21 +25673,21 @@
                 ],
                 "btts": {
                   "yes": 1.51,
-                  "no": 2.39
+                  "no": 2.4
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "12": 1.28,
-                "1x": 1.65,
-                "x2": 1.33
+                "12": 1.27,
+                "1x": 1.69,
+                "x2": 1.31
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.31,
+                  "price": 2.4,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -25695,7 +25695,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.56,
+                  "price": 1.52,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -25705,7 +25705,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.17,
+                  "price": 1.16,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25713,7 +25713,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.58,
+                  "price": 1.56,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25721,7 +25721,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 2.4,
+                  "price": 2.35,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25729,7 +25729,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 4.34,
+                  "price": 4.47,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25737,7 +25737,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.27,
+                  "price": 2.31,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25745,7 +25745,7 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.52,
+                  "price": 1.54,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -25753,7 +25753,7 @@
               ],
               "btts": {
                 "yes": 1.51,
-                "no": 2.39
+                "no": 2.4
               }
             },
             "bestBookmakers": {
@@ -25874,9 +25874,9 @@
           "odds": {
             "eventId": "16363668",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.817,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 21.938,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -26159,24 +26159,24 @@
           "odds": {
             "eventId": "16363666",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.907,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.0,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "12": 1.2,
-                  "1x": 1.16,
-                  "x2": 2.24
+                  "12": 1.21,
+                  "1x": 1.17,
+                  "x2": 2.2
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 1.22,
+                    "price": 1.23,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -26184,7 +26184,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 3.79,
+                    "price": 3.7,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -26195,7 +26195,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.16,
+                    "price": 1.15,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26203,7 +26203,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.54,
+                    "price": 1.53,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26211,7 +26211,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 2.33,
+                    "price": 2.29,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26219,7 +26219,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 4.47,
+                    "price": 4.62,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26227,7 +26227,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.35,
+                    "price": 2.38,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26235,29 +26235,29 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.55,
+                    "price": 1.57,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.64,
-                  "no": 2.13
+                  "yes": 1.61,
+                  "no": 2.18
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "12": 1.2,
-                "1x": 1.16,
-                "x2": 2.24
+                "12": 1.21,
+                "1x": 1.17,
+                "x2": 2.2
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.22,
+                  "price": 1.23,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -26265,7 +26265,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 3.79,
+                  "price": 3.7,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -26275,7 +26275,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.16,
+                  "price": 1.15,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26283,7 +26283,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.54,
+                  "price": 1.53,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26291,7 +26291,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 2.33,
+                  "price": 2.29,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26299,7 +26299,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 4.47,
+                  "price": 4.62,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26307,7 +26307,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.35,
+                  "price": 2.38,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26315,15 +26315,15 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.55,
+                  "price": 1.57,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.64,
-                "no": 2.13
+                "yes": 1.61,
+                "no": 2.18
               }
             },
             "bestBookmakers": {
@@ -26414,9 +26414,9 @@
           "odds": {
             "eventId": "16363675",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 32.987,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.053,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -26450,7 +26450,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.27,
+                    "price": 1.29,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26458,7 +26458,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.9,
+                    "price": 1.96,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26466,7 +26466,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 3.09,
+                    "price": 3.26,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26474,7 +26474,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 3.39,
+                    "price": 3.26,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26482,7 +26482,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 1.86,
+                    "price": 1.8,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26490,15 +26490,15 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.32,
+                    "price": 1.29,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.71,
-                  "no": 2.02
+                  "yes": 1.76,
+                  "no": 1.96
                 }
               }
             ],
@@ -26530,7 +26530,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.27,
+                  "price": 1.29,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26538,7 +26538,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.9,
+                  "price": 1.96,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26546,7 +26546,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 3.09,
+                  "price": 3.26,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26554,7 +26554,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 3.39,
+                  "price": 3.26,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26562,7 +26562,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 1.86,
+                  "price": 1.8,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26570,15 +26570,15 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.32,
+                  "price": 1.29,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.71,
-                "no": 2.02
+                "yes": 1.76,
+                "no": 1.96
               }
             },
             "bestBookmakers": {
@@ -26669,24 +26669,24 @@
           "odds": {
             "eventId": "16363667",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 33.063,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.104,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "12": 1.25,
-                  "1x": 1.2,
-                  "x2": 1.97
+                  "12": 1.26,
+                  "1x": 1.24,
+                  "x2": 1.85
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 1.3,
+                    "price": 1.37,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -26694,7 +26694,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 3.2,
+                    "price": 2.86,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -26705,7 +26705,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.23,
+                    "price": 1.21,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26713,7 +26713,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.76,
+                    "price": 1.71,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26721,7 +26721,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 2.78,
+                    "price": 2.68,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26729,7 +26729,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 3.7,
+                    "price": 3.88,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26737,7 +26737,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.0,
+                    "price": 2.07,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26745,29 +26745,29 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.39,
+                    "price": 1.42,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.73,
-                  "no": 1.99
+                  "yes": 1.65,
+                  "no": 2.11
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "12": 1.25,
-                "1x": 1.2,
-                "x2": 1.97
+                "12": 1.26,
+                "1x": 1.24,
+                "x2": 1.85
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.3,
+                  "price": 1.37,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -26775,7 +26775,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 3.2,
+                  "price": 2.86,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -26785,7 +26785,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.23,
+                  "price": 1.21,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26793,7 +26793,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.76,
+                  "price": 1.71,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26801,7 +26801,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 2.78,
+                  "price": 2.68,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26809,7 +26809,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 3.7,
+                  "price": 3.88,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26817,7 +26817,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.0,
+                  "price": 2.07,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -26825,15 +26825,15 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.39,
+                  "price": 1.42,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.73,
-                "no": 1.99
+                "yes": 1.65,
+                "no": 2.11
               }
             },
             "bestBookmakers": {
@@ -26954,9 +26954,9 @@
           "odds": {
             "eventId": "16363669",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 33.135,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.153,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -26964,14 +26964,14 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "12": 1.3,
-                  "1x": 1.44,
-                  "x2": 1.49
+                  "1x": 1.46,
+                  "x2": 1.46
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 1.82,
+                    "price": 1.89,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -26979,7 +26979,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 1.94,
+                    "price": 1.87,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -26990,7 +26990,7 @@
                   {
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.22,
+                    "price": 1.2,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -26998,7 +26998,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.74,
+                    "price": 1.69,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -27006,7 +27006,7 @@
                   {
                     "point": 3.5,
                     "side": "over",
-                    "price": 2.75,
+                    "price": 2.65,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -27014,7 +27014,7 @@
                   {
                     "point": 1.5,
                     "side": "under",
-                    "price": 3.79,
+                    "price": 3.98,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -27022,7 +27022,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.03,
+                    "price": 2.09,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -27030,29 +27030,29 @@
                   {
                     "point": 3.5,
                     "side": "under",
-                    "price": 1.4,
+                    "price": 1.43,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.6,
-                  "no": 2.2
+                  "yes": 1.57,
+                  "no": 2.27
                 }
               }
             ],
             "best": {
               "doubleChance": {
                 "12": 1.3,
-                "1x": 1.44,
-                "x2": 1.49
+                "1x": 1.46,
+                "x2": 1.46
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.82,
+                  "price": 1.89,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -27060,7 +27060,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.94,
+                  "price": 1.87,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -27070,7 +27070,7 @@
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.22,
+                  "price": 1.2,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -27078,7 +27078,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.74,
+                  "price": 1.69,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -27086,7 +27086,7 @@
                 {
                   "point": 3.5,
                   "side": "over",
-                  "price": 2.75,
+                  "price": 2.65,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -27094,7 +27094,7 @@
                 {
                   "point": 1.5,
                   "side": "under",
-                  "price": 3.79,
+                  "price": 3.98,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -27102,7 +27102,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.03,
+                  "price": 2.09,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -27110,15 +27110,15 @@
                 {
                   "point": 3.5,
                   "side": "under",
-                  "price": 1.4,
+                  "price": 1.43,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.6,
-                "no": 2.2
+                "yes": 1.57,
+                "no": 2.27
               }
             },
             "bestBookmakers": {
@@ -27239,9 +27239,9 @@
           "odds": {
             "eventId": "16363664",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 33.209,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.203,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -27249,14 +27249,14 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "12": 1.28,
-                  "1x": 1.32,
-                  "x2": 1.66
+                  "1x": 1.31,
+                  "x2": 1.68
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 1.54,
+                    "price": 1.51,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -27264,7 +27264,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 2.35,
+                    "price": 2.42,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -27322,22 +27322,22 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.6,
-                  "no": 2.19
+                  "yes": 1.61,
+                  "no": 2.18
                 }
               }
             ],
             "best": {
               "doubleChance": {
                 "12": 1.28,
-                "1x": 1.32,
-                "x2": 1.66
+                "1x": 1.31,
+                "x2": 1.68
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.54,
+                  "price": 1.51,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -27345,7 +27345,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 2.35,
+                  "price": 2.42,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -27402,8 +27402,8 @@
                 }
               ],
               "btts": {
-                "yes": 1.6,
-                "no": 2.19
+                "yes": 1.61,
+                "no": 2.18
               }
             },
             "bestBookmakers": {
@@ -57521,9 +57521,9 @@
           "odds": {
             "eventId": "16421112",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.131,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.807,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -57776,9 +57776,9 @@
           "odds": {
             "eventId": "16421111",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.238,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.88,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -58061,9 +58061,9 @@
           "odds": {
             "eventId": "16421119",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.326,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.939,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -58346,9 +58346,9 @@
           "odds": {
             "eventId": "16421125",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.406,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 22.993,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -58631,9 +58631,9 @@
           "odds": {
             "eventId": "16421116",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.493,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.05,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -58821,9 +58821,9 @@
           "odds": {
             "eventId": "16421113",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.564,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.098,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -58992,9 +58992,9 @@
           "odds": {
             "eventId": "16421117",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.713,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.197,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -59277,9 +59277,9 @@
           "odds": {
             "eventId": "16421115",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.789,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.247,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -59562,9 +59562,9 @@
           "odds": {
             "eventId": "16421118",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.803,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.257,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -59858,9 +59858,9 @@
           "odds": {
             "eventId": "16421120",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.905,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.325,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -60113,9 +60113,9 @@
           "odds": {
             "eventId": "16421128",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 34.974,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.37,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -60398,9 +60398,9 @@
           "odds": {
             "eventId": "16421126",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 35.044,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.416,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -60683,9 +60683,9 @@
           "odds": {
             "eventId": "16421129",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 35.124,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.467,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -60873,9 +60873,9 @@
           "odds": {
             "eventId": "16462482",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 35.19,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.511,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -61128,18 +61128,18 @@
           "odds": {
             "eventId": "16421123",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 35.271,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.566,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "12": 1.13,
-                  "1x": 3.05,
-                  "x2": 1.08
+                  "12": 1.12,
+                  "1x": 3.2,
+                  "x2": 1.07
                 },
                 "spreads": [],
                 "teamTotals": [],
@@ -61178,16 +61178,16 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.56,
-                  "no": 2.28
+                  "yes": 1.59,
+                  "no": 2.21
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "12": 1.13,
-                "1x": 3.05,
-                "x2": 1.08
+                "12": 1.12,
+                "1x": 3.2,
+                "x2": 1.07
               },
               "totals": [
                 {
@@ -61224,8 +61224,8 @@
                 }
               ],
               "btts": {
-                "yes": 1.56,
-                "no": 2.28
+                "yes": 1.59,
+                "no": 2.21
               }
             },
             "bestBookmakers": {
@@ -61318,9 +61318,9 @@
           "odds": {
             "eventId": "16421121",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 35.343,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.615,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -61603,9 +61603,9 @@
           "odds": {
             "eventId": "16462479",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 35.415,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.664,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -61888,9 +61888,9 @@
           "odds": {
             "eventId": "16421122",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 35.431,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.675,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -92102,9 +92102,9 @@
           "odds": {
             "eventId": "16285092",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.25,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.231,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -92112,14 +92112,14 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "12": 1.16,
-                  "1x": 1.1,
+                  "1x": 1.09,
                   "x2": 2.75
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 1.12,
+                    "price": 1.11,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -92127,7 +92127,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 5.15,
+                    "price": 5.37,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -92185,22 +92185,22 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.83,
-                  "no": 1.87
+                  "yes": 1.84,
+                  "no": 1.86
                 }
               }
             ],
             "best": {
               "doubleChance": {
                 "12": 1.16,
-                "1x": 1.1,
+                "1x": 1.09,
                 "x2": 2.75
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.12,
+                  "price": 1.11,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -92208,7 +92208,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 5.15,
+                  "price": 5.37,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -92265,8 +92265,8 @@
                 }
               ],
               "btts": {
-                "yes": 1.83,
-                "no": 1.87
+                "yes": 1.84,
+                "no": 1.86
               }
             },
             "bestBookmakers": {
@@ -92357,9 +92357,9 @@
           "odds": {
             "eventId": "16285089",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.32,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.278,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -92612,9 +92612,9 @@
           "odds": {
             "eventId": "16285095",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.386,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.324,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -92897,9 +92897,9 @@
           "odds": {
             "eventId": "16285096",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.457,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.372,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -93182,9 +93182,9 @@
           "odds": {
             "eventId": "16285091",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.523,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.417,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -93467,9 +93467,9 @@
           "odds": {
             "eventId": "16285090",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.587,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.462,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -93752,9 +93752,9 @@
           "odds": {
             "eventId": "16285094",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.651,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.505,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -94037,9 +94037,9 @@
           "odds": {
             "eventId": "16285098",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.715,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.549,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -94274,9 +94274,9 @@
           "odds": {
             "eventId": "16285088",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.777,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.591,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -94511,9 +94511,9 @@
           "odds": {
             "eventId": "16285093",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.792,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.601,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -94796,9 +94796,9 @@
           "odds": {
             "eventId": "16285108",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.816,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.618,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -95051,9 +95051,9 @@
           "odds": {
             "eventId": "16285100",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.877,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.662,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -95288,9 +95288,9 @@
           "odds": {
             "eventId": "16285106",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.936,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.702,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -95573,9 +95573,9 @@
           "odds": {
             "eventId": "16285101",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.995,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.741,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -95811,9 +95811,9 @@
           "odds": {
             "eventId": "16285105",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.062,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.789,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -96096,9 +96096,9 @@
           "odds": {
             "eventId": "16285104",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.125,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.838,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -96381,9 +96381,9 @@
           "odds": {
             "eventId": "16285103",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.182,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.88,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -96541,9 +96541,9 @@
           "odds": {
             "eventId": "16285097",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.243,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.922,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -96826,9 +96826,9 @@
           "odds": {
             "eventId": "16285102",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.258,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.932,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -97111,9 +97111,9 @@
           "odds": {
             "eventId": "16285099",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:10.851000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.272,
+            "updatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:33.018000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.942,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -123906,9 +123906,9 @@
           "odds": {
             "eventId": "16434097",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.437,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 23.963,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -124018,9 +124018,9 @@
           "odds": {
             "eventId": "16434098",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.528,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.029,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -124208,9 +124208,9 @@
           "odds": {
             "eventId": "16434103",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.64,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.108,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -124218,14 +124218,14 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "12": 1.21,
-                  "1x": 2.12,
+                  "1x": 2.11,
                   "x2": 1.19
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 3.46,
+                    "price": 3.39,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -124233,7 +124233,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 1.26,
+                    "price": 1.27,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -124299,14 +124299,14 @@
             "best": {
               "doubleChance": {
                 "12": 1.21,
-                "1x": 2.12,
+                "1x": 2.11,
                 "x2": 1.19
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 3.46,
+                  "price": 3.39,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -124314,7 +124314,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.26,
+                  "price": 1.27,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -124493,9 +124493,9 @@
           "odds": {
             "eventId": "16434102",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.733,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.174,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -124700,9 +124700,9 @@
           "odds": {
             "eventId": "16434106",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.811,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.232,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -124985,9 +124985,9 @@
           "odds": {
             "eventId": "16434105",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.898,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.293,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -125222,9 +125222,9 @@
           "odds": {
             "eventId": "16434109",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 36.985,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.353,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -125507,9 +125507,9 @@
           "odds": {
             "eventId": "16434104",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.052,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.4,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -125714,9 +125714,9 @@
           "odds": {
             "eventId": "16434107",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.13,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.451,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -125999,9 +125999,9 @@
           "odds": {
             "eventId": "16434118",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.163,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.472,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -126254,9 +126254,9 @@
           "odds": {
             "eventId": "16434112",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.242,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.525,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -126366,9 +126366,9 @@
           "odds": {
             "eventId": "16434111",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.31,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.569,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -126621,9 +126621,9 @@
           "odds": {
             "eventId": "16434114",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.378,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.614,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -126906,9 +126906,9 @@
           "odds": {
             "eventId": "16434113",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.449,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.659,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -127191,9 +127191,9 @@
           "odds": {
             "eventId": "16434161",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.532,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.714,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -127428,9 +127428,9 @@
           "odds": {
             "eventId": "16434110",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.601,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.76,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -127665,9 +127665,9 @@
           "odds": {
             "eventId": "16434115",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.668,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.804,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -127902,9 +127902,9 @@
           "odds": {
             "eventId": "16434108",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 37.754,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 24.861,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -154173,9 +154173,9 @@
           "odds": {
             "eventId": "16311019",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 38.359,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 25.26,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -154499,9 +154499,9 @@
           "odds": {
             "eventId": "16311015",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 38.517,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 25.366,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -154784,9 +154784,9 @@
           "odds": {
             "eventId": "16311011",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 38.587,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 25.413,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -155121,9 +155121,9 @@
           "odds": {
             "eventId": "16311017",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 38.792,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 25.55,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -155469,9 +155469,9 @@
           "odds": {
             "eventId": "16311020",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 39.005,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 25.692,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -155479,14 +155479,14 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "12": 1.24,
-                  "1x": 1.96,
+                  "1x": 1.95,
                   "x2": 1.22
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 3.09,
+                    "price": 3.04,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -155494,7 +155494,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 1.32,
+                    "price": 1.33,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -155560,14 +155560,14 @@
             "best": {
               "doubleChance": {
                 "12": 1.24,
-                "1x": 1.96,
+                "1x": 1.95,
                 "x2": 1.22
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 3.09,
+                  "price": 3.04,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -155575,7 +155575,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.32,
+                  "price": 1.33,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -155806,9 +155806,9 @@
           "odds": {
             "eventId": "16311023",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 39.19,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 25.815,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -155816,14 +155816,14 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "12": 1.27,
-                  "1x": 1.58,
-                  "x2": 1.39
+                  "1x": 1.57,
+                  "x2": 1.4
                 },
                 "spreads": [
                   {
                     "team": "home",
                     "point": 0.0,
-                    "price": 2.11,
+                    "price": 2.09,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -155831,7 +155831,7 @@
                   {
                     "team": "away",
                     "point": 0.0,
-                    "price": 1.68,
+                    "price": 1.69,
                     "market_slug": "handicap",
                     "market_group": "handicap",
                     "market_name": "Handicap"
@@ -155897,14 +155897,14 @@
             "best": {
               "doubleChance": {
                 "12": 1.27,
-                "1x": 1.58,
-                "x2": 1.39
+                "1x": 1.57,
+                "x2": 1.4
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.11,
+                  "price": 2.09,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -155912,7 +155912,7 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.68,
+                  "price": 1.69,
                   "market_slug": "handicap",
                   "market_group": "handicap",
                   "market_name": "Handicap"
@@ -156091,18 +156091,18 @@
           "odds": {
             "eventId": "16311027",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdatedAt": "2026-11-09T22:05:12.159000+00:00",
-            "bookmakerUpdateAgeSeconds": 39.269,
+            "updatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdatedAt": "2026-11-10T01:42:34.326000+00:00",
+            "bookmakerUpdateAgeSeconds": 25.866,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "12": 1.1,
-                  "1x": 1.06,
-                  "x2": 3.45
+                  "12": 1.09,
+                  "1x": 1.05,
+                  "x2": 3.75
                 },
                 "spreads": [],
                 "teamTotals": [],
@@ -156110,7 +156110,7 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.43,
+                    "price": 1.42,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -156126,7 +156126,7 @@
                   {
                     "point": 2.5,
                     "side": "under",
-                    "price": 2.65,
+                    "price": 2.68,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
@@ -156141,22 +156141,22 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.9,
-                  "no": 1.81
+                  "yes": 2.02,
+                  "no": 1.71
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "12": 1.1,
-                "1x": 1.06,
-                "x2": 3.45
+                "12": 1.09,
+                "1x": 1.05,
+                "x2": 3.75
               },
               "totals": [
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.43,
+                  "price": 1.42,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -156172,7 +156172,7 @@
                 {
                   "point": 2.5,
                   "side": "under",
-                  "price": 2.65,
+                  "price": 2.68,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
@@ -156187,8 +156187,8 @@
                 }
               ],
               "btts": {
-                "yes": 1.9,
-                "no": 1.81
+                "yes": 2.02,
+                "no": 1.71
               }
             },
             "bestBookmakers": {
@@ -216706,7 +216706,7 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-09T22:05:52.295531+00:00",
+  "oddsUpdatedAt": "2026-11-10T01:43:00.772016+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsCoverage": {
