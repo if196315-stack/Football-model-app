@@ -222,11 +222,6 @@ class MainActivity : Activity() {
         }
         // Create the horizontal scroller once. Reparenting leagueBar during render()
         // caused "The specified child already has a parent" and crashed the app.
-        leagueHint = label("ТУРНИРЫ  ·  ЛИСТАЙ ВПРАВО  →", 9, true, accent).apply {
-            setPadding(dp(4), dp(8), dp(4), dp(2))
-            letterSpacing = 0.08f
-        }
-        root.addView(leagueHint, LinearLayout.LayoutParams(-1, -2))
         leagueScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = true
             isHorizontalFadingEdgeEnabled = true
