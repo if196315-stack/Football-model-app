@@ -1532,30 +1532,9 @@ class MainActivity : Activity() {
             }
         }
         val bank = currentBankroll()
-        val target = card()
-        val goal = targetBankroll()
-        val progress = (bank / goal * 100.0).coerceIn(0.0, 100.0)
-        addText(target, "ЦЕЛЬ БАНКА · ${fmt(initialBankroll())} ₽ → ${fmt(goal)} ₽", 10, true, gold)
-        addText(target, "Прогресс: ${String.format(Locale.US, "%.1f%%", progress)} · осталось ${fmt((goal - bank).coerceAtLeast(0.0))} ₽", 12, true)
-        addText(target, "Цель — ориентир, не прогноз и не повод повышать риск или догонять проигрыши. Стратегия отбора сигналов не зависит от цели.", 11, false, muted)
-        val baseStake = bank * 0.01
-        val maxStake = bank * 0.01
-        val minimumBookmakerStake = 25.0
-        // Raise a smaller model stake to the bookmaker minimum, without breaking the existing 1% cap.
-        val recommendedStake = maxOf(baseStake, minimumBookmakerStake)
-        val recommendedStakeAllowed = recommendedStake <= maxStake + 0.000001
         val bankrollCard = card()
-        addText(bankrollCard, "ТЕКУЩИЙ БАНК", 10, true, cyan)
-        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 24, true, Color.WHITE)
-        addText(bankrollCard, "Рекомендуемая сумма: ${fmt(recommendedStake)} ₽", 15, true, if (recommendedStakeAllowed) gold else Color.RED)
-        addText(bankrollCard, "Расчёт: максимум из 1% банка (${fmt(baseStake)} ₽) и минимума букмекера 25 ₽. Верхний лимит 1%: ${fmt(maxStake)} ₽.", 10, false, muted)
-        val minimumStakeNote = if (recommendedStakeAllowed) {
-            "Сумма учитывает минимум букмекера и не превышает лимит риска на матч (${String.format(Locale.US, "%.2f%%", recommendedStake / bank * 100.0)} банка). При большем банке рекомендованная сумма растёт по стратегии."
-        } else {
-            "Минимум 25 ₽ выше лимита 1% банка. При текущем банке нельзя одновременно выполнить минимум букмекера и лимит стратегии — сигнал не ставить."
-        }
-        addText(bankrollCard, minimumStakeNote, 10, true, if (recommendedStakeAllowed) gold else Color.RED)
-        addText(bankrollCard, "Стратегия: базовая ставка 1%; лимит на ставку и матч 1%, дневная экспозиция 5%.", 10, false, muted)
+        addText(bankrollCard, "БАЛАНС", 10, true, cyan)
+        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 26, true, Color.WHITE)
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
