@@ -36,7 +36,7 @@ jobs:
           PITCHAPI_MAX_SHOT_REQUESTS: "5000"
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
-      - name: Refresh bookmaker odds via API-Sport
+      - name: Refresh official lineups via API-Football\n        env:\n          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}\n          FOOTBALL_API_MAX_LINEUP_REQUESTS: "10"\n        run: python -c "import os; from pathlib import Path; import sys; sys.path.insert(0, 'backend'); from pitchapi_data_source import load_cache, save_cache, CACHE_PATH; from football_api_lineups import refresh_lineups; key=os.environ.get('API_FOOTBALL_KEY', '').strip(); cache=load_cache(); summary=refresh_lineups(cache, key) if key else {'footballApiSkipped': 'API_FOOTBALL_KEY not configured'}; cache['lastRefreshSummary'].update(summary) if cache.get('lastRefreshSummary') else None; save_cache(cache); print(summary)"\n      - name: Refresh bookmaker odds via API-Sport
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/update_odds_api_sport.py
