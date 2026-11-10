@@ -154,7 +154,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val odds = match.optJSONObject("odds") ?: continue
                 if (!odds.optString("source").contains("BetBoom", true)) continue
                 val quoteTime = parseInstant(odds.optString("updatedAt")) ?: continue
-                if (quoteTime > now) continue
+                if (odds.optString("freshnessStatus") != "fresh" ||
+                    quoteTime > now || now - quoteTime > 300_000L) continue
 
                 val prediction = match.optJSONObject("prediction")
                 val signals = mutableListOf<JSONObject>()
