@@ -160,8 +160,8 @@ Holdout по соревнованиям: ENG 98, ESP 116, FRA 89, GER 79, ITA 11
 
 ## 8. Регрессия и тесты
 
-- [Backend odds tests — run 42911859421](https://github.com/if196315-stack/Football-model-app/actions/runs/42911859421): **105 tests passed**, включая новые проверки alias mapping Франции/Испании и all-market walk-forward.
-- [Seven-competition model audit — run 42911859311](https://github.com/if196315-stack/Football-model-app/actions/runs/42911859311): успешны unit tests, экспорт paired-xG выборки, полный 7-competition backtest и upload отчёта.
+- [Backend odds tests — run 42912729890](https://github.com/if196315-stack/Football-model-app/actions/runs/42912729890): **106 tests passed**, включая alias mapping Франции/Испании, all-market walk-forward и bootstrap CI.
+- [Seven-competition model audit — run 42912729789](https://github.com/if196315-stack/Football-model-app/actions/runs/42912729789): успешны unit tests, экспорт paired-xG выборки, полный 7-competition backtest, bootstrap intervals и upload отчёта.
 - Сборка Android после изменений paper-фиксации проверяется отдельным Build Android APK workflow.
 
 ## 9. Риски и ограничения, которые остаются
