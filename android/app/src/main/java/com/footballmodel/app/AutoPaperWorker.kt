@@ -162,7 +162,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 if (duplicate || autoStopped || drawdownPaused) continue
 
                 val bank = currentBank(bets)
-                val stake = max(bank * 0.005, 25.0)
+                val stake = max(bank * 0.01, 25.0)
                 if (stake > bank * 0.01 + 0.000001) continue
                 val dayKey = kickoffDate
                 var daily = 0.0
@@ -171,7 +171,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     if ((prior.optString("betDay").ifBlank { prior.optString("date").take(10) } == dayKey) &&
                         prior.optString("status") in listOf("PENDING", "WON", "LOST")) daily += prior.optDouble("stake")
                 }
-                if (daily + stake > bank * 0.02 + 0.000001) continue
+                if (daily + stake > bank * 0.05 + 0.000001) continue
 
                 bets.put(JSONObject()
                     .put("id", "AI_AUTO:$matchId:$key")
