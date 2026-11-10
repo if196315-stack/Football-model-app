@@ -164,111 +164,6 @@ def normalize_match(match: dict, league_code: str, league: dict, season: str) ->
     }
 
 
-def normalize_lineups(data: Any) -> dict | None:
-    """Keep only documented lineup fields; preserve predicted vs confirmed status."""
-    if not isinstance(data, dict):
-        return None
-
-    def side_payload(side: Any) -> dict | None:
-        if not isinstance(side, dict):
-            return None
-        def players(field: str) -> list[dict]:
-            rows = side.get(field)
-            if not isinstance(rows, list):
-                return []
-            result = []
-            for player in rows:
-                if not isinstance(player, dict) or not player.get("name"):
-                    continue
-                result.append({
-                    "id": player.get("player_id"),
-                    "name": str(player["name"]),
-                    "number": player.get("shirt_number"),
-                    "positionId": player.get("position_id"),
-                    "captain": bool(player.get("is_captain", False)),
-                })
-            return result
-        return {
-            "formation": side.get("formation"),
-            "confirmed": side.get("confirmed") is True,
-            "lineupType": side.get("lineup_type"),
-            "coach": (side.get("coach") or {}).get("name") if isinstance(side.get("coach"), dict) else None,
-            "starters": players("starters"),
-            "subs": players("subs"),
-        }
-
-    home, away = side_payload(data.get("home")), side_payload(data.get("away"))
-    if home is None or away is None:
-        return None
-    return {"source": "PitchAPI", "home": home, "away": away}
-
-
-def refresh_upcoming_lineups(cache: dict, api_key: str, session: Any = requests,
-                             now: datetime | None = None, pause_seconds: float = 0.12,
-                             horizon_hours: int = 48, retry_hours: int = 6) -> dict:
-    """Cache predicted/confirmed lineups only for fixtures in the next 48 hours.
-
-    A confirmed lineup is immutable for this purpose. Missing/unavailable lineups
-    are retried after a cooldown; no injury status is inferred from absent players.
-    """
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
-    cutoff = current + timedelta(hours=max(0, horizon_hours))
-    attempted = fetched = errors = 0
-    for match_id, row in cache.get("matches", {}).items():
-        if row.get("status") not in {"scheduled", "upcoming", "not_started"}:
-            continue
-        raw_kickoff = row.get("timeUtc") or row.get("date")
-        try:
-            kickoff = datetime.fromisoformat(str(raw_kickoff).replace("Z", "+00:00"))
-            if kickoff.tzinfo is None:
-                kickoff = kickoff.replace(tzinfo=timezone.utc)
-            kickoff = kickoff.astimezone(timezone.utc)
-        except (TypeError, ValueError):
-            continue
-        if kickoff < current - timedelta(hours=2) or kickoff > cutoff:
-            continue
-        previous = row.get("lineups")
-        if isinstance(previous, dict):
-            home = previous.get("home") or {}
-            away = previous.get("away") or {}
-            if home.get("confirmed") is True and away.get("confirmed") is True:
-                continue
-        attempted_at = row.get("lineupsAttemptedAt") or row.get("lineupsFetchedAt")
-        if attempted_at:
-            try:
-                stamp = datetime.fromisoformat(str(attempted_at).replace("Z", "+00:00"))
-                if stamp.tzinfo is None:
-                    stamp = stamp.replace(tzinfo=timezone.utc)
-                if current - stamp.astimezone(timezone.utc) < timedelta(hours=retry_hours):
-                    continue
-            except (TypeError, ValueError):
-                pass
-        attempted += 1
-        try:
-            payload = fetch(session, f"/matches/{match_id}/lineups", api_key)
-            lineups = normalize_lineups(payload)
-            if lineups is not None:
-                row["lineups"] = lineups
-                if not (lineups["home"]["confirmed"] and lineups["away"]["confirmed"]):
-                    row["predictedLineups"] = lineups
-                row["lineupsFetchedAt"] = current.isoformat()
-                row.pop("lineupsFetchError", None)
-                fetched += 1
-            else:
-                row["lineupsFetchError"] = "invalid_response"
-            row["lineupsAttemptedAt"] = current.isoformat()
-        except (requests.RequestException, ValueError, RuntimeError, TypeError) as exc:
-            row["lineupsFetchError"] = type(exc).__name__
-            row["lineupsAttemptedAt"] = current.isoformat()
-            errors += 1
-        if pause_seconds:
-            time.sleep(pause_seconds)
-    return {"lineupAttempts": attempted, "lineupsFetched": fetched, "lineupErrors": errors}
-
-
 def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CACHE_PATH,
                     pause_seconds: float = 0.12, max_shot_requests: int = 5000) -> dict:
     """Refresh fixture/result listings and fetch missing finished-match shot xG.
@@ -302,7 +197,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
                     previous = stored.get(row["id"], {})
                     # Preserve validated xG only for the exact provider match ID.
                     for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError",
-                                  "lineups", "predictedLineups", "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
+                                  ):
                         if field in previous:
                             row[field] = previous[field]
                     stored[row["id"]] = row
@@ -311,9 +206,7 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
             if pause_seconds:
                 time.sleep(pause_seconds)
 
-    lineup_summary = refresh_upcoming_lineups(
-        cache, api_key, session=session, pause_seconds=pause_seconds
-    )
+    lineup_summary = {}
 
     # Backfill chronologically from the oldest finished matches first. Recent
     # xG is already well covered; older seasons are needed for a longer,
