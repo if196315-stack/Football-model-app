@@ -260,8 +260,12 @@ class MainActivity : Activity() {
         super.onNewIntent(intent)
         setIntent(intent)
         val requestedTab = intent.getStringExtra("open_tab")
-        if (requestedTab == "desk") {
-            currentTab = "desk"
+        if (requestedTab == "desk" || requestedTab == "intel") {
+            currentTab = requestedTab
+            if (requestedTab == "intel") {
+                intelligencePrefs.edit().putInt("unread_count", 0).apply()
+                updateNotificationBadge()
+            }
             tabViewCache.clear()
             renderedKey = null
             if (data != null) render() else loadData()
@@ -270,6 +274,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        updateNotificationBadge()
         val latestBets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         if (latestBets.toString() != bets.toString()) {
             bets = latestBets
