@@ -35,6 +35,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            AiMatchNotifications.notifyNewCandidates(applicationContext, domestic)
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
