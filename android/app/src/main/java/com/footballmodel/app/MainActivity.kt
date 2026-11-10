@@ -173,6 +173,11 @@ class MainActivity : Activity() {
             cornerRadius = dp(12).toFloat()
             setStroke(dp(1), Color.rgb(35, 69, 84))
         }
+        root.addView(statusView, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(12)
+            bottomMargin = dp(8)
+        })
+
         tabBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(5, 5, 5, 5)
@@ -1463,11 +1468,6 @@ class MainActivity : Activity() {
         addText(dashboard, "LIVE MODEL DASHBOARD", 10, true, cyan)
         addText(dashboard, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
         addText(dashboard, "Последнее обновление: ${formatSourceTimestamp((data ?: JSONObject()).optString("updatedAt"))} · местное время", 10, false, muted)
-
-        val dataUpdateCard = card()
-        addText(dataUpdateCard, "ОБНОВЛЕНИЕ БАЗ ДАННЫХ", 10, true, cyan)
-        dataUpdateCard.addView(statusView)
-        actionButton(dataUpdateCard, "Обновить данные") { loadData() }
 
         val workerCard = card()
         val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
