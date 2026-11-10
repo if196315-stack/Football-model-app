@@ -1,8 +1,8 @@
-# IQ MATCH Strategy v1.0
+# IQ MATCH Strategy v1.1
 
 **Status:** initial strategy specification  
 **Selection:** STRICT  
-**Risk:** MODERATE, maximum 1% bank per bet  
+**Risk:** MODERATE, base stake 1% bank; maximum 1% per bet and 5% daily exposure  
 **Launch:** LIMITED  
 **Bookmaker/data source:** BetBoom odds supplied through API-Sport only
 
@@ -25,7 +25,7 @@ A BET is prohibited unless all applicable checks pass:
 
 - Fixture is matched unambiguously to the correct teams and kickoff.
 - Quote originates from BetBoom through API-Sport; no other bookmaker is substituted.
-- Quote age at decision time is at most 5 minutes.
+- The quote is a real BetBoom quote refreshed within the final 12 hours before kickoff; no separate 5-minute cutoff is applied.
 - Market, side and line match the model probability exactly.
 - Quote and probability are present, finite and valid.
 - No critical missing or contradictory input exists.
@@ -61,11 +61,11 @@ For multi-outcome market analysis, account for bookmaker margin when comparing m
 
 ## 4. Bank and exposure policy
 
-- Base stake: 0.5% of current bank.
-- Reduced stake: 0.25% when uncertainty is elevated but all hard gates still pass.
+- Base and minimum model stake: 1% of current bank, subject to the bookmaker minimum of 25 ₽.
+- No reduced-stake tier below 1% is used in this strategy version.
 - Absolute maximum per bet: 1%.
 - Aggregate exposure per match: maximum 1%.
-- Aggregate daily exposure: maximum 2%.
+- Aggregate daily exposure: maximum 5%.
 - Correlated bets must be treated as combined exposure.
 - No chasing losses, no automatic stake increase after wins, and no full Kelly in v1.0.
 - 5% drawdown from the local bank peak: pause new real bets and audit.
@@ -113,7 +113,7 @@ Use chronological splits for training, validation and a final untouched test set
 Run against current BetBoom quotes without placing real bets. Record BET, WAIT and REJECT candidates, decision-time odds and pre-kickoff closing odds. Do not change thresholds mid-cohort; version every change.
 
 ### Stage 4 — limited real launch
-Only after prior gates pass. Begin with 0.25–0.5% stakes, retain all exposure caps and manually review results. Do not expand markets or limits automatically.
+Only after prior gates pass. Begin with 1% stakes, retain the 1% per-bet / per-match cap and 5% daily exposure cap, and manually review results. Do not expand markets or limits automatically.
 
 ### Stage 5 — ongoing review
 Review market-level performance, calibration, CLV, drawdown, data quality and rejection reasons. Change one rule group at a time and retest on independent data.
