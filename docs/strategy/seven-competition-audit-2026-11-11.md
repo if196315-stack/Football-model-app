@@ -105,13 +105,14 @@ UEFA snapshot: 144 upcoming fixtures (72 UCL, 72 UEL), 44 сопоставлен
 - отдельный UEFA predictor и отдельный paper-signal evaluator;
 - regression suites для API-Sport ingestion, market parsing, xG, UEFA predictions, snapshots, settlement и feed.
 
-Перед следующим production-релизом обязательны:
-1. Запустить полный backend regression workflow и сохранить успешный run.
-2. Провести свежий read-only API-Sport diagnostic для текущей квоты, fixture matching и BetBoom board coverage (без лишних повторных запросов).
-3. Повторить семисоревновательный chronological holdout с фиксированной датой отсечения и сравнить с сохранённым отчётом.
-4. Проверить отдельно FRA fixture mapping и причины 18 unmatched domestic fixtures.
-5. Накопить более длинную BetBoom snapshot историю с settlement и провести price-aware forward evaluation: exact line, odds timestamp, vig removal, EV, CLV, ROI, drawdown и confidence intervals.
-6. Утвердить минимальные sample-size gates до использования калибровки или market-specific threshold tuning.
+Проверка регрессии: backend workflow run [42904112065](https://github.com/if196315-stack/Football-model-app/actions/runs/42904112065) завершился успешно на backend revision `7a44b29885e62c6eff3a33b932df2589b279cec0`; прошли компиляция ingestion/model scripts и весь набор regression tests, включая API-Sport, xG, backtest, UEFA predictions, odds snapshots и settlement.
+
+Остаются следующие production gates:
+1. Провести свежий read-only API-Sport diagnostic для текущей квоты, fixture matching и BetBoom board coverage (без лишних повторных запросов).
+2. Повторить семисоревновательный chronological holdout на новой временной выборке с фиксированной датой отсечения и сравнить с сохранённым отчётом.
+3. Проверить отдельно FRA fixture mapping и причины 18 unmatched domestic fixtures.
+4. Накопить более длинную BetBoom snapshot историю с settlement и провести price-aware forward evaluation: exact line, odds timestamp, vig removal, EV, CLV, ROI, drawdown и confidence intervals.
+5. Утвердить минимальные sample-size gates до использования калибровки или market-specific threshold tuning.
 
 ## 8. Что не подтверждено
 
