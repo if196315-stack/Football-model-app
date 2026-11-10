@@ -128,6 +128,7 @@ def main():
     from update_odds_api_sport import match_fixture, parse_odds
     exact_rows = []
     request_count = 1
+    truncated_dates = []
     for date, targets in sorted(by_date.items()):
         candidates = []
         for page in range(1, MAX_PAGES_PER_DATE + 1):
@@ -142,6 +143,8 @@ def main():
             candidates.extend(rows)
             if len(rows) < PAGE_SIZE:
                 break
+        else:
+            truncated_dates.append(date)
         for target in targets:
             matched = match_fixture({
                 "utcDate": target["utcDate"],
