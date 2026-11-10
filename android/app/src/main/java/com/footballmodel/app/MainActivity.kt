@@ -114,6 +114,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        currentTab = intent.getStringExtra("open_tab") ?: "matches"
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
@@ -214,6 +215,18 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val requestedTab = intent.getStringExtra("open_tab")
+        if (requestedTab == "desk") {
+            currentTab = "desk"
+            tabViewCache.clear()
+            renderedKey = null
+            if (data != null) render() else loadData()
+        }
     }
 
     override fun onResume() {
@@ -732,6 +745,7 @@ class MainActivity : Activity() {
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
+                    AiMatchNotifications.notifyNewCandidates(this, json)
                     val changed = payload != lastPayload
                     if (changed) {
                         data = json
