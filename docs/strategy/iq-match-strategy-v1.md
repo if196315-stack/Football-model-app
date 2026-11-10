@@ -67,11 +67,11 @@ For multi-outcome market analysis, account for bookmaker margin when comparing m
 - Aggregate exposure per match: maximum 1%.
 - Aggregate daily exposure: maximum 5%.
 - Correlated bets must be treated as combined exposure.
-- No chasing losses, no automatic stake increase after wins, and no full Kelly in v1.0.
+- No chasing losses, no automatic stake increase after wins, and no full Kelly in v1.1.
 - 5% drawdown from the local bank peak: pause new real bets and audit.
 - 10% drawdown from the local bank peak: stop real betting until explicit review and approval.
 
-The 1% value is a ceiling, not a default stake. Any stake calculation must respect all aggregate caps.
+The 1% value is both the base stake and the absolute ceiling per bet; the bookmaker minimum may make a stake inadmissible when it exceeds that ceiling. Any stake calculation must respect all aggregate caps.
 
 ## 5. Market scope
 
@@ -80,7 +80,7 @@ Only use exact, supported BetBoom quotes through API-Sport:
 - Double Chance 1X / X2.
 - Match Total OVER.
 - Team Total OVER.
-- BTTS YES / NO.
+- BTTS YES only; BTTS NO is disabled.
 - Handicaps only when the exact handicap line and price are ingested and validated.
 
 Do not offer 1X2 until its prices are correctly ingested. UNDER match/team totals are hidden from the current user-facing betting scenario. Never fabricate or infer missing prices.
@@ -149,4 +149,4 @@ A pause must not silently reset the next day. Resumption requires checking the c
 
 The Stats screen must keep this strategy guide accessible, including selection gates, value formulas, bank limits, market scope, test stages and risk stop rules. Each decision should expose its reason. Strategy version must be attached to every recorded signal.
 
-**Governance:** v1.0 thresholds remain provisional until independently validated. No profit guarantee; no automatic execution is authorized by this document.
+**Governance:** v1.1 thresholds remain provisional until independently validated. No profit guarantee; no automatic execution is authorized by this document.
