@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from update_data import form_adjustment, recent_team_form, lineup_selection_adjustment
+from update_data import form_adjustment, recent_team_form, strongest_signal
 
 
 def sample_matches():
@@ -60,29 +60,24 @@ def test_team_total_adjustment_uses_correct_team():
     ) == 0.36
 
 
-def test_confirmed_lineup_deviations_reduce_selection_edge_only_for_relevant_team():
-    predicted = {
-        "home": {"starters": [{"name": f"Home Player {i}"} for i in range(1, 12)]},
-        "away": {"starters": [{"name": f"Away Player {i}"} for i in range(1, 12)]},
-    }
-    actual = {
-        "home": {"confirmed": True, "starters": [{"name": f"Home Player {i}"} for i in range(3, 12)]},
-        "away": {"confirmed": True, "starters": [{"name": f"Away Player {i}"} for i in range(1, 12)]},
-    }
-    adjustment, context = lineup_selection_adjustment({"side": "1X"}, actual, predicted)
-    assert adjustment == -0.7
-    assert context["unexpectedOmissions"] == 2
-    assert len(context["players"]) == 2
-
-    away_adjustment, _ = lineup_selection_adjustment({"side": "X2"}, actual, predicted)
-    assert away_adjustment == 0.0
-
-
-def test_predicted_or_unavailable_lineups_never_create_injury_penalty():
-    predicted = {"home": {"starters": [{"name": "Player"}]},
-                 "away": {"starters": [{"name": "Player"}]}}
-    actual = {"home": {"confirmed": False, "starters": []},
-              "away": {"confirmed": False, "starters": []}}
-    adjustment, context = lineup_selection_adjustment({"side": "1X"}, actual, predicted)
-    assert adjustment == 0.0
-    assert context["used"] is False
+def test_api_football_lineups_do_not_change_signal_selection():
+    prediction = {"1x": 0.70, "x2": 0.45, "homeOver15": 0.60, "awayOver15": 0.40}
+    baseline = {"1x": 0.55, "x2": 0.50, "homeOver15": 0.52,
+                "awayOver15": 0.48, "matches": 120}
+    no_lineups = strongest_signal(prediction, baseline, "Home FC", "Away FC")
+    changed_lineups = strongest_signal(
+        prediction, baseline, "Home FC", "Away FC",
+        lineups={
+            "home": {"confirmed": True, "starters": []},
+            "away": {"confirmed": True, "starters": []},
+        },
+        predicted_lineups={
+            "home": {"starters": [{"name": "Expected star"}]},
+            "away": {"starters": [{"name": "Expected star"}]},
+        },
+    )
+    assert changed_lineups["side"] == no_lineups["side"]
+    assert changed_lineups["modelProbability"] == no_lineups["modelProbability"]
+    assert changed_lineups["edgePp"] == no_lineups["edgePp"]
+    assert changed_lineups["selectionEdgePp"] == no_lineups["selectionEdgePp"]
+    assert "lineupAdjustmentPp" not in changed_lineups

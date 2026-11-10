@@ -159,6 +159,7 @@ def historical_baselines(matches, comp, target_date):
 
 def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
                      lineups=None, predicted_lineups=None):
+    # Lineup arguments are accepted for compatibility but intentionally ignored.
     if not baseline:return None
     candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
@@ -175,14 +176,10 @@ def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
         "homeTeam":home,"awayTeam":away}
       adjustment = form_adjustment(item, home_form or {}, away_form or {})
       item["formAdjustmentPp"] = adjustment
-      lineup_adjustment, lineup_context = lineup_selection_adjustment(
-          item, lineups or {}, predicted_lineups or {}
-      )
-      item["lineupAdjustmentPp"] = lineup_adjustment
-      item["lineupContext"] = lineup_context
-      item["selectionEdgePp"] = round(item["edgePp"] + adjustment + lineup_adjustment, 2)
+      # API-Football lineups are descriptive context only and never affect
+      # probabilities, EV, signal ranking, or selection filters.
+      item["selectionEdgePp"] = round(item["edgePp"] + adjustment, 2)
       item["formContextUsed"] = adjustment != 0.0
-      item["lineupContextUsed"] = lineup_adjustment != 0.0
       if best is None or item["selectionEdgePp"] > best["selectionEdgePp"]:best=item
     if best is not None and best["selectionEdgePp"]<=0:best["noPositiveSignal"]=True
     return best
@@ -257,49 +254,8 @@ def form_adjustment(signal, home_form, away_form):
     return round(max(-1.5, min(1.5, raw * scale)), 2)
 
 
-def lineup_selection_adjustment(signal, lineups, predicted_lineups):
-    """Conservatively penalize confirmed XI deviations from PitchAPI's prior predicted XI."""
-    if not isinstance(lineups, dict) or not isinstance(predicted_lineups, dict):
-        return 0.0, {"used": False, "reason": "no_comparable_lineup"}
-    sides = {}
-    for side in ("home", "away"):
-        actual = lineups.get(side) or {}
-        predicted = predicted_lineups.get(side) or {}
-        if actual.get("confirmed") is not True or not isinstance(predicted.get("starters"), list):
-            return 0.0, {"used": False, "reason": "lineup_not_confirmed_or_no_prediction"}
-        expected_names = {
-            key(player.get("name")) for player in predicted["starters"]
-            if isinstance(player, dict) and player.get("name")
-        }
-        actual_names = {
-            key(player.get("name")) for player in (actual.get("starters") or [])
-            if isinstance(player, dict) and player.get("name")
-        }
-        sides[side] = sorted(name for name in expected_names - actual_names if name)
-    selected_side = str(signal.get("side") or "")
-    if selected_side == "1X":
-        relevant = "home"
-    elif selected_side == "X2":
-        relevant = "away"
-    elif selected_side.startswith("ИТБ 1.5"):
-        team = selected_side.split("·", 1)[1].strip() if "·" in selected_side else ""
-        relevant = "home" if team == signal.get("homeTeam") else ("away" if team == signal.get("awayTeam") else None)
-    else:
-        relevant = None
-    if relevant is None:
-        return 0.0, {"used": False, "reason": "market_not_supported"}
-    missing = sides[relevant]
-    # A lineup change is not labelled as an injury; this is only a small,
-    # one-sided confidence haircut when a confirmed XI omits prior predicted starters.
-    adjustment = -min(1.5, 0.35 * len(missing))
-    return round(adjustment, 2), {
-        "used": bool(missing), "side": relevant,
-        "unexpectedOmissions": len(missing), "players": missing,
-        "homeConfirmed": True, "awayConfirmed": True,
-    }
-
-
 def predict(c,home,away,st,base,names,matches,target_date,lineups=None,predicted_lineups=None):
+    """Calculate probabilities; lineup arguments are retained for caller compatibility only."""
     hn=match_name(home,names.get(c,[]),c); an=match_name(away,names.get(c,[]),c)
     if not hn or not an:return None,"Не удалось надёжно сопоставить команды с исторической базой xG"
     hs=st.get((c,hn)); ads=st.get((c,an)); hb=base.get((c,"home")); ab=base.get((c,"away"))
@@ -311,8 +267,7 @@ def predict(c,home,away,st,base,names,matches,target_date,lineups=None,predicted
     pred["teamForm"] = {"source": "cached_results", "window": 5,
                         "home": home_form, "away": away_form}
     pred["strongestSignal"] = strongest_signal(
-        pred, historical_baselines(matches,c,target_date), home, away, home_form, away_form,
-        lineups, predicted_lineups
+        pred, historical_baselines(matches,c,target_date), home, away, home_form, away_form
     )
     return pred,None
 
