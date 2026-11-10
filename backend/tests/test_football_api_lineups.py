@@ -105,3 +105,26 @@ def test_does_not_query_lineups_too_early(monkeypatch):
     result = source.refresh_lineups(cache, "secret", session=object(), now=now, pause_seconds=0)
     assert calls == []
     assert result["lineupAttempts"] == 0
+
+
+
+def test_daily_api_football_budget_counts_all_endpoint_requests(monkeypatch):
+    now = datetime(2026, 11, 11, 11, 30, tzinfo=timezone.utc)
+    cache = {
+        "footballApiDailyUsage": {"date": "2026-11-11", "requests": 100},
+        "matches": {"pitch-1": {
+            "status": "scheduled", "timeUtc": "2026-11-11T12:00:00Z",
+            "home": "Home FC", "away": "Away FC", "footballApiFixtureId": 987,
+        }},
+    }
+    monkeypatch.setattr(source, "_api_get", lambda *args, **kwargs: (_ for _ in ()).throw(
+        AssertionError("daily API request budget must prevent another request")
+    ))
+    result = source.refresh_lineups(
+        cache, "secret", session=object(), now=now, pause_seconds=0,
+        eligible_match_ids={"pitch-1"}, max_lineup_requests=None,
+        max_api_requests=100, daily_request_limit=100,
+    )
+    assert result["apiFootballRequestsThisRun"] == 0
+    assert result["apiFootballRequestsToday"] == 100
+    assert result["lineupsFetched"] == 0
