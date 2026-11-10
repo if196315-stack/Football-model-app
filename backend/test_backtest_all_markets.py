@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, run)
+from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run)
 
 
 class AllMarketBacktestTests(unittest.TestCase):
@@ -93,6 +93,22 @@ class AllMarketBacktestTests(unittest.TestCase):
         calibrated = apply_vector_scaling(holdout, params)["calibrated"]
         self.assertAlmostEqual(sum(calibrated.values()), 1.0, places=8)
         self.assertTrue(all(0.0 <= value <= 1.0 for value in calibrated.values()))
+
+    def test_bootstrap_interval_is_reproducible_and_contains_mean(self):
+        train = []
+        for i in range(120):
+            actual = "1" if i % 2 == 0 else "0"
+            train.append({"market": "BTTS", "actual": actual, "model": 0.55})
+        params = fit_vector_scaling(train, "BTTS")
+        holdout = [
+            {"market": "BTTS", "actual": "1" if i % 2 == 0 else "0", "model": 0.55}
+            for i in range(60)
+        ]
+        ci = paired_bootstrap_brier_delta(holdout, params, "BTTS", replicates=250)
+        self.assertEqual(ci["bootstrap_replicates"], 250)
+        self.assertLessEqual(ci["ci95_lower"], ci["mean"])
+        self.assertGreaterEqual(ci["ci95_upper"], ci["mean"])
+        self.assertTrue(ci["conditional_on_fitted_calibrator"])
 
     def test_vector_scaling_refuses_small_training_sample(self):
         params = fit_vector_scaling([
