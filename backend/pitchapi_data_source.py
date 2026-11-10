@@ -196,14 +196,23 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
                     listing_count += 1
                     previous = stored.get(row["id"], {})
                     # Preserve validated xG only for the exact provider match ID.
-                    for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError",
-                                  "footballApiFixtureId", "footballApiFixtureMappedAt",
-                                  "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
+                    for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError"):
                         if field in previous:
                             row[field] = previous[field]
-                    previous_lineups = previous.get("lineups")
-                    if isinstance(previous_lineups, dict) and previous_lineups.get("source") == "API-Football":
-                        row["lineups"] = previous_lineups
+                    same_lineup_fixture = (
+                        norm(previous.get("home")) == norm(row.get("home"))
+                        and norm(previous.get("away")) == norm(row.get("away"))
+                        and (previous.get("timeUtc") or previous.get("date"))
+                        == (row.get("timeUtc") or row.get("date"))
+                    )
+                    if same_lineup_fixture:
+                        for field in ("footballApiFixtureId", "footballApiFixtureMappedAt",
+                                      "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
+                            if field in previous:
+                                row[field] = previous[field]
+                        previous_lineups = previous.get("lineups")
+                        if isinstance(previous_lineups, dict) and previous_lineups.get("source") == "API-Football":
+                            row["lineups"] = previous_lineups
                     stored[row["id"]] = row
             except (requests.RequestException, ValueError, RuntimeError, TypeError) as exc:
                 errors.append(f"{code} {season}: {type(exc).__name__}")
