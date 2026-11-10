@@ -1212,7 +1212,7 @@ class MainActivity : Activity() {
                 if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, match) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
-                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
+                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0) + signal.optDouble("lineupAdjustmentPp", 0.0)
                 val ev = probability * price - 1.0
                 if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
                 val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
@@ -1795,7 +1795,7 @@ class MainActivity : Activity() {
             if (signal.optBoolean("paperOnly")) {
                 probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
             } else {
-                val impliedEdge = probability - 1.0 / price + signal.optDouble("formAdjustmentPp", 0.0) / 100.0
+                val impliedEdge = probability - 1.0 / price + (signal.optDouble("formAdjustmentPp", 0.0) + signal.optDouble("lineupAdjustmentPp", 0.0)) / 100.0
                 probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
             }
         }.sortedWith(
