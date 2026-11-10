@@ -1,7 +1,7 @@
 # IQ Match — полный аудит семи соревнований
 **Дата:** 2026-11-11  
 **Проверяемая ветка:** `main`  
-**Актуальный all-market audit:** [run 42912729789](https://github.com/if196315-stack/Football-model-app/actions/runs/42912729789)  
+**Актуальный all-market audit:** [run 42914090260](https://github.com/if196315-stack/Football-model-app/actions/runs/42914090260)  
 **Решение:** рабочие вероятности и пороги отбора не менялись; исправлены fixture mapping, очереди обновлений и воспроизводимость аудита.
 
 ## 1. Зафиксированный набор соревнований
@@ -31,7 +31,7 @@
 
 ## 3. Воспроизводимая историческая проверка на main
 
-Добавлен offline workflow: [Seven-competition model audit — run 42912729789](https://github.com/if196315-stack/Football-model-app/actions/runs/42912729789). Он восстановил кеш PitchAPI основной ветки, прогнал unit tests, экспортировал paired-xG выборку и выполнил walk-forward плюс bootstrap без сетевых запросов к букмекеру.
+Добавлен offline workflow: [Seven-competition model audit — run 42914090260](https://github.com/if196315-stack/Football-model-app/actions/runs/42914090260). Он восстановил кеш PitchAPI основной ветки, прогнал unit tests, экспортировал paired-xG выборку и выполнил walk-forward плюс bootstrap без сетевых запросов к букмекеру.
 
 | Показатель | Результат |
 |---|---:|
@@ -56,6 +56,28 @@
 | UEL | 870 |
 
 Holdout по соревнованиям: ENG 98, ESP 116, FRA 89, GER 79, ITA 110, UCL 66, UEL 61.
+
+**Сравнение с expanding-frequency baseline.** Baseline для каждого турнира использует только частоты исходов в предыдущих матчах с Laplace smoothing. Положительный skill означает, что xG-модель лучше baseline. На общей holdout-выборке все 15 независимых рынков имеют положительный Brier Skill и Log Loss Skill:
+
+| Рынок | Brier Skill | Log Loss Skill |
+|---|---:|---:|
+| 1X2 | +10.14% | +8.09% |
+| Double chance 1X | +12.01% | +9.48% |
+| Double chance X2 | +13.92% | +10.67% |
+| BTTS | +2.35% | +1.75% |
+| Match OVER 1.5 | +3.53% | +3.41% |
+| Match OVER 2.5 | +5.57% | +4.25% |
+| Match OVER 3.5 | +3.55% | +2.84% |
+| Home OVER 0.5 | +5.78% | +5.94% |
+| Home OVER 1.5 | +11.06% | +8.34% |
+| Home OVER 2.5 | +9.20% | +8.04% |
+| Home OVER 3.5 | +11.38% | +14.79% |
+| Away OVER 0.5 | +5.01% | +4.19% |
+| Away OVER 1.5 | +8.04% | +6.10% |
+| Away OVER 2.5 | +4.35% | +4.63% |
+| Away OVER 3.5 | +4.85% | +11.75% |
+
+Средний Brier Skill по 15 рынкам по соревнованиям: ENG 4.58% (15/15 рынков лучше baseline), ESP 8.94% (15/15), FRA 6.40% (14/15), GER 5.37% (12/15), ITA 9.12% (15/15), UCL 10.51% (15/15), UEL 6.45% (14/15). Слабые исключения: FRA Match OVER 3.5, GER Match OVER 1.5 и Away OVER 2.5/3.5, UEL Home OVER 3.5. Это сравнение с частотным baseline, не с букмекерским рынком и не с ROI.
 
 **Протокол:** строгий chronological walk-forward; все матчи одной календарной даты прогнозируются до добавления результатов и xG этой даты. В историю попадает только paired, non-null xG. Пропущенный xG не заменяется нулём и не импутируется.
 
@@ -161,7 +183,7 @@ Bootstrap CI условны на параметрах уже обученног�
 
 ## 8. Регрессия и сборка
 
-- [Backend odds tests — run 42912729890](https://github.com/if196315-stack/Football-model-app/actions/runs/42912729890): **106 tests passed**, включая alias mapping Франции/Испании, all-market walk-forward и bootstrap CI.
+- [Backend odds tests — run 42914090489](https://github.com/if196315-stack/Football-model-app/actions/runs/42914090489): **106 tests passed**, включая alias mapping Франции/Испании, all-market walk-forward и bootstrap CI.
 - [Seven-competition model audit — run 42912729789](https://github.com/if196315-stack/Football-model-app/actions/runs/42912729789): успешны unit tests, экспорт paired-xG выборки, полный 7-competition backtest, bootstrap intervals и upload отчёта.
 - [Android APK build — run 42912049905](https://github.com/if196315-stack/Football-model-app/actions/runs/42912049905): успешно; artifact `Football-Model-debug-apk`.
 
@@ -180,6 +202,7 @@ Bootstrap CI условны на параметрах уже обученног�
 - Fixture mapping Испании и Франции исправлен; сейчас 156/156 национальных матчей сопоставляются с API-Sport.
 - Национальный и UEFA data pipelines больше не блокируют друг друга общей очередью; оба подтверждены успешными запусками.
 - 106 backend tests и all-market seven-competition audit прошли.
+- xG-модель превзошла expanding-frequency baseline по Brier и Log Loss на всех 15 независимых рынках глобально; в пяти соревнованиях — на всех 15 рынках, во FRA и UEL — на 14, в GER — на 12.
 - Bootstrap показал, что глобальная калибровка уверенно улучшает Brier только для 1X2 и DC X2; для Home OVER 3.5 она уверенно ухудшает его; по большинству рынков CI пересекают ноль.
 - Исследовательская калибровка не внедрена в production. Основной следующий критерий качества — settled BetBoom snapshots и price-aware forward evaluation: CLV, EV, ROI, drawdown и confidence intervals на будущей выборке.
 
