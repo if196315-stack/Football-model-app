@@ -14,7 +14,7 @@ on:
     - cron: "23 */3 * * *"
 
 concurrency:
-  group: football-data-json-write
+  group: football-uefa-data-write
   cancel-in-progress: false
 
 permissions:
@@ -28,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
