@@ -371,6 +371,8 @@ def run() -> dict:
                 "home": home, "away": away,
                 "homeScore": row.get("homeScore"), "awayScore": row.get("awayScore"),
                 "prediction": pred, "predictionWarning": warning,
+                **({"lineups": row["lineups"], "lineupsFetchedAt": row.get("lineupsFetchedAt")}
+                   if isinstance(row.get("lineups"), dict) else {}),
             })
         item["matches"].sort(key=lambda x: x.get("utcDate") or "")
         payload["competitions"].append(item)
