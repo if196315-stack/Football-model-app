@@ -130,9 +130,9 @@ def _fixture_match(row: dict, fixtures: list[dict]) -> dict | None:
 
 def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
                     now: datetime | None = None, pause_seconds: float = 0.12,
-                    horizon_hours: int = 48, max_lineup_requests: int = 20,
+                    horizon_hours: int = 48, max_lineup_requests: int | None = None,
                     eligible_match_ids: set[str] | None = None,
-                    max_api_requests: int = 20, daily_request_limit: int = 100) -> dict:
+                    max_api_requests: int = 100, daily_request_limit: int = 100) -> dict:
     """Fetch confirmed XIs only for selected AI candidates within a persistent quota.
 
     Both /fixtures?date= and /fixtures/lineups calls count toward the per-run
@@ -228,7 +228,7 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
         attempted_at = _utc(row.get("lineupsAttemptedAt"))
         if attempted_at and current - attempted_at < LINEUP_RETRY:
             continue
-        if attempted >= max(0, int(max_lineup_requests)) or not can_request():
+        if (max_lineup_requests is not None and attempted >= max(0, int(max_lineup_requests))) or not can_request():
             break
         attempted += 1
         try:
