@@ -2026,6 +2026,16 @@ class MainActivity : Activity() {
             return
         }
 
+        // Keep the fixture feed focused on the next calendar month without changing
+        // ingestion, cached payloads, predictions, or historical/live tracked matches.
+        val fixtureUtc = java.util.TimeZone.getTimeZone("UTC")
+        val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = fixtureUtc }
+        val fixtureToday = fixtureDayFormat.format(Date())
+        val fixtureMonthEnd = java.util.Calendar.getInstance(fixtureUtc).apply {
+            add(java.util.Calendar.MONTH, 1)
+        }
+        val fixtureEndDay = fixtureDayFormat.format(fixtureMonthEnd.time)
+
         var totalUpcoming = 0
         var totalPredicted = 0
         for (i in 0 until leagues.length()) {
@@ -2040,7 +2050,15 @@ class MainActivity : Activity() {
                 val matchStatus = m.optString("status")
                 val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
                 val hasTrackedBet = (0 until bets.length()).any { bets.optJSONObject(it)?.optString("matchId") == matchId }
-                if ((matchStatus in listOf("SCHEDULED", "TIMED") && m.optJSONObject("prediction") != null) ||
+                val fixtureDate = m.optString("utcDate").take(10).ifBlank {
+                    m.optString("dateEvent").take(10).ifBlank {
+                        kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
+                    }
+                }
+                val withinNextMonth = fixtureDate.isNotBlank() &&
+                    fixtureDate >= fixtureToday && fixtureDate <= fixtureEndDay
+                if ((matchStatus in listOf("SCHEDULED", "TIMED") &&
+                        withinNextMonth && m.optJSONObject("prediction") != null) ||
                     (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) ||
                     (matchStatus == "FINISHED" && hasTrackedBet)) {
                     upcoming.add(m)
