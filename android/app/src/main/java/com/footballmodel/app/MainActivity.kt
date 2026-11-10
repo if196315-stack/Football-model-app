@@ -929,7 +929,7 @@ class MainActivity : Activity() {
         val footer = card()
         addText(footer, "Учитываются только неизменяемые прогнозы, зафиксированные до начала матча. Старые пересчитываемые прогнозы в эту статистику не включены.", 10, false, muted)
 
-        // IQ MATCH Strategy v1.0 — постоянно доступная памятка с правилами отбора и риска.
+        // IQ MATCH Strategy v1.1 — постоянно доступная памятка с правилами отбора и риска.
         val strategyIntro = card()
         addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.1", 10, true, accent)
         addText(strategyIntro, "СТРОГИЙ ОТБОР · УМЕРЕННЫЙ РИСК · ОГРАНИЧЕННЫЙ ЗАПУСК", 13, true, Color.WHITE)
