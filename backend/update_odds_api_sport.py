@@ -74,6 +74,47 @@ def match_fixture(target,candidates):
     if not ranked or (len(ranked)>1 and ranked[0][0]-ranked[1][0]<.08):return None
     return ranked[0][1]
 
+
+def fixture_match_diagnostics(target, candidates, limit=3):
+    """Return bounded near-match candidates for fixtures rejected by match_fixture."""
+    target_time = kickoff(target)
+    if target_time is None:
+        return []
+    raw_target = target.get("utcDate") or target.get("dateEvent")
+    date_only = isinstance(raw_target, str) and len(raw_target.strip()) == 10 and "T" not in raw_target
+    ranked = []
+    for candidate in candidates:
+        candidate_time = kickoff(candidate)
+        if candidate_time is None:
+            continue
+        delta_hours = abs((candidate_time - target_time).total_seconds()) / 3600.0
+        if date_only:
+            if candidate_time.date() != target_time.date():
+                continue
+        elif delta_hours > 24:
+            continue
+        home_score = team_similarity(target.get("home"), candidate.get("homeTeam"))
+        away_score = team_similarity(target.get("away"), candidate.get("awayTeam"))
+        ranked.append({
+            "id": candidate.get("id"),
+            "home": (candidate.get("homeTeam") or {}).get("name"),
+            "away": (candidate.get("awayTeam") or {}).get("name"),
+            "kickoff": candidate_time.isoformat(),
+            "kickoff_delta_hours": round(delta_hours, 2),
+            "home_similarity": round(home_score, 3),
+            "away_similarity": round(away_score, 3),
+            "accepted_by_current_rules": (
+                home_score >= 0.68 and away_score >= 0.68 and home_score + away_score >= 1.48
+                and (date_only or delta_hours <= 6)
+            ),
+        })
+    ranked.sort(key=lambda row: (
+        row["home_similarity"] + row["away_similarity"],
+        -row["kickoff_delta_hours"],
+    ), reverse=True)
+    return ranked[:max(0, limit)]
+
+
 def market_label(market):
     name = market.get("name") or {}
     return (name.get("en") or name.get("ru") or "") if isinstance(name, dict) else str(name)
@@ -379,6 +420,7 @@ def main():
     matched_team_totals_by_competition = {}
     coverage_by_competition = {}
     matched_fixture_samples = []
+    unmatched_fixture_samples = []
     for comp in data.get("competitions",[]):
         for match in comp.get("matches",[]):
             if match.get("status") not in ("SCHEDULED","TIMED","IN_PLAY","PAUSED"):continue
@@ -392,7 +434,15 @@ def main():
             # Clear legacy-provider prices. Never label stale prices as BetBoom.
             match.pop("odds",None)
             source=match_fixture(match,fixtures)
-            if not source:continue
+            if not source:
+                if len(unmatched_fixture_samples) < 30:
+                    unmatched_fixture_samples.append({
+                        "competition": comp_code,
+                        "target": {"date": match.get("utcDate") or match.get("dateEvent"),
+                                   "home": match.get("home"), "away": match.get("away")},
+                        "near_provider_candidates": fixture_match_diagnostics(match, fixtures, limit=3),
+                    })
+                continue
             # PitchAPI sometimes supplies only YYYY-MM-DD. Once the fixture is
             # confidently matched by date and both team names, enrich it with
             # the provider's actual kickoff timestamp rather than showing midnight.
@@ -434,6 +484,6 @@ def main():
     data["oddsStatus"]="ready" if updated else "no_quotes"
     data["oddsNotice"]=f"BetBoom: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки BetBoom."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched,"matchedTeamTotalFixtures":matched_team_total_fixtures,"matchedTeamTotalQuotes":matched_team_total_quotes,"matchedTeamTotalsByCompetition":matched_team_totals_by_competition,"coverageByCompetition":coverage_by_competition,"matchedFixtureSamples":matched_fixture_samples,"teamTotalDiagnostics":market_diagnostics}, ensure_ascii=False))
+    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched,"matchedTeamTotalFixtures":matched_team_total_fixtures,"matchedTeamTotalQuotes":matched_team_total_quotes,"matchedTeamTotalsByCompetition":matched_team_totals_by_competition,"coverageByCompetition":coverage_by_competition,"matchedFixtureSamples":matched_fixture_samples,"unmatchedFixtureSamples":unmatched_fixture_samples,"teamTotalDiagnostics":market_diagnostics}, ensure_ascii=False))
 
 if __name__=="__main__":main()
