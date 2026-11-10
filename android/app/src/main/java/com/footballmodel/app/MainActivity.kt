@@ -361,20 +361,15 @@ class MainActivity : Activity() {
         })
     }
 
-    // Shared premium title panel for every secondary screen.
+    // Compact section heading: no oversized description banner.
     private fun screenHeader(eyebrow: String, title: String, description: String) {
-        val hero = card()
-        hero.setPadding(dp(18), dp(17), dp(18), dp(17))
-        hero.background = GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            intArrayOf(Color.rgb(28, 59, 66), Color.rgb(17, 35, 54), Color.rgb(11, 24, 41))
-        ).apply {
-            cornerRadius = dp(22).toFloat()
-            setStroke(dp(1), Color.rgb(58, 112, 105))
+        val heading = label(title, 20, true, Color.WHITE).apply {
+            setPadding(dp(2), dp(5), dp(2), dp(8))
         }
-        addText(hero, eyebrow.uppercase(Locale.getDefault()), 9, true, gold)
-        addText(hero, title, 22, true, Color.WHITE)
-        addText(hero, description, 11, false, Color.rgb(190, 207, 221))
+        matchesContainer.addView(heading, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(4)
+            bottomMargin = dp(2)
+        })
     }
 
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
