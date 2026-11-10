@@ -1891,7 +1891,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        screenHeader("AI · DECISION CENTER", "Решения модели", "Только сигналы, прошедшие фильтры вероятности, преимущества, EV и реальной цены BetBoom.")
         val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
         val highWater = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull() ?: initialBankroll()
         val currentForRisk = currentBankroll()
@@ -1958,9 +1958,9 @@ class MainActivity : Activity() {
                 }
         )
         val betsCountCard = card()
-        addText(betsCountCard, "НАЙДЕНО AI-СИГНАЛОВ", 10, true, cyan)
+        addText(betsCountCard, "ПОДТВЕРЖДЁННЫЕ СИГНАЛЫ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "Матчей, прошедших фильтры раздела AI · это не количество уже записанных ставок", 11, false, muted)
+        addText(betsCountCard, "Матчи, прошедшие фильтры модели. Это рекомендации для проверки, а не уже размещённые ставки.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
@@ -1976,7 +1976,7 @@ class MainActivity : Activity() {
             val implied = 1.0 / odds
             val ev = p * odds - 1.0
             val box = card()
-            addText(box, "КАНДИДАТ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
+            addText(box, "СИГНАЛ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
             addText(box, kickoffLabel(m), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
@@ -2130,9 +2130,9 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
-        addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
-        addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
-        addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
+        addText(matchesContainer, "МАТЧИ И КОТИРОВКИ", 9, true, cyan)
+        addText(matchesContainer, "Все матчи турниров, рынки и цены BetBoom", 16, true, Color.WHITE)
+        addText(matchesContainer, "ПОЛНЫЙ СПИСОК · ФИЛЬТРЫ ПО ЛИГАМ", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL")
         val names = listOf("Все лиги", "Англия", "Испания", "Италия", "Германия", "Франция", "Лига чемпионов", "Лига Европы")
         // League filters already live in the persistent horizontal scroller above the content.
