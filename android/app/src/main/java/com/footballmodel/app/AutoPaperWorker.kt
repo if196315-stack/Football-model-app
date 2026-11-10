@@ -38,15 +38,28 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
+            val newAutoBets = mutableListOf<JSONObject>()
             synchronized(AutoPaperExecutionLock) {
                 val bets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
+                val existingIds = (0 until bets.length()).mapNotNull { bets.optJSONObject(it)?.optString("id") }.toSet()
                 changed = process(domestic, bets)
-                if (changed) prefs.edit().putString("bets", bets.toString()).commit()
+                val saved = !changed || prefs.edit().putString("bets", bets.toString()).commit()
+                if (saved) {
+                    for (i in 0 until bets.length()) {
+                        val bet = bets.optJSONObject(i) ?: continue
+                        if (bet.optString("source") == "AI_AUTO" && bet.optString("id") !in existingIds) {
+                            newAutoBets.add(JSONObject(bet.toString()))
+                        }
+                    }
+                }
                 totalBets = bets.length()
                 for (i in 0 until bets.length()) {
                     val bet = bets.optJSONObject(i) ?: continue
                     if (bet.optString("source") == "AI_AUTO" && bet.optString("status") == "PENDING") pendingAuto++
                 }
+            }
+            newAutoBets.forEach { bet ->
+                PaperBetNotifications.show(applicationContext, bet)
             }
             settings.edit()
                 .putLong("paper_worker_last_run_ms", System.currentTimeMillis())

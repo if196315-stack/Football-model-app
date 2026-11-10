@@ -133,6 +133,8 @@ class MainActivity : Activity() {
         }
         scroll.addView(root)
         setContentView(scroll)
+        PaperBetNotifications.ensureChannel(this)
+        PaperBetNotifications.requestPermissionIfNeeded(this)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
