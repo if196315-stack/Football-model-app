@@ -29,6 +29,7 @@ class SevenCompetitionSampleTests(unittest.TestCase):
         )
         self.assertEqual([row["competition"] for row in result], ["PL", "PD", "UCL", "UEL"])
         self.assertEqual(result[0]["id"], "pl-1")
+        self.assertEqual(result[2]["utcDate"], "2026-11-24")
 
     def test_handles_naive_and_aware_timestamps_in_same_competition(self):
         data = {"competitions": [{"code": "PL", "matches": [
