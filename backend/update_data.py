@@ -157,7 +157,9 @@ def historical_baselines(matches, comp, target_date):
     return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
       "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
 
-def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None):
+def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
+                     lineups=None, predicted_lineups=None):
+    # Lineup arguments are accepted for compatibility but intentionally ignored.
     if not baseline:return None
     candidates=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
       ("X2","Гости не проиграют","x2","X2","Не X2"),
