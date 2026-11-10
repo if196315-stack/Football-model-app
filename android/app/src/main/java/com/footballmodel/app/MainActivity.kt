@@ -49,7 +49,6 @@ class MainActivity : Activity() {
     private val gold = Color.rgb(255, 194, 92)
     private lateinit var root: LinearLayout
     private lateinit var statusView: TextView
-    private lateinit var refreshButton: Button
     private lateinit var headerBalanceView: TextView
     private lateinit var headerAiRoiView: TextView
     private lateinit var leagueBar: LinearLayout
@@ -78,7 +77,7 @@ class MainActivity : Activity() {
     private val liveRefreshTask = object : Runnable {
         override fun run() {
             refreshWorkerStatusUi()
-            if (refreshButton.isEnabled && currentTab in listOf("matches", "history", "desk")) loadData()
+            if (!loadInProgress.get() && currentTab in listOf("matches", "history", "desk")) loadData()
             liveRefreshHandler.postDelayed(this, 30_000)
         }
     }
@@ -149,23 +148,22 @@ class MainActivity : Activity() {
         val crest = ImageView(this).apply {
             setImageResource(R.drawable.ic_launcher)
             scaleType = ImageView.ScaleType.FIT_CENTER
-            contentDescription = "IQ Match"
+            contentDescription = "IQ Match · нажмите для обновления"
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { loadData() }
         }
         top.addView(crest, LinearLayout.LayoutParams(dp(56), dp(56)).apply { rightMargin = dp(11) })
-        val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val brand = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Обновить базу данных"
+            setOnClickListener { loadData() }
+        }
         brand.addView(label("IQ MATCH", 24, true, Color.WHITE))
         brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
-        refreshButton = Button(this).apply {
-            text = "↻"
-            textSize = 21f
-            isAllCaps = false
-            elevation = 0f
-            setTextColor(Color.WHITE)
-            background = rounded(surface, 16)
-            setOnClickListener { loadData() }
-        }
-        top.addView(refreshButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(7) })
         val headerRight = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
@@ -795,7 +793,6 @@ class MainActivity : Activity() {
     private fun loadData() {
         if (!loadInProgress.compareAndSet(false, true)) return
         statusView.text = if (data == null) "Загружаю данные…" else "Проверяю обновления…"
-        refreshButton.isEnabled = false
         thread(name = "iq-match-feed-refresh") {
             try {
                 val body = fetchFeed(dataUrl, "domestic_json", true)
@@ -852,7 +849,6 @@ class MainActivity : Activity() {
                     if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }
-                    refreshButton.isEnabled = true
                     loadInProgress.set(false)
                 }
             } catch (e: Exception) {
@@ -860,7 +856,6 @@ class MainActivity : Activity() {
                     val lastCheck = formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))
                     statusView.text = (if (data != null) "Нет сети · показаны последние данные" else
                         "Нет соединения · ${e.message ?: "проверьте интернет"}") + " · последняя успешная проверка: $lastCheck"
-                    refreshButton.isEnabled = true
                     loadInProgress.set(false)
                 }
             }
