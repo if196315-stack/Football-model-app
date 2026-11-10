@@ -1875,8 +1875,98 @@ class MainActivity : Activity() {
         addText(recommendations, "3. Не менять пороги вероятности, edge, EV и риск-менеджмент автоматически. Любые изменения — только после отдельной проверки и согласования.", 12, false, muted)
     }
 
+    private fun showManualAiBetDialog(json: JSONObject) {
+        data class FixtureOption(val match: JSONObject, val league: String, val title: String)
+        val fixtures = mutableListOf<FixtureOption>()
+        val competitions = json.optJSONArray("competitions") ?: JSONArray()
+        for (ci in 0 until competitions.length()) {
+            val competition = competitions.optJSONObject(ci) ?: continue
+            val matches = competition.optJSONArray("matches") ?: continue
+            for (mi in 0 until matches.length()) {
+                val match = matches.optJSONObject(mi) ?: continue
+                if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val id = match.optString("id").ifBlank { match.optString("utcDate") + match.optString("home") + match.optString("away") }
+                val title = "${match.optString("home")} — ${match.optString("away")} · ${kickoffLabel(match)}"
+                if (fixtures.none { it.match.optString("id").ifBlank { it.match.optString("utcDate") + it.match.optString("home") + it.match.optString("away") } == id }) {
+                    fixtures.add(FixtureOption(match, competition.optString("name"), title))
+                }
+            }
+        }
+        if (fixtures.isEmpty()) {
+            Toast.makeText(this, "Нет предстоящих матчей для ручной записи", Toast.LENGTH_LONG).show()
+            return
+        }
+        val marketLabels = listOf("1X", "X2", "ТБ 2.5", "ИТБ 1.5 · хозяева", "ИТБ 1.5 · гости", "ОЗ ДА")
+        val marketKeys = listOf("1x", "x2", "over25", "homeOver15", "awayOver15", "bttsYes")
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), dp(4))
+        }
+        fun field(hintText: String, value: String, decimal: Boolean = false) = EditText(this).apply {
+            hint = hintText
+            setSingleLine(true)
+            inputType = InputType.TYPE_CLASS_NUMBER or if (decimal) InputType.TYPE_NUMBER_FLAG_DECIMAL else 0
+            setText(value)
+        }
+        val fixtureSpinner = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, fixtures.map { it.title })
+        }
+        val marketSpinner = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, marketLabels)
+        }
+        val oddsField = field("Коэффициент", "")
+        val stakeField = field("Сумма ставки, ₽", fmt(maxOf(currentBankroll() * 0.01, minimumStake())), true)
+        content.addView(label("МАТЧ", 10, true, cyan))
+        content.addView(fixtureSpinner)
+        content.addView(label("РЫНОК", 10, true, cyan))
+        content.addView(marketSpinner)
+        content.addView(label("КОЭФФИЦИЕНТ", 10, true, cyan))
+        content.addView(oddsField)
+        content.addView(label("СУММА, ₽ (по умолчанию — 1% банка или минимум)", 10, true, cyan))
+        content.addView(stakeField)
+        AlertDialog.Builder(this).setTitle("Новая ручная AI-ставка")
+            .setView(content).setNegativeButton("Отмена", null)
+            .setPositiveButton("Сохранить", null).create().also { dialog ->
+                dialog.setOnShowListener {
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        val odds = oddsField.text.toString().replace(',', '.').toDoubleOrNull()
+                        val stake = stakeField.text.toString().replace(',', '.').toDoubleOrNull()
+                        if (odds == null || !odds.isFinite() || odds <= 1.0 || stake == null || !stake.isFinite() || stake <= 0.0) {
+                            Toast.makeText(this, "Укажи корректные коэффициент и сумму ставки", Toast.LENGTH_SHORT).show()
+                            return@setOnClickListener
+                        }
+                        val selected = fixtures[fixtureSpinner.selectedItemPosition]
+                        val match = selected.match
+                        val now = System.currentTimeMillis()
+                        val matchId = match.optString("id").ifBlank { match.optString("utcDate") + match.optString("home") + match.optString("away") }
+                        val marketIndex = marketSpinner.selectedItemPosition.coerceIn(marketKeys.indices)
+                        val key = "AI_MANUAL:$matchId:${marketKeys[marketIndex]}:$now"
+                        val bet = JSONObject()
+                            .put("id", key).put("source", "AI_MANUAL").put("status", "PENDING")
+                            .put("matchId", matchId).put("league", selected.league)
+                            .put("date", match.optString("utcDate"))
+                            .put("betDay", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now)))
+                            .put("home", match.optString("home")).put("away", match.optString("away"))
+                            .put("market", marketLabels[marketIndex]).put("marketKey", marketKeys[marketIndex])
+                            .put("odds", odds).put("stake", stake).put("probability", 0.0)
+                            .put("edgePp", 0.0).put("expectedValue", 0.0)
+                            .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
+                        bets.put(bet)
+                        saveBets()
+                        dialog.dismiss()
+                        Toast.makeText(this, "Ручная бумажная ставка сохранена", Toast.LENGTH_SHORT).show()
+                        render()
+                    }
+                }
+            }.show()
+    }
+
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        val manualEntryCard = card()
+        addText(manualEntryCard, "РУЧНАЯ БУМАЖНАЯ СТАВКА", 10, true, cyan)
+        addText(manualEntryCard, "Добавь ставку вручную, если AI-сигнал не появился в списке. Запись останется виртуальной и попадёт в историю.", 11, false, muted)
+        actionButton(manualEntryCard, "Добавить ставку вручную") { showManualAiBetDialog(json) }
         val bank = currentBankroll()
 
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
