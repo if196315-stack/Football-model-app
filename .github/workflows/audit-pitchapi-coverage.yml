@@ -126,31 +126,3 @@ jobs:
 
 # Results-only export is deliberately triggered by a dedicated commit marker; it never calls shot/xG endpoints.
 
-  odds-snapshot:
-    needs: unit-tests
-    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[collect-odds-snapshot]')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install dependency
-        run: python -m pip install requests
-      - name: Collect prospective 1X2, double-chance and handicap snapshots
-        env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-        run: |
-          mkdir -p artifacts
-          python backend/collect_odds_snapshots.py \
-            --input docs/data.json \
-            --output artifacts/odds-snapshots.jsonl
-      - name: Upload prospective odds archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: prospective-multi-market-odds-snapshots
-          path: artifacts/odds-snapshots.jsonl
-          if-no-files-found: error
-          retention-days: 90
-
-# Full-history runs are invoked only with the explicit [full-history-audit] commit marker.
