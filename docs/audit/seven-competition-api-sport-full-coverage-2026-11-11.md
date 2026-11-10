@@ -45,3 +45,28 @@ For each remaining fixture, queried API-Sport for all pages on the fixture date 
 ## Conclusion
 
 The complete remaining upcoming-fixture pass finished successfully and covered all 1,388 untested fixtures. API-Sport returned 1,314 fixture-level matches and 121 BetBoom boards, but **zero quotes passed the production parser** because prematch stage was not explicitly supplied. Preserve the existing safety filter. Investigate the provider's stage metadata separately before making any ingestion change.
+
+
+## Independent API-Sport tournament-ID cross-check
+
+**Workflow:** [42923945771](https://github.com/if196315-stack/Football-model-app/actions/runs/42923945771)  
+**Expanded unmatched-fixture classification:** [42924957647](https://github.com/if196315-stack/Football-model-app/actions/runs/42924957647)
+
+The initial fixture matcher does not validate competition identity. A separate read-only pass therefore queried the seven API-Sport tournament IDs independently (PL 17, PD 8, SA 23, BL1 35, FL1 34, UCL 7, UEL 679), scanning all pages in each date window. The complete scan returned 50,267 API-Sport rows across 106 requests; no date window hit the 30-page safety ceiling.
+
+| Competition | API-Sport tournament ID | Target fixtures | Matched in expected tournament | Coverage |
+|---|---:|---:|---:|---:|
+| Premier League | 17 | 280 | 279 | 99.6% |
+| La Liga | 8 | 260 | 260 | 100.0% |
+| Serie A | 23 | 270 | 236 | 87.4% |
+| Bundesliga | 35 | 225 | 202 | 89.8% |
+| Ligue 1 | 34 | 216 | 215 | 99.5% |
+| Champions League | 7 | 72 | 68 | 94.4% |
+| Europa League | 679 | 72 | 65 | 90.3% |
+| **Total** | — | **1,395** | **1,325** | **95.0%** |
+
+The expanded classification then checked every one of the 70 remaining unmatched targets against all 50,267 API-Sport rows returned by the date-window scans, without restricting the search to the expected tournament. **None of the 70 had a candidate match in another API-Sport tournament in those responses** (unmatchedWithCandidateInAnotherTournament = 0). Thus the remaining misses are not explained by the fixtures simply being assigned to a different tournament ID in the scanned data.
+
+Unmatched targets by competition: PL 1, PD 0, SA 34, BL1 23, FL1 1, UCL 4, UEL 7. This means the fixtures were not found in the API-Sport rows retrieved for their scanned date windows; it does not prove that API-Sport never lists them, nor distinguish provider omissions from schedule/date/team-name discrepancies in the source calendars.
+
+Both cross-check workflows completed successfully. The expanded diagnostic is read-only; production data sources, matching rules, odds filters, predictions, snapshots, and paper bets were not changed. The original 1,388-fixture board scan remains a separate result: 121 BetBoom boards, 1,025 market-category records with stage unspecified, and zero quotes accepted by the production prematch parser. Do not relax that parser filter.
