@@ -30,7 +30,7 @@ def signal_price(signal: dict, match: dict) -> float | None:
         value = ((best.get("doubleChance") or {}).get("1x" if side == "1X" else "x2"))
         return float(value) if isinstance(value, (int, float)) else None
     if side.startswith("ИТБ "):
-        found = re.search(r"ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)", side)
+        found = re.search(r"ИТБ\s+([0-9]+(?:\.[0-9]+)?)", side)
         if not found:
             return None
         team_name = side.split("·", 1)[1].strip() if "·" in side else ""
