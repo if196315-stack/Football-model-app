@@ -1466,6 +1466,7 @@ class MainActivity : Activity() {
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 28, true, Color.WHITE)
         addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
+        addText(bankrollCard, "Правило ставки: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽.", 12, true, accent)
 
         val strategyCard = card()
         addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
@@ -1703,8 +1704,8 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "2500")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 2500.0
+    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "5000")
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 5000.0
 
     private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
@@ -1730,11 +1731,9 @@ class MainActivity : Activity() {
                     return@setOnClickListener
                 }
                 settingsPrefs.edit().putString(key, value.toString()).apply()
-                // Стартовый банк отображается в профиле и на экране «Банк».
-                // Сбрасываем оба кеша, чтобы новые значения появились сразу без перезапуска.
-                if (key == "initial_bankroll") {
-                    tabViewCache.remove("history|ALL")
-                    tabViewCache.remove("help|ALL")
+                // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
+                if (key == "initial_bankroll" || key == "minimum_stake") {
+                    tabViewCache.clear()
                 }
                 dialog.dismiss()
                 render()
@@ -1897,7 +1896,7 @@ class MainActivity : Activity() {
         val stake = maxOf(currentBankroll() * 0.01, minimumStake())
         AlertDialog.Builder(this)
             .setTitle("Зафиксировать AI-ставку?")
-            .setMessage("${match.optString("home")} — ${match.optString("away")}\n${signal.optString("side")}\nКоэффициент BetBoom: ${fmt(odds)}\nСумма: ${fmt(stake)} ₽\n\nЭто будет бумажная ставка в истории, не реальная отправка букмекеру.")
+            .setMessage("${match.optString("home")} — ${match.optString("away")}\\n${signal.optString("side")}\\nКоэффициент BetBoom: ${fmt(odds)}\\nСумма: ${fmt(stake)} ₽\\n\\nЭто будет бумажная ставка в истории, не реальная отправка букмекеру.")
             .setNegativeButton("Отмена", null)
             .setPositiveButton("Зафиксировать") { _, _ ->
                 val now = System.currentTimeMillis()
@@ -1974,7 +1973,7 @@ class MainActivity : Activity() {
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО AI-СИГНАЛОВ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "Матчей, прошедших фильтры раздела AI · это не количество уже записанных ставок", 11, false, muted)
+        addText(betsCountCard, "Матчей, прошедших фильтры стратегии. AI-сигналы автоматически фиксируются в бумажной истории при выполнении защитных условий.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
@@ -2004,7 +2003,7 @@ class MainActivity : Activity() {
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
-            actionButton(box, "Зафиксировать эту ставку") { confirmManualAiSignalBet(m, league, signal, odds) }
+            actionButton(box, "Зафиксировать эту ставку вручную") { confirmManualAiSignalBet(m, league, signal, odds) }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
