@@ -182,7 +182,7 @@ def recent_team_form(matches, comp, team, target_date, venue=None, limit=5):
              "venuePointsPerGame": None, "venueForm": ""}
     if matches is None or matches.empty or not team:
         return empty.copy()
-    cutoff = pd.to_datetime(target_date, utc=True, errors="coerce")
+    cutoff = pd.to_datetime(target_date, errors="coerce")
     if pd.isna(cutoff):
         return empty.copy()
     rows = matches[(matches.comp == comp) & (matches.date < cutoff)]
@@ -223,11 +223,13 @@ def form_adjustment(signal, home_form, away_form):
     side = str(signal.get("side") or "")
     if side == "1X":
         home_ppg = home_form.get("venuePointsPerGame")
-        raw = (home_ppg if home_ppg is not None else home_form["pointsPerGame"]) - away_form["pointsPerGame"]
+        away_ppg = away_form.get("venuePointsPerGame")
+        raw = (home_ppg if home_ppg is not None else home_form["pointsPerGame"]) - (away_ppg if away_ppg is not None else away_form["pointsPerGame"])
         scale = 0.55
     elif side == "X2":
         away_ppg = away_form.get("venuePointsPerGame")
-        raw = (away_ppg if away_ppg is not None else away_form["pointsPerGame"]) - home_form["pointsPerGame"]
+        home_ppg = home_form.get("venuePointsPerGame")
+        raw = (away_ppg if away_ppg is not None else away_form["pointsPerGame"]) - (home_ppg if home_ppg is not None else home_form["pointsPerGame"])
         scale = 0.55
     elif side.startswith("ИТБ 1.5"):
         team_name = side.split("·", 1)[1].strip() if "·" in side else ""
