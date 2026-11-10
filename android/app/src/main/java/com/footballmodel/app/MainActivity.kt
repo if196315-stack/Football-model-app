@@ -1116,7 +1116,18 @@ class MainActivity : Activity() {
             "history" -> {
                 val box = card()
                 addText(box, "ИСТОРИЯ ОТЧЁТОВ", 10, true, accent)
-                addText(box, "Paper-ставки: " + bets.length() + " · WIN " + wins + " · LOSS " + losses + " · ожидают " + pending, 12, false)
+                var allWins = 0
+                var allLosses = 0
+                var allPending = 0
+                for (i in 0 until bets.length()) {
+                    val bet = bets.optJSONObject(i) ?: continue
+                    when (bet.optString("status")) {
+                        "WON" -> allWins++
+                        "LOST" -> allLosses++
+                        "PENDING" -> allPending++
+                    }
+                }
+                addText(box, "Paper-ставки: " + bets.length() + " · WIN " + allWins + " · LOSS " + allLosses + " · ожидают " + allPending, 12, false)
                 addText(box, "Архив наблюдений: " + snapshots.length() + " снимков · " + results.length() + " расчётов", 12, false)
                 val reports = try { JSONArray(intelligencePrefs.getString("daily_reports", "[]") ?: "[]") } catch (_: Exception) { JSONArray() }
                 addText(box, "Сохранено отчётов: " + reports.length(), 12, true, accent)
