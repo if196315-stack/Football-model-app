@@ -1815,7 +1815,7 @@ class MainActivity : Activity() {
             observedProfit += row.optDouble("profit_units", 0.0)
         }
         val observationCard = card()
-        addText(observationCard, "НАБЛЮДАТЕЛЬНЫЕ СТАВКИ", 10, true, cyan)
+        addText(observationCard, "НАБЛЮДАТЕЛЬНЫЕ СТАВКИ · НАКОПИТЕЛЬНО", 10, true, cyan)
         addText(observationCard, "Снимков котировок: ${snapshots.length()} · записей архива: ${observations.length()}", 12, true, Color.WHITE)
         addText(observationCard, "WIN $observedWins · LOSS $observedLosses · PUSH $observedPushes · ожидают $observedPending", 12, true, accent)
         if (observations.length() > 0) {
