@@ -64,7 +64,50 @@ def signal_price(signal: dict, match: dict) -> float | None:
     return None
 
 
-def ai_candidate(match: dict, now: datetime) -> bool:
+def uefa_paper_signal(match: dict) -> dict | None:
+    """Mirror the UEFA paper-signal selection used by the AI section."""
+    candidates = []
+    for row in match.get("paperSignals") or []:
+        market = row.get("market")
+        outcome = row.get("outcome")
+        if market == "double_chance":
+            side = {"1x": "1X", "x2": "X2"}.get(outcome, "")
+        elif market == "match_total_over":
+            side = f"ТБ {float(row.get('point', 0)):g}"
+        elif market == "team_total_over":
+            team = {"home": match.get("home"), "away": match.get("away")}.get(row.get("team"))
+            side = f"ИТБ {float(row.get('point', 0)):g} · {team}" if team else ""
+        elif market == "btts" and outcome == "yes":
+            side = "ОЗ ДА"
+        else:
+            side = ""
+        if not side:
+            continue
+        probability = row.get("model_probability")
+        edge = row.get("edge")
+        expected_value = row.get("expected_value")
+        try:
+            probability, edge, expected_value = float(probability), float(edge), float(expected_value)
+        except (TypeError, ValueError):
+            continue
+        signal = {
+            "side": side, "modelProbability": probability,
+            "baselineProbability": probability - edge,
+            "edgePp": edge * 100.0, "paperOnly": True,
+            "paperSignalId": row.get("signal_id"),
+        }
+        price = signal_price(signal, match)
+        try:
+            archived_price = float(row.get("price"))
+        except (TypeError, ValueError):
+            continue
+        if (price is not None and abs(price - archived_price) < 0.005
+                and probability >= 0.60 and edge >= 0.05 and expected_value >= 0.05):
+            candidates.append((probability * price - 1.0, signal))
+    return max(candidates, key=lambda item: item[0])[1] if candidates else None
+
+
+def ai_candidate(match: dict, now: datetime, competition_code: str = "") -> bool:
     if match.get("status") not in ("SCHEDULED", "TIMED"):
         return False
     try:
@@ -74,13 +117,14 @@ def ai_candidate(match: dict, now: datetime) -> bool:
         kickoff = kickoff.astimezone(timezone.utc)
     except (TypeError, ValueError):
         return False
-    if kickoff < now or kickoff > now + timedelta(days=30):
+    if kickoff.date() < now.date() or kickoff > now + timedelta(days=30):
         return False
 
     prediction = match.get("prediction") or {}
     signal = prediction.get("strongestSignal")
-    if not isinstance(signal, dict) or signal.get("paperOnly") is True:
-        # UEFA paper-only signals do not use the model's lineup adjustment.
+    if not isinstance(signal, dict) and competition_code in ("UCL", "UEL"):
+        signal = uefa_paper_signal(match)
+    if not isinstance(signal, dict):
         return False
     if signal.get("noPositiveSignal") or str(signal.get("side") or "").upper() == "ОЗ НЕТ":
         return False
@@ -89,13 +133,17 @@ def ai_candidate(match: dict, now: datetime) -> bool:
         price = signal_price(signal, match)
         if price is None or price < 1.50:
             return False
+        selection_edge = float(signal.get("selectionEdgePp", signal.get("edgePp", 0.0)) or 0.0)
+        if selection_edge <= 0.0:
+            return False
         ev = probability * price - 1.0
+        if signal.get("paperOnly") is True:
+            return probability >= 0.60 and float(signal.get("edgePp", 0.0)) >= 5.0 and ev >= 0.05
         implied_edge = probability - 1.0 / price + (
             float(signal.get("formAdjustmentPp") or 0.0)
             + float(signal.get("lineupAdjustmentPp") or 0.0)
         ) / 100.0
-        selection_edge = float(signal.get("selectionEdgePp", signal.get("edgePp", 0.0)) or 0.0)
-        return probability >= 0.60 and selection_edge > 0.0 and implied_edge >= 0.05 and ev >= 0.05
+        return probability >= 0.60 and implied_edge >= 0.05 and ev >= 0.05
     except (TypeError, ValueError, ZeroDivisionError):
         return False
 
@@ -113,14 +161,14 @@ def run() -> dict:
     candidates = {}
     for competition in payload.get("competitions", []):
         for match in competition.get("matches", []):
-            if ai_candidate(match, now) and match.get("id") is not None:
+            if ai_candidate(match, now, str(competition.get("code") or "")) and match.get("id") is not None:
                 candidates[str(match["id"])] = match
 
     if not candidates:
         return {"aiCandidates": 0, "apiFootballRequestsThisRun": 0,
                 "message": "No upcoming AI candidates qualify for lineup lookup"}
 
-    run_limit = int(os.environ.get("API_FOOTBALL_MAX_REQUESTS_PER_RUN", "20"))
+    run_limit = int(os.environ.get("API_FOOTBALL_MAX_REQUESTS_PER_RUN", "100"))
     daily_limit = int(os.environ.get("API_FOOTBALL_DAILY_REQUEST_LIMIT", "100"))
     summary = refresh_lineups(
         cache, api_key,
@@ -147,6 +195,10 @@ def run() -> dict:
             match["lineupsFetchedAt"] = row["lineupsFetchedAt"]
         league = next((item.get("league") for item in payload.get("competitions", [])
                        if any(str(m.get("id")) == match_id for m in item.get("matches", []))), None)
+        signal = (match.get("prediction") or {}).get("strongestSignal")
+        if isinstance(signal, dict) and signal.get("paperOnly") is True:
+            changed += 1
+            continue
         if league and not s.empty:
             prediction, warning = predict(
                 league, match.get("home"), match.get("away"), st, base, names,
