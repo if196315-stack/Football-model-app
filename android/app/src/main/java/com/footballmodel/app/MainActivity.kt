@@ -165,7 +165,7 @@ class MainActivity : Activity() {
         }
         top.addView(refreshButton, LinearLayout.LayoutParams(48, 48).apply { leftMargin = dp(6) })
         val notificationsButton = TextView(this).apply {
-            text = "♧"
+            text = "🔔"
             textSize = 25f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
