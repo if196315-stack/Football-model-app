@@ -21,7 +21,7 @@ def upcoming_one_per_competition(domestic, uefa, today=None):
     for source in (domestic, uefa):
         for comp in source.get("competitions", []):
             code = comp.get("code") or comp.get("id")
-            if code not in {"PL", "PD", "SA", "BL", "FL", "UCL", "UEL"}:
+            if code not in {"PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL"}:
                 continue
             candidates = []
             for match in comp.get("matches", []):
@@ -44,7 +44,7 @@ def upcoming_one_per_competition(domestic, uefa, today=None):
                     "utcDate": (str(match.get("utcDate")).strip() if len(str(match.get("utcDate") or "").strip()) == 10 else dt.isoformat()), "date": dt.date().isoformat(),
                     "home": match.get("home"), "away": match.get("away"),
                 }
-    return [chosen[code] for code in ("PL", "PD", "SA", "BL", "FL", "UCL", "UEL") if code in chosen]
+    return [chosen[code] for code in ("PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL") if code in chosen]
 
 def response_items(payload):
     if isinstance(payload, list):
@@ -109,7 +109,7 @@ def main():
                 exact_rows.append({
                     "competition": target["competition"], "home": target["home"],
                     "away": target["away"], "matched": False,
-                    "betboomBoard": False, "openPrematchMarkets": [],
+                    "betboomBoard": False, "openMarkets": [], "marketStageCounts": {}, "prematchActiveFlag": False,
                 })
                 continue
             fixture_id = matched.get("id")
@@ -123,12 +123,15 @@ def main():
             board = books.get("betboom") if isinstance(books, dict) else None
             markets = board.get("markets") or {} if isinstance(board, dict) else {}
             prematch_active = (match.get("isBettingActiveByStage") or {}).get("prematch") is True
-            open_prematch = sorted(
+            open_markets = sorted(
                 slug for slug, market in markets.items()
-                if isinstance(market, dict)
-                and market.get("status") == "open"
-                and (market.get("stage") == "prematch" or (market.get("stage") is None and prematch_active))
+                if isinstance(market, dict) and market.get("status") == "open"
             )
+            market_stages = {}
+            for market in markets.values():
+                if isinstance(market, dict):
+                    stage = str(market.get("stage") or "unspecified")
+                    market_stages[stage] = market_stages.get(stage, 0) + 1
             exact_rows.append({
                 "competition": target["competition"], "home": target["home"],
                 "away": target["away"], "matched": True, "apiSportFixtureId": fixture_id,
@@ -136,14 +139,15 @@ def main():
                 "apiSportAway": (match.get("awayTeam") or {}).get("name"),
                 "betboomFlag": (match.get("hasBkOdds") or {}).get("betboom"),
                 "betboomBoard": isinstance(board, dict),
-                "openPrematchMarkets": open_prematch,
+                "openMarkets": open_markets, "marketStageCounts": market_stages,
+                "prematchActiveFlag": prematch_active,
             })
     print("COMPETITION_RESULTS=" + json.dumps(exact_rows, ensure_ascii=False))
     print("SUMMARY=" + json.dumps({
         "requestedCompetitions": len(samples),
         "matchedFixtures": sum(row["matched"] for row in exact_rows),
         "betboomBoards": sum(row["betboomBoard"] for row in exact_rows),
-        "competitionsWithNoSample": sorted({"PL", "PD", "SA", "BL", "FL", "UCL", "UEL"} - {x["competition"] for x in samples}),
+        "competitionsWithNoSample": sorted({"PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL"} - {x["competition"] for x in samples}),
         "apiRequests": request_count,
         "readOnly": True,
     }, ensure_ascii=False))
