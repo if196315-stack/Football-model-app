@@ -1928,7 +1928,6 @@ class MainActivity : Activity() {
             val p = signal.optDouble("modelProbability", Double.NaN)
             val baseline = signal.optDouble("baselineProbability", Double.NaN)
             val edge = signal.optDouble("edgePp", Double.NaN)
-            val formAdjustment = signal.optDouble("formAdjustmentPp", 0.0)
              val odds = topSignalOdds(signal, m) ?: return@forEachIndexed
             val implied = 1.0 / odds
             val ev = p * odds - 1.0
@@ -1945,11 +1944,10 @@ class MainActivity : Activity() {
                 addText(box, "Преимущество над рыночным порогом: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
             } else {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
-                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Поправка формы: ${if (formAdjustment >= 0) "+" else ""}${String.format(Locale.US, "%.1f", formAdjustment)} п.п. учитывается в фильтре.", 11, false, muted)
+                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п.", 11, false, muted)
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
-            addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
