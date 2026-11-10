@@ -78,7 +78,7 @@ class MainActivity : Activity() {
         override fun run() {
             refreshWorkerStatusUi()
             if (!loadInProgress.get() && currentTab in listOf("matches", "history", "desk")) loadData()
-            liveRefreshHandler.postDelayed(this, 30 * 60 * 1000L)
+            liveRefreshHandler.postDelayed(this, 60 * 1000L)
         }
     }
 
@@ -282,7 +282,7 @@ class MainActivity : Activity() {
             if (data != null) render()
         }
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
-        liveRefreshHandler.postDelayed(liveRefreshTask, 30 * 60 * 1000L)
+        liveRefreshHandler.postDelayed(liveRefreshTask, 60 * 1000L)
     }
 
     override fun onPause() {
@@ -805,13 +805,14 @@ class MainActivity : Activity() {
                     if (changed) {
                         data = json
                         lastPayload = payload
-                        val newAutoBets = processAutoPaperBets(json)
-                        newAutoBets.forEach { PaperBetNotifications.show(this, it) }
                         tabViewCache.clear()
                         renderedKey = null
                         render()
                     }
-                    AiMatchNotifications.notifyNewCandidates(this, json)
+                    // Evaluate every successful feed check, even when the payload is unchanged.
+                    // Duplicate protection makes this safe and lets newly valid quotes lock promptly.
+                    val newAutoBets = processAutoPaperBets(json)
+                    newAutoBets.forEach { PaperBetNotifications.show(this, it) }
                     if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }

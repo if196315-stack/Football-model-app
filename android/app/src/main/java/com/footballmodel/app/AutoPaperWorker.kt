@@ -61,8 +61,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             newAutoBets.forEach { bet ->
                 PaperBetNotifications.show(applicationContext, bet)
             }
-            // Paper-bet notifications take priority; AI-only notification is sent only if no ticket was locked.
-            AiMatchNotifications.notifyNewCandidates(applicationContext, domestic)
             settings.edit()
                 .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
                 .putString("paper_worker_last_status", "SUCCESS")
