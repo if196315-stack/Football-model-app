@@ -135,7 +135,23 @@ def main():
             if found:
                 matched += 1
             else:
-                missing.append({"date": target["date"], "home": target["home"], "away": target["away"]})
+                any_competition_match = match_fixture({
+                    "utcDate": target["utcDate"],
+                    "home": target["home"],
+                    "away": target["away"],
+                }, all_rows)
+                candidate = None
+                if any_competition_match:
+                    candidate = {
+                        "apiSportFixtureId": any_competition_match.get("id"),
+                        "apiSportTournamentId": tournament_id(any_competition_match),
+                        "apiSportHome": (any_competition_match.get("homeTeam") or {}).get("name"),
+                        "apiSportAway": (any_competition_match.get("awayTeam") or {}).get("name"),
+                    }
+                missing.append({
+                    "date": target["date"], "home": target["home"], "away": target["away"],
+                    "matchInAnyTournament": candidate,
+                })
         results[code] = {
             "expectedTournamentId": expected_id,
             "targetFixtures": len(targets),
@@ -154,6 +170,10 @@ def main():
         "apiRequestsIncludingFreeUsageCheck": request_count,
         "readOnly": True,
         "productionSourcesOrFiltersChanged": False,
+        "unmatchedWithCandidateInAnotherTournament": sum(
+            1 for result in results.values() for item in result["unmatchedTargets"]
+            if item["matchInAnyTournament"] is not None
+        ),
     }
     print("LEAGUE_ID_CROSSCHECK=" + json.dumps(results, ensure_ascii=False))
     print("SUMMARY=" + json.dumps(summary, ensure_ascii=False))
