@@ -163,7 +163,17 @@ class MainActivity : Activity() {
             background = rounded(surface, 16)
             setOnClickListener { loadData() }
         }
-        top.addView(refreshButton, LinearLayout.LayoutParams(52, 48))
+        top.addView(refreshButton, LinearLayout.LayoutParams(48, 48).apply { leftMargin = dp(6) })
+        val notificationsButton = TextView(this).apply {
+            text = "♧"
+            textSize = 25f
+            gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+            background = rounded(surface, 16)
+            contentDescription = "Отчёт и аналитика за день"
+            setOnClickListener { showDailyInsightsDialog() }
+        }
+        top.addView(notificationsButton, LinearLayout.LayoutParams(48, 48).apply { leftMargin = dp(7) })
         root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
         statusView = label("Подключаюсь к серверу…", 12, false, muted)
@@ -295,6 +305,84 @@ class MainActivity : Activity() {
     override fun onPause() {
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
         super.onPause()
+    }
+
+    private fun showDailyInsightsDialog() {
+        val localDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val dayBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
+            .filter {
+                val betDay = it.optString("betDay").ifBlank {
+                    val rawDate = it.optString("date")
+                    if (rawDate.length >= 10) rawDate.take(10) else ""
+                }
+                betDay == localDay
+            }
+        val settled = dayBets.filter { it.optString("status") in listOf("WON", "LOST", "PUSH") }
+        val wins = settled.count { it.optString("status") == "WON" }
+        val losses = settled.count { it.optString("status") == "LOST" }
+        val pushes = settled.count { it.optString("status") == "PUSH" }
+        val pending = dayBets.count { it.optString("status") == "PENDING" }
+        val stakeTotal = dayBets.sumOf { it.optDouble("stake", 0.0) }
+        val settledStake = settled.sumOf { it.optDouble("stake", 0.0) }
+        val net = settled.sumOf { bet ->
+            val stake = bet.optDouble("stake", 0.0)
+            when (bet.optString("status")) {
+                "WON" -> stake * (bet.optDouble("odds", 1.0) - 1.0)
+                "LOST" -> -stake
+                else -> 0.0
+            }
+        }
+        val roi = if (settledStake > 0.0) net / settledStake * 100.0 else null
+        val bank = currentBankroll()
+        val workerStatus = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
+        val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Нет данных о последней проверке") ?: "Нет данных о последней проверке"
+        val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
+        val workerTime = if (workerRunAt > 0L) formatLocalTimestamp(workerRunAt) else "ещё не запускался"
+
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(8), dp(18), dp(12))
+        }
+        fun section(title: String, body: String, color: Int = Color.WHITE) {
+            content.addView(label(title, 10, true, cyan).apply { setPadding(0, dp(12), 0, dp(3)) })
+            content.addView(label(body, 13, false, color))
+        }
+        section("ИТОГ ЗА СЕГОДНЯ", "Ставок: \${dayBets.size} · рассчитано: \${settled.size} · ожидают: \${pending}")
+        section("РЕЗУЛЬТАТ", "Победы: \${wins} · поражения: \${losses} · возвраты: \${pushes}\n\${if (roi == null) "ROI: пока нет рассчитанной выборки" else "Чистый результат: \${if (net >= 0) "+" else ""}\${fmt(net)} ₽ · ROI: \${String.format(Locale.getDefault(), "%.1f", roi)}%"}", if (net >= 0) accent else Color.rgb(255, 125, 125))
+        section("БАНК И РИСК", "Текущий банк: \${fmt(bank)} ₽\nОбщий объём ставок за день: \${fmt(stakeTotal)} ₽ · в рассчитанных ставках: \${fmt(settledStake)} ₽")
+        section("АВТОМАТИЧЕСКАЯ ПРОВЕРКА", "Статус: \${when(workerStatus) { "SUCCESS" -> "успешно"; "ERROR" -> "ошибка"; else -> "ожидание" }} · \${workerTime}\n\${workerMessage}")
+
+        val insights = mutableListOf<Pair<String, String>>()
+        if (settled.size >= 5) {
+            val winRate = wins.toDouble() / settled.size * 100.0
+            insights.add("ЧТО ПОЛУЧАЕТСЯ" to "В рассчитанной выборке \${String.format(Locale.getDefault(), "%.1f", winRate)}% побед. Это промежуточная статистика, а не гарантия будущего результата.")
+        } else {
+            insights.add("ЧТО ПОЛУЧАЕТСЯ" to "Сегодня пока мало рассчитанных ставок для надёжной оценки стратегии. Не делаем выводов по 1–2 исходам.")
+        }
+        if (net > 0.0) {
+            insights.add("ПОЛОЖИТЕЛЬНЫЙ СИГНАЛ" to "Сегодня результат рассчитанных ставок положительный. Продолжаем наблюдение без повышения размера ставки.")
+        } else if (net < 0.0) {
+            insights.add("ЗОНА ВНИМАНИЯ" to "Сегодня зафиксирован минус. Не повышаем риск и не пытаемся отыграться увеличением ставок.")
+        } else {
+            insights.add("РЕЗУЛЬТАТ" to "По рассчитанным сегодня ставкам пока нет чистой прибыли или убытка.")
+        }
+        if (pending > 0) insights.add("ЧТО ЕЩЁ НЕИЗВЕСТНО" to "\${pending} ставок ещё не рассчитаны. Оцениваем стратегию после завершения матчей, а не по открытым позициям.")
+        if (settled.size > 0 && settledStake > 0.0 && roi != null && roi < 0.0) {
+            insights.add("ЧТО УЛУЧШАТЬ" to "Проверить результаты по рынкам и лигам на более длинной дистанции. Одного дневного отчёта недостаточно, чтобы менять фильтры.")
+        } else {
+            insights.add("ЧТО УЛУЧШАТЬ" to "Накапливать историю закрытых ставок и отдельно сравнивать рынки, лиги, коэффициенты и качество котировок. Порог стратегии пока не менять на короткой выборке.")
+        }
+        insights.forEach { (title, body) -> section(title, body, muted) }
+
+        val scroll = ScrollView(this).apply {
+            addView(content)
+            isFillViewport = false
+        }
+        AlertDialog.Builder(this)
+            .setTitle("🔔 Отчёт и мысли по IQ Match")
+            .setView(scroll)
+            .setPositiveButton("Закрыть", null)
+            .show()
     }
 
     private fun countryFlagView(flag: String): View =
