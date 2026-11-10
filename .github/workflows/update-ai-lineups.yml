@@ -42,7 +42,7 @@ jobs:
       - name: Fetch lineups only for qualifying AI candidates
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-          API_FOOTBALL_MAX_REQUESTS_PER_RUN: "20"
+          API_FOOTBALL_MAX_REQUESTS_PER_RUN: "100"
           API_FOOTBALL_DAILY_REQUEST_LIMIT: "100"
         run: python backend/update_ai_lineups.py
       - name: Commit AI lineup updates
