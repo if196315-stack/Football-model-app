@@ -37,6 +37,8 @@ import kotlin.math.abs
 
 class MainActivity : Activity() {
     private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
+    private val observationSnapshotsUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/odds-snapshots.jsonl"
+    private val observationResultsUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/market-observation-results.jsonl"
     private val uefaDataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json"
     private val bg = Color.rgb(7, 13, 25)
     private val panel = Color.rgb(17, 29, 47)
@@ -52,6 +54,7 @@ class MainActivity : Activity() {
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
+    private var statsSubsection = "working"
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
     private var bets = JSONArray()
@@ -709,6 +712,15 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun jsonArrayFromJsonLines(body: String?): JSONArray {
+        val rows = JSONArray()
+        if (body.isNullOrBlank()) return rows
+        body.lineSequence().filter { it.isNotBlank() }.forEach { line ->
+            try { rows.put(JSONObject(line)) } catch (_: Exception) { /* Ignore an incomplete/corrupt archive row. */ }
+        }
+        return rows
+    }
+
     private fun loadData() {
         if (!loadInProgress.compareAndSet(false, true)) return
         statusView.text = if (data == null) "Загружаю данные…" else "Проверяю обновления…"
@@ -738,6 +750,16 @@ class MainActivity : Activity() {
                     } catch (_: Exception) {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
+                }
+                // Download the append-only archives only when Stats is opened; match refreshes stay lightweight.
+                if (currentTab == "stats") {
+                    val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
+                    val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
+                    json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
+                    json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
+                } else {
+                    json.put("marketObservationSnapshots", JSONArray())
+                    json.put("marketObservationResults", JSONArray())
                 }
                 val payload = json.toString()
                 feedCache.edit()
@@ -790,7 +812,7 @@ class MainActivity : Activity() {
                         if (currentTab != item.first) {
                             currentTab = item.first
                             render()
-                            if (currentTab == "desk") loadData()
+                            if (currentTab == "desk" || currentTab == "stats") loadData()
                         }
                     }
                 }
@@ -826,7 +848,34 @@ class MainActivity : Activity() {
     )
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "Статистика и точность модели", "Только прогнозы, зафиксированные до начала матча. Исходные вероятности не пересчитываются после финального свистка.")
+        val switcher = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+            background = rounded(Color.rgb(13, 23, 39), 15)
+        }
+        listOf("working" to "РАБОЧИЕ СТАВКИ", "observed" to "НАБЛЮДАЕМЫЕ КОТИРОВКИ").forEach { (key, title) ->
+            val selected = statsSubsection == key
+            val tab = label(title, 10, true, if (selected) bg else muted).apply {
+                gravity = Gravity.CENTER
+                setPadding(dp(8), dp(13), dp(8), dp(13))
+                background = if (selected) rounded(accent, 11) else rounded(Color.TRANSPARENT, 11)
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    if (statsSubsection != key) {
+                        statsSubsection = key
+                        render()
+                    }
+                }
+            }
+            switcher.addView(tab, LinearLayout.LayoutParams(0, -2, 1f))
+        }
+        matchesContainer.addView(switcher, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+        if (statsSubsection == "observed") {
+            renderObservedMarketStats(json)
+            return
+        }
+        screenHeader("PERFORMANCE CENTER", "Статистика стратегии", "Точность рынков действующей стратегии. Уровни уверенности сохранены без изменений.")
         data class BandRow(val label: String, val n: Int, val hits: Int)
         data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
         val metrics = mutableListOf<MetricRow>()
@@ -872,7 +921,6 @@ class MainActivity : Activity() {
         collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
         collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h,a -> h + a >= 3 })
         collect("bttsYes", "ОЗ — да", { h,a -> h >= 1 && a >= 1 })
-        collect("bttsNo", "ОЗ — нет", { h,a -> h == 0 || a == 0 })
         collect("over15", "ТБ 1.5", { h,a -> h+a >= 2 })
         collect("over35", "ТБ 3.5", { h,a -> h+a >= 4 })
         collect("homeOver25", "ИТБ 2.5 · хозяева", { h,_ -> h >= 3 })
@@ -922,7 +970,7 @@ class MainActivity : Activity() {
 
         val strategyMarkets = card()
         addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
-        addText(strategyMarkets, "Только BetBoom через API-Sport. Допускать только рынки с точной загруженной ценой и соответствующей вероятностью модели: Double Chance 1X/X2, Match Total OVER, Team Total OVER, BTTS YES/NO. Форы — только при наличии точной линии и коэффициента. 1X2 не допускать без корректной загрузки цены. UNDER не показывать в текущем пользовательском сценарии.", 11, false, Color.WHITE)
+        addText(strategyMarkets, "Только BetBoom через API-Sport. Рабочие рынки: Double Chance 1X/X2, Match Total OVER, Team Total OVER и BTTS YES — только при точной загруженной цене и прохождении фильтров AI. BTTS NO, UNDER, 12, 1X2 без подтверждённой цены и форы отображаются только как наблюдаемые рынки и не создают paper-ставки.", 11, false, Color.WHITE)
         addText(strategyMarkets, "Нельзя подставлять коэффициенты другого букмекера, угадывать отсутствующую цену или сравнивать разные линии.", 10, false, muted)
 
         val strategyTesting = card()
@@ -936,6 +984,68 @@ class MainActivity : Activity() {
         addText(strategyMetrics, "Пороговые значения — стартовая конфигурация для проверки, а не доказанное преимущество и не гарантия прибыли. Изменения правил должны получать новую версию и проверяться на независимых данных.", 10, false, muted)
     }
 
+
+    private fun renderObservedMarketStats(json: JSONObject) {
+        screenHeader("MARKET RESEARCH", "Наблюдаемые котировки", "Архивные цены BetBoom. Снимки отображаются сразу, не дожидаясь завершения матча.")
+        val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
+        val results = json.optJSONArray("marketObservationResults") ?: JSONArray()
+        val summary = card()
+        addText(summary, "ОБЪЁМ АРХИВА", 10, true, accent)
+        addText(summary, "Снимков котировок: ${snapshots.length()}", 15, true, Color.WHITE)
+        addText(summary, "Завершённых наблюдений: ${results.length()}", 13, true, Color.WHITE)
+        if (results.length() > 0) {
+            var wins = 0; var losses = 0; var pushes = 0; var profit = 0.0; var priced = 0
+            for (i in 0 until results.length()) {
+                val row = results.optJSONObject(i) ?: continue
+                when (row.optString("result")) { "WIN" -> wins++; "LOSS" -> losses++; "PUSH" -> pushes++ }
+                profit += row.optDouble("profit_units", 0.0)
+                if (!row.isNull("model_probability")) priced++
+            }
+            val roi = profit / results.length() * 100.0
+            addText(summary, "WIN $wins · LOSS $losses · PUSH $pushes", 12, true, accent)
+            addText(summary, "Условный результат: ${String.format(Locale.US, "%+.2f", profit)} ед. · ROI ${String.format(Locale.US, "%+.2f", roi)}%", 12, true, gold)
+            addText(summary, "Вероятность модели сохранена для $priced из ${results.length()} расчётов.", 10, false, muted)
+        } else {
+            addText(summary, "Результатов завершённых матчей пока нет. Сами котировки отображаются ниже сразу после архивирования.", 11, false, muted)
+        }
+
+        if (snapshots.length() > 0) {
+            addText(matchesContainer, "АРХИВ КОТИРОВОК · ${snapshots.length()}", 10, true, accent)
+            for (i in snapshots.length() - 1 downTo 0) {
+                val row = snapshots.optJSONObject(i) ?: continue
+                val market = row.optString("market")
+                val side = row.optString("side").uppercase(Locale.ROOT)
+                val point = if (row.has("point") && !row.isNull("point")) " ${fmt(row.optDouble("point"))}" else ""
+                val marketName = when (market) {
+                    "double_chance" -> "Двойной шанс ${row.optString("outcome").uppercase(Locale.ROOT)}"
+                    "match_total" -> "Тотал матча $side$point"
+                    "team_total" -> "${if (row.optString("team") == "home") "Хозяева" else "Гости"} · ИТ $side$point"
+                    "btts" -> "Обе забьют · ${if (row.optString("outcome") == "yes") "ДА" else "НЕТ"}"
+                    "handicap" -> "Фора ${if (row.optString("team") == "home") "хозяев" else "гостей"} (${fmt(row.optDouble("point"))})"
+                    else -> market.ifBlank { "Рынок" }
+                }
+                val price = row.optDouble("price", Double.NaN)
+                val probability = if (!row.isNull("model_probability")) "${String.format(Locale.US, "%.1f", row.optDouble("model_probability") * 100)}%" else "нет оценки модели"
+                val item = card()
+                addText(item, "${row.optString("home_team")} — ${row.optString("away_team")}", 13, true, Color.WHITE)
+                addText(item, "${row.optString("league_code")} · ${formatSourceTimestamp(row.optString("kickoff_utc"))}", 10, false, muted)
+                addText(item, marketName, 11, true, accent)
+                addText(item, "BetBoom ${if (price.isFinite() && price > 1.0) String.format(Locale.US, "%.2f", price) else "—"} · модель $probability", 11, true, gold)
+                addText(item, "Снимок: ${formatSourceTimestamp(row.optString("captured_at"))} · актуальность: ${row.optString("freshness_status", "не указана")}", 9, false, muted)
+                val result = row.optString("result")
+                if (result.isNotBlank()) addText(item, "Результат: $result", 10, true, accent)
+            }
+        } else {
+            val empty = card()
+            addText(empty, "Архив котировок пока пуст", 13, true, Color.WHITE)
+            addText(empty, "Снимки появятся после успешного обновления BetBoom и публикации artifacts/odds-snapshots.jsonl. Если архив ещё не создавался, нужно дождаться первого запуска workflow после его включения.", 11, false, muted)
+        }
+        if (results.length() > 0) {
+            val note = card()
+            addText(note, "ВАЖНО", 10, true, gold)
+            addText(note, "ROI считается по каждой сохранённой котировке как если бы на неё ставили по 1 условной единице. Это исследовательская метрика, не фактическая прибыль и не движение paper-банка.", 11, false, muted)
+        }
+    }
 
     private fun parseFeedTimeMillis(raw: String): Long? {
         return try {
@@ -1923,7 +2033,7 @@ class MainActivity : Activity() {
                     }
                     val mainMarkets = card(box)
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
-                    addMarketTitle(mainMarkets, "◈", "ОСНОВНЫЕ ИСХОДЫ")
+                    addMarketTitle(mainMarkets, "◈", "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
                     fun quote(key: String): String {
                         val dc = bestOdds?.optJSONObject("doubleChance")
@@ -1936,7 +2046,6 @@ class MainActivity : Activity() {
                         }
                         return if (value != null && value.isFinite() && value > 1.0) String.format(Locale.US, "%.2f", value) else "—"
                     }
-
                     fun totalQuote(point: Double, side: String, team: String? = null): String {
                         val rows = bestOdds?.optJSONArray(if (team == null) "totals" else "teamTotals") ?: return "—"
                         for (i in 0 until rows.length()) {
@@ -1946,27 +2055,28 @@ class MainActivity : Activity() {
                             if (row.optString("side").equals(side, ignoreCase = true) &&
                                 (team == null || row.optString("team") == team) &&
                                 rowPoint.isFinite() && kotlin.math.abs(rowPoint - point) < 0.001 &&
-                                rowPrice.isFinite() && rowPrice > 1.0) {
-                                return String.format(Locale.US, "%.2f", rowPrice)
-                            }
+                                rowPrice.isFinite() && rowPrice > 1.0) return String.format(Locale.US, "%.2f", rowPrice)
                         }
                         return "—"
                     }
-                    addText(mainMarkets, "1X · ${pct(pred, "1x")} · кэф ${quote("1x")}       X2 · ${pct(pred, "x2")} · кэф ${quote("x2")}", 12, true, Color.WHITE)
-                    addText(mainMarkets, "ПОБЕДА / НИЧЬЯ · без котировок в текущем фиде", 9, true, muted)
-                    addText(mainMarkets, "П1 ${pct(pred, "1")}     X ${pct(pred, "x")}     П2 ${pct(pred, "2")}", 12, true, Color.WHITE)
+                    fun marketRow(title: String, probability: String, price: String) {
+                        addText(mainMarkets, "$title · $probability · кэф $price", 11, true, Color.WHITE)
+                    }
+                    addText(mainMarkets, "ДВОЙНОЙ ШАНС", 9, true, muted)
+                    marketRow("1X", pct(pred, "1x"), quote("1x"))
+                    marketRow("X2", pct(pred, "x2"), quote("x2"))
                     addText(mainMarkets, "ОБЕ КОМАНДЫ ЗАБЬЮТ", 9, true, muted)
-                    addText(mainMarkets, "ОЗ: ДА ${pct(pred, "bttsYes")} · кэф ${quote("bttsYes")}     НЕТ ${pct(pred, "bttsNo")} · кэф ${quote("bttsNo")}", 11, true, Color.WHITE)
+                    marketRow("ОЗ ДА", pct(pred, "bttsYes"), quote("bttsYes"))
                     addText(mainMarkets, "ТОТАЛ МАТЧА", 9, true, muted)
                     for ((line, key) in listOf(1.5 to "over15", 2.5 to "over25", 3.5 to "over35")) {
-                        addText(mainMarkets, "ТБ ${fmt(line)}: ${pct(pred, key)} · кэф ${totalQuote(line, "over")}", 11, false, Color.WHITE)
+                        marketRow("ТБ ${fmt(line)}", pct(pred, key), totalQuote(line, "over"))
                     }
                     addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 9, true, muted)
                     for ((teamKey, teamName, sideKey) in listOf(Triple("home", m.optString("home"), "home"), Triple("away", m.optString("away"), "away"))) {
                         addText(mainMarkets, teamName, 11, true, accent)
                         for ((line, suffix) in listOf(0.5 to "05", 1.5 to "15", 2.5 to "25", 3.5 to "35")) {
                             val probKey = "${teamKey}Over${suffix}"
-                            addText(mainMarkets, "ИТБ ${fmt(line)}: ${pct(pred, probKey)} · кэф ${totalQuote(line, "over", sideKey)}", 11, false, Color.WHITE)
+                            marketRow("ИТБ ${fmt(line)}", pct(pred, probKey), totalQuote(line, "over", sideKey))
                         }
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
