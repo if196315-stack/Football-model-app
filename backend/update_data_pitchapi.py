@@ -62,7 +62,7 @@ def build_model_frames(cache: dict):
                         "xg": away_xg, "xg_against": home_xg})
         results.append({**common, "home_team": row["home"], "away_team": row["away"], "home_score": home_score, "away_score": away_score})
     s = pd.DataFrame(history, columns=["comp", "date", "match_id", "team", "side", "xg", "xg_against"])
-    matches = pd.DataFrame(results, columns=["comp", "date", "match_id", "home_score", "away_score"])
+    matches = pd.DataFrame(results, columns=["comp", "date", "match_id", "home_team", "away_team", "home_score", "away_score"])
     if s.empty:
         base = {(c, side): None for c in MAP for side in ("home", "away")}
         return s, base, matches
