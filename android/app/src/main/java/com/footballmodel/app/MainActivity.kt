@@ -1532,24 +1532,12 @@ class MainActivity : Activity() {
     }
 
     private fun renderHelp() {
-        fun section(title: String, body: String) {
-            val box = card()
-            addText(box, title, 14, true, accent)
-            addText(box, body, 12, false, Color.WHITE)
-        }
-        screenHeader("IQ MATCH · PROFILE", "Профиль и справка", "О платформе, модели, источниках данных и правилах использования.")
+        screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки банка и состояние фоновых обновлений.")
         val profile = card()
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
-        addText(profile, "Аналитическая платформа футбольных матчей", 11, false, muted)
         addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
         addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
         actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
-        addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / BetBoom", 10, false, muted)
-
-        val dashboard = card()
-        addText(dashboard, "LIVE MODEL DASHBOARD", 10, true, cyan)
-        addText(dashboard, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
-        addText(dashboard, "Последнее обновление: ${formatSourceTimestamp((data ?: JSONObject()).optString("updatedAt"))} · местное время", 10, false, muted)
 
         val workerCard = card()
         val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
@@ -1563,18 +1551,6 @@ class MainActivity : Activity() {
         workerCard.addView(workerStatusTextView)
         workerCard.addView(workerMessageTextView)
         workerCard.addView(workerCountTextView)
-        section("1. КАК РАБОТАЕТ МОДЕЛЬ",
-            "Модель оценивает ожидаемые голы по историческим данным PitchAPI и рассчитывает вероятности распределением Пуассона. В AI дополнительно учитывается форма последних 5 матчей и домашняя/гостевая форма из уже загруженных результатов. Она влияет на фильтр сильных ставок ограниченной поправкой, но не переписывает вероятность xG. Параметры xG: последние 30 матчей, half-life 12, shrinkage 3.")
-        section("2. ОСНОВНЫЕ РЫНКИ",
-            "1X — победа хозяев или ничья.\nX2 — победа гостей или ничья.\nИТБ 1.5 — команда забьёт минимум 2 гола.\nДля ставок доступны только поддерживаемые ненулевые форы.")
-        section("3. ДОПОЛНИТЕЛЬНЫЕ РЫНКИ",
-            "ОЗ — да: обе команды забьют хотя бы по одному голу. Рынок ОЗ — нет отключён.\nВ карточках отображаются только тоталы БОЛЬШЕ: общие и индивидуальные.\nВероятности рассчитываются по xG независимым распределением Пуассона. Котировки доступны только при наличии свежих данных BetBoom от API-Sport.")
-        section("4. AI И СИЛЬНЕЙШИЙ СИГНАЛ",
-            "В AI показываются матчи на сегодня и ближайшие 30 дней. Для UEFA используются серверные paper-сигналы с edge после удаления маржи, p ≥60%, EV ≥5% и актуальной ценой BetBoom. Для остальных лиг — положительный сигнал и реальная цена BetBoom от 1.50; жёсткого ограничения возраста котировки в 5 минут нет. Это не гарантия value или прибыли.")
-        section("5. АНАЛИЗ",
-            "Для каждого рынка показываются попадания и их доля, разбивка по уверенности 50–59%, 60–69%, 70–79% и 80%+, Brier Score и Log Loss. Уверенность — max(p, 1−p), то есть вероятность выбранной стороны. Чем ниже Brier Score и Log Loss, тем лучше.")
-        section("6. ИСТОЧНИКИ И ОГРАНИЧЕНИЯ",
-            "PitchAPI — источник расписания, результатов и shot-level xG. API-Sport — источник котировок только BetBoom. Неполный xG не заменяется нулём; матчи без парного xG не участвуют в xG-обучении. Статистика «Анализа» — мониторинг сохранённых прогнозов, а не независимый тест и не показатель доходности. Для оценки прибыли нужны реальные коэффициенты BetBoom на момент прогноза и walk-forward проверка.")
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
