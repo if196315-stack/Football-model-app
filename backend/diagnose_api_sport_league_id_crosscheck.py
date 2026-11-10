@@ -1,12 +1,15 @@
 """Read-only league-ID cross-check for all upcoming PitchAPI fixtures in seven competitions.
 
-Uses the canonical API-Sport tournament IDs resolved by the companion lookup.
+Uses canonical API-Sport tournament IDs resolved by the companion lookup.
+The scan uses bounded 28-day windows to stay within the provider's date-range
+constraints. No production fixtures, odds, caches, predictions, or paper bets
+are modified.
 """
 import json
 import os
 import sys
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -17,9 +20,11 @@ from diagnose_seven_competition_api_sport import all_upcoming_fixtures
 from update_odds_api_sport import match_fixture
 
 BASE = "https://api.api-sport.ru/v2/football/matches"
+USAGE_URL = "https://api.api-sport.ru/v2/account/usage"
 TIMEOUT = 45
 PAGE_SIZE = 500
 MAX_PAGES = 5
+WINDOW_DAYS = 28
 TOURNAMENT_IDS = {
     "PL": 17,
     "PD": 8,
@@ -46,6 +51,14 @@ def tournament_id(match):
     return tournament.get("id") if isinstance(tournament, dict) else None
 
 
+def windows(start, end):
+    cursor = start
+    while cursor <= end:
+        stop = min(cursor + timedelta(days=WINDOW_DAYS - 1), end)
+        yield cursor, stop
+        cursor = stop + timedelta(days=1)
+
+
 def main():
     key = os.getenv("API_SPORT_KEY", "").strip()
     if not key:
@@ -53,44 +66,59 @@ def main():
     domestic = json.loads((ROOT / "docs" / "data.json").read_text(encoding="utf-8"))
     uefa = json.loads((ROOT / "docs" / "uefa-data.json").read_text(encoding="utf-8"))
     fixtures = all_upcoming_fixtures(domestic, uefa)
+    if not fixtures:
+        raise SystemExit("No upcoming fixtures in the checked-in PitchAPI calendar snapshots.")
+
     by_comp = defaultdict(list)
     for fixture in fixtures:
         by_comp[fixture["competition"]].append(fixture)
+    all_dates = [date.fromisoformat(row["date"]) for row in fixtures]
+    start_date, end_date = min(all_dates), max(all_dates)
 
     session = requests.Session()
     session.headers.update({"Authorization": key, "Accept": "application/json"})
-    results = {}
-    request_count = 0
-    truncated = []
-    for code, expected_id in TOURNAMENT_IDS.items():
-        targets = by_comp.get(code, [])
-        if not targets:
-            results[code] = {"expectedTournamentId": expected_id, "targetFixtures": 0}
-            continue
-        dates = [date.fromisoformat(row["date"]) for row in targets]
-        date_from, date_to = min(dates).isoformat(), max(dates).isoformat()
-        candidates = []
+    usage_response = session.get(USAGE_URL, timeout=TIMEOUT)
+    usage_response.raise_for_status()
+    usage_payload = usage_response.json()
+    usage = usage_payload.get("usage") or {}
+    print("ACCOUNT_USAGE=" + json.dumps({
+        "dailyRequestLimit": usage_payload.get("dailyRequestLimit"),
+        "today": usage.get("today"),
+        "remaining": usage.get("remaining"),
+    }, ensure_ascii=False))
+
+    all_rows = []
+    request_count = 1
+    truncated_windows = []
+    for first, last in windows(start_date, end_date):
+        window_rows = []
         for page in range(1, MAX_PAGES + 1):
             response = session.get(BASE, params={
-                "date_from": date_from,
-                "date_to": date_to,
-                "tournament_id": expected_id,
+                "date_from": first.isoformat(),
+                "date_to": last.isoformat(),
                 "exclude_amateur": "true",
                 "page": page,
                 "page_size": PAGE_SIZE,
                 "sort": "asc",
             }, timeout=TIMEOUT)
-            response.raise_for_status()
+            if not response.ok:
+                raise RuntimeError(
+                    f"API-Sport returned {response.status_code} for "
+                    f"{first.isoformat()}..{last.isoformat()}: {response.text[:500]}"
+                )
             request_count += 1
             rows = response_items(response.json())
-            candidates.extend(rows)
+            window_rows.extend(rows)
             if len(rows) < PAGE_SIZE:
                 break
         else:
-            truncated.append(code)
+            truncated_windows.append(f"{first.isoformat()}..{last.isoformat()}")
+        all_rows.extend(window_rows)
 
-        correct_id_rows = [row for row in candidates if tournament_id(row) == expected_id]
-        unexpected_ids = sorted({str(tournament_id(row)) for row in candidates if tournament_id(row) != expected_id})
+    results = {}
+    for code, expected_id in TOURNAMENT_IDS.items():
+        targets = by_comp.get(code, [])
+        correct_rows = [row for row in all_rows if tournament_id(row) == expected_id]
         matched = 0
         missing = []
         for target in targets:
@@ -98,7 +126,7 @@ def main():
                 "utcDate": target["utcDate"],
                 "home": target["home"],
                 "away": target["away"],
-            }, correct_id_rows)
+            }, correct_rows)
             if found:
                 matched += 1
             else:
@@ -106,9 +134,7 @@ def main():
         results[code] = {
             "expectedTournamentId": expected_id,
             "targetFixtures": len(targets),
-            "apiSportRowsReturned": len(candidates),
-            "rowsWithExpectedTournamentId": len(correct_id_rows),
-            "unexpectedTournamentIds": unexpected_ids,
+            "apiSportRowsWithExpectedTournamentId": len(correct_rows),
             "matchedWithinExpectedTournament": matched,
             "unmatchedTargets": missing,
         }
@@ -116,10 +142,11 @@ def main():
     summary = {
         "pitchApiUpcomingFixtures": len(fixtures),
         "competitionsCovered": sorted(by_comp),
-        "matchedWithinExpectedTournament": sum(row.get("matchedWithinExpectedTournament", 0) for row in results.values()),
+        "matchedWithinExpectedTournament": sum(row["matchedWithinExpectedTournament"] for row in results.values()),
         "totalTargetFixtures": len(fixtures),
-        "truncatedCompetitionsAtPageLimit": truncated,
-        "apiRequests": request_count,
+        "apiSportRowsScanned": len(all_rows),
+        "truncatedWindowsAtPageLimit": truncated_windows,
+        "apiRequestsIncludingFreeUsageCheck": request_count,
         "readOnly": True,
         "productionSourcesOrFiltersChanged": False,
     }
