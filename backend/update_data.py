@@ -175,14 +175,10 @@ def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
         "homeTeam":home,"awayTeam":away}
       adjustment = form_adjustment(item, home_form or {}, away_form or {})
       item["formAdjustmentPp"] = adjustment
-      lineup_adjustment, lineup_context = lineup_selection_adjustment(
-          item, lineups or {}, predicted_lineups or {}
-      )
-      item["lineupAdjustmentPp"] = lineup_adjustment
-      item["lineupContext"] = lineup_context
-      item["selectionEdgePp"] = round(item["edgePp"] + adjustment + lineup_adjustment, 2)
+      # API-Football lineups are descriptive context only and never affect
+      # probabilities, EV, signal ranking, or selection filters.
+      item["selectionEdgePp"] = round(item["edgePp"] + adjustment, 2)
       item["formContextUsed"] = adjustment != 0.0
-      item["lineupContextUsed"] = lineup_adjustment != 0.0
       if best is None or item["selectionEdgePp"] > best["selectionEdgePp"]:best=item
     if best is not None and best["selectionEdgePp"]<=0:best["noPositiveSignal"]=True
     return best
