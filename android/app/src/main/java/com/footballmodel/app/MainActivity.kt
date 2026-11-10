@@ -853,7 +853,7 @@ class MainActivity : Activity() {
             setPadding(dp(4), dp(4), dp(4), dp(4))
             background = rounded(Color.rgb(13, 23, 39), 15)
         }
-        listOf("working" to "СТРАТЕГИЯ", "observed" to "НАБЛЮДАЕМЫЕ КОТИРОВКИ").forEach { (key, title) ->
+        listOf("working" to "РАБОЧИЕ СТАВКИ", "observed" to "НАБЛЮДАЕМЫЕ КОТИРОВКИ").forEach { (key, title) ->
             val selected = statsSubsection == key
             val tab = label(title, 10, true, if (selected) bg else muted).apply {
                 gravity = Gravity.CENTER
