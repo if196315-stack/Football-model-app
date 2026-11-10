@@ -35,7 +35,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
-            AiMatchNotifications.notifyNewCandidates(applicationContext, domestic)
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
@@ -62,6 +61,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             newAutoBets.forEach { bet ->
                 PaperBetNotifications.show(applicationContext, bet)
             }
+            // Paper-bet notifications take priority; AI-only notification is sent only if no ticket was locked.
+            AiMatchNotifications.notifyNewCandidates(applicationContext, domestic)
             settings.edit()
                 .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
                 .putString("paper_worker_last_status", "SUCCESS")
