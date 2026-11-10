@@ -212,6 +212,8 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+        PaperBetNotifications.ensureChannel(this)
+        PaperBetNotifications.requestPermissionIfNeeded(this)
     }
 
     override fun onResume() {
