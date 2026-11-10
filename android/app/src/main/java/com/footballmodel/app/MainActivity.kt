@@ -1262,20 +1262,24 @@ class MainActivity : Activity() {
                 val match = matches.optJSONObject(j) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
                 val kickoff = parseFeedTimeMillis(match.optString("utcDate")) ?: continue
-                val hoursToKickoff = (kickoff - now) / 3600000.0
-                if (hoursToKickoff < 0.0 || hoursToKickoff > 12.0) continue
-                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }
+                val kickoffDate = dayFormat.format(java.util.Date(kickoff))
                 val today = dayFormat.format(java.util.Date(now))
-                if (dayFormat.format(java.util.Date(kickoff)) != today) continue
+                val endDate = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                    add(java.util.Calendar.DAY_OF_YEAR, 30)
+                }.let { dayFormat.format(it.time) }
+                if (kickoffDate < today || kickoffDate > endDate) continue
                 val odds = match.optJSONObject("odds") ?: continue
                 val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
-                // Do not reintroduce the removed five-minute cutoff: any actual BetBoom quote
-                // updated in the final 12h window is eligible when a new feed snapshot arrives.
-                if (quoteUpdatedAt < kickoff - 12L * 60L * 60L * 1000L || quoteUpdatedAt > now) continue
+                // Lock the visible BetBoom quote when the candidate first qualifies in the AI window.
+                if (quoteUpdatedAt > now) continue
                 val signal = (match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaPaperSignal(match) else null)
                     ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                    signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, match) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
                 val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
