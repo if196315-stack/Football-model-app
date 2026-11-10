@@ -122,7 +122,7 @@ def main():
     }, ensure_ascii=False))
 
     by_date = defaultdict(list)
-    for sample in samples:
+    for sample in fixtures:
         by_date[sample["date"]].append(sample)
 
     from update_odds_api_sport import match_fixture, parse_odds
