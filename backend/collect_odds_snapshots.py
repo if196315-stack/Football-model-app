@@ -69,6 +69,7 @@ def _quote(common: dict, market: str, price: Any, **fields) -> dict | None:
 
 def snapshot_rows(data: dict, captured_at: str | None = None):
     captured_at = captured_at or datetime.now(timezone.utc).isoformat()
+    prediction_archive = (data.get("predictionArchive") or {}).get("matches") or {}
     for competition in data.get("competitions", []):
         source_league = str(competition.get("code") or "")
         league_code = LEAGUE_CODES.get(source_league, source_league)
@@ -88,6 +89,8 @@ def snapshot_rows(data: dict, captured_at: str | None = None):
             home, away = match.get("home"), match.get("away")
             if not fixture_id or not home or not away:
                 continue
+            frozen_prediction = prediction_archive.get(fixture_id) or {}
+            prediction = frozen_prediction.get("prediction") or match.get("prediction") or {}
             common = {
                 "schema_version": 2,
                 "captured_at": captured_at,
@@ -103,8 +106,8 @@ def snapshot_rows(data: dict, captured_at: str | None = None):
                 "freshness_status": odds.get("freshnessStatus") or "unknown",
                 "market_parser_version": PARSER_VERSION,
                 "model_version": data.get("modelVersion"),
-                "model_prediction_captured_at": match.get("predictionCapturedAt"),
-                "_prediction": match.get("prediction") or {},
+                "model_prediction_captured_at": frozen_prediction.get("predictionCapturedAt"),
+                "_prediction": prediction,
             }
 
             for outcome, price in (board.get("doubleChance") or {}).items():
