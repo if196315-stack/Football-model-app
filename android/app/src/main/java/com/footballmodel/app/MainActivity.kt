@@ -1212,7 +1212,7 @@ class MainActivity : Activity() {
                 if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, match) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
-                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0) + signal.optDouble("lineupAdjustmentPp", 0.0)
+                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
                 val ev = probability * price - 1.0
                 if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
                 val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
@@ -1780,7 +1780,7 @@ class MainActivity : Activity() {
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("selectionEdgePp", signal.optDouble("edgePp")) <= 0.0 || signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 || signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
                 candidates.add(Triple(m, league.optString("name"), signal))
@@ -1795,7 +1795,7 @@ class MainActivity : Activity() {
             if (signal.optBoolean("paperOnly")) {
                 probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
             } else {
-                val impliedEdge = probability - 1.0 / price + (signal.optDouble("formAdjustmentPp", 0.0) + signal.optDouble("lineupAdjustmentPp", 0.0)) / 100.0
+                val impliedEdge = probability - 1.0 / price + signal.optDouble("formAdjustmentPp", 0.0) / 100.0
                 probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
             }
         }.sortedWith(
@@ -1821,8 +1821,7 @@ class MainActivity : Activity() {
             val baseline = signal.optDouble("baselineProbability", Double.NaN)
             val edge = signal.optDouble("edgePp", Double.NaN)
             val formAdjustment = signal.optDouble("formAdjustmentPp", 0.0)
-            val lineupAdjustment = signal.optDouble("lineupAdjustmentPp", 0.0)
-            val odds = topSignalOdds(signal, m) ?: return@forEachIndexed
+             val odds = topSignalOdds(signal, m) ?: return@forEachIndexed
             val implied = 1.0 / odds
             val ev = p * odds - 1.0
             val box = card()
@@ -1838,7 +1837,7 @@ class MainActivity : Activity() {
                 addText(box, "Преимущество над рыночным порогом: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
             } else {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
-                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Поправка формы: ${if (formAdjustment >= 0) "+" else ""}${String.format(Locale.US, "%.1f", formAdjustment)} п.п.; поправка подтверждённого состава: ${String.format(Locale.US, "%.1f", lineupAdjustment)} п.п. учитываются в фильтре, но не меняют вероятность xG.", 11, false, muted)
+                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п. Поправка формы: ${if (formAdjustment >= 0) "+" else ""}${String.format(Locale.US, "%.1f", formAdjustment)} п.п. учитывается в фильтре. Данные API-Football о составах носят справочный характер и не влияют на расчёты.", 11, false, muted)
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
@@ -1854,7 +1853,7 @@ class MainActivity : Activity() {
             }
             val lineups = m.optJSONObject("lineups")
             if (lineups != null) {
-                addText(box, "СОСТАВЫ · PITCHAPI", 10, true, cyan)
+                addText(box, "СОСТАВЫ · API-FOOTBALL", 10, true, cyan)
                 fun lineupSummary(sideKey: String, teamName: String): String {
                     val side = lineups.optJSONObject(sideKey) ?: return "$teamName: состав не получен"
                     val confirmed = side.optBoolean("confirmed", false)
@@ -1868,6 +1867,7 @@ class MainActivity : Activity() {
                 }
                 addText(box, lineupSummary("home", m.optString("home")), 10, false, Color.WHITE)
                 addText(box, lineupSummary("away", m.optString("away")), 10, false, Color.WHITE)
+                addText(box, "Справочная информация: составы не изменяют вероятности модели, EV или отбор AI-сигналов.", 10, false, muted)
                 addText(box, "Прогнозный состав не считается подтверждённым. Отсутствие игрока в списке не трактуется как травма.", 10, false, muted)
             }
             addText(box, "РИСКИ", 10, true, gold)
