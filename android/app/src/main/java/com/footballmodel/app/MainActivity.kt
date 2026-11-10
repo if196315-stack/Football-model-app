@@ -1863,21 +1863,6 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
-        val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
-        val highWater = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull() ?: initialBankroll()
-        val currentForRisk = currentBankroll()
-        val drawdownPct = if (highWater > 0.0) ((highWater - currentForRisk) / highWater * 100.0).coerceAtLeast(0.0) else 0.0
-        if (paperStopped || drawdownPct >= 5.0) {
-            val riskCard = card()
-            addText(riskCard, if (paperStopped) "АВТОСТАВКИ ОСТАНОВЛЕНЫ · ПРОСАДКА ≥ 10%" else "ПАУЗА АВТОСТАВОК · ПРОСАДКА ≥ 5%", 11, true, Color.RED)
-            addText(riskCard, "Просадка от локального максимума: ${String.format(Locale.US, "%.1f%%", drawdownPct)}. Новые бумажные ставки не открываются до восстановления или ручного сброса после проверки.", 11, false, muted)
-            if (paperStopped) actionButton(riskCard, "Сбросить после проверки банка") {
-                settingsPrefs.edit().putBoolean("paper_auto_stopped", false)
-                    .putString("paper_high_watermark", currentBankroll().toString()).apply()
-                tabViewCache.clear()
-                render()
-            }
-        }
         val bank = currentBankroll()
 
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
@@ -1965,21 +1950,10 @@ class MainActivity : Activity() {
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
             addText(box, "EV = p × коэффициент − 1; показатель не учитывает маржу, ошибку калибровки и неопределённость модели.", 10, false, muted)
-            val form = m.optJSONObject("prediction")?.optJSONObject("teamForm")
-            if (form != null) {
-                val hf = form.optJSONObject("home") ?: JSONObject()
-                val af = form.optJSONObject("away") ?: JSONObject()
-                addText(box, "ФОРМА · ПОСЛЕДНИЕ 5 МАТЧЕЙ", 10, true, cyan)
-                addText(box, "${m.optString("home")}: ${hf.optString("form", "нет данных")} · ${hf.optInt("matches")} матчей · ${hf.optString("pointsPerGame", "—")} очка/матч · дома: ${hf.optString("venueForm", "—")}", 10, false, Color.WHITE)
-                addText(box, "${m.optString("away")}: ${af.optString("form", "нет данных")} · ${af.optInt("matches")} матчей · ${af.optString("pointsPerGame", "—")} очка/матч · в гостях: ${af.optString("venueForm", "—")}", 10, false, Color.WHITE)
-                addText(box, "Форма влияет на фильтр сильной ставки ограниченной поправкой до ±1,5 п.п.; вероятность модели не переписывается.", 10, false, muted)
-            }
-            addText(box, "РИСКИ", 10, true, gold)
-            addText(box, "Историческая частота может не отражать текущую силу команд. Перепроверь цену в BetBoom перед ставкой; если коэффициент ниже 1.50 или ухудшился — пропускаем.", 11, false, muted)
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Окно отбора — 30 дней. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Только реальные котировки BetBoom; фильтра давности в 5 минут нет. Риск: ставка 1% банка (минимум БК 25 ₽), максимум 1% на матч без дневного лимита суммарной нагрузки.", 11, false, muted)
+        addText(footer, "Окно отбора — 30 дней. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Используются реальные котировки BetBoom.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
