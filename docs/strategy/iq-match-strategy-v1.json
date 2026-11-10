@@ -9,7 +9,6 @@
   "minimumModelProbability": 0.6,
   "minimumEdge": 0.05,
   "minimumEV": 0.05,
-  "maxOddsAgeMinutes": null,
   "baseStakePercent": 1,
   "reducedStakePercent": 1,
   "maxStakePercent": 1,
