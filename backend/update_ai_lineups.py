@@ -17,8 +17,8 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from football_api_lineups import refresh_lineups
 from pitchapi_data_source import CACHE_PATH, load_cache, save_cache
-from update_data_pitchapi import build_model_frames, comp_for_code
-from update_data import MAP, match_name, strengths, predict
+from update_data_pitchapi import build_model_frames
+from update_data import MAP, strengths, predict
 
 DATA_PATH = ROOT / "docs" / "data.json"
 
@@ -173,7 +173,7 @@ def run() -> dict:
     summary = refresh_lineups(
         cache, api_key,
         eligible_match_ids=set(candidates),
-        max_lineup_requests=run_limit,
+        max_lineup_requests=None,
         max_api_requests=run_limit,
         daily_request_limit=daily_limit,
         horizon_hours=30 * 24,
