@@ -250,3 +250,26 @@ Run [42909406938](https://github.com/if196315-stack/Football-model-app/actions/r
 Подтверждено: исторический хронологический backtest воспроизводится, unit tests проходят, текущая read-only диагностика API-Sport отработала без изменения данных, а проверенные 5 ENG fixtures имеют BetBoom prematch boards.
 
 Остаётся не подтверждено: актуальное league-by-league fixture/market coverage для всех семи турниров на одной временной точке, длительная price-aware доходность/CLV и устойчивость калибровки на следующем независимом временном окне. Для закрытия этих пунктов нужен отдельный ограниченный API-Sport/PitchAPI coverage run и дальнейшее накопление snapshot + settlement истории; это не следует подменять общим mixed-league sample.
+
+
+## 11. Seven-competition API-Sport spot-check (2026-11-10 22:50 UTC)
+
+A bounded read-only diagnostic was implemented and executed from PR #87 (not merged into production). It selected the nearest upcoming fixture in each of the seven feeds and checked exact fixture identity plus BetBoom board presence.
+
+Run [42918105199](https://github.com/if196315-stack/Football-model-app/actions/runs/42918105199) completed successfully. The unit-test step passed and the diagnostic made 14 API-Sport requests.
+
+| Competition | Selected fixture | Exact API-Sport match | BetBoom board | Open market slugs in exact detail |
+|---|---|---:|---:|---|
+| ENG / PL | Manchester City — Fulham | Yes | Yes | result, double chance, total, BTTS, handicap |
+| ESP / PD | Athletic Club — Espanyol | Yes | Yes | result, double chance, total, BTTS, handicap |
+| ITA / SA | Lazio — Lecce | Yes | Yes | result, double chance, total, BTTS, handicap |
+| GER / BL1 | Bayern München — 1. FC Köln | Yes | Yes | result, double chance, total, BTTS, handicap |
+| FRA / FL1 | Troyes — Le Havre | Yes | Yes | result, double chance, total, BTTS, handicap |
+| UCL | Arsenal — Borussia Dortmund | Yes | Yes | main markets plus first/second-half markets and team totals |
+| UEL | Beşiktaş — Hapoel Beer Sheva | Yes | Yes | main markets plus first/second-half markets and team totals |
+
+**Spot-check result: 7/7 exact fixture matches and 7/7 BetBoom boards.** No target competition was missing from the sample. API-Sport account reported 50,000 daily limit, 174 requests used and 49,826 remaining at that diagnostic time.
+
+Important limitation: the exact-fixture details response returned market stage as unspecified and did not expose the prematch-active flag, even though open market slugs and BetBoom boards were present. Therefore this test confirms fixture identity and board presence, but not that every listed market is eligible for the production prematch parser. Production ingestion still independently requires its existing prematch stage checks. No odds were written and no model/worker settings were changed.
+
+The diagnostic and workflow are in [PR #87](https://github.com/if196315-stack/Football-model-app/pull/87), currently unmerged. The PR changes only read-only diagnostics and tests; it does not change the production model or ingestion.
