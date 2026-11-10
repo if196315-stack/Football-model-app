@@ -838,16 +838,18 @@ class MainActivity : Activity() {
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
-                    AiMatchNotifications.notifyNewCandidates(this, json)
                     val changed = payload != lastPayload
                     if (changed) {
                         data = json
                         lastPayload = payload
-                        processAutoPaperBets(json)
+                        val newAutoBets = processAutoPaperBets(json)
+                        newAutoBets.forEach { PaperBetNotifications.show(this, it) }
                         tabViewCache.clear()
                         renderedKey = null
                         render()
-                    } else {
+                    }
+                    AiMatchNotifications.notifyNewCandidates(this, json)
+                    if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }
                     refreshButton.isEnabled = true
@@ -1228,15 +1230,16 @@ class MainActivity : Activity() {
 
     // Lock a paper bet as soon as the visible AI candidate qualifies in the next-30-day window.
     // The stored odds and quote timestamp remain fixed through settlement.
-    private fun processAutoPaperBets(json: JSONObject) {
-        synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
+    private fun processAutoPaperBets(json: JSONObject): List<JSONObject> {
+        return synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
     }
 
-    private fun processAutoPaperBetsUnlocked(json: JSONObject) {
+    private fun processAutoPaperBetsUnlocked(json: JSONObject): List<JSONObject> {
         // Reload persisted worker changes before foreground processing.
         bets = try { JSONArray(betPrefs.getString("bets", bets.toString())) } catch (_: Exception) { bets }
         val now = System.currentTimeMillis()
         var changed = false
+        val newAutoBets = mutableListOf<JSONObject>()
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("status") == "PENDING" && existing.optString("marketKey") != "COUPON") {
@@ -1308,7 +1311,7 @@ class MainActivity : Activity() {
                         prior.optString("status") in listOf("PENDING", "WON", "LOST", "PUSH")) dailyExposure += prior.optDouble("stake", 0.0)
                 }
                 if (dailyExposure + stake > bank * 0.05 + 0.000001) continue
-                bets.put(JSONObject()
+                val newBet = JSONObject()
                     .put("id", id)
                     .put("source", "AI_AUTO")
                     .put("status", "PENDING")
@@ -1328,11 +1331,14 @@ class MainActivity : Activity() {
                     .put("quoteUpdatedAt", odds.optString("updatedAt"))
                     .put("createdAt", now)
                     .put("matchStatus", "SCHEDULED")
-                    .put("score", ""))
+                    .put("score", "")
+                bets.put(newBet)
+                newAutoBets.add(JSONObject(newBet.toString()))
                 changed = true
             }
         }
         if (changed) saveBets()
+        return newAutoBets
     }
 
     private fun saveBets(preserveBackgroundAuto: Boolean = true) {
