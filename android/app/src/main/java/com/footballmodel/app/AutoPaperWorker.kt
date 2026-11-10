@@ -169,7 +169,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 for (bi in 0 until bets.length()) {
                     val prior = bets.optJSONObject(bi) ?: continue
                     if ((prior.optString("betDay").ifBlank { prior.optString("date").take(10) } == dayKey) &&
-                        prior.optString("status") in listOf("PENDING", "WON", "LOST")) daily += prior.optDouble("stake")
+                        prior.optString("status") in listOf("PENDING", "WON", "LOST", "PUSH")) daily += prior.optDouble("stake")
                 }
                 if (daily + stake > bank * 0.05 + 0.000001) continue
 
