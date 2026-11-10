@@ -183,14 +183,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
                 val bank = currentBank(bets)
                 val stake = max(bank * 0.01, 25.0)
-                val dayKey = kickoffDate
-                var daily = 0.0
-                for (bi in 0 until bets.length()) {
-                    val prior = bets.optJSONObject(bi) ?: continue
-                    if ((prior.optString("betDay").ifBlank { prior.optString("date").take(10) } == dayKey) &&
-                        prior.optString("status") in listOf("PENDING", "WON", "LOST", "PUSH")) daily += prior.optDouble("stake")
-                }
-                if (daily + stake > bank * 0.05 + 0.000001) continue
+                // No daily exposure cap: every qualifying AI signal is paper-logged.
 
                 bets.put(JSONObject()
                     .put("id", "AI_AUTO:$matchId:$key")
