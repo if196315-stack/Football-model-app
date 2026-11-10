@@ -75,7 +75,7 @@ def _normalize_side(raw: dict) -> dict:
     }
 
 
-def normalize_lineups(payload: Any) -> dict | None:
+def normalize_lineups(payload: Any, home_team: str | None = None, away_team: str | None = None) -> dict | None:
     if not isinstance(payload, list) or len(payload) < 2:
         return None
     by_side = {}
@@ -88,7 +88,13 @@ def normalize_lineups(payload: Any) -> dict | None:
             by_side[name] = _normalize_side(side)
     if len(by_side) != 2:
         return None
-    sides = list(by_side.values())
+    if home_team and away_team:
+        home_side, away_side = by_side.get(_team_key(home_team)), by_side.get(_team_key(away_team))
+        if home_side is None or away_side is None:
+            return None
+        sides = [home_side, away_side]
+    else:
+        sides = list(by_side.values())
     if not all(len(side["starters"]) == 11 for side in sides):
         return None
     return {"source": "API-Football", "home": sides[0], "away": sides[1]}
@@ -196,7 +202,7 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
         attempted += 1
         try:
             payload = _api_get(session, "/fixtures/lineups", api_key, {"fixture": mapped})
-            lineups = normalize_lineups(payload)
+            lineups = normalize_lineups(payload, row.get("home"), row.get("away"))
             if lineups is not None:
                 row["lineups"] = lineups
                 row.pop("predictedLineups", None)
