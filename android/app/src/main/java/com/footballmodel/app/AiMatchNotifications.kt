@@ -131,7 +131,7 @@ internal object AiMatchNotifications {
             else Notification.Builder(context)
         val notification = builder
             .setSmallIcon(context.applicationInfo.icon)
-            .setContentTitle("Новый матч в AI")
+            .setContentTitle("Новая ставка в AI")
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
             .setContentIntent(pending)
