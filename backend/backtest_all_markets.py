@@ -445,6 +445,28 @@ def main():
         values["mean_brier_delta_vs_raw"] = values.pop("brier_delta_sum") / n if n else None
         values["mean_log_loss_delta_vs_raw"] = values.pop("log_loss_delta_sum") / n if n else None
 
+    holdout_skill = {}
+    holdout_skill_by_competition = {}
+    for market, metrics in report["markets"].items():
+        if market in ("DNB_HOME", "DNB_AWAY"):
+            continue
+        holdout = metrics.get("holdout")
+        if holdout:
+            holdout_skill[market] = {
+                "n": holdout["model"]["n"],
+                "brier_skill": holdout["brier_skill"],
+                "log_loss_skill": holdout["log_loss_skill"],
+            }
+        holdout_skill_by_competition[market] = {
+            league: {
+                "n": values["model"]["n"],
+                "brier_skill": values["brier_skill"],
+                "log_loss_skill": values["log_loss_skill"],
+            }
+            for league, values in metrics.get("holdout_by_competition", {}).items()
+            if values
+        }
+
     print(json.dumps({
         "input_matches": report["input_matches"],
         "input_matches_by_competition": report["input_matches_by_competition"],
@@ -455,6 +477,8 @@ def main():
             market: metrics["holdout"]["model"]["n"] if metrics["holdout"] else 0
             for market, metrics in report["markets"].items()
         },
+        "holdout_skill_vs_expanding_frequency": holdout_skill,
+        "holdout_skill_by_competition": holdout_skill_by_competition,
         "calibration_global": calibration_global,
         "calibration_by_competition": calibration_by_competition,
     }, ensure_ascii=False))
