@@ -599,6 +599,41 @@ class MainActivity : Activity() {
     private fun pct(o: JSONObject, key: String): String =
         if (o.isNull(key)) "—" else String.format(Locale.US, "%.0f%%", o.optDouble(key) * 100.0)
 
+    private fun kickoffTimestamp(match: JSONObject): Long? {
+        val timestamp = match.optLong("startTimestamp", 0L)
+        if (timestamp > 0L) return if (timestamp < 10_000_000_000L) timestamp * 1000L else timestamp
+        val raw = match.optString("utcDate").ifBlank { match.optString("dateEvent") }
+        if (raw.isBlank()) return null
+        val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd'T'HH:mm:ssX", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd")
+        for (pattern in patterns) {
+            try {
+                val parser = SimpleDateFormat(pattern, Locale.US).apply { isLenient = false; timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                val parsed = parser.parse(raw) ?: continue
+                return parsed.time
+            } catch (_: Exception) { }
+        }
+        return null
+    }
+
+    private fun kickoffLabel(match: JSONObject): String {
+        val raw = match.optString("utcDate").ifBlank { match.optString("dateEvent") }
+        val millis = kickoffTimestamp(match) ?: return "Дата и время начала не указаны"
+        val hasTime = raw.contains("T") || match.optLong("startTimestamp", 0L) > 0L
+        val formatted = SimpleDateFormat(if (hasTime) "EEE, dd MMM · HH:mm" else "EEE, dd MMM", Locale.getDefault())
+            .apply { timeZone = java.util.TimeZone.getDefault() }.format(Date(millis))
+        return if (hasTime) "$formatted · местное время" else "$formatted · время начала не указано"
+    }
+
+    private fun formatLocalTimestamp(millis: Long): String =
+        if (millis <= 0L) "—" else SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+            .format(Date(millis))
+
+    private fun formatSourceTimestamp(raw: String): String {
+        if (raw.isBlank()) return "—"
+        val millis = kickoffTimestamp(JSONObject().put("utcDate", raw)) ?: return raw.replace("T", " ").take(19)
+        return formatLocalTimestamp(millis)
+    }
+
     private fun date(raw: String): String = try {
         val input = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
         input.timeZone = java.util.TimeZone.getTimeZone("UTC")
@@ -673,7 +708,10 @@ class MainActivity : Activity() {
                     }
                 }
                 val payload = json.toString()
-                feedCache.edit().putString("merged_json", payload).apply()
+                feedCache.edit()
+                    .putString("merged_json", payload)
+                    .putLong("last_successful_check_ms", System.currentTimeMillis())
+                    .apply()
                 runOnUiThread {
                     val changed = payload != lastPayload
                     if (changed) {
@@ -684,7 +722,7 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     } else {
-                        statusView.text = "●  Данные актуальны · без изменений"
+                        statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }
                     refreshButton.isEnabled = true
                     loadInProgress.set(false)
@@ -1272,9 +1310,8 @@ class MainActivity : Activity() {
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
         addText(profile, "Аналитическая платформа футбольных матчей", 11, false, muted)
         addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
-        addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽ · цель: ${fmt(targetBankroll())} ₽", 12, false, muted)
+        addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
         actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
-        actionButton(profile, "Изменить целевую сумму") { showBankSettingDialog("target_bankroll", "Целевая сумма", targetBankroll(), "Цель влияет только на отображение прогресса, не на отбор сигналов и риск.") }
         addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / BetBoom", 10, false, muted)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
@@ -1471,11 +1508,6 @@ class MainActivity : Activity() {
                 render()
             }
         }
-        val pendingBets = (0 until bets.length()).count { bets.optJSONObject(it)?.optString("status") == "PENDING" }
-        val betsCountCard = card()
-        addText(betsCountCard, "СТАВКИ", 10, true, cyan)
-        addText(betsCountCard, bets.length().toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "Всего зафиксировано · ожидают результата: $pendingBets", 11, false, muted)
         val bank = currentBankroll()
         val target = card()
         val goal = targetBankroll()
@@ -1535,10 +1567,17 @@ class MainActivity : Activity() {
                 val impliedEdge = probability - 1.0 / price
                 probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
             }
-        }.sortedByDescending {
-            val price = topSignalOdds(it.third, it.first) ?: 0.0
-            it.third.optDouble("modelProbability") * price - 1.0
-        }
+        }.sortedWith(
+            compareBy<Triple<JSONObject, String, JSONObject>> { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
+                .thenByDescending {
+                    val price = topSignalOdds(it.third, it.first) ?: 0.0
+                    it.third.optDouble("modelProbability") * price - 1.0
+                }
+        )
+        val betsCountCard = card()
+        addText(betsCountCard, "НАЙДЕНО AI-СИГНАЛОВ", 10, true, cyan)
+        addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
+        addText(betsCountCard, "Матчей, прошедших фильтры раздела AI · это не количество уже записанных ставок", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
@@ -1556,7 +1595,7 @@ class MainActivity : Activity() {
             val box = card()
             addText(box, "КАНДИДАТ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
-            addText(box, date(m.optString("utcDate")), 10, false, muted)
+            addText(box, kickoffLabel(m), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
             val candidateStake = maxOf(bank * 0.005, 25.0)
             val candidateStakeAllowed = candidateStake <= bank * 0.01 + 0.000001
@@ -1663,7 +1702,9 @@ class MainActivity : Activity() {
         leagueBar.removeAllViews()
         val leagues = json.optJSONArray("competitions")
         val state = json.optString("status", "unknown")
-        statusView.text = "●  " + json.optString("notice", "Статус: " + state)
+        val checkedAt = feedCache.getLong("last_successful_check_ms", 0L)
+        val sourceUpdated = formatSourceTimestamp(json.optString("updatedAt"))
+        statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
         renderTabs()
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
