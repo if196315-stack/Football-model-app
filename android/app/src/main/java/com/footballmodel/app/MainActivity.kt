@@ -196,7 +196,35 @@ class MainActivity : Activity() {
             overScrollMode = View.OVER_SCROLL_NEVER
             addView(leagueBar)
         }
-        root.addView(leagueScroll)
+        val leagueControls = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = rounded(Color.rgb(13, 25, 42), 18)
+            setPadding(dp(5), dp(3), dp(5), dp(3))
+        }
+        val previousLeaguePage = label("‹", 25, true, muted).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(5), 0, dp(5), dp(2))
+            background = rounded(surface, 14)
+            setOnClickListener { leagueScroll.smoothScrollBy(-dp(190), 0) }
+        }
+        val nextLeaguePage = label("›", 25, true, accent).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(5), 0, dp(5), dp(2))
+            background = rounded(surface, 14)
+            setOnClickListener { leagueScroll.smoothScrollBy(dp(190), 0) }
+        }
+        leagueScroll.setOnScrollChangeListener { _, scrollX, _, _, _ ->
+            previousLeaguePage.alpha = if (scrollX <= dp(2)) 0.35f else 1f
+            nextLeaguePage.alpha = if (scrollX + leagueScroll.width >= leagueBar.width - dp(2)) 0.35f else 1f
+        }
+        leagueControls.addView(previousLeaguePage, LinearLayout.LayoutParams(dp(30), dp(38)))
+        leagueControls.addView(leagueScroll, LinearLayout.LayoutParams(0, dp(48), 1f).apply {
+            leftMargin = dp(4)
+            rightMargin = dp(4)
+        })
+        leagueControls.addView(nextLeaguePage, LinearLayout.LayoutParams(dp(30), dp(38)))
+        root.addView(leagueControls, LinearLayout.LayoutParams(-1, dp(54)))
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
