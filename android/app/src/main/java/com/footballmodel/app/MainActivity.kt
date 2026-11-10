@@ -201,17 +201,27 @@ class MainActivity : Activity() {
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         scheduleAutoPaperWorker()
-        // Мгновенный старт: показываем последний успешный снимок до сетевого обновления.
-        feedCache.getString("merged_json", null)?.let { cached ->
-            try {
-                data = JSONObject(cached)
-                lastPayload = cached
-                render()
-            } catch (_: Exception) {
-                feedCache.edit().remove("merged_json").apply()
+        // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
+        // блокировать первый показ интерфейса на главном потоке.
+        thread(name = "iq-match-cache-restore") {
+            val cached = feedCache.getString("merged_json", null)
+            if (!cached.isNullOrBlank()) {
+                val restored = try { JSONObject(cached) } catch (_: Exception) { null }
+                if (restored == null) {
+                    feedCache.edit().remove("merged_json").apply()
+                } else {
+                    runOnUiThread {
+                        // Если сеть уже успела вернуть свежие данные, старый кэш не перезаписывает их.
+                        if (data == null) {
+                            data = restored
+                            lastPayload = cached
+                            render()
+                        }
+                    }
+                }
             }
         }
-        // Показываем рабочую оболочку сразу, не дожидаясь сети.
+        // Сначала показываем оболочку, затем параллельно восстанавливаем кэш и обновляем сеть.
         renderTabs()
         leagueBar.visibility = View.VISIBLE
         val loadingCard = card()
