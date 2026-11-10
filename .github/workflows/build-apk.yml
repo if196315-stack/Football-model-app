@@ -1,9 +1,10 @@
 name: Build Android APK
-# Rebuild on every Android UI correction.
 
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - "android/**"
       - ".github/workflows/build-apk.yml"
@@ -11,21 +12,49 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: android-apk-build
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+          cache-provider: basic
+
+      - name: Verify build environment
+        run: |
+          java -version
+          gradle --version
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          sdkmanager --list_installed
+
       - name: Build debug APK
-        run: gradle -p android :app:assembleDebug
-      - uses: actions/upload-artifact@v4
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: Football-Model-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
