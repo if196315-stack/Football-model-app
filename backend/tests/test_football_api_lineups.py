@@ -35,6 +35,9 @@ def test_normalize_api_football_lineups():
     assert len(result["home"]["starters"]) == 11
     assert result["home"]["starters"][0]["name"] == "Home FC Player 1"
     assert result["away"]["formation"] == "4-3-3"
+    reversed_result = source.normalize_lineups(list(reversed(api_lineups())), "Home FC", "Away FC")
+    assert reversed_result["home"]["starters"][0]["name"] == "Home FC Player 1"
+    assert reversed_result["away"]["starters"][0]["name"] == "Away FC Player 1"
     assert source.normalize_lineups(api_lineups()[:1]) is None
 
 
