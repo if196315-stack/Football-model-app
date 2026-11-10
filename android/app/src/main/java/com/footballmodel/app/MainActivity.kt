@@ -155,7 +155,7 @@ class MainActivity : Activity() {
         brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
         val notificationsButton = TextView(this).apply {
-            text = "♧"
+            text = "🔔"
             textSize = 25f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
@@ -1816,11 +1816,11 @@ class MainActivity : Activity() {
         }
         val observationCard = card()
         addText(observationCard, "НАБЛЮДАТЕЛЬНЫЕ СТАВКИ", 10, true, cyan)
-        addText(observationCard, "Снимков котировок: ${snapshots.length()} · завершённых наблюдений: ${observations.length()}", 12, true, Color.WHITE)
+        addText(observationCard, "Снимков котировок: ${snapshots.length()} · записей архива: ${observations.length()}", 12, true, Color.WHITE)
         addText(observationCard, "WIN $observedWins · LOSS $observedLosses · PUSH $observedPushes · ожидают $observedPending", 12, true, accent)
         if (observations.length() > 0) {
-            val settled = observedWins + observedLosses + observedPushes
-            val roi = if (settled > 0) observedProfit / settled * 100.0 else 0.0
+            val turnover = observedWins + observedLosses
+            val roi = if (turnover > 0) observedProfit / turnover * 100.0 else 0.0
             addText(observationCard, "Условный результат: ${String.format(Locale.US, "%+.2f ед.", observedProfit)} · ROI ${String.format(Locale.US, "%+.2f%%", roi)}", 12, true, gold)
             addText(observationCard, "Это исследовательская статистика архива, не фактическая прибыль и не изменение бумажного банка.", 10, false, muted)
         } else {
