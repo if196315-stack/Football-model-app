@@ -35,6 +35,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            AiMatchNotifications.notifyNewCandidates(applicationContext, domestic)
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
@@ -176,7 +177,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
                 val bank = currentBank(bets)
                 val stake = max(bank * 0.01, 25.0)
-                if (stake > bank * 0.01 + 0.000001) continue
                 val dayKey = kickoffDate
                 var daily = 0.0
                 for (bi in 0 until bets.length()) {

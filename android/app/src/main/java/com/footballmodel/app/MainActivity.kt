@@ -114,6 +114,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        currentTab = intent.getStringExtra("open_tab") ?: "matches"
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
@@ -214,6 +215,18 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val requestedTab = intent.getStringExtra("open_tab")
+        if (requestedTab == "desk") {
+            currentTab = "desk"
+            tabViewCache.clear()
+            renderedKey = null
+            if (data != null) render() else loadData()
+        }
     }
 
     override fun onResume() {
@@ -732,6 +745,7 @@ class MainActivity : Activity() {
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
+                    AiMatchNotifications.notifyNewCandidates(this, json)
                     val changed = payload != lastPayload
                     if (changed) {
                         data = json
@@ -903,7 +917,7 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Базовая и минимальная ставка — 1% текущего банка (но не ниже минимума букмекера 25 ₽); максимум — 1% на одну ставку. Суммарно на матч — не более 1%; дневная экспозиция — не более 5%. Коррелированные ставки считаются совместно.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее минимальной ставки BetBoom 25 ₽. Поэтому при балансе 2 500 ₽ ставка 25 ₽, а при 2 499 ₽ (1% = 24,99 ₽) всё равно ставится 25 ₽ — это обязательный минимум букмекера. Дневная суммарная нагрузка остаётся не более 5% банка; новые ставки не открываются, если дневной лимит исчерпан.", 11, false, Color.WHITE)
         addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
@@ -1029,7 +1043,6 @@ class MainActivity : Activity() {
                 if (duplicate || autoStopped || drawdownPaused) continue
                 val bank = currentBankroll()
                 val stake = maxOf(bank * 0.01, 25.0)
-                if (stake > bank * 0.01 + 0.000001) continue
                 val localDay = dayFormat.format(java.util.Date(kickoff))
                 var dailyExposure = 0.0
                 for (k in 0 until bets.length()) {
@@ -1217,7 +1230,19 @@ class MainActivity : Activity() {
     }
 
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "История ставок", "Записанные ставки и их результаты.")
+        screenHeader("BET TRACKER", "Банк", "Текущий баланс, правила расчёта ставки и история бумажных ставок.")
+        val bank = currentBankroll()
+        val bankrollCard = card()
+        addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
+        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 28, true, Color.WHITE)
+        addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
+
+        val strategyCard = card()
+        addText(strategyCard, "КАК РАБОТАЕТ СТРАТЕГИЯ", 11, true, accent)
+        addText(strategyCard, "Размер одной ставки — 1% от текущего баланса, но не меньше 25 ₽: это минимальная сумма, которую принимает BetBoom.", 11, false, Color.WHITE)
+        addText(strategyCard, "Примеры: баланс 2 500 ₽ → 1% = 25 ₽, ставка 25 ₽; баланс 2 499 ₽ → 1% = 24,99 ₽, но фактическая ставка всё равно 25 ₽ из-за минимума букмекера.", 11, false, muted)
+        addText(strategyCard, "Обычный расчёт — 1% банка на матч, но если 1% меньше 25 ₽, применяется минимум BetBoom 25 ₽. Поэтому при балансе ниже 2 500 ₽ фактическая ставка может быть чуть больше 1%. Общая дневная нагрузка ограничена 5% текущего банка; если дневной лимит исчерпан, новые автоматические paper-ставки не создаются.", 11, false, Color.WHITE)
+        addText(strategyCard, "Это автоматические бумажные ставки для проверки стратегии, а не размещение реальных ставок у букмекера. Догон и увеличение риска после проигрыша не используются.", 10, false, muted)
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             if (b.optString("marketKey") == "COUPON") {
@@ -1478,6 +1503,12 @@ class MainActivity : Activity() {
                     return@setOnClickListener
                 }
                 settingsPrefs.edit().putString(key, value.toString()).apply()
+                // Стартовый банк отображается в профиле и на экране «Банк».
+                // Сбрасываем оба кеша, чтобы новые значения появились сразу без перезапуска.
+                if (key == "initial_bankroll") {
+                    tabViewCache.remove("history|ALL")
+                    tabViewCache.remove("help|ALL")
+                }
                 dialog.dismiss()
                 render()
             }
@@ -1532,9 +1563,7 @@ class MainActivity : Activity() {
             }
         }
         val bank = currentBankroll()
-        val bankrollCard = card()
-        addText(bankrollCard, "БАЛАНС", 10, true, cyan)
-        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 26, true, Color.WHITE)
+
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -1607,8 +1636,7 @@ class MainActivity : Activity() {
             addText(box, kickoffLabel(m), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
             val candidateStake = maxOf(bank * 0.01, 25.0)
-            val candidateStakeAllowed = candidateStake <= bank * 0.01 + 0.000001
-            addText(box, if (candidateStakeAllowed) "Сумма по стратегии с минимумом БК: ${fmt(candidateStake)} ₽" else "Ставка недопустима: минимум 25 ₽ выше лимита 1% банка", 12, true, if (candidateStakeAllowed) accent else Color.RED)
+            addText(box, "Сумма ставки с учётом минимума BetBoom: ${fmt(candidateStake)} ₽", 12, true, accent)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
             if (signal.optBoolean("paperOnly")) {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; рыночный порог для оценки: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
