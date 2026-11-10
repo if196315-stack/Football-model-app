@@ -1,5 +1,8 @@
 # Seven-competition data and BetBoom coverage audit — 2026-11-10
 
+> **Historical coverage snapshot:** the 2026-11-11 audit supersedes its old 138/156 fixture match rate. After adding cross-provider French/Spanish club aliases, the current five-league sample matches 156/156 fixtures and has 96 BetBoom boards. See [current audit](./seven-competition-audit-2026-11-11.md).
+
+
 ## Executive status
 
 The seven-competition xG/model research set is complete for ENG, ESP, ITA, GER, FRA, UCL and UEL. A separate calibration report records the chronological all-market backtest and calibration results:
