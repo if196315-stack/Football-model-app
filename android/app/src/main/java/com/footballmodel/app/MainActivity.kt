@@ -173,11 +173,6 @@ class MainActivity : Activity() {
             cornerRadius = dp(12).toFloat()
             setStroke(dp(1), Color.rgb(35, 69, 84))
         }
-        root.addView(statusView, LinearLayout.LayoutParams(-1, -2).apply {
-            topMargin = dp(12)
-            bottomMargin = dp(8)
-        })
-
         tabBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(5, 5, 5, 5)
@@ -1463,6 +1458,29 @@ class MainActivity : Activity() {
         addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
         actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
         addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / BetBoom", 10, false, muted)
+
+        val dashboard = card()
+        addText(dashboard, "LIVE MODEL DASHBOARD", 10, true, cyan)
+        addText(dashboard, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
+        addText(dashboard, "Последнее обновление: ${formatSourceTimestamp((data ?: JSONObject()).optString("updatedAt"))} · местное время", 10, false, muted)
+
+        val dataUpdateCard = card()
+        addText(dataUpdateCard, "ОБНОВЛЕНИЕ БАЗ ДАННЫХ", 10, true, cyan)
+        dataUpdateCard.addView(statusView)
+        actionButton(dataUpdateCard, "Обновить данные") { loadData() }
+
+        val workerCard = card()
+        val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
+        val workerStatus = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
+        val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
+        val workerTime = if (workerRunAt > 0L) SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date(workerRunAt)) else "ещё не запускался"
+        addText(workerCard, "ФОНОВОЕ ОБНОВЛЕНИЕ", 10, true, cyan)
+        workerStatusTextView = label(if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
+        workerMessageTextView = label(workerMessage, 11, false, muted)
+        workerCountTextView = label("Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
+        workerCard.addView(workerStatusTextView)
+        workerCard.addView(workerMessageTextView)
+        workerCard.addView(workerCountTextView)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
         section("2. ОСНОВНЫЕ РЫНКИ",
@@ -1640,18 +1658,6 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
-        val workerCard = card()
-        val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
-        val workerStatus = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
-        val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
-        val workerTime = if (workerRunAt > 0L) SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date(workerRunAt)) else "ещё не запускался"
-        addText(workerCard, "ФОНОВАЯ АВТОМАТИКА", 10, true, cyan)
-        workerStatusTextView = label(if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
-        workerMessageTextView = label(workerMessage, 11, false, muted)
-        workerCountTextView = label("Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
-        workerCard.addView(workerStatusTextView)
-        workerCard.addView(workerMessageTextView)
-        workerCard.addView(workerCountTextView)
         val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
         val highWater = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull() ?: initialBankroll()
         val currentForRisk = currentBankroll()
@@ -1858,13 +1864,6 @@ class MainActivity : Activity() {
             return
         }
         renderedKey = targetKey
-
-        if (currentTab == "matches") {
-            val summary = card()
-            addText(summary, "●  LIVE MODEL DASHBOARD", 9, true, cyan)
-            addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
-            addText(summary, "Обновлено: ${formatSourceTimestamp(json.optString("updatedAt"))} · местное время", 10, false, muted)
-        }
 
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
