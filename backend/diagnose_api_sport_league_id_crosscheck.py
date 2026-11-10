@@ -23,7 +23,7 @@ BASE = "https://api.api-sport.ru/v2/football/matches"
 USAGE_URL = "https://api.api-sport.ru/v2/account/usage"
 TIMEOUT = 45
 PAGE_SIZE = 500
-MAX_PAGES = 5
+MAX_PAGES = 30
 WINDOW_DAYS = 28
 TOURNAMENT_IDS = {
     "PL": 17,
@@ -107,8 +107,13 @@ def main():
                     f"{first.isoformat()}..{last.isoformat()}: {response.text[:500]}"
                 )
             request_count += 1
-            rows = response_items(response.json())
+            payload = response.json()
+            rows = response_items(payload)
             window_rows.extend(rows)
+            pagination = payload.get("pagination") or payload.get("paging") or {} if isinstance(payload, dict) else {}
+            total_pages = pagination.get("total_pages") or pagination.get("totalPages") or pagination.get("last_page")
+            if total_pages is not None and page >= int(total_pages):
+                break
             if len(rows) < PAGE_SIZE:
                 break
         else:
