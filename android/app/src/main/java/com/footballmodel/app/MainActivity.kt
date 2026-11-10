@@ -658,6 +658,8 @@ class MainActivity : Activity() {
         val homeXg = prediction.optDouble("expectedHomeGoals", Double.NaN)
         val awayXg = prediction.optDouble("expectedAwayGoals", Double.NaN)
         val probability = signal.optDouble("modelProbability", Double.NaN)
+        val baseline = signal.optDouble("baselineProbability", Double.NaN)
+        val baselineMatches = signal.optInt("baselineMatches", 0)
         val edge = signal.optDouble("edgePp", Double.NaN)
         val ev = probability * odds - 1.0
         val parts = mutableListOf<String>()
@@ -691,7 +693,9 @@ class MainActivity : Activity() {
         val implied = 1.0 / odds
         val valueText = if (probability.isFinite()) "вероятность модели ${String.format(Locale.US, "%.1f", probability * 100)}%, безубыточный порог ${String.format(Locale.US, "%.1f", implied * 100)}%" else "вероятность модели не указана"
         val edgeText = if (edge.isFinite()) "edge ${if (edge >= 0) "+" else ""}${String.format(Locale.US, "%.1f", edge)} п.п." else "edge не рассчитан"
-        parts.add("Рынок и цена: ${signal.optString("side")} по ${String.format(Locale.US, "%.2f", odds)}; $valueText, $edgeText, EV ${String.format(Locale.US, "%+.1f", ev * 100)}%. Положительное EV — оценка модели, не гарантия результата.")
+        val baselineText = if (baseline.isFinite()) "историческая база ${String.format(Locale.US, "%.1f", baseline * 100)}% на $baselineMatches матчах" else "историческая база не указана"
+        parts.add("Рынок и цена: ${signal.optString("side")} по ${String.format(Locale.US, "%.2f", odds)}; $valueText, $baselineText, $edgeText, EV ${String.format(Locale.US, "%+.1f", ev * 100)}%. Положительное EV — оценка модели, не гарантия результата.")
+        parts.add("Дополнительный контекст: турнирное положение, мотивация, плотность календаря и риск ротации не представлены в текущем фиде; перед выводом о матче их нужно проверить отдельно.")
         val oddsUpdated = match.optJSONObject("odds")?.optString("updatedAt").orEmpty()
         val oddsTime = if (oddsUpdated.isBlank()) "без отметки времени" else formatSourceTimestamp(oddsUpdated) + " (местное время)"
         parts.add("Контекст: матч ${kickoffLabel(match)}; котировка BetBoom обновлена $oddsTime. Если цена ухудшилась или данные изменились — сигнал нужно пересмотреть.")
