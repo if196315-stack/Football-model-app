@@ -28,6 +28,8 @@ jobs:
           python-version: "3.12"
       - name: Install bounded diagnostic dependency
         run: python -m pip install requests
+      - name: Test bounded competition sampling
+        run: python -m unittest backend/test_diagnose_seven_competition_api_sport.py -v
       - name: Check one upcoming fixture per target competition
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
