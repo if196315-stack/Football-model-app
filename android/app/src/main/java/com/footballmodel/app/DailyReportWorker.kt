@@ -31,7 +31,8 @@ class DailyReportWorker(context: Context, params: WorkerParameters) : Worker(con
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }
         val dayStart = calendar.timeInMillis
-        val dayEnd = dayStart + 24L * 60L * 60L * 1000L
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
+        val dayEnd = calendar.timeInMillis
 
         var dailyBets = 0
         var wins = 0
