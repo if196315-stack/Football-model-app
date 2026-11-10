@@ -1038,7 +1038,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderIntelligenceCenter(json: JSONObject) {
-        screenHeader("IQ MATCH INTELLIGENCE", "Центр аналитики", "Ежедневная картина модели и наблюдений")
+        screenHeader("IQ MATCH", "Уведомления", "Ежедневные отчёты и события IQ MATCH")
         val sections = listOf("today" to "СЕГОДНЯ", "insights" to "AI-ВЫВОДЫ", "markets" to "НАБЛЮДЕНИЯ", "system" to "РАБОТА МОДЕЛИ", "history" to "ИСТОРИЯ")
         val selector = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(dp(3), dp(3), dp(3), dp(3)); background = rounded(Color.rgb(13, 23, 39), 15) }
         sections.forEach { pair ->
