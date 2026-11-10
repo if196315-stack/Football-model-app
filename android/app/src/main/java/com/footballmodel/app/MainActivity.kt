@@ -201,17 +201,27 @@ class MainActivity : Activity() {
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         scheduleAutoPaperWorker()
-        // Мгновенный старт: показываем последний успешный снимок до сетевого обновления.
-        feedCache.getString("merged_json", null)?.let { cached ->
-            try {
-                data = JSONObject(cached)
-                lastPayload = cached
-                render()
-            } catch (_: Exception) {
-                feedCache.edit().remove("merged_json").apply()
+        // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
+        // блокировать первый показ интерфейса на главном потоке.
+        thread(name = "iq-match-cache-restore") {
+            val cached = feedCache.getString("merged_json", null)
+            if (!cached.isNullOrBlank()) {
+                val restored = try { JSONObject(cached) } catch (_: Exception) { null }
+                if (restored == null) {
+                    feedCache.edit().remove("merged_json").apply()
+                } else {
+                    runOnUiThread {
+                        // Если сеть уже успела вернуть свежие данные, старый кэш не перезаписывает их.
+                        if (data == null) {
+                            data = restored
+                            lastPayload = cached
+                            render()
+                        }
+                    }
+                }
             }
         }
-        // Показываем рабочую оболочку сразу, не дожидаясь сети.
+        // Сначала показываем оболочку, затем параллельно восстанавливаем кэш и обновляем сеть.
         renderTabs()
         leagueBar.visibility = View.VISIBLE
         val loadingCard = card()
@@ -361,20 +371,15 @@ class MainActivity : Activity() {
         })
     }
 
-    // Shared premium title panel for every secondary screen.
+    // Compact section heading: no oversized description banner.
     private fun screenHeader(eyebrow: String, title: String, description: String) {
-        val hero = card()
-        hero.setPadding(dp(18), dp(17), dp(18), dp(17))
-        hero.background = GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            intArrayOf(Color.rgb(28, 59, 66), Color.rgb(17, 35, 54), Color.rgb(11, 24, 41))
-        ).apply {
-            cornerRadius = dp(22).toFloat()
-            setStroke(dp(1), Color.rgb(58, 112, 105))
+        val heading = label(title, 20, true, Color.WHITE).apply {
+            setPadding(dp(2), dp(5), dp(2), dp(8))
         }
-        addText(hero, eyebrow.uppercase(Locale.getDefault()), 9, true, gold)
-        addText(hero, title, 22, true, Color.WHITE)
-        addText(hero, description, 11, false, Color.rgb(190, 207, 221))
+        matchesContainer.addView(heading, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(4)
+            bottomMargin = dp(2)
+        })
     }
 
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
@@ -993,20 +998,92 @@ class MainActivity : Activity() {
         addText(summary, "ОБЪЁМ АРХИВА", 10, true, accent)
         addText(summary, "Снимков котировок: ${snapshots.length()}", 15, true, Color.WHITE)
         addText(summary, "Завершённых наблюдений: ${results.length()}", 13, true, Color.WHITE)
-        if (results.length() > 0) {
-            var wins = 0; var losses = 0; var pushes = 0; var profit = 0.0; var priced = 0
-            for (i in 0 until results.length()) {
-                val row = results.optJSONObject(i) ?: continue
-                when (row.optString("result")) { "WIN" -> wins++; "LOSS" -> losses++; "PUSH" -> pushes++ }
-                profit += row.optDouble("profit_units", 0.0)
-                if (!row.isNull("model_probability")) priced++
+        var totalWins = 0
+        var totalLosses = 0
+        var totalPushes = 0
+        var totalProfit = 0.0
+        for (i in 0 until results.length()) {
+            val row = results.optJSONObject(i) ?: continue
+            when (row.optString("result")) {
+                "WIN" -> totalWins++
+                "LOSS" -> totalLosses++
+                "PUSH" -> totalPushes++
             }
-            val roi = profit / results.length() * 100.0
-            addText(summary, "WIN $wins · LOSS $losses · PUSH $pushes", 12, true, accent)
-            addText(summary, "Условный результат: ${String.format(Locale.US, "%+.2f", profit)} ед. · ROI ${String.format(Locale.US, "%+.2f", roi)}%", 12, true, gold)
-            addText(summary, "Вероятность модели сохранена для $priced из ${results.length()} расчётов.", 10, false, muted)
+            totalProfit += row.optDouble("profit_units", 0.0)
+        }
+        if (results.length() > 0) {
+            addText(summary, "WIN $totalWins · LOSS $totalLosses · PUSH $totalPushes", 12, true, accent)
+            addText(summary, "Условный результат: ${String.format(Locale.US, "%+.2f", totalProfit)} ед. · ROI ${String.format(Locale.US, "%+.2f", totalProfit / results.length() * 100.0)}%", 12, true, gold)
+            addText(summary, "ROI рассчитан по одной условной единице на каждое завершённое наблюдение.", 10, false, muted)
         } else {
-            addText(summary, "Результатов завершённых матчей пока нет. Сами котировки отображаются ниже сразу после архивирования.", 11, false, muted)
+            addText(summary, "Результатов завершённых матчей пока нет.", 11, false, muted)
+        }
+
+        // Сводка отдельно по каждому точному типу наблюдаемого рынка и линии.
+        fun observationKey(row: JSONObject): String = listOf(
+            row.optString("market"), row.optString("side"), row.optString("point"),
+            row.optString("team"), row.optString("outcome")
+        ).joinToString("|")
+        fun observationTitle(row: JSONObject): String {
+            val market = row.optString("market")
+            val side = row.optString("side").uppercase(Locale.ROOT)
+            val point = if (row.has("point") && !row.isNull("point")) " ${fmt(row.optDouble("point"))}" else ""
+            return when (market) {
+                "double_chance" -> "Двойной шанс ${row.optString("outcome").uppercase(Locale.ROOT)}"
+                "match_total" -> "Тотал матча $side$point"
+                "team_total" -> "${if (row.optString("team") == "home") "Хозяева" else "Гости"} · ИТ $side$point"
+                "btts" -> "Обе забьют · ${if (row.optString("outcome") == "yes") "ДА" else "НЕТ"}"
+                "handicap" -> "Фора ${if (row.optString("team") == "home") "хозяев" else "гостей"} ($point)"
+                else -> market.ifBlank { "Рынок" } + point
+            }
+        }
+        data class ObservationStats(var snapshots: Int = 0, var wins: Int = 0, var losses: Int = 0,
+                                    var pushes: Int = 0, var pending: Int = 0, var profit: Double = 0.0)
+        val grouped = linkedMapOf<String, Pair<JSONObject, ObservationStats>>()
+        fun groupFor(row: JSONObject): ObservationStats {
+            val key = observationKey(row)
+            val existing = grouped[key]
+            if (existing != null) return existing.second
+            val stats = ObservationStats()
+            grouped[key] = row to stats
+            return stats
+        }
+        for (i in 0 until snapshots.length()) {
+            val row = snapshots.optJSONObject(i) ?: continue
+            groupFor(row).snapshots++
+        }
+        for (i in 0 until results.length()) {
+            val row = results.optJSONObject(i) ?: continue
+            val stats = groupFor(row)
+            when (row.optString("result")) {
+                "WIN" -> stats.wins++
+                "LOSS" -> stats.losses++
+                "PUSH" -> stats.pushes++
+                else -> stats.pending++
+            }
+            stats.profit += row.optDouble("profit_units", 0.0)
+        }
+        if (grouped.isNotEmpty()) {
+            addText(matchesContainer, "РЕЗУЛЬТАТЫ ПО КАЖДОМУ РЫНКУ", 10, true, accent)
+            grouped.values.sortedBy { observationTitle(it.first) }.forEach { (sample, stats) ->
+                val settled = stats.wins + stats.losses + stats.pushes
+                val turnover = stats.wins + stats.losses
+                val box = card()
+                addText(box, observationTitle(sample), 14, true, Color.WHITE)
+                addText(box, "Снимков: ${stats.snapshots} · завершено: $settled · ожидают: ${stats.pending}", 11, false, muted)
+                addText(box, "WIN ${stats.wins} · LOSS ${stats.losses} · PUSH ${stats.pushes}", 12, true, accent)
+                if (settled > 0) {
+                    val roi = if (turnover > 0) stats.profit / turnover * 100.0 else 0.0
+                    addText(box, "Условный результат: ${String.format(Locale.US, "%+.2f", stats.profit)} ед. · ROI ${if (turnover > 0) String.format(Locale.US, "%+.2f%%", roi) else "—"}", 12, true, gold)
+                    addText(box, "Попадания: ${stats.wins}/${stats.wins + stats.losses} · доля ${if (stats.wins + stats.losses > 0) String.format(Locale.US, "%.1f%%", stats.wins * 100.0 / (stats.wins + stats.losses)) else "—"}", 11, false, muted)
+                } else {
+                    addText(box, "Недостаточно завершённых наблюдений для ROI и процента попаданий.", 10, false, muted)
+                }
+            }
+        } else {
+            val emptyStats = card()
+            addText(emptyStats, "Сводка по рынкам пока недоступна", 13, true, Color.WHITE)
+            addText(emptyStats, "В архиве нет снимков и результатов. Сводки появятся после того, как workflow начнёт публиковать архив котировок.", 11, false, muted)
         }
 
         if (snapshots.length() > 0) {
@@ -1468,6 +1545,24 @@ class MainActivity : Activity() {
         addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
         actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
         addText(profile, "Матчи и xG: PitchAPI · котировки: API-Sport / BetBoom", 10, false, muted)
+
+        val dashboard = card()
+        addText(dashboard, "LIVE MODEL DASHBOARD", 10, true, cyan)
+        addText(dashboard, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
+        addText(dashboard, "Последнее обновление: ${formatSourceTimestamp((data ?: JSONObject()).optString("updatedAt"))} · местное время", 10, false, muted)
+
+        val workerCard = card()
+        val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
+        val workerStatus = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
+        val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
+        val workerTime = if (workerRunAt > 0L) SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date(workerRunAt)) else "ещё не запускался"
+        addText(workerCard, "ФОНОВОЕ ОБНОВЛЕНИЕ", 10, true, cyan)
+        workerStatusTextView = label(if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
+        workerMessageTextView = label(workerMessage, 11, false, muted)
+        workerCountTextView = label("Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
+        workerCard.addView(workerStatusTextView)
+        workerCard.addView(workerMessageTextView)
+        workerCard.addView(workerCountTextView)
         section("1. КАК РАБОТАЕТ МОДЕЛЬ",
             "Модель оценивает ожидаемые голы команд по историческим данным PitchAPI и рассчитывает вероятности с помощью независимого распределения Пуассона. Параметры: последние 30 матчей, half-life 12, shrinkage 3. Это вероятности, а не точный счёт.")
         section("2. ОСНОВНЫЕ РЫНКИ",
@@ -1645,18 +1740,6 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
-        val workerCard = card()
-        val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
-        val workerStatus = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
-        val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
-        val workerTime = if (workerRunAt > 0L) SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date(workerRunAt)) else "ещё не запускался"
-        addText(workerCard, "ФОНОВАЯ АВТОМАТИКА", 10, true, cyan)
-        workerStatusTextView = label(if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
-        workerMessageTextView = label(workerMessage, 11, false, muted)
-        workerCountTextView = label("Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
-        workerCard.addView(workerStatusTextView)
-        workerCard.addView(workerMessageTextView)
-        workerCard.addView(workerCountTextView)
         val paperStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
         val highWater = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull() ?: initialBankroll()
         val currentForRisk = currentBankroll()
@@ -1863,13 +1946,6 @@ class MainActivity : Activity() {
             return
         }
         renderedKey = targetKey
-
-        if (currentTab == "matches") {
-            val summary = card()
-            addText(summary, "●  LIVE MODEL DASHBOARD", 9, true, cyan)
-            addText(summary, "30 матчей  ·  half-life 12  ·  shrinkage 3", 11, false, muted)
-            addText(summary, "Обновлено: ${formatSourceTimestamp(json.optString("updatedAt"))} · местное время", 10, false, muted)
-        }
 
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
