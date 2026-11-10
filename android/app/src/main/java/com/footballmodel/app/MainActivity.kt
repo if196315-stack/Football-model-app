@@ -53,7 +53,6 @@ class MainActivity : Activity() {
     private lateinit var refreshButton: Button
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
-    private lateinit var leagueHint: TextView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private var statsSubsection = "working"
@@ -264,7 +263,6 @@ class MainActivity : Activity() {
         // Сначала показываем оболочку, затем параллельно восстанавливаем кэш и обновляем сеть.
         renderTabs()
         leagueBar.visibility = View.VISIBLE
-            leagueHint.visibility = View.VISIBLE
         val loadingCard = card()
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
@@ -2102,7 +2100,6 @@ class MainActivity : Activity() {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
             leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
-            leagueHint.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
             renderedKey = targetKey
             return
         }
@@ -2110,40 +2107,33 @@ class MainActivity : Activity() {
 
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
-            leagueHint.visibility = View.GONE
             renderDay(json)
             return
         }
         if (currentTab == "desk") {
             leagueBar.visibility = View.GONE
-            leagueHint.visibility = View.GONE
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
             leagueBar.visibility = View.GONE
-            leagueHint.visibility = View.GONE
             renderBetHistory(json)
             return
         }
         if (currentTab == "stats") {
             leagueBar.visibility = View.GONE
-            leagueHint.visibility = View.GONE
             renderStats(json)
             return
         } else if (currentTab == "intel") {
             leagueBar.visibility = View.GONE
-            leagueHint.visibility = View.GONE
             renderIntelligenceCenter(json)
             return
         } else if (currentTab == "help") {
             leagueBar.visibility = View.GONE
-            leagueHint.visibility = View.GONE
             renderHelp()
             return
         } else {
             leagueBar.visibility = View.VISIBLE
-            leagueHint.visibility = View.VISIBLE
         }
 
         addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
