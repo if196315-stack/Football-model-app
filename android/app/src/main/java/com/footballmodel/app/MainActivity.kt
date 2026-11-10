@@ -50,6 +50,8 @@ class MainActivity : Activity() {
     private lateinit var root: LinearLayout
     private lateinit var statusView: TextView
     private lateinit var refreshButton: Button
+    private lateinit var headerBalanceView: TextView
+    private lateinit var headerAiRoiView: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
@@ -154,12 +156,26 @@ class MainActivity : Activity() {
         brand.addView(label("IQ MATCH", 24, true, Color.WHITE))
         brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
+        refreshButton = Button(this).apply {
+            text = "↻"
+            textSize = 21f
+            isAllCaps = false
+            elevation = 0f
+            setTextColor(Color.WHITE)
+            background = rounded(surface, 16)
+            setOnClickListener { loadData() }
+        }
+        top.addView(refreshButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(7) })
+        val headerRight = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+        }
         val notificationsButton = TextView(this).apply {
             text = "🔔"
-            textSize = 25f
+            textSize = 22f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
-            background = rounded(surface, 15)
+            background = rounded(surface, 13)
             contentDescription = "Ежедневный отчёт и аналитика"
             isClickable = true
             isFocusable = true
@@ -171,17 +187,12 @@ class MainActivity : Activity() {
                 loadData()
             }
         }
-        top.addView(notificationsButton, LinearLayout.LayoutParams(dp(46), dp(48)).apply { rightMargin = dp(7) })
-        refreshButton = Button(this).apply {
-            text = "↻"
-            textSize = 21f
-            isAllCaps = false
-            elevation = 0f
-            setTextColor(Color.WHITE)
-            background = rounded(surface, 16)
-            setOnClickListener { loadData() }
-        }
-        top.addView(refreshButton, LinearLayout.LayoutParams(52, 48))
+        headerRight.addView(notificationsButton, LinearLayout.LayoutParams(dp(42), dp(38)).apply { bottomMargin = dp(3) })
+        headerBalanceView = label("-- ₽", 12, true, Color.WHITE).apply { gravity = Gravity.END; maxLines = 1 }
+        headerRight.addView(headerBalanceView)
+        headerAiRoiView = label("AI ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
+        headerRight.addView(headerAiRoiView)
+        top.addView(headerRight, LinearLayout.LayoutParams(dp(100), -2))
         root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
         statusView = label("Подключаюсь к серверу…", 12, false, muted)
@@ -855,7 +866,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "Банк", "stats" to "Stats", "help" to "Профиль")
+        val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "История", "stats" to "Stats", "help" to "Профиль")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -1472,7 +1483,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "Банк", "Текущий баланс, правила расчёта ставки и история бумажных ставок.")
+        screenHeader("BET TRACKER", "История", "Текущий баланс, правила расчёта ставки и история бумажных ставок.")
         val bank = currentBankroll()
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
@@ -1769,6 +1780,32 @@ class MainActivity : Activity() {
         return bank.coerceAtLeast(0.0)
     }
 
+    private fun aiPaperRoiPercent(): Pair<Double?, Int> {
+        var profit = 0.0
+        var turnover = 0.0
+        var settledCount = 0
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("source") != "AI_AUTO") continue
+            val stake = bet.optDouble("stake", 0.0)
+            val odds = bet.optDouble("odds", 0.0)
+            when (bet.optString("status")) {
+                "WON" -> { profit += stake * (odds - 1.0); turnover += stake; settledCount++ }
+                "LOST" -> { profit -= stake; turnover += stake; settledCount++ }
+                "PUSH" -> { turnover += stake; settledCount++ }
+            }
+        }
+        return (if (turnover > 0.0) profit / turnover * 100.0 else null) to settledCount
+    }
+
+    private fun refreshHeaderFinancials() {
+        if (!::headerBalanceView.isInitialized || !::headerAiRoiView.isInitialized) return
+        headerBalanceView.text = String.format(Locale.US, "%.0f ₽", currentBankroll())
+        val (roi, count) = aiPaperRoiPercent()
+        headerAiRoiView.text = if (roi == null) "AI ROI —" else String.format(Locale.US, "AI ROI %+.1f%% · %d", roi, count)
+        headerAiRoiView.setTextColor(if (roi == null) muted else if (roi >= 0.0) accent else gold)
+    }
+
     private fun renderDailyInsights(json: JSONObject) {
         screenHeader("IQ MATCH · DAILY REVIEW", "Отчёт и наблюдения", "Разбор результатов, качества сигналов и идей для улучшения. Аналитика не меняет правила ставок.")
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -2038,6 +2075,7 @@ class MainActivity : Activity() {
 
     private fun render() {
         val json = data ?: return
+        refreshHeaderFinancials()
         val targetKey = currentTab + "|" + if (currentTab == "matches") selectedLeague else "ALL"
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
