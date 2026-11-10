@@ -147,7 +147,7 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
     mapping_errors = 0
     upcoming = []
     for match_id, row in cache.get("matches", {}).items():
-        if row.get("status") not in {"scheduled", "upcoming", "not_started"}:
+        if row.get("status") not in {"scheduled", "upcoming", "not_started", "timed"}:
             continue
         kickoff = _utc(row.get("timeUtc") or row.get("date"))
         if kickoff is None or kickoff < current - timedelta(minutes=30) or kickoff > cutoff:
@@ -161,7 +161,7 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
         if cached_at and current - cached_at < FIXTURE_CACHE_TTL:
             continue
         try:
-            rows = _api_get(session, "/fixtures", api_key, {"date": day})
+            rows = _api_get(session, "/fixtures", api_key, {"date": day, "timezone": "UTC"})
             date_fixtures[day] = {"fetchedAt": current.isoformat(), "fixtures": rows}
             mapping_calls += 1
         except (requests.RequestException, ValueError, TypeError) as exc:
