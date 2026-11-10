@@ -1874,6 +1874,50 @@ class MainActivity : Activity() {
         addText(recommendations, "3. Не менять пороги вероятности, edge, EV и риск-менеджмент автоматически. Любые изменения — только после отдельной проверки и согласования.", 12, false, muted)
     }
 
+    private fun confirmManualAiSignalBet(match: JSONObject, league: String, signal: JSONObject, odds: Double) {
+        val marketKey = marketKeyForAutoSignal(signal, match)
+        if (marketKey.isNullOrBlank()) {
+            Toast.makeText(this, "Не удалось определить рынок сигнала", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val matchId = match.optString("id").ifBlank { match.optString("utcDate") + match.optString("home") + match.optString("away") }
+        val id = "AI_MANUAL:$matchId:$marketKey"
+        if ((0 until bets.length()).any { bets.optJSONObject(it)?.optString("id") == id ||
+                (bets.optJSONObject(it)?.optString("matchId") == matchId &&
+                 bets.optJSONObject(it)?.optString("marketKey") == marketKey &&
+                 bets.optJSONObject(it)?.optString("source") in listOf("AI_AUTO", "AI_MANUAL")) }) {
+            Toast.makeText(this, "Ставка на этот рынок уже записана", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val probability = signal.optDouble("modelProbability", 0.0)
+        val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
+            else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
+        val ev = probability * odds - 1.0
+        val stake = maxOf(currentBankroll() * 0.01, minimumStake())
+        AlertDialog.Builder(this)
+            .setTitle("Зафиксировать AI-ставку?")
+            .setMessage("${match.optString("home")} — ${match.optString("away")}\\n${signal.optString("side")}\\nКоэффициент BetBoom: ${fmt(odds)}\\nСумма: ${fmt(stake)} ₽\\n\\nЭто будет бумажная ставка в истории, не реальная отправка букмекеру.")
+            .setNegativeButton("Отмена", null)
+            .setPositiveButton("Зафиксировать") { _, _ ->
+                val now = System.currentTimeMillis()
+                val bet = JSONObject()
+                    .put("id", id).put("source", "AI_MANUAL").put("status", "PENDING")
+                    .put("matchId", matchId).put("league", league)
+                    .put("date", match.optString("utcDate"))
+                    .put("betDay", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now)))
+                    .put("home", match.optString("home")).put("away", match.optString("away"))
+                    .put("market", signal.optString("side")).put("marketKey", marketKey)
+                    .put("odds", odds).put("stake", stake).put("probability", probability)
+                    .put("edgePp", edge).put("expectedValue", ev)
+                    .put("quoteUpdatedAt", match.optJSONObject("odds")?.optString("updatedAt", ""))
+                    .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
+                bets.put(bet)
+                saveBets()
+                Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
+                render()
+            }.show()
+    }
+
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
         val bank = currentBankroll()
@@ -1959,6 +2003,7 @@ class MainActivity : Activity() {
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
+            actionButton(box, "Зафиксировать эту ставку вручную") { confirmManualAiSignalBet(m, league, signal, odds) }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
