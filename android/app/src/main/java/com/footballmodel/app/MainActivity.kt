@@ -917,7 +917,7 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Расчётная ставка — 1% текущего банка, но букмекер принимает не меньше 25 ₽. Если 25 ₽ превышают 1% банка (банк ниже 2 500 ₽), ставка не открывается: превышать лимит нельзя. Например, при 2 500 ₽ ставка 25 ₽ допустима; при 2 499 ₽ один процент — 24,99 ₽, поэтому минимальные 25 ₽ уже нарушают лимит и ставка пропускается. Максимум на матч — 1% банка; дневная суммарная экспозиция — 5%.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее минимальной ставки BetBoom 25 ₽. Поэтому при балансе 2 500 ₽ ставка 25 ₽, а при 2 499 ₽ (1% = 24,99 ₽) всё равно ставится 25 ₽ — это обязательный минимум букмекера. Дневная суммарная нагрузка остаётся не более 5% банка; новые ставки не открываются, если дневной лимит исчерпан.", 11, false, Color.WHITE)
         addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
@@ -1043,7 +1043,6 @@ class MainActivity : Activity() {
                 if (duplicate || autoStopped || drawdownPaused) continue
                 val bank = currentBankroll()
                 val stake = maxOf(bank * 0.01, 25.0)
-                if (stake > bank * 0.01 + 0.000001) continue
                 val localDay = dayFormat.format(java.util.Date(kickoff))
                 var dailyExposure = 0.0
                 for (k in 0 until bets.length()) {
@@ -1552,8 +1551,8 @@ class MainActivity : Activity() {
 
         val strategyCard = card()
         addText(strategyCard, "КАК РАБОТАЕТ СТРАТЕГИЯ", 11, true, accent)
-        addText(strategyCard, "1% от текущего баланса — базовый лимит одной ставки. Минимум BetBoom — 25 ₽. Если минимальные 25 ₽ превышают лимит 1%, ставка пропускается.", 11, false, Color.WHITE)
-        addText(strategyCard, "Пример: баланс 2 500 ₽ → 1% = 25 ₽, ставка допустима. Баланс 2 499 ₽ → 1% = 24,99 ₽; поставить 24,99 ₽ нельзя, а 25 ₽ уже больше лимита 1%, поэтому новая ставка не создаётся.", 11, false, muted)
+        addText(strategyCard, "Размер ставки — 1% от текущего баланса, но не меньше 25 ₽: это минимальная сумма, которую принимает BetBoom. Поэтому если баланс 2 499 ₽ и 1% равен 24,99 ₽, ставка округляется до минимума букмекера — 25 ₽.", 11, false, Color.WHITE)
+        addText(strategyCard, "Примеры: баланс 2 500 ₽ → ставка 25 ₽; баланс 2 499 ₽ → расчётные 24,99 ₽, фактическая ставка 25 ₽ из-за минимума букмекера.", 11, false, muted)
         addText(strategyCard, "Дневной лимит — 5% текущего баланса на все ставки вместе. На один матч — максимум 1%. Если дневной лимит исчерпан или минимальная ставка букмекера превышает 1%, автоматическая paper-ставка пропускается.", 11, false, Color.WHITE)
         addText(strategyCard, "В AI показывается текущий баланс, без цели накопления и прогресса до цели. Баланс учитывает результаты завершённых ставок и резервирование сумм по ожидающим ставкам.", 10, false, muted)
 
@@ -1629,8 +1628,7 @@ class MainActivity : Activity() {
             addText(box, kickoffLabel(m), 10, false, muted)
             addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
             val candidateStake = maxOf(bank * 0.01, 25.0)
-            val candidateStakeAllowed = candidateStake <= bank * 0.01 + 0.000001
-            addText(box, if (candidateStakeAllowed) "Сумма по стратегии с минимумом БК: ${fmt(candidateStake)} ₽" else "Ставка недопустима: минимум 25 ₽ выше лимита 1% банка", 12, true, if (candidateStakeAllowed) accent else Color.RED)
+            addText(box, "Сумма ставки с учётом минимума BetBoom: ${fmt(candidateStake)} ₽", 12, true, accent)
             addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
             if (signal.optBoolean("paperOnly")) {
                 addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; рыночный порог для оценки: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
