@@ -7,6 +7,7 @@ on:
       - "audit/**"
     paths:
       - "backend/diagnose_seven_competition_api_sport.py"
+      - "backend/test_diagnose_seven_competition_api_sport.py"
       - ".github/workflows/diagnose-seven-competition-api-sport.yml"
   workflow_dispatch:
 
@@ -28,9 +29,9 @@ jobs:
           python-version: "3.12"
       - name: Install bounded diagnostic dependency
         run: python -m pip install requests
-      - name: Test bounded competition sampling
+      - name: Test full-fixture diagnostic enumeration
         run: python -m unittest backend/test_diagnose_seven_competition_api_sport.py -v
-      - name: Check one upcoming fixture per target competition
+      - name: Check every untested upcoming fixture across seven competitions
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/diagnose_seven_competition_api_sport.py
