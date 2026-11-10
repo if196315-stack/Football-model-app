@@ -175,6 +175,74 @@ def strongest_signal(pred, baseline, home, away):
     if best is not None and best["edgePp"]<=0:best["noPositiveSignal"]=True
     return best
 
+def recent_team_form(matches, comp, team, target_date, venue=None, limit=5):
+    """Recent score-based form from cached results, excluding the target date and future."""
+    empty = {"matches": 0, "form": "", "pointsPerGame": None,
+             "goalsForAvg": None, "goalsAgainstAvg": None, "venueMatches": 0,
+             "venuePointsPerGame": None, "venueForm": ""}
+    if matches is None or matches.empty or not team:
+        return empty.copy()
+    cutoff = pd.to_datetime(target_date, utc=True, errors="coerce")
+    if pd.isna(cutoff):
+        return empty.copy()
+    rows = matches[(matches.comp == comp) & (matches.date < cutoff)]
+    played = []
+    for _, row in rows.iterrows():
+        is_home = str(row.get("home_team") or "") == str(team)
+        is_away = str(row.get("away_team") or "") == str(team)
+        if not (is_home or is_away):
+            continue
+        gf = int(row.home_score if is_home else row.away_score)
+        ga = int(row.away_score if is_home else row.home_score)
+        points = 3 if gf > ga else (1 if gf == ga else 0)
+        played.append({"date": row.date, "gf": gf, "ga": ga, "points": points,
+                       "venue": "home" if is_home else "away",
+                       "result": "W" if points == 3 else ("D" if points == 1 else "L")})
+    played.sort(key=lambda item: item["date"])
+    recent = played[-limit:]
+    venue_rows = [item for item in played if item["venue"] == venue][-limit:] if venue else []
+    def summarize(items):
+        if not items:
+            return {"matches": 0, "form": "", "pointsPerGame": None,
+                    "goalsForAvg": None, "goalsAgainstAvg": None}
+        return {"matches": len(items), "form": "".join(x["result"] for x in items),
+                "pointsPerGame": round(sum(x["points"] for x in items) / len(items), 3),
+                "goalsForAvg": round(sum(x["gf"] for x in items) / len(items), 3),
+                "goalsAgainstAvg": round(sum(x["ga"] for x in items) / len(items), 3)}
+    summary = summarize(recent)
+    venue_summary = summarize(venue_rows)
+    return {**summary, "venueMatches": venue_summary["matches"],
+            "venuePointsPerGame": venue_summary["pointsPerGame"],
+            "venueForm": venue_summary["form"]}
+
+
+def form_adjustment(signal, home_form, away_form):
+    """Capped selection adjustment from recent form; never changes xG probabilities."""
+    if home_form.get("matches", 0) < 3 or away_form.get("matches", 0) < 3:
+        return 0.0
+    side = str(signal.get("side") or "")
+    if side == "1X":
+        home_ppg = home_form.get("venuePointsPerGame")
+        raw = (home_ppg if home_ppg is not None else home_form["pointsPerGame"]) - away_form["pointsPerGame"]
+        scale = 0.55
+    elif side == "X2":
+        away_ppg = away_form.get("venuePointsPerGame")
+        raw = (away_ppg if away_ppg is not None else away_form["pointsPerGame"]) - home_form["pointsPerGame"]
+        scale = 0.55
+    elif side.startswith("ИТБ 1.5"):
+        team_name = side.split("·", 1)[1].strip() if "·" in side else ""
+        if team_name == signal.get("homeTeam"):
+            raw = home_form["goalsForAvg"] - away_form["goalsAgainstAvg"]
+        elif team_name == signal.get("awayTeam"):
+            raw = away_form["goalsForAvg"] - home_form["goalsAgainstAvg"]
+        else:
+            return 0.0
+        scale = 0.45
+    else:
+        return 0.0
+    return round(max(-1.5, min(1.5, raw * scale)), 2)
+
+
 def predict(c,home,away,st,base,names,matches,target_date):
     hn=match_name(home,names.get(c,[]),c); an=match_name(away,names.get(c,[]),c)
     if not hn or not an:return None,"Не удалось надёжно сопоставить команды с исторической базой xG"
@@ -182,7 +250,19 @@ def predict(c,home,away,st,base,names,matches,target_date):
     if not hs or not ads or not hb or not ab:return None,"Недостаточно исторических xG для одной из команд"
     lh=max(.05,min(4.5,hb*hs["attack"]*ads["defence"])); la=max(.05,min(4.5,ab*ads["attack"]*hs["defence"]))
     pred=markets(lh,la)
-    pred["strongestSignal"]=strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
+    signal = strongest_signal(pred,historical_baselines(matches,c,target_date),home,away)
+    home_form = recent_team_form(matches, c, home, target_date, venue="home")
+    away_form = recent_team_form(matches, c, away, target_date, venue="away")
+    pred["teamForm"] = {"source": "cached_results", "window": 5,
+                        "home": home_form, "away": away_form}
+    if signal is not None:
+        signal["homeTeam"] = home
+        signal["awayTeam"] = away
+        adjustment = form_adjustment(signal, home_form, away_form)
+        signal["formAdjustmentPp"] = adjustment
+        signal["selectionEdgePp"] = round(signal["edgePp"] + adjustment, 2)
+        signal["formContextUsed"] = adjustment != 0.0
+    pred["strongestSignal"] = signal
     return pred,None
 
 def strip_forbidden_market_fields(prediction):
