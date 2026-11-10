@@ -233,8 +233,59 @@ def main():
             "pitchApiName": check["pitchApiName"],
             "candidateDetails": candidates,
         })
+    # Match each unmatched fixture by API-Sport team IDs, ignoring kickoff.
+    # Team candidates are restricted to the expected tournament to avoid
+    # confusing first teams with reserves/youth sides.
+    pair_id_checks = []
+    for code, result in results.items():
+        expected_id = TOURNAMENT_IDS[code]
+        for target in result["unmatchedTargets"]:
+            side_candidates = {}
+            for side in ("home", "away"):
+                ranked = {}
+                for row in all_rows:
+                    if str(tournament_id(row)) != str(expected_id):
+                        continue
+                    team = row.get("homeTeam" if side == "home" else "awayTeam") or {}
+                    team_id = str(team.get("id") or "")
+                    if not team_id:
+                        continue
+                    score = max((sim(target[side], name) for name in team_names(team)), default=0.0)
+                    identity = (team_id, str(team.get("name") or ""))
+                    if identity not in ranked or score > ranked[identity]["similarity"]:
+                        ranked[identity] = {"teamId": team_id, "name": identity[1], "similarity": round(score, 3)}
+                side_candidates[side] = sorted(
+                    (item for item in ranked.values() if item["similarity"] >= 0.60),
+                    key=lambda item: item["similarity"], reverse=True
+                )[:5]
+            home_ids = {item["teamId"] for item in side_candidates["home"] if item["similarity"] >= 0.60}
+            away_ids = {item["teamId"] for item in side_candidates["away"] if item["similarity"] >= 0.60}
+            pair_rows = []
+            if home_ids and away_ids:
+                for row in all_rows:
+                    if str(tournament_id(row)) != str(expected_id):
+                        continue
+                    home_id = str((row.get("homeTeam") or {}).get("id") or "")
+                    away_id = str((row.get("awayTeam") or {}).get("id") or "")
+                    if home_id in home_ids and away_id in away_ids:
+                        pair_rows.append({
+                            "apiSportFixtureId": row.get("id"),
+                            "date": row.get("utcDate") or row.get("dateEvent"),
+                            "home": (row.get("homeTeam") or {}).get("name"),
+                            "homeTeamId": home_id,
+                            "away": (row.get("awayTeam") or {}).get("name"),
+                            "awayTeamId": away_id,
+                        })
+            pair_id_checks.append({
+                "competition": code, "expectedTournamentId": expected_id,
+                "pitchApiFixture": {"date": target["date"], "home": target["home"], "away": target["away"]},
+                "homeTeamCandidates": side_candidates["home"],
+                "awayTeamCandidates": side_candidates["away"],
+                "sameTeamIdsInExpectedTournament": pair_rows,
+            })
     print("UNMATCHED_TEAM_NAME_CANDIDATES=" + json.dumps(unmatched_name_checks, ensure_ascii=False))
     print("TEAM_NAME_CANDIDATE_IDS=" + json.dumps(name_candidate_details, ensure_ascii=False))
+    print("PAIR_TEAM_ID_CHECKS=" + json.dumps(pair_id_checks, ensure_ascii=False))
     print("LEAGUE_ID_CROSSCHECK=" + json.dumps(results, ensure_ascii=False))
     print("SUMMARY=" + json.dumps(summary, ensure_ascii=False))
 
