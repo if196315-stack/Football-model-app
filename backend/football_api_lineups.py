@@ -130,12 +130,13 @@ def _fixture_match(row: dict, fixtures: list[dict]) -> dict | None:
 
 def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
                     now: datetime | None = None, pause_seconds: float = 0.12,
-                    horizon_hours: int = 48, max_lineup_requests: int = 10) -> dict:
-    """Map cached PitchAPI matches to API-Football fixture IDs, then fetch official XIs.
+                    horizon_hours: int = 48, max_lineup_requests: int = 20,
+                    eligible_match_ids: set[str] | None = None,
+                    max_api_requests: int = 20, daily_request_limit: int = 100) -> dict:
+    """Fetch confirmed XIs only for selected AI candidates within a persistent quota.
 
-    One /fixtures?date= call is cached per UTC date for 20 hours. Lineups are
-    checked only from 55 minutes before kickoff to 30 minutes after kickoff,
-    with a 15-minute retry cooldown and a per-run request cap.
+    Both /fixtures?date= and /fixtures/lineups calls count toward the per-run
+    and UTC-day budgets. Daily usage is stored in the shared PitchAPI cache.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -143,10 +144,34 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
     current = current.astimezone(timezone.utc)
     cutoff = current + timedelta(hours=max(0, horizon_hours))
     date_fixtures = cache.setdefault("footballApiFixturesByDate", {})
-    attempted = fetched = errors = mapping_calls = 0
-    mapping_errors = 0
+
+    usage = cache.setdefault("footballApiDailyUsage", {})
+    day_key = current.date().isoformat()
+    if usage.get("date") != day_key:
+        usage.clear()
+        usage.update({"date": day_key, "requests": 0})
+    used_today = max(0, int(usage.get("requests", 0) or 0))
+    run_limit = max(0, int(max_api_requests))
+    day_limit = max(0, int(daily_request_limit))
+    request_count = 0
+
+    def can_request() -> bool:
+        return request_count < run_limit and used_today + request_count < day_limit
+
+    def api_call(path: str, params: dict | None = None) -> list:
+        nonlocal request_count
+        if not can_request():
+            raise RuntimeError("API-Football request budget exhausted")
+        # Count before making the network call: failed requests consume quota too.
+        request_count += 1
+        usage["requests"] = used_today + request_count
+        return _api_get(session, path, api_key, params)
+
+    attempted = fetched = errors = mapping_calls = mapping_errors = 0
     upcoming = []
     for match_id, row in cache.get("matches", {}).items():
+        if eligible_match_ids is not None and str(match_id) not in eligible_match_ids:
+            continue
         if row.get("status") not in {"scheduled", "upcoming", "not_started", "timed"}:
             continue
         kickoff = _utc(row.get("timeUtc") or row.get("date"))
@@ -154,16 +179,22 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
             continue
         upcoming.append((match_id, row, kickoff))
 
-    dates = sorted({kickoff.date().isoformat() for _, _, kickoff in upcoming})
+    # Only look up fixture dates required by selected AI matches without a mapped ID.
+    dates = sorted({kickoff.date().isoformat() for _, row, kickoff in upcoming
+                    if row.get("footballApiFixtureId") is None})
     for day in dates:
         cached = date_fixtures.get(day)
         cached_at = _utc(cached.get("fetchedAt")) if isinstance(cached, dict) else None
         if cached_at and current - cached_at < FIXTURE_CACHE_TTL:
             continue
+        if not can_request():
+            break
         try:
-            rows = _api_get(session, "/fixtures", api_key, {"date": day, "timezone": "UTC"})
+            rows = api_call("/fixtures", {"date": day, "timezone": "UTC"})
             date_fixtures[day] = {"fetchedAt": current.isoformat(), "fixtures": rows}
             mapping_calls += 1
+        except RuntimeError:
+            break
         except (requests.RequestException, ValueError, TypeError) as exc:
             mapping_errors += 1
             date_fixtures[day] = {
@@ -174,10 +205,10 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
             time.sleep(pause_seconds)
 
     for match_id, row, kickoff in upcoming:
-        day = kickoff.date().isoformat()
-        fixtures = (date_fixtures.get(day) or {}).get("fixtures") or []
         mapped = row.get("footballApiFixtureId")
         if mapped is None:
+            day = kickoff.date().isoformat()
+            fixtures = (date_fixtures.get(day) or {}).get("fixtures") or []
             match = _fixture_match(row, fixtures)
             if match is None:
                 continue
@@ -197,11 +228,11 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
         attempted_at = _utc(row.get("lineupsAttemptedAt"))
         if attempted_at and current - attempted_at < LINEUP_RETRY:
             continue
-        if attempted >= max(0, int(max_lineup_requests)):
+        if attempted >= max(0, int(max_lineup_requests)) or not can_request():
             break
         attempted += 1
         try:
-            payload = _api_get(session, "/fixtures/lineups", api_key, {"fixture": mapped})
+            payload = api_call("/fixtures/lineups", {"fixture": mapped})
             lineups = normalize_lineups(payload, row.get("home"), row.get("away"))
             if lineups is not None:
                 row["lineups"] = lineups
@@ -212,6 +243,8 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
             else:
                 row["lineupsFetchError"] = "lineups_not_published_or_incomplete"
             row["lineupsAttemptedAt"] = current.isoformat()
+        except RuntimeError:
+            break
         except (requests.RequestException, ValueError, TypeError) as exc:
             row["lineupsFetchError"] = type(exc).__name__
             row["lineupsAttemptedAt"] = current.isoformat()
@@ -223,4 +256,7 @@ def refresh_lineups(cache: dict, api_key: str, session: Any = requests,
         "lineupAttempts": attempted, "lineupsFetched": fetched,
         "lineupErrors": errors, "fixtureDateLookups": mapping_calls,
         "fixtureDateLookupErrors": mapping_errors,
+        "apiFootballRequestsThisRun": request_count,
+        "apiFootballRequestsToday": usage.get("requests", 0),
+        "apiFootballDailyLimit": day_limit,
     }
