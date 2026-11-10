@@ -54,7 +54,7 @@ internal object PaperBetNotifications {
         val odds = bet.optDouble("odds", 0.0)
         val amount = String.format(Locale("ru", "RU"), "%.0f ₽", stake)
         val price = String.format(Locale.US, "%.2f", odds)
-        val title = "Новая AI paper-ставка"
+        val title = "Сделана новая ставка"
         val body = "$home — $away · $market · $amount · кэф $price"
 
         val openApp = Intent(context, MainActivity::class.java).apply {

@@ -49,7 +49,6 @@ class MainActivity : Activity() {
     private val gold = Color.rgb(255, 194, 92)
     private lateinit var root: LinearLayout
     private lateinit var statusView: TextView
-    private lateinit var refreshButton: Button
     private lateinit var headerBalanceView: TextView
     private lateinit var headerAiRoiView: TextView
     private lateinit var leagueBar: LinearLayout
@@ -78,8 +77,8 @@ class MainActivity : Activity() {
     private val liveRefreshTask = object : Runnable {
         override fun run() {
             refreshWorkerStatusUi()
-            if (refreshButton.isEnabled && currentTab in listOf("matches", "history", "desk")) loadData()
-            liveRefreshHandler.postDelayed(this, 30_000)
+            if (!loadInProgress.get() && currentTab in listOf("matches", "history", "desk")) loadData()
+            liveRefreshHandler.postDelayed(this, 30 * 60 * 1000L)
         }
     }
 
@@ -149,23 +148,22 @@ class MainActivity : Activity() {
         val crest = ImageView(this).apply {
             setImageResource(R.drawable.ic_launcher)
             scaleType = ImageView.ScaleType.FIT_CENTER
-            contentDescription = "IQ Match"
+            contentDescription = "IQ Match · нажмите для обновления"
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { loadData() }
         }
         top.addView(crest, LinearLayout.LayoutParams(dp(56), dp(56)).apply { rightMargin = dp(11) })
-        val brand = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val brand = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Обновить базу данных"
+            setOnClickListener { loadData() }
+        }
         brand.addView(label("IQ MATCH", 24, true, Color.WHITE))
         brand.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         top.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
-        refreshButton = Button(this).apply {
-            text = "↻"
-            textSize = 21f
-            isAllCaps = false
-            elevation = 0f
-            setTextColor(Color.WHITE)
-            background = rounded(surface, 16)
-            setOnClickListener { loadData() }
-        }
-        top.addView(refreshButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(7) })
         val headerRight = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
@@ -225,44 +223,10 @@ class MainActivity : Activity() {
             overScrollMode = View.OVER_SCROLL_NEVER
             addView(leagueBar)
         }
-        val leagueLeft = TextView(this).apply {
-            text = "‹"
-            textSize = 25f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setTextColor(muted)
-            background = rounded(surface, 10)
-            contentDescription = "Прокрутить лиги влево"
-            setOnClickListener { leagueScroll.smoothScrollBy(-dp(190), 0) }
-        }
-        val leagueRight = TextView(this).apply {
-            text = "›"
-            textSize = 25f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setTextColor(muted)
-            background = rounded(surface, 10)
-            contentDescription = "Прокрутить лиги вправо"
-            setOnClickListener { leagueScroll.smoothScrollBy(dp(190), 0) }
-        }
-        fun updateLeagueArrowState() {
-            val maxScroll = (leagueScroll.getChildAt(0)?.width ?: 0) - leagueScroll.width
-            leagueLeft.alpha = if (leagueScroll.scrollX <= 0) 0.28f else 1f
-            leagueRight.alpha = if (maxScroll <= 0 || leagueScroll.scrollX >= maxScroll - dp(2)) 0.28f else 1f
-        }
-        leagueScroll.setOnScrollChangeListener { _, _, _, _, _ -> updateLeagueArrowState() }
-        val leagueNavigation = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(leagueLeft, LinearLayout.LayoutParams(dp(34), dp(42)).apply { rightMargin = dp(5) })
-            addView(leagueScroll, LinearLayout.LayoutParams(0, -2, 1f))
-            addView(leagueRight, LinearLayout.LayoutParams(dp(34), dp(42)).apply { leftMargin = dp(5) })
-        }
-        root.addView(leagueNavigation, LinearLayout.LayoutParams(-1, -2).apply {
+        root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(2)
             bottomMargin = dp(2)
         })
-        leagueScroll.post { updateLeagueArrowState() }
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
@@ -318,7 +282,7 @@ class MainActivity : Activity() {
             if (data != null) render()
         }
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
-        liveRefreshHandler.postDelayed(liveRefreshTask, 30_000)
+        liveRefreshHandler.postDelayed(liveRefreshTask, 30 * 60 * 1000L)
     }
 
     override fun onPause() {
@@ -795,7 +759,6 @@ class MainActivity : Activity() {
     private fun loadData() {
         if (!loadInProgress.compareAndSet(false, true)) return
         statusView.text = if (data == null) "Загружаю данные…" else "Проверяю обновления…"
-        refreshButton.isEnabled = false
         thread(name = "iq-match-feed-refresh") {
             try {
                 val body = fetchFeed(dataUrl, "domestic_json", true)
@@ -838,19 +801,20 @@ class MainActivity : Activity() {
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
-                    AiMatchNotifications.notifyNewCandidates(this, json)
                     val changed = payload != lastPayload
                     if (changed) {
                         data = json
                         lastPayload = payload
-                        processAutoPaperBets(json)
+                        val newAutoBets = processAutoPaperBets(json)
+                        newAutoBets.forEach { PaperBetNotifications.show(this, it) }
                         tabViewCache.clear()
                         renderedKey = null
                         render()
-                    } else {
+                    }
+                    AiMatchNotifications.notifyNewCandidates(this, json)
+                    if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }
-                    refreshButton.isEnabled = true
                     loadInProgress.set(false)
                 }
             } catch (e: Exception) {
@@ -858,7 +822,6 @@ class MainActivity : Activity() {
                     val lastCheck = formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))
                     statusView.text = (if (data != null) "Нет сети · показаны последние данные" else
                         "Нет соединения · ${e.message ?: "проверьте интернет"}") + " · последняя успешная проверка: $lastCheck"
-                    refreshButton.isEnabled = true
                     loadInProgress.set(false)
                 }
             }
@@ -1226,17 +1189,18 @@ class MainActivity : Activity() {
         return null
     }
 
-    // Open only after a changed odds/feed snapshot, on match day,
-    // with kickoff within 12 hours and a BetBoom quote updated inside that window.
-    private fun processAutoPaperBets(json: JSONObject) {
-        synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
+    // Lock a paper bet as soon as the visible AI candidate qualifies in the next-30-day window.
+    // The stored odds and quote timestamp remain fixed through settlement.
+    private fun processAutoPaperBets(json: JSONObject): List<JSONObject> {
+        return synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
     }
 
-    private fun processAutoPaperBetsUnlocked(json: JSONObject) {
+    private fun processAutoPaperBetsUnlocked(json: JSONObject): List<JSONObject> {
         // Reload persisted worker changes before foreground processing.
         bets = try { JSONArray(betPrefs.getString("bets", bets.toString())) } catch (_: Exception) { bets }
         val now = System.currentTimeMillis()
         var changed = false
+        val newAutoBets = mutableListOf<JSONObject>()
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("status") == "PENDING" && existing.optString("marketKey") != "COUPON") {
@@ -1262,20 +1226,24 @@ class MainActivity : Activity() {
                 val match = matches.optJSONObject(j) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
                 val kickoff = parseFeedTimeMillis(match.optString("utcDate")) ?: continue
-                val hoursToKickoff = (kickoff - now) / 3600000.0
-                if (hoursToKickoff < 0.0 || hoursToKickoff > 12.0) continue
-                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }
+                val kickoffDate = dayFormat.format(java.util.Date(kickoff))
                 val today = dayFormat.format(java.util.Date(now))
-                if (dayFormat.format(java.util.Date(kickoff)) != today) continue
+                val endDate = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                    add(java.util.Calendar.DAY_OF_YEAR, 30)
+                }.let { dayFormat.format(it.time) }
+                if (kickoffDate < today || kickoffDate > endDate) continue
                 val odds = match.optJSONObject("odds") ?: continue
                 val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
-                // Do not reintroduce the removed five-minute cutoff: any actual BetBoom quote
-                // updated in the final 12h window is eligible when a new feed snapshot arrives.
-                if (quoteUpdatedAt < kickoff - 12L * 60L * 60L * 1000L || quoteUpdatedAt > now) continue
+                // Lock the visible BetBoom quote when the candidate first qualifies in the AI window.
+                if (quoteUpdatedAt > now) continue
                 val signal = (match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: if (competition.optString("code") in listOf("UCL", "UEL")) uefaPaperSignal(match) else null)
                     ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                    signal.optString("side") == "ОЗ НЕТ") continue
                 val price = topSignalOdds(signal, match) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
                 val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
@@ -1304,7 +1272,7 @@ class MainActivity : Activity() {
                         prior.optString("status") in listOf("PENDING", "WON", "LOST", "PUSH")) dailyExposure += prior.optDouble("stake", 0.0)
                 }
                 if (dailyExposure + stake > bank * 0.05 + 0.000001) continue
-                bets.put(JSONObject()
+                val newBet = JSONObject()
                     .put("id", id)
                     .put("source", "AI_AUTO")
                     .put("status", "PENDING")
@@ -1324,11 +1292,14 @@ class MainActivity : Activity() {
                     .put("quoteUpdatedAt", odds.optString("updatedAt"))
                     .put("createdAt", now)
                     .put("matchStatus", "SCHEDULED")
-                    .put("score", ""))
+                    .put("score", "")
+                bets.put(newBet)
+                newAutoBets.add(JSONObject(newBet.toString()))
                 changed = true
             }
         }
         if (changed) saveBets()
+        return newAutoBets
     }
 
     private fun saveBets(preserveBackgroundAuto: Boolean = true) {

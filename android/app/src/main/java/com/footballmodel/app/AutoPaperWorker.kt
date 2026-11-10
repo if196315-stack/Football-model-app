@@ -35,7 +35,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
-            AiMatchNotifications.notifyNewCandidates(applicationContext, domestic)
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
@@ -62,6 +61,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             newAutoBets.forEach { bet ->
                 PaperBetNotifications.show(applicationContext, bet)
             }
+            // Paper-bet notifications take priority; AI-only notification is sent only if no ticket was locked.
+            AiMatchNotifications.notifyNewCandidates(applicationContext, domestic)
             settings.edit()
                 .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
                 .putString("paper_worker_last_status", "SUCCESS")
@@ -141,25 +142,30 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val match = matches.optJSONObject(mi) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
                 val kickoff = parseInstant(match.optString("utcDate")) ?: continue
-                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
                 val kickoffDate = dayFormat.format(Date(kickoff))
                 val today = dayFormat.format(Date(now))
-                val hours = (kickoff - now) / 3600000.0
-                if (kickoffDate != today || hours !in 0.0..12.0) continue
+                val endDate = java.util.Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                    add(java.util.Calendar.DAY_OF_YEAR, 30)
+                }.let { dayFormat.format(it.time) }
+                if (kickoffDate < today || kickoffDate > endDate) continue
 
                 val odds = match.optJSONObject("odds") ?: continue
                 if (!odds.optString("source").contains("BetBoom", true)) continue
                 val quoteTime = parseInstant(odds.optString("updatedAt")) ?: continue
-                if (quoteTime > now || quoteTime < kickoff - 12L * 60L * 60L * 1000L) continue
+                if (quoteTime > now) continue
 
                 val signal = (match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: if (competition.optString("code") == "UCL" || competition.optString("code") == "UEL") uefaSignal(match) else null)
                     ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optString("side") == "ОЗ НЕТ") continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                    signal.optString("side") == "ОЗ НЕТ") continue
                 val price = priceFor(signal, match) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
                 val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN)
-                    else (probability - 1.0 / price) * 100.0
+                    else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
                 val ev = probability * price - 1.0
                 if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
                 val key = marketKey(signal.optString("side"), match) ?: continue

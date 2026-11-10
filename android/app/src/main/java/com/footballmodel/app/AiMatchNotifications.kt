@@ -28,6 +28,14 @@ internal object AiMatchNotifications {
         val competitions = feed.optJSONArray("competitions") ?: return
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val seen = prefs.getStringSet("seen_match_ids", emptySet())?.toMutableSet() ?: mutableSetOf()
+        val savedBets = try {
+            org.json.JSONArray(context.getSharedPreferences("bet_history", Context.MODE_PRIVATE).getString("bets", "[]"))
+        } catch (_: Exception) { org.json.JSONArray() }
+        val paperBetMatchIds = mutableSetOf<String>()
+        for (i in 0 until savedBets.length()) {
+            val bet = savedBets.optJSONObject(i) ?: continue
+            if (bet.optString("source") == "AI_AUTO") paperBetMatchIds.add(bet.optString("matchId"))
+        }
         val initialized = prefs.getBoolean("initialized", false)
         val current = linkedMapOf<String, Triple<JSONObject, String, JSONObject>>()
         val now = System.currentTimeMillis()
@@ -72,7 +80,11 @@ internal object AiMatchNotifications {
         current.forEach { (id, item) ->
             if (id in seen) return@forEach
             val (match, league, signal) = item
-            show(context, manager, id, match, league, signal)
+            // If an automatic paper ticket was created for this candidate, its notification is enough.
+            val matchId = match.optString("id").ifBlank {
+                match.optString("utcDate") + match.optString("home") + match.optString("away")
+            }
+            if (matchId !in paperBetMatchIds) show(context, manager, id, match, league, signal)
             seen.add(id)
             changed = true
         }
@@ -119,7 +131,7 @@ internal object AiMatchNotifications {
             else Notification.Builder(context)
         val notification = builder
             .setSmallIcon(context.applicationInfo.icon)
-            .setContentTitle("Новый матч в AI")
+            .setContentTitle("Новая ставка в AI")
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
             .setContentIntent(pending)
@@ -136,7 +148,7 @@ internal object AiMatchNotifications {
         val price = topOdds(signal, match) ?: return false
         val probability = signal.optDouble("modelProbability", Double.NaN)
         val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN)
-            else (probability - 1.0 / price) * 100.0
+            else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
         val ev = probability * price - 1.0
         return probability.isFinite() && probability >= 0.60 &&
             edge.isFinite() && edge >= 5.0 && ev.isFinite() && ev >= 0.05 && price >= 1.50
