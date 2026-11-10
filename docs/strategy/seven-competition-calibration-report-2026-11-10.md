@@ -1,5 +1,8 @@
 # Seven-competition probability calibration report — 2026-11-10
 
+> **Superseded for current decisions:** use the reproducible main-branch report [seven-competition-audit-2026-11-11](./seven-competition-audit-2026-11-11.md). It reruns the 10,031-match cohort on `main`, counts 15 independent outcomes (the two DNB labels duplicate 1X2), and adds paired bootstrap confidence intervals. This file preserves the original feature-branch research run.
+
+
 ## Status
 
 Research-only calibration completed successfully in GitHub Actions run [42705865885](https://github.com/if196315-stack/Football-model-app/actions/runs/42705865885).
