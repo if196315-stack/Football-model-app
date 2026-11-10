@@ -148,7 +148,7 @@ internal object AiMatchNotifications {
         val price = topOdds(signal, match) ?: return false
         val probability = signal.optDouble("modelProbability", Double.NaN)
         val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN)
-            else (probability - 1.0 / price) * 100.0
+            else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
         val ev = probability * price - 1.0
         return probability.isFinite() && probability >= 0.60 &&
             edge.isFinite() && edge >= 5.0 && ev.isFinite() && ev >= 0.05 && price >= 1.50
