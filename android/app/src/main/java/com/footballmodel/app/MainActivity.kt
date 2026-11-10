@@ -78,7 +78,7 @@ class MainActivity : Activity() {
         override fun run() {
             refreshWorkerStatusUi()
             if (!loadInProgress.get() && currentTab in listOf("matches", "history", "desk")) loadData()
-            liveRefreshHandler.postDelayed(this, 30_000)
+            liveRefreshHandler.postDelayed(this, 30 * 60 * 1000L)
         }
     }
 
@@ -282,7 +282,7 @@ class MainActivity : Activity() {
             if (data != null) render()
         }
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
-        liveRefreshHandler.postDelayed(liveRefreshTask, 30_000)
+        liveRefreshHandler.postDelayed(liveRefreshTask, 30 * 60 * 1000L)
     }
 
     override fun onPause() {
