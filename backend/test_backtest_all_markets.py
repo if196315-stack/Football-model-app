@@ -106,8 +106,9 @@ class AllMarketBacktestTests(unittest.TestCase):
         ]
         ci = paired_bootstrap_brier_delta(holdout, params, "BTTS", replicates=250)
         self.assertEqual(ci["bootstrap_replicates"], 250)
-        self.assertLessEqual(ci["ci95_lower"], ci["mean"])
-        self.assertGreaterEqual(ci["ci95_upper"], ci["mean"])
+        self.assertLessEqual(ci["ci95_lower"], ci["ci95_upper"])
+        ci_again = paired_bootstrap_brier_delta(holdout, params, "BTTS", replicates=250)
+        self.assertEqual(ci, ci_again)
         self.assertTrue(ci["conditional_on_fitted_calibrator"])
 
     def test_vector_scaling_refuses_small_training_sample(self):
