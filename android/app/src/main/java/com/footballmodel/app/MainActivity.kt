@@ -1287,7 +1287,7 @@ class MainActivity : Activity() {
                     }
                     if (duplicate || autoStopped || drawdownPaused) continue
                     val bank = currentBankroll()
-                    val stake = maxOf(bank * 0.01, 25.0)
+                    val stake = maxOf(bank * 0.01, minimumStake())
                     val newBet = JSONObject()
                         .put("id", id).put("source", "AI_AUTO").put("status", "PENDING")
                         .put("matchId", matchId).put("league", competition.optString("name"))
@@ -1460,7 +1460,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "История", "Текущий баланс, правила расчёта ставки и история бумажных ставок.")
+        screenHeader("BET TRACKER", "История", "Текущий баланс, правило ставки и история бумажных ставок.")
         val bank = currentBankroll()
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
@@ -1468,11 +1468,8 @@ class MainActivity : Activity() {
         addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
 
         val strategyCard = card()
-        addText(strategyCard, "КАК РАБОТАЕТ СТРАТЕГИЯ", 11, true, accent)
-        addText(strategyCard, "Размер одной ставки — 1% от текущего баланса, но не меньше 25 ₽: это минимальная сумма, которую принимает BetBoom.", 11, false, Color.WHITE)
-        addText(strategyCard, "Примеры: баланс 2 500 ₽ → 1% = 25 ₽, ставка 25 ₽; баланс 2 499 ₽ → 1% = 24,99 ₽, но фактическая ставка всё равно 25 ₽ из-за минимума букмекера.", 11, false, muted)
-        addText(strategyCard, "Обычный расчёт — 1% банка на матч, но если 1% меньше 25 ₽, применяется минимум BetBoom 25 ₽. Поэтому при балансе ниже 2 500 ₽ фактическая ставка может быть чуть больше 1%. Дневного лимита суммарной нагрузки нет: все сигналы, прошедшие критерии стратегии, автоматически фиксируются как paper-ставки.", 11, false, Color.WHITE)
-        addText(strategyCard, "Это автоматические бумажные ставки для проверки стратегии, а не размещение реальных ставок у букмекера. Догон и увеличение риска после проигрыша не используются.", 10, false, muted)
+        addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
+        addText(strategyCard, "Размер каждой ставки: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽.", 12, true, Color.WHITE)
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             if (b.optString("marketKey") == "COUPON") {
@@ -1579,6 +1576,9 @@ class MainActivity : Activity() {
         val profile = card()
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
         addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
+        addText(profile, "Минимальная сумма ставки: ${fmt(minimumStake())} ₽", 12, true, Color.WHITE)
+        addText(profile, "Правило: 1% от текущего баланса, но не менее заданного минимума.", 11, false, muted)
+        actionButton(profile, "Изменить минимальную сумму ставки") { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимальную сумму. Размер ставки будет равен 1% текущего баланса, если это больше заданного минимума; иначе будет использован минимум.") }
         addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
         actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
 
@@ -1708,6 +1708,9 @@ class MainActivity : Activity() {
 
     private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
+
+    private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", "25")
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 25.0
 
     private fun showBankSettingDialog(key: String, title: String, current: Double, message: String) {
         val field = EditText(this).apply {
