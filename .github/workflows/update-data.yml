@@ -30,6 +30,13 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: python -m pip install requests pandas
+      - name: Restore cached PitchAPI and API-Football history
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-
       - name: Fetch fixtures, results and shot-level xG from PitchAPI
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
