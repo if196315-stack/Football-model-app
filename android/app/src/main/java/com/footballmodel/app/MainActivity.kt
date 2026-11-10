@@ -225,7 +225,6 @@ class MainActivity : Activity() {
         leagueScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = true
             isHorizontalFadingEdgeEnabled = true
-            fadingEdgeLength = dp(22)
             overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
             setPadding(dp(2), dp(2), dp(12), dp(2))
             addView(leagueBar)
