@@ -1,5 +1,8 @@
+import sys
 import unittest
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, run)
 
 
