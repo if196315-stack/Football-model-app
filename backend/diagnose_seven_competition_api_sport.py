@@ -41,7 +41,7 @@ def upcoming_one_per_competition(domestic, uefa, today=None):
                 dt, match = min(candidates, key=lambda item: item[0])
                 chosen[code] = {
                     "competition": code, "id": match.get("id"),
-                    "utcDate": dt.isoformat(), "date": dt.date().isoformat(),
+                    "utcDate": str(raw).strip() if len(str(raw).strip()) == 10 else dt.isoformat(), "date": dt.date().isoformat(),
                     "home": match.get("home"), "away": match.get("away"),
                 }
     return [chosen[code] for code in ("PL", "PD", "SA", "BL", "FL", "UCL", "UEL") if code in chosen]
@@ -122,11 +122,12 @@ def main():
             books = match.get("oddsBk") or {}
             board = books.get("betboom") if isinstance(books, dict) else None
             markets = board.get("markets") or {} if isinstance(board, dict) else {}
+            prematch_active = (match.get("isBettingActiveByStage") or {}).get("prematch") is True
             open_prematch = sorted(
                 slug for slug, market in markets.items()
                 if isinstance(market, dict)
                 and market.get("status") == "open"
-                and market.get("stage") == "prematch"
+                and (market.get("stage") == "prematch" or (market.get("stage") is None and prematch_active))
             )
             exact_rows.append({
                 "competition": target["competition"], "home": target["home"],
