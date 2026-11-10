@@ -169,8 +169,9 @@ class MainActivity : Activity() {
         val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val bell = FrameLayout(this).apply { background = rounded(surface, 16); isClickable = true; setOnClickListener { currentTab = "intel"; intelligencePrefs.edit().putInt("unread_count", 0).apply(); updateNotificationBadge(); tabViewCache.clear(); renderedKey = null; render(); loadData() } }
         bell.addView(label("🔔", 22, true, Color.WHITE).apply { gravity = Gravity.CENTER }, FrameLayout.LayoutParams(-1, -1))
-        notificationBadge = label("", 9, true, Color.WHITE).apply { gravity = Gravity.CENTER; background = rounded(Color.rgb(235, 76, 91), 20); visibility = View.GONE }
-        bell.addView(notificationBadge, FrameLayout.LayoutParams(dp(18), dp(18), Gravity.TOP or Gravity.END))
+        val badge = label("", 9, true, Color.WHITE).apply { gravity = Gravity.CENTER; background = rounded(Color.rgb(235, 76, 91), 20); visibility = View.GONE }
+        notificationBadge = badge
+        bell.addView(badge, FrameLayout.LayoutParams(dp(18), dp(18), Gravity.TOP or Gravity.END))
         actions.addView(bell, LinearLayout.LayoutParams(dp(46), dp(46)).apply { rightMargin = dp(7) })
         actions.addView(refreshButton, LinearLayout.LayoutParams(dp(46), dp(46)))
         top.addView(actions)
@@ -1056,7 +1057,7 @@ class MainActivity : Activity() {
                 val box = card()
                 addText(box, "НАБЛЮДЕНИЯ", 10, true, accent)
                 addText(box, "Снимков: " + snapshots.length() + " · результатов: " + results.length(), 16, true)
-                addText(box, snapshots.length() == 0 ? "Архив пока пуст. Данные появятся после публикации первых снимков." : "Подробная разбивка доступна в Stats → Наблюдаемые котировки.", 11, false, muted)
+                addText(box, if (snapshots.length() == 0) "Архив пока пуст. Данные появятся после публикации первых снимков." else "Подробная разбивка доступна в Stats → Наблюдаемые котировки.", 11, false, muted)
             }
             "system" -> {
                 val box = card()
