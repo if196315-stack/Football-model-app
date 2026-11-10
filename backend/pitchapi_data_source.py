@@ -197,9 +197,13 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
                     previous = stored.get(row["id"], {})
                     # Preserve validated xG only for the exact provider match ID.
                     for field in ("homeXg", "awayXg", "xgShotCount", "xgFetchedAt", "xgAttemptedAt", "xgFetchError",
-                                  ):
+                                  "footballApiFixtureId", "footballApiFixtureMappedAt",
+                                  "lineupsFetchedAt", "lineupsAttemptedAt", "lineupsFetchError"):
                         if field in previous:
                             row[field] = previous[field]
+                    previous_lineups = previous.get("lineups")
+                    if isinstance(previous_lineups, dict) and previous_lineups.get("source") == "API-Football":
+                        row["lineups"] = previous_lineups
                     stored[row["id"]] = row
             except (requests.RequestException, ValueError, RuntimeError, TypeError) as exc:
                 errors.append(f"{code} {season}: {type(exc).__name__}")
