@@ -198,11 +198,43 @@ def market_is_multiclass(market):
     return market == "1X2" or market.startswith("DNB")
 
 
+def paired_bootstrap_brier_delta(rows, params, market, replicates=1000, seed=20261111):
+    """Paired match-level bootstrap CI for raw-minus-calibrated Brier improvement."""
+    if not rows or not params.get("available"):
+        return None
+    classes = ("1", "X", "2") if market == "1X2" else (
+        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    deltas = []
+    for row in rows:
+        raw = row["model"]
+        calibrated = apply_vector_scaling(row, params)["calibrated"]
+        if market != "1X2" and not market.startswith("DNB"):
+            raw = {"0": 1.0 - float(raw), "1": float(raw)}
+            calibrated = {"0": 1.0 - float(calibrated), "1": float(calibrated)}
+        actual = str(row["actual"])
+        raw_loss = sum((float(raw[label]) - (1.0 if actual == label else 0.0)) ** 2
+                       for label in classes)
+        calibrated_loss = sum((float(calibrated[label]) - (1.0 if actual == label else 0.0)) ** 2
+                              for label in classes)
+        deltas.append(raw_loss - calibrated_loss)
+    values = np.asarray(deltas, dtype=float)
+    rng = np.random.default_rng(seed)
+    sampled_means = rng.choice(values, size=(replicates, len(values)), replace=True).mean(axis=1)
+    return {
+        "mean": float(values.mean()),
+        "ci95_lower": float(np.quantile(sampled_means, 0.025)),
+        "ci95_upper": float(np.quantile(sampled_means, 0.975)),
+        "bootstrap_replicates": replicates,
+        "unit": "match",
+        "conditional_on_fitted_calibrator": True,
+    }
+
+
 def calibration_comparison(train_rows, test_rows, market):
     params = fit_vector_scaling(train_rows, market)
     if not params["available"] or not test_rows:
         return {"calibrator": params, "holdout": None, "brier_delta_vs_raw": None,
-                "log_loss_delta_vs_raw": None}
+                "log_loss_delta_vs_raw": None, "brier_delta_ci95": None}
     calibrated_rows = [apply_vector_scaling(row, params) for row in test_rows]
     raw_metrics = score(test_rows, market, "model")
     calibrated_metrics = score(calibrated_rows, market, "calibrated")
@@ -213,6 +245,7 @@ def calibration_comparison(train_rows, test_rows, market):
         "brier_delta_vs_raw": raw_metrics["brier"] - calibrated_metrics["brier"],
         "log_loss_delta_vs_raw": raw_metrics["log_loss"] - calibrated_metrics["log_loss"],
         "accuracy_delta_vs_raw": calibrated_metrics["accuracy"] - raw_metrics["accuracy"],
+        "brier_delta_ci95": paired_bootstrap_brier_delta(test_rows, params, market),
     }
 
 def run(rows, holdout):
@@ -378,6 +411,7 @@ def main():
             "raw_brier": raw_metrics["brier"] if raw_metrics else None,
             "calibrated_brier": holdout_metrics["brier"] if holdout_metrics else None,
             "brier_delta_vs_raw": cal["brier_delta_vs_raw"],
+            "brier_delta_ci95": cal.get("brier_delta_ci95"),
             "raw_log_loss": raw_metrics["log_loss"] if raw_metrics else None,
             "calibrated_log_loss": holdout_metrics["log_loss"] if holdout_metrics else None,
             "log_loss_delta_vs_raw": cal["log_loss_delta_vs_raw"],
@@ -388,6 +422,8 @@ def main():
             continue
         for league, league_cal in metrics["calibration_by_competition"].items():
             target = calibration_by_competition.setdefault(league, {"markets_tested": 0, "markets_brier_improved": 0,
+                                                                       "markets_ci_positive": 0, "markets_ci_negative": 0,
+                                                                       "markets_ci_cross_zero": 0,
                                                                        "brier_delta_sum": 0.0, "log_loss_delta_sum": 0.0})
             if league_cal.get("holdout"):
                 target["markets_tested"] += 1
@@ -398,6 +434,11 @@ def main():
                     target["markets_brier_improved"] += int(delta_b > 0)
                 if delta_l is not None:
                     target["log_loss_delta_sum"] += delta_l
+                ci = league_cal.get("brier_delta_ci95")
+                if ci:
+                    target["markets_ci_positive"] += int(ci["ci95_lower"] > 0)
+                    target["markets_ci_negative"] += int(ci["ci95_upper"] < 0)
+                    target["markets_ci_cross_zero"] += int(ci["ci95_lower"] <= 0 <= ci["ci95_upper"])
     for league, values in calibration_by_competition.items():
         n = values.pop("markets_tested")
         values["markets_tested"] = n
