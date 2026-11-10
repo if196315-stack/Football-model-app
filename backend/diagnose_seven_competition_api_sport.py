@@ -83,7 +83,7 @@ def main():
     for sample in samples:
         by_date[sample["date"]].append(sample)
 
-    from update_odds_api_sport import match_fixture
+    from update_odds_api_sport import match_fixture, parse_odds
     exact_rows = []
     request_count = 1
     for date, targets in sorted(by_date.items()):
@@ -132,6 +132,17 @@ def main():
                 if isinstance(market, dict):
                     stage = str(market.get("stage") or "unspecified")
                     market_stages[stage] = market_stages.get(stage, 0) + 1
+            # Run the exact production parser against the raw detail payload. It only
+            # accepts open BetBoom markets explicitly tagged stage=prematch.
+            parsed = parse_odds(match)
+            parsed_best = parsed.get("best") or {}
+            production_quote_counts = {
+                "doubleChance": len(parsed_best.get("doubleChance") or {}),
+                "spreads": len(parsed_best.get("spreads") or []),
+                "teamTotals": len(parsed_best.get("teamTotals") or []),
+                "totals": len(parsed_best.get("totals") or []),
+                "btts": len(parsed_best.get("btts") or {}),
+            }
             exact_rows.append({
                 "competition": target["competition"], "home": target["home"],
                 "away": target["away"], "matched": True, "apiSportFixtureId": fixture_id,
@@ -141,12 +152,15 @@ def main():
                 "betboomBoard": isinstance(board, dict),
                 "openMarkets": open_markets, "marketStageCounts": market_stages,
                 "prematchActiveFlag": prematch_active,
+                "productionParserQuoteCounts": production_quote_counts,
+                "productionParserAccepted": sum(production_quote_counts.values()) > 0,
             })
     print("COMPETITION_RESULTS=" + json.dumps(exact_rows, ensure_ascii=False))
     print("SUMMARY=" + json.dumps({
         "requestedCompetitions": len(samples),
         "matchedFixtures": sum(row["matched"] for row in exact_rows),
         "betboomBoards": sum(row["betboomBoard"] for row in exact_rows),
+        "productionParserAccepted": sum(row.get("productionParserAccepted", False) for row in exact_rows),
         "competitionsWithNoSample": sorted({"PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL"} - {x["competition"] for x in samples}),
         "apiRequests": request_count,
         "readOnly": True,
