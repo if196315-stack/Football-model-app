@@ -2055,7 +2055,11 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.GONE
             renderStats(json)
             return
-        } else if (currentTab == "intel") {\n            leagueBar.visibility = View.GONE\n            renderIntelligenceCenter(json)\n            return\n        } else if (currentTab == "help") {
+        } else if (currentTab == "intel") {
+            leagueBar.visibility = View.GONE
+            renderIntelligenceCenter(json)
+            return
+        } else if (currentTab == "help") {
             leagueBar.visibility = View.GONE
             renderHelp()
             return
