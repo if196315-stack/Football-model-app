@@ -1,4 +1,4 @@
-"""Bounded read-only API-Sport/BetBoom coverage check for the seven IQ Match competitions."""
+"""Bounded read-only API-Sport/MelBet coverage check for the seven IQ Match competitions."""
 import json
 import os
 from collections import defaultdict
@@ -154,7 +154,7 @@ def main():
                 exact_rows.append({
                     "competition": target["competition"], "home": target["home"],
                     "away": target["away"], "matched": False,
-                    "betboomBoard": False, "openMarkets": [], "marketStageCounts": {}, "prematchActiveFlag": False,
+                    "melbetBoard": False, "openMarkets": [], "marketStageCounts": {}, "prematchActiveFlag": False,
                 })
                 continue
             fixture_id = matched.get("id")
@@ -165,7 +165,7 @@ def main():
             payload = detail.json()
             match = payload.get("match") or payload.get("data") or payload.get("result") or payload
             books = match.get("oddsBk") or {}
-            board = books.get("betboom") if isinstance(books, dict) else None
+            board = books.get("melbet") if isinstance(books, dict) else None
             markets = board.get("markets") or {} if isinstance(board, dict) else {}
             prematch_active = (match.get("isBettingActiveByStage") or {}).get("prematch") is True
             open_markets = sorted(
@@ -178,7 +178,7 @@ def main():
                     stage = str(market.get("stage") or "unspecified")
                     market_stages[stage] = market_stages.get(stage, 0) + 1
             # Run the exact production parser against the raw detail payload. It only
-            # accepts open BetBoom markets explicitly tagged stage=prematch.
+            # accepts open MelBet markets explicitly tagged stage=prematch.
             parsed = parse_odds(match)
             parsed_best = parsed.get("best") or {}
             production_quote_counts = {
@@ -193,8 +193,8 @@ def main():
                 "away": target["away"], "matched": True, "apiSportFixtureId": fixture_id,
                 "apiSportHome": (match.get("homeTeam") or {}).get("name"),
                 "apiSportAway": (match.get("awayTeam") or {}).get("name"),
-                "betboomFlag": (match.get("hasBkOdds") or {}).get("betboom"),
-                "betboomBoard": isinstance(board, dict),
+                "melbetFlag": (match.get("hasBkOdds") or {}).get("melbet"),
+                "melbetBoard": isinstance(board, dict),
                 "openMarkets": open_markets, "marketStageCounts": market_stages,
                 "prematchActiveFlag": prematch_active,
                 "productionParserQuoteCounts": production_quote_counts,
@@ -205,7 +205,7 @@ def main():
         "requestedFixtures": len(fixtures),
         "checkedFixtures": len(exact_rows),
         "matchedFixtures": sum(row["matched"] for row in exact_rows),
-        "betboomBoards": sum(row["betboomBoard"] for row in exact_rows),
+        "melbetBoards": sum(row["melbetBoard"] for row in exact_rows),
         "productionParserAccepted": sum(row.get("productionParserAccepted", False) for row in exact_rows),
         "competitionsCovered": sorted({x["competition"] for x in fixtures}),
         "truncatedDatesAtPageLimit": truncated_dates,
