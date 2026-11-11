@@ -1536,6 +1536,7 @@ class MainActivity : Activity() {
         }
         if(changed) saveBets()
         var stakeAll=0.0; var turnover=0.0; var profit=0.0; var payout=0.0
+        var possiblePayout=0.0; var possibleProfit=0.0
         var wins=0; var losses=0; var pushes=0; var pending=0
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             val st=b.optDouble("stake"); val o=b.optDouble("odds"); stakeAll+=st
@@ -1543,13 +1544,14 @@ class MainActivity : Activity() {
                 "WON"->{wins++;turnover+=st;profit+=st*(o-1);payout+=st*o}
                 "LOST"->{losses++;turnover+=st;profit-=st}
                 "PUSH"->{pushes++;turnover+=st;payout+=st}
-                else->pending++
+                else->{pending++;possiblePayout+=st*o;possibleProfit+=st*(o-1.0)}
             }
         }
         val sum=card()
         addText(sum,"СТАТИСТИКА СТАВОК",10,true,accent)
         addText(sum,"Всего: "+bets.length()+" · выигрыш: "+wins+" · проигрыш: "+losses+" · возврат: "+pushes+" · не рассчитаны: "+pending,12,true)
         addText(sum,"Сумма ставок: "+fmt(stakeAll),13,true)
+        addText(sum,"Возможная выплата по ожидающим: "+fmt(possiblePayout)+" · чистый выигрыш: +"+fmt(possibleProfit),12,true,accent)
         addText(sum,"Выплаты: "+fmt(payout)+" · чистый результат: "+(if(profit>=0)"+" else "")+fmt(profit),12,true,if(profit>=0)accent else Color.RED)
         addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
         addText(sum,"ОБЩИЙ ROI · все бумажные ставки",10,true,cyan)
