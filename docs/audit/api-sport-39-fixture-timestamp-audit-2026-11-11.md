@@ -56,3 +56,19 @@ This means the previous timestamp audit did **not** compare PitchAPI raw kickoff
 The current evidence still cannot establish the root cause. A conclusive provider-to-provider comparison requires retrieving the original PitchAPI `time_utc` values for these 39 fixture IDs from the persisted `backend/cache/pitchapi_history.json` or from a narrowly scoped PitchAPI fixture listing, and comparing them in UTC with API-Sport `startTimestamp`. The persisted cache is maintained by GitHub Actions cache and is not committed to the repository, so it was not available in this read-only repository inspection.
 
 No production code was changed. Do not infer a timezone defect or change matching rules until the raw PitchAPI `time_utc` values are actually compared.
+
+
+## Raw PitchAPI cache follow-up (no provider API calls)
+
+The Actions workflow restored the existing default-branch cache `pitchapi-history-Linux-main-42890641451` and extracted the current-season rows (`2026/2027`, status `not_started`) for the 39 target fixtures. No PitchAPI or API-Sport HTTP requests were made. Cache freshness: `2026-11-10T20:25:51Z`.
+
+- 39/39 targets have exactly one current-season PitchAPI cache row.
+- Serie A: all 30 rows have `date` on 2027-05-16 / 23 / 30 and `timeUtc` at 16:30 UTC on the corresponding same date.
+- Bundesliga: all 9 rows have `date` 2027-03-02 and `timeUtc` at 19:30 UTC on that same date.
+- API-Sport's previously captured timestamps remain 13:00 UTC on the preceding calendar day for Serie A, and 10:00 UTC on the following calendar day for Bundesliga.
+
+Thus, the date offsets are present even when comparing the providers' raw UTC fields; they are **not** an artifact of the app-feed dropping PitchAPI's `timeUtc`. However, both providers assign one identical timestamp to every fixture in each round/date group. This strongly indicates placeholder/round-level scheduling metadata rather than confirmed individual kickoff times, but this diagnostic cannot establish either provider's scheduling semantics or which calendar date is authoritative.
+
+The earlier section's finding that the app feed drops `timeUtc` remains correct as a code-path observation, but it was not the explanation for the provider discrepancy. The correct conclusion is: both providers' current season snapshots disagree on provisional round dates, and neither set of uniform round-level times should be treated as confirmed match kickoff times.
+
+Workflow: [PitchAPI cached raw kickoff audit 42930280973](https://github.com/if196315-stack/Football-model-app/actions/runs/42930280973). Cache restore succeeded; audit succeeded; API requests: 0.
