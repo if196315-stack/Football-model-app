@@ -1,7 +1,10 @@
+import sys
 import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from refresh_api_sport_unl_fixtures import (
     fetch_matches, normalize_match, refresh_unl_fixtures,
