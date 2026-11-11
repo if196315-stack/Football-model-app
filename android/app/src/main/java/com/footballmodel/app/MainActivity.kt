@@ -1610,8 +1610,8 @@ class MainActivity : Activity() {
         addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + " · рассчитанный оборот: " + fmt(turnover), 12, true)
         addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
         addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
-        addText(sum, "AI · СТАТИСТИКА ПО ТУРНИРАМ", 10, true, cyan)
-        addText(sum, "По сохранённым в приложении AI-ставкам; это не подсчёт всех показанных рекомендаций.", 9, false, muted)
+        addText(sum, "ПОЛЬЗОВАТЕЛЬСКИЕ СТАВКИ · ПО ТУРНИРАМ", 10, true, cyan)
+        addText(sum, "Только ставки, которые пользователь сохранил отдельно; автоматическая история AI-рекомендаций показана выше.", 9, false, muted)
         val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
         listOf(
             "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
