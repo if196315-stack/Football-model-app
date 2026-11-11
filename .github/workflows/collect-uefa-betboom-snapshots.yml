@@ -7,18 +7,12 @@ on:
     paths:
       - "backend/collect_uefa_betboom_snapshots.py"
       - "backend/refresh_pitchapi_uefa_fixtures.py"
-      - "backend/refresh_api_sport_unl_fixtures.py"
       - "backend/build_uefa_app_feed.py"
       - ".github/workflows/collect-uefa-betboom-snapshots.yml"
   workflow_dispatch:
     inputs:
       full_history:
         description: "Refresh all available PitchAPI UEFA seasons (higher API usage)"
-        required: false
-        default: false
-        type: boolean
-      probe_unl_date_index:
-        description: "Probe PitchAPI daily index for UNL matches and paired shot xG (read-only)"
         required: false
         default: false
         type: boolean
@@ -66,24 +60,8 @@ jobs:
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
         run: python backend/refresh_pitchapi_uefa_fixtures.py --upcoming-only
-      - name: Refresh Nations League fixtures and results
-        env:
-          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
-        run: python backend/refresh_api_sport_unl_fixtures.py
       - name: Require a cached UEFA fixture list
         run: test -s backend/cache/pitchapi_uefa_fixtures.json
-      - name: Probe PitchAPI daily index for Nations League
-        if: github.event_name == 'workflow_dispatch' && inputs.probe_unl_date_index
-        env:
-          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-        run: python backend/probe_pitchapi_unl_date_index.py
-      - name: Upload Nations League PitchAPI probe report
-        if: always() && github.event_name == 'workflow_dispatch' && inputs.probe_unl_date_index && hashFiles('pitchapi-unl-date-index-probe.json') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: pitchapi-unl-date-index-probe
-          path: pitchapi-unl-date-index-probe.json
-          if-no-files-found: error
       - name: Update UEFA xG history for newly finished matches
         if: hashFiles('artifacts/uefa-xg-history.json') != ''
         continue-on-error: true
