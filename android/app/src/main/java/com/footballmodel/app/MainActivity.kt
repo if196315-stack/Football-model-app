@@ -1667,18 +1667,19 @@ class MainActivity : Activity() {
     // Only show a strongest signal when its market is actually listed in the match card.
     // Under markets are intentionally excluded; team totals shown in the card are OVER (ИТБ) only.
     private fun strongestSignalDisplayLabel(signal: JSONObject, match: JSONObject): String? {
-        val side = signal.optString("side").trim()
+        val side = signal.optString("side").trim().replace(Regex("\\s+"), " ")
         if (side.isBlank()) return null
         if (side.contains("ИТМ", ignoreCase = true) || side.startsWith("ТМ ", ignoreCase = true) ||
             side.contains("UNDER", ignoreCase = true) || side.equals("Не X2", ignoreCase = true)) return null
-        if (side == "1X" || side == "X2" || side == "ОЗ ДА") return side
-        if (side in listOf("ТБ 1.5", "ТБ 2.5", "ТБ 3.5")) return side
-        if (side.startsWith("ИТБ ")) {
-            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull()
-                ?: return null
-            val team = side.substringAfter("·", "").trim()
-            val home = match.optString("home").trim()
-            val away = match.optString("away").trim()
+        if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true) ||
+            side.equals("ОЗ ДА", ignoreCase = true)) return side
+        if (listOf("ТБ 1.5", "ТБ 2.5", "ТБ 3.5").any { side.equals(it, ignoreCase = true) }) return side
+        if (side.startsWith("ИТБ ", ignoreCase = true)) {
+            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE)
+                .find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
+            val team = side.substringAfter("·", "").trim().replace(Regex("\\s+"), " ")
+            val home = match.optString("home").trim().replace(Regex("\\s+"), " ")
+            val away = match.optString("away").trim().replace(Regex("\\s+"), " ")
             if (point in listOf(0.5, 1.5, 2.5, 3.5) &&
                 (team.equals(home, ignoreCase = true) || team.equals(away, ignoreCase = true))) return side
         }
@@ -1695,7 +1696,10 @@ class MainActivity : Activity() {
         if (signals != null) {
             for (index in 0 until signals.length()) {
                 signals.optJSONObject(index)?.let { candidate ->
-                    if (candidates.none { it.optString("side") == candidate.optString("side") }) {
+                    val candidateKey = candidate.optString("side").trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
+                    if (candidates.none {
+                            it.optString("side").trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT) == candidateKey
+                        }) {
                         candidates.add(candidate)
                     }
                 }
@@ -1715,27 +1719,40 @@ class MainActivity : Activity() {
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
-        val side = signal.optString("side")
+        val side = signal.optString("side").trim()
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
         fun acceptable(value: Double) = value.isFinite() && value >= 1.50
-        if (side == "1X" || side == "X2") {
+        if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true)) {
             val dc = best.optJSONObject("doubleChance") ?: return null
-            return dc.optDouble(if (side == "1X") "1x" else "x2", Double.NaN).takeIf { acceptable(it) }
+            return dc.optDouble(if (side.equals("1X", ignoreCase = true)) "1x" else "x2", Double.NaN).takeIf { acceptable(it) }
         }
-        if (side.startsWith("ИТБ ")) {
-            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
-            val teamName = side.substringAfter("·", "").trim()
+        if (side.startsWith("ИТБ ", ignoreCase = true)) {
+            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE)
+                .find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
+            val teamName = side.substringAfter("·", "").trim().replace(Regex("\\s+"), " ")
+            val homeName = match.optString("home").trim().replace(Regex("\\s+"), " ")
+            val awayName = match.optString("away").trim().replace(Regex("\\s+"), " ")
             val team = when {
-                teamName.equals(match.optString("home").trim(), ignoreCase = true) -> "home"
-                teamName.equals(match.optString("away").trim(), ignoreCase = true) -> "away"
+                teamName.equals(homeName, ignoreCase = true) -> "home"
+                teamName.equals(awayName, ignoreCase = true) -> "away"
                 else -> return null
             }
             val rows = best.optJSONArray("teamTotals") ?: return null
             for (i in 0 until rows.length()) {
                 val row = rows.optJSONObject(i) ?: continue
+                val rowTeam = row.optString("team").trim()
+                val rowTeamSide = when {
+                    rowTeam.equals("home", ignoreCase = true) || rowTeam == "1" ||
+                        rowTeam.equals("хозяева", ignoreCase = true) || rowTeam.equals(homeName, ignoreCase = true) -> "home"
+                    rowTeam.equals("away", ignoreCase = true) || rowTeam == "2" ||
+                        rowTeam.equals("гости", ignoreCase = true) || rowTeam.equals(awayName, ignoreCase = true) -> "away"
+                    else -> ""
+                }
+                val rowSide = row.optString("side").trim().lowercase(Locale.ROOT)
                 val line = row.optDouble("point", Double.NaN)
                 val price = row.optDouble("price", Double.NaN)
-                if (row.optString("team") == team && row.optString("side") == "over" && line.isFinite() && kotlin.math.abs(line - point) < 0.001 && acceptable(price)) return price
+                if (rowTeamSide == team && rowSide == "over" && line.isFinite() &&
+                    kotlin.math.abs(line - point) < 0.001 && acceptable(price)) return price
             }
         }
         if (side.startsWith("ТБ ")) {
