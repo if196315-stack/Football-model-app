@@ -911,6 +911,24 @@ class MainActivity : Activity() {
                                 target.put(competition)
                             }
                         }
+                        // Merge immutable UEFA forecast evaluations into the shared Stats dataset.
+                        val combinedEvaluations = json.optJSONArray("evaluationMatches") ?: JSONArray()
+                        val knownEvaluationIds = mutableSetOf<String>()
+                        for (i in 0 until combinedEvaluations.length()) {
+                            val row = combinedEvaluations.optJSONObject(i) ?: continue
+                            knownEvaluationIds.add(row.optString("leagueCode") + ":" + row.optString("id"))
+                        }
+                        val uefaEvaluations = uefa.optJSONArray("evaluationMatches")
+                        if (uefaEvaluations != null) for (i in 0 until uefaEvaluations.length()) {
+                            val row = uefaEvaluations.optJSONObject(i) ?: continue
+                            val key = row.optString("leagueCode") + ":" + row.optString("id")
+                            if (key !in knownEvaluationIds) {
+                                combinedEvaluations.put(row)
+                                knownEvaluationIds.add(key)
+                            }
+                        }
+                        json.put("evaluationMatches", combinedEvaluations)
+                        json.put("uefaEvaluationUpdatedAt", uefa.optString("updatedAt"))
                     } catch (_: Exception) {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
@@ -1125,14 +1143,18 @@ class MainActivity : Activity() {
         collect("bttsYes", "ОЗ — да", { h, a -> h >= 1 && a >= 1 })
         collect("over15", "ТБ 1.5", { h, a -> h + a >= 2 })
         collect("over35", "ТБ 3.5", { h, a -> h + a >= 4 })
+        collect("homeOver05", "ИТБ 0.5 · хозяева", { h, _ -> h >= 1 })
+        collect("awayOver05", "ИТБ 0.5 · гости", { _, a -> a >= 1 })
         collect("homeOver25", "ИТБ 2.5 · хозяева", { h, _ -> h >= 3 })
         collect("awayOver25", "ИТБ 2.5 · гости", { _, a -> a >= 3 })
+        collect("homeOver35", "ИТБ 3.5 · хозяева", { h, _ -> h >= 4 })
+        collect("awayOver35", "ИТБ 3.5 · гости", { _, a -> a >= 4 })
         return metrics
     }
 
     private fun statsCacheKey(json: JSONObject): String {
         // A cheap feed signature avoids serializing the entire match archive on the UI thread.
-        return json.optString("updatedAt") + "|" +
+        return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
@@ -1547,6 +1569,39 @@ class MainActivity : Activity() {
         addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + " · рассчитанный оборот: " + fmt(turnover), 12, true)
         addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
         addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
+        addText(sum, "AI · СТАТИСТИКА ПО ТУРНИРАМ", 10, true, cyan)
+        addText(sum, "По сохранённым в приложении AI-ставкам; это не подсчёт всех показанных рекомендаций.", 9, false, muted)
+        val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
+        listOf(
+            "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
+            "Германия · Бундеслига", "Франция · Лига 1",
+            "Лига чемпионов УЕФА", "Лига Европы УЕФА", "Лига конференций УЕФА",
+        ).forEach { betsByLeague[it] = mutableListOf() }
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val league = bet.optString("league").ifBlank { "Турнир не указан" }
+            betsByLeague.getOrPut(league) { mutableListOf() }.add(bet)
+        }
+        betsByLeague.toSortedMap().forEach { (league, rows) ->
+            var leagueWins = 0
+            var leagueLosses = 0
+            var leaguePushes = 0
+            var leagueTurnover = 0.0
+            var leagueProfit = 0.0
+            rows.forEach { bet ->
+                val stake = bet.optDouble("stake")
+                val odds = bet.optDouble("odds")
+                when (bet.optString("status")) {
+                    "WON" -> { leagueWins++; leagueTurnover += stake; leagueProfit += stake * (odds - 1.0) }
+                    "LOST" -> { leagueLosses++; leagueTurnover += stake; leagueProfit -= stake }
+                    "PUSH" -> { leaguePushes++; leagueTurnover += stake }
+                }
+            }
+            val settledCount = leagueWins + leagueLosses + leaguePushes
+            val roi = if (leagueTurnover > 0.0) String.format(Locale.US, "%.1f%%", leagueProfit / leagueTurnover * 100.0) else "—"
+            addText(sum, "$league · ${rows.size} ставок · W $leagueWins / L $leagueLosses / возврат $leaguePushes · ROI $roi", 10, false, muted)
+            if (settledCount == 0) addText(sum, "Пока нет рассчитанных ставок", 9, false, muted)
+        }
 
         if (bets.length() == 0) {
             val empty = card()

@@ -148,8 +148,40 @@ def build_feed(
     settlements: list[dict],
     predictions: dict | None = None,
     updated_at: str | None = None,
+    previous_archive: dict | None = None,
+    now: datetime | None = None,
 ) -> dict:
     predictions = predictions if predictions is not None else predict_upcoming(xg_history, fixture_cache)
+    now = now or datetime.now(timezone.utc)
+    archive = {"version": 1, "matches": dict((previous_archive or {}).get("matches") or {})}
+    # Freeze UEFA forecasts before kickoff, then attach results without rewriting them.
+    for fixture_id, fixture in (fixture_cache.get("matches") or {}).items():
+        league_code = str(fixture.get("leagueCode") or "").upper()
+        if league_code not in LEAGUES:
+            continue
+        key = f"{league_code}:{fixture_id}"
+        existing = archive["matches"].get(key)
+        status = str(fixture.get("status") or "").casefold()
+        if existing:
+            if status == "finished" and fixture.get("homeScore") is not None and fixture.get("awayScore") is not None:
+                existing["status"] = "FINISHED"
+                existing["homeScore"] = fixture["homeScore"]
+                existing["awayScore"] = fixture["awayScore"]
+                existing["resultUpdatedAt"] = now.isoformat()
+            continue
+        model = predictions.get(str(fixture_id))
+        if status not in ("not_started", "scheduled", "timed") or model is None:
+            continue
+        kickoff = _parse_time(fixture.get("date"))
+        if kickoff is None or kickoff <= now:
+            continue
+        archive["matches"][key] = {
+            "id": str(fixture_id), "leagueCode": league_code,
+            "league": LEAGUES[league_code], "home": fixture.get("home", ""),
+            "away": fixture.get("away", ""), "utcDate": fixture.get("date"),
+            "predictionCapturedAt": now.isoformat(), "status": "SCHEDULED",
+            "prediction": _app_prediction(model), "homeScore": None, "awayScore": None,
+        }
     odds_by_fixture: dict[str, list[dict]] = defaultdict(list)
     for row in odds_rows:
         if row.get("league_code") in LEAGUES:
@@ -188,11 +220,12 @@ def build_feed(
         is_upcoming = status in ("not_started", "scheduled", "timed")
         fixture_papers = paper_by_fixture.get(str(fixture_id), [])
         model = predictions.get(str(fixture_id))
+        archived = archive["matches"].get(f"{league_code}:{fixture_id}")
         # Show ordinary upcoming fixtures with a model and every fixture carrying
         # a historical paper entry, including after its final score is known.
         if is_upcoming and model is None and not fixture_papers and league_code != "UECL":
             continue
-        if not is_upcoming and not fixture_papers:
+        if not is_upcoming and not fixture_papers and not archived:
             continue
         match = {
             "id": str(fixture_id),
@@ -204,7 +237,7 @@ def build_feed(
             ),
             "homeScore": fixture.get("homeScore"),
             "awayScore": fixture.get("awayScore"),
-            "prediction": _app_prediction(model) if model else None,
+            "prediction": _app_prediction(model) if model else (archived.get("prediction") if archived else None),
             "odds": build_odds(odds_by_fixture.get(str(fixture_id), [])),
             "paperSignals": fixture_papers,
             "paperOnly": True,
@@ -225,6 +258,13 @@ def build_feed(
         "updatedAt": updated_at or datetime.now(timezone.utc).isoformat(),
         "source": "PitchAPI fixtures/xG + API-Sport fixtures/BetBoom",
         "paperOnly": True,
+        "predictionArchive": archive,
+        "evaluationMatches": [
+            item for item in archive["matches"].values()
+            if item.get("status") == "FINISHED"
+            and item.get("homeScore") is not None and item.get("awayScore") is not None
+            and isinstance(item.get("prediction"), dict)
+        ],
         "competitions": competitions,
     }
 
@@ -232,9 +272,17 @@ def build_feed(
 def main() -> int:
     fixture_cache = json.loads(FIXTURE_CACHE.read_text(encoding="utf-8"))
     history = json.loads(XG_HISTORY.read_text(encoding="utf-8"))
+    previous_archive = {}
+    if OUTPUT.exists():
+        try:
+            previous_feed = json.loads(OUTPUT.read_text(encoding="utf-8"))
+            previous_archive = previous_feed.get("predictionArchive") or {}
+        except (OSError, json.JSONDecodeError):
+            previous_archive = {}
     feed = build_feed(
         fixture_cache, history, read_jsonl(ODDS_ARCHIVE),
         read_jsonl(PAPER_BETS), read_jsonl(SETTLEMENTS),
+        previous_archive=previous_archive,
     )
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     temporary = OUTPUT.with_suffix(".json.tmp")
