@@ -11,6 +11,12 @@ on:
       - "backend/build_uefa_app_feed.py"
       - ".github/workflows/collect-uefa-betboom-snapshots.yml"
   workflow_dispatch:
+    inputs:
+      full_history:
+        description: "Refresh all available PitchAPI UEFA seasons (higher API usage)"
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: "23 */3 * * *"
 
@@ -44,7 +50,13 @@ jobs:
             pitchapi-uefa-fixtures-v1-${{ runner.os }}-
       - name: Install dependencies
         run: python -m pip install requests
+      - name: Backfill all available UEFA fixture seasons
+        if: github.event_name == 'workflow_dispatch' && inputs.full_history
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/refresh_pitchapi_uefa_fixtures.py
       - name: Refresh latest UEFA season fixtures
+        if: github.event_name != 'workflow_dispatch' || !inputs.full_history
         continue-on-error: true
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
