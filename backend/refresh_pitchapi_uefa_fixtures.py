@@ -137,7 +137,7 @@ def normalize_match(raw: dict, code: str, league: dict, season: str) -> dict | N
         "id": str(match_id), "provider": "PitchAPI",
         "leagueCode": code, "leagueId": league.get("id"),
         "leagueName": league.get("name"), "season": season,
-        "date": raw.get("date"),
+        "date": raw.get("date") or raw.get("time_utc"),
         "status": str(raw.get("status") or "unknown").casefold(),
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
