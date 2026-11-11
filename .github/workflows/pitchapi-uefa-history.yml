@@ -1,6 +1,12 @@
 name: PitchAPI UEFA fixture history
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/refresh_pitchapi_uefa_fixtures.py"
+      - ".github/workflows/pitchapi-uefa-history.yml"
   workflow_dispatch:
 
 permissions:
