@@ -1,4 +1,8 @@
+import sys
 import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from probe_pitchapi_unl_date_index import probe
 
