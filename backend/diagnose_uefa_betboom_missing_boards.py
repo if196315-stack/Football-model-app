@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only PitchAPI-to-API-Sport audit of missing UEFA BetBoom boards (max 30 API calls)."""
+"""Read-only PitchAPI-to-API-Sport audit of all bookmaker boards on missing UEFA fixtures (max 30 API calls)."""
 import json
 import os
 from collections import defaultdict
@@ -85,7 +85,7 @@ def inspect_exact_match(session, api_key, candidate, provider_match):
     provider_id = str(provider_match.get("id"))
     response = session.get(
         f"{URL}/{provider_id}",
-        params={"with_bk_odds": "true", "odds_stage": "all", "bookmaker_ids": "betboom"},
+        params={"with_bk_odds": "true", "odds_stage": "all"},
         headers={"Authorization": api_key, "Accept": "application/json"},
         timeout=45,
     )
@@ -104,7 +104,8 @@ def inspect_exact_match(session, api_key, candidate, provider_match):
         "betboom_board_present": isinstance(board, dict),
         "market_count": len(markets),
         "market_slugs": sorted(markets)[:30],
-        "other_bookmakers": sorted(k for k in books if k != "betboom") if isinstance(books, dict) else [],
+        "available_bookmakers": sorted(books) if isinstance(books, dict) else [],
+        "bookmaker_board_count": len(books) if isinstance(books, dict) else 0,
     }
 
 
