@@ -925,11 +925,27 @@ class MainActivity : Activity() {
         }
     }
 
+    private var tabRenderGeneration = 0
+
     private fun selectTab(tab: String) {
         if (currentTab == tab) return
         currentTab = tab
-        render()
-        if (currentTab == "desk" || currentTab == "stats") loadData()
+        val generation = ++tabRenderGeneration
+
+        // Update navigation immediately; defer expensive screen construction until
+        // the next animation frame so the swipe can finish without waiting for it.
+        renderTabs()
+        matchesContainer.visibility = View.INVISIBLE
+        leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
+        matchesContainer.postOnAnimation {
+            if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
+            render()
+            matchesContainer.visibility = View.VISIBLE
+        }
+
+        // Navigation uses the latest in-memory feed. Network refresh stays on its
+        // independent refresh schedule instead of starting on every tab change.
+        if (data == null && (tab == "desk" || tab == "stats")) loadData()
     }
 
     private fun selectAdjacentTab(direction: Int) {
@@ -1050,22 +1066,28 @@ class MainActivity : Activity() {
         return metrics
     }
 
+    private fun statsCacheKey(json: JSONObject): Int {
+        // A cheap feed signature avoids serializing the entire match archive on the UI thread.
+        return 31 * json.optString("updatedAt").hashCode() +
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0)
+    }
+
     private fun renderStats(json: JSONObject) {
         screenHeader("PERFORMANCE CENTER", "Статистика стратегии", "Точность рынков действующей стратегии. Уровни уверенности сохранены без изменений.")
-        val statsKey = json.toString().hashCode()
+        val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
             addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
             if (statsCalculationInProgress.compareAndSet(false, true)) {
-                val snapshot = JSONObject(json.toString())
+                // The feed object is replaced, not mutated, on refresh; read it on the worker.
                 thread(name = "stats-metrics-calculation") {
-                    val calculated = calculateStatsMetrics(snapshot)
+                    val calculated = calculateStatsMetrics(json)
                     runOnUiThread {
                         statsMetricsCache = calculated
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
-                        if (currentTab == "stats" && data?.toString()?.hashCode() == statsKey) {
+                        if (currentTab == "stats" && data?.let { statsCacheKey(it) } == statsKey) {
                             tabViewCache.remove("stats|ALL")
                             render()
                         }
