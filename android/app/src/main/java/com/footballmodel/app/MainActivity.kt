@@ -904,7 +904,7 @@ class MainActivity : Activity() {
                         if (extra != null) for (i in 0 until extra.length()) {
                             val competition = extra.optJSONObject(i) ?: continue
                             val code = competition.optString("code")
-                            if (code == "UCL" || code == "UEL") {
+                            if (code == "UCL" || code == "UEL" || code == "UECL") {
                                 for (j in target.length() - 1 downTo 0) {
                                     if (target.optJSONObject(j)?.optString("code") == code) target.remove(j)
                                 }
