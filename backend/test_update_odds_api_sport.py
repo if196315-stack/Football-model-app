@@ -68,12 +68,11 @@ class ApiSportOddsTests(unittest.TestCase):
         }}
         quote = parse_odds(source)
         best = quote["best"]
-        self.assertEqual(best["btts"], {"yes": 1.82, "no": 1.96})
+        self.assertEqual(best["btts"], {"yes": 1.82})
         self.assertEqual({(x["point"], x["side"]) for x in best["totals"]},
-                         {(2.5, "over"), (2.5, "under")})
+                         {(2.5, "over")})
         self.assertEqual({(x["team"], x["point"], x["side"]) for x in best["teamTotals"]},
-                         {("home", 1.5, "over"), ("home", 1.5, "under"),
-                          ("away", 0.5, "over"), ("away", 0.5, "under")})
+                         {("home", 1.5, "over"), ("away", 0.5, "over")})
         self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
         self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "BETBOOM")
 
@@ -94,11 +93,7 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertTrue(any(x["team"] == "away" and x["point"] == 0.5
                             and x["side"] == "over" and x["price"] == 1.73
                             for x in best["teamTotals"]))
-        # The parser keeps both sides in its raw quote payload; the app's
-        # display layer filters teamTotals to OVER only.
-        self.assertTrue(any(x["team"] == "home" and x["point"] == 1.5
-                            and x["side"] == "under" and x["price"] == 1.94
-                            for x in best["teamTotals"]))
+        self.assertFalse(any(x["side"] == "under" for x in best["teamTotals"]))
 
     def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
         source = {"id": 101, "oddsBk": {"betboom": {"markets": {
@@ -128,7 +123,7 @@ class ApiSportOddsTests(unittest.TestCase):
         }}}}
         best = parse_odds(source)["best"]
         self.assertEqual({x["point"] for x in best["totals"]}, {1.5, 2.5, 3.5})
-        self.assertEqual({x["side"] for x in best["totals"]}, {"over", "under"})
+        self.assertEqual({x["side"] for x in best["totals"]}, {"over"})
         self.assertEqual({x["point"] for x in best["teamTotals"]}, {0.5, 1.5, 2.5, 3.5})
 
     def test_excludes_first_half_totals_and_preserves_market_group(self):
@@ -167,10 +162,9 @@ class ApiSportOddsTests(unittest.TestCase):
         source["oddsBk"]["pari"]["markets"]["double_chance"]["stakes"]["1x"]["factor"] = 9.99
         quote = parse_odds(source)
         self.assertEqual(quote["best"]["doubleChance"], {"1x": 1.3, "x2": 2.7})
+        self.assertNotIn("spreads", quote["best"])
         self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
         self.assertEqual(quote["bestBookmakers"]["doubleChance"]["1x"], "BETBOOM")
-        self.assertEqual({(x["team"], x["point"]) for x in quote["best"]["spreads"]},
-                         {("home", 0.0), ("away", 0.0)})
 
 
     def test_ignores_live_markets_and_keeps_prematch_quotes(self):
@@ -189,7 +183,7 @@ class ApiSportOddsTests(unittest.TestCase):
         }}}}
         quote = parse_odds(source)
         self.assertEqual({(x["point"], x["side"], x["price"]) for x in quote["best"]["totals"]},
-                         {(2.5, "over", 1.91), (2.5, "under", 1.95)})
+                         {(2.5, "over", 1.91)})
         self.assertNotIn("doubleChance", quote["best"])
 
 
