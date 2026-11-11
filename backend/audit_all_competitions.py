@@ -7,6 +7,8 @@ from pathlib import Path
 
 import audit_domestic_ai_signals as audit
 
+DOMESTIC_CODES = {item[0] for item in audit.LEAGUES.values()}
+
 UEFA = {
     "UCL": ("UCL", "Лига чемпионов УЕФА"),
     "UEL": ("UEL", "Лига Европы УЕФА"),
@@ -22,7 +24,7 @@ def combine(domestic, uefa):
                 continue
             comp = dict(original)
             code = str(comp.get("code") or comp.get("id") or "").upper()
-            if code not in audit.LEAGUES and code not in UEFA:
+            if code not in DOMESTIC_CODES and code not in UEFA:
                 continue
             comp["code"] = code
             matches = []
