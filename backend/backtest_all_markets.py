@@ -466,7 +466,6 @@ def main():
         "input_matches": report["input_matches"],
         "input_matches_by_competition": report["input_matches_by_competition"],
         "independent_market_count": report["independent_market_count"],
-        "market_relationships": report["market_relationships"],
         "predicted_matches_by_competition": report["predicted_matches_by_competition"],
         "market_holdout_n": {
             market: metrics["holdout"]["model"]["n"] if metrics["holdout"] else 0
