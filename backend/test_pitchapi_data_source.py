@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from pitchapi_data_source import (
-    flatten_shots, load_cache, model_history_rows, normalize_match,
+    flatten_shots, load_cache, model_history_rows, result_history_rows, normalize_match,
     save_cache, shot_xg, refresh_history,
 )
 
@@ -70,6 +70,22 @@ class PitchApiDataSourceTests(unittest.TestCase):
         self.assertEqual([r["id"] for r in model_history_rows(cache)], ["good"])
 
 
+
+    def test_result_history_keeps_score_only_finished_matches(self):
+        cache = {"matches": {
+            "paired": {"id": "paired", "status": "finished", "homeScore": 1,
+                       "awayScore": 0, "homeXg": 0.8, "awayXg": 0.2,
+                       "hasPlayoff": False, "date": "2025-01-01"},
+            "score_only": {"id": "score_only", "status": "finished", "homeScore": 0,
+                           "awayScore": 0, "homeXg": None, "awayXg": None,
+                           "hasPlayoff": False, "date": "2025-01-02"},
+            "playoff": {"id": "playoff", "status": "finished", "homeScore": 1,
+                        "awayScore": 0, "hasPlayoff": True},
+            "live": {"id": "live", "status": "in_play", "homeScore": 1, "awayScore": 0},
+        }}
+        self.assertEqual([r["id"] for r in result_history_rows(cache)],
+                         ["paired", "score_only"])
+        self.assertEqual([r["id"] for r in model_history_rows(cache)], ["paired"])
 
     def test_refresh_requests_upcoming_fixtures_and_caches_them(self):
         class Response:
