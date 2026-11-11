@@ -31,7 +31,7 @@ class EightCompetitionAuditTests(unittest.TestCase):
     def test_missing_uefa_matches_are_explicitly_zero_not_counted_as_domestic(self):
         domestic = {"competitions": [{"code": "PL", "matches": [self.fixture("PL", "one")]}]}
         report = build_all(domestic, {"competitions": []}, today=date(2098, 1, 1))
-        self.assertEqual(report["leagues"]["ENG"]["counts"]["with_line_leader"], 1)
+        self.assertEqual(report["leagues"]["ENG"]["counts"].get("with_line_leader", 0), 1)
         for code in ("UCL", "UEL", "UECL"):
             self.assertEqual(report["leagues"][code]["counts"], {})
 
