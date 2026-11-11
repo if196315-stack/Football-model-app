@@ -93,7 +93,12 @@ def check(sig,m):
 def match_day(m):
     raw=s(m.get("utcDate"))[:10] or s(m.get("dateEvent"))[:10]
     try: return date.fromisoformat(raw)
-    except ValueError: return None
+    except ValueError:
+        stamp=num(m.get("startTimestamp"),0)
+        if stamp>0:
+            if stamp<10_000_000_000: stamp*=1000
+            return datetime.fromtimestamp(stamp/1000,tz=timezone.utc).date()
+        return None
 
 def build(data):
     today=datetime.now(timezone.utc).date()
