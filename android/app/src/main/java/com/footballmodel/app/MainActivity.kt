@@ -1348,6 +1348,43 @@ class MainActivity : Activity() {
         }
         parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
     }
+
+    private fun compactHistoryButton(parent: LinearLayout, title: String, destructive: Boolean = false, action: () -> Unit) {
+        val tint = if (destructive) Color.rgb(218, 111, 119) else Color.rgb(150, 190, 205)
+        val button = Button(this).apply {
+            text = title
+            textSize = 11f
+            isAllCaps = false
+            typeface = Typeface.DEFAULT_BOLD
+            minHeight = dp(36)
+            minimumHeight = dp(36)
+            setPadding(dp(12), 0, dp(12), 0)
+            setTextColor(tint)
+            background = GradientDrawable().apply {
+                cornerRadius = dp(10).toFloat()
+                setColor(Color.rgb(22, 34, 49))
+                setStroke(dp(1), if (destructive) Color.rgb(105, 55, 66) else Color.rgb(55, 79, 96))
+            }
+            elevation = 0f
+            setOnClickListener { action() }
+        }
+        parent.addView(button, LinearLayout.LayoutParams(0, dp(36), 1f).apply {
+            marginEnd = dp(6)
+        })
+    }
+
+    private fun isAiBetRecorded(match: JSONObject, signal: JSONObject): Boolean {
+        val marketKey = marketKeyForAutoSignal(signal, match) ?: return false
+        val matchId = match.optString("id").ifBlank {
+            match.optString("utcDate") + match.optString("home") + match.optString("away")
+        }
+        return (0 until bets.length()).any { index ->
+            val bet = bets.optJSONObject(index) ?: return@any false
+            bet.optString("matchId") == matchId &&
+                bet.optString("marketKey") == marketKey &&
+                bet.optString("source") in listOf("AI_AUTO", "AI_MANUAL")
+        }
+    }
     private fun settleCoupon(j: JSONObject, bet: JSONObject) {
         if (bet.optString("status") != "PENDING") return
         val selections = bet.optJSONArray("selections") ?: return
@@ -1562,15 +1599,26 @@ class MainActivity : Activity() {
                 else -> ""
             }
             addText(box,status+liveStatus+(if(b.has("score"))" · счёт "+b.optString("score") else ""),12,true,col)
-            if(st=="PENDING") actionButton(box,"Изменить фактический коэффициент") { showEditBetOddsDialog(b) }
-            if(st=="WON") addText(box,"Чистая прибыль: +"+fmt(b.optDouble("stake")*(b.optDouble("odds")-1)),12,true,accent)
-            if(st=="LOST") addText(box,"Убыток: −"+fmt(b.optDouble("stake")),12,true,col)
-            if(st=="PUSH") addText(box,"Возврат: "+fmt(b.optDouble("stake")),12,true,accent)
-            actionButton(box,"Удалить запись") {
+            val stake = b.optDouble("stake")
+            val odds = b.optDouble("odds")
+            if (st == "PENDING") {
+                val possiblePayout = stake * odds
+                addText(box, "Возможная выплата: ${fmt(possiblePayout)} ₽ · чистый выигрыш: +${fmt(possiblePayout - stake)} ₽", 12, true, accent)
+            }
+            if(st=="WON") addText(box,"Чистая прибыль: +"+fmt(stake*(odds-1)),12,true,accent)
+            if(st=="LOST") addText(box,"Убыток: −"+fmt(stake),12,true,col)
+            if(st=="PUSH") addText(box,"Возврат: "+fmt(stake),12,true,accent)
+            val actions = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            if (st == "PENDING") compactHistoryButton(actions, "Кэф") { showEditBetOddsDialog(b) }
+            compactHistoryButton(actions, "Удалить", destructive = true) {
                 val id=b.optString("id"); val next=JSONArray()
                 for(k in 0 until bets.length()) { val x=bets.optJSONObject(k) ?: continue; if(x.optString("id")!=id)next.put(x) }
                 bets=next;saveBets(preserveBackgroundAuto = false);render()
             }
+            box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
     }
 
@@ -2038,7 +2086,11 @@ class MainActivity : Activity() {
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
-            actionButton(box, "Зафиксировать эту ставку вручную") { confirmManualAiSignalBet(m, league, signal, odds) }
+            if (isAiBetRecorded(m, signal)) {
+                addText(box, "✓ Уже в истории", 12, true, accent)
+            } else {
+                actionButton(box, "Зафиксировать") { confirmManualAiSignalBet(m, league, signal, odds) }
+            }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
