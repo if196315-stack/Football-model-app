@@ -27,27 +27,31 @@ The API-Sport team and tournament IDs below were observed together in downloaded
 | Salzburg | Red Bull Salzburg | 2046 | 679 | Europa League | Candidate alias |
 | Ararat Armenia | FC Ararat-Armenia | 262229 | 679 | Europa League | Candidate alias |
 
-These 16 entries are the non-exact-name mappings for which a first-team identity and the expected competition ID were observed in the scanned catalogue. Review each mapping before any production adoption.
+These 16 entries are the non-exact-name mappings selected for the isolated review registry. Review each mapping before any production adoption.
 
-## Unresolved / do not alias
+## Unresolved / not approved for alias registry
 
 | PitchAPI name | Diagnostic observation | Decision |
 |---|---|---|
-| Slavia Prague | No valid senior Slavia first-team candidate was observed in the scanned catalogue. Youth Slavia Praha U19 and Sparta Prague are not equivalent. | Leave unresolved; do not substitute. |
+| Slavia Prague | Pair-ID diagnostics found API-Sport team `SK Slavia Praha`, team ID `2216`, in Champions League tournament `7`; it appeared in ordered pairs against Villarreal, Bayern München, FC Porto and Aston Villa. Name similarity was only `0.626`. | Candidate observed, but not manually approved; keep unresolved in the alias registry. |
+
+**Correction to the earlier wording:** it was inaccurate to say that no senior Slavia candidate was observed. The pair-ID log does contain the `SK Slavia Praha` candidate (ID `2216`). The reason it remains excluded is that the name-only similarity is weak and the alias has not undergone the same explicit review as the 16 registry entries. This evidence alone does not authorize adding it to production or to the reviewed registry.
 
 ## Negative examples and safeguards
 
 - Do not map Borussia Mönchengladbach to a youth/U19 team; the observed senior candidate is team ID `2527` in Bundesliga `35`.
-- Do not map Bayern München to Bayern II; the observed Champions League senior candidate is team ID `2672` in tournament `7`.
-- Do not map Ararat Armenia to Ararat-Armenia II; the observed senior candidate is team ID `262229` in Europa League `679`.
-- Do not map Slavia Prague to Sparta Prague or a Slavia youth team.
-- Do not accept a candidate solely because its fuzzy name similarity is high. Require the expected tournament and a reviewed team identity.
+- Do not map Bayern München to Bayern II; the observed Champions League candidate is team ID `2672` in tournament `7`.
+- Do not map Ararat Armenia to Ararat-Armenia II; the observed candidate is team ID `262229` in Europa League `679`.
+- Do not map Slavia Prague to Sparta Prague or a Slavia youth team. The observed `SK Slavia Praha` candidate is distinct from Sparta Prague, but remains unapproved pending review.
+- Do not accept a candidate solely because its fuzzy name similarity is high or because it appears in a pair-ID search. Require the expected tournament and a reviewed team identity.
 - Do not infer a fixture from a pair of team aliases alone. The exact ordered pair, tournament, date/time, and duplicate-candidate handling must be evaluated independently.
 - Do not globally lower fuzzy thresholds. The 70-pair audit found ambiguous candidates, including a weak Schalke/Union Berlin false positive.
 
 ## Relationship to the 70-fixture audit
 
-The pair-ID audit found all 70 ordered team pairs in the expected tournament within the 50,267 API-Sport rows scanned. This registry documents selected name-to-team-ID resolutions used during that analysis. It does not resolve the observed calendar discrepancies: 30 Serie A pairs were listed one calendar day earlier by API-Sport, and 9 Bundesliga pairs one day later.
+The pair-ID audit found all 70 ordered team pairs in the expected tournament within the 50,267 API-Sport rows scanned. This registry documents 16 selected name-to-team-ID resolutions used during that analysis. It does not resolve the observed calendar discrepancies: 30 Serie A pairs were listed one calendar day earlier by API-Sport, and 9 Bundesliga pairs one day later.
+
+The pair-ID diagnostic used a permissive name-candidate floor of `0.60` and ignored kickoff time when looking for ordered pairs. Its 70/70 result is therefore evidence that candidate team-ID pairs occur in the downloaded tournament rows, not independent confirmation that every fixture or date is correct.
 
 Source report: [API-Sport pair-ID follow-up](api-sport-70-unmatched-pair-id-followup-2026-11-11.md).
 
