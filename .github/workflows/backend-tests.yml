@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - audit/api-sport-tournament-ids
     paths:
       - "backend/**"
       - ".github/workflows/backend-tests.yml"
