@@ -33,9 +33,10 @@ class UefaXgHistoryUpdateTests(unittest.TestCase):
         calls = []
         def fetch(match_id):
             calls.append(match_id)
+            home_id, away_id = ("h2", "a2") if match_id == "uecl" else ("h", "a")
             return {"shots": [
-                {"team_id": "h", "expected_goals": 0.6},
-                {"team_id": "a", "expected_goals": 0.2},
+                {"team_id": home_id, "expected_goals": 0.6},
+                {"team_id": away_id, "expected_goals": 0.2},
             ]}
         updated, summary = update_history(cache, history, fetch, now)
         self.assertEqual(calls, ["new", "uecl"])
