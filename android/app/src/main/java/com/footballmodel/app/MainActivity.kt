@@ -2089,7 +2089,7 @@ class MainActivity : Activity() {
                 if (array != null) for (k in 0 until array.length()) {
                     array.optJSONObject(k)?.let { signals.add(it) }
                 }
-                if (signals.isEmpty() && (league.optString("code") == "UCL" || league.optString("code") == "UEL")) {
+                if (signals.isEmpty() && league.optString("code") in setOf("UCL", "UEL", "UECL")) {
                     uefaPaperSignal(match)?.let { signals.add(it) }
                 }
                 val qualifying = signals.mapNotNull { signal ->
