@@ -1,6 +1,6 @@
 import unittest
 
-from diagnose_two_uefa_competitions import (
+from backend.diagnose_two_uefa_competitions import (
     discover_pitchapi_competitions, fixture_target, norm, response_items,
 )
 
