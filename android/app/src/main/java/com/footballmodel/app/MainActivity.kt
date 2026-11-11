@@ -546,7 +546,7 @@ class MainActivity : Activity() {
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
         val best = odds?.optJSONObject("best")
         if (best == null) {
-            addText(parent, "КОЭФФИЦИЕНТЫ BETBOOM", 9, true, muted)
+            addText(parent, "КОЭФФИЦИЕНТЫ MELBET", 9, true, muted)
             addText(parent, "Нет свежих котировок для этого матча", 11, false, muted)
             return
         }
@@ -576,14 +576,14 @@ class MainActivity : Activity() {
                 .filter { validPrice(btts, it.first) }
                 .map { Triple(it.second, oddsText(btts, it.first), gold) }
             if (items.isNotEmpty()) {
-                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · BETBOOM", 10, true, muted)
+                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · MELBET", 10, true, muted)
                 addMarketRow(panelOdds, items)
                 shown += items.size
             }
         }
         val matchTotals = best.optJSONArray("totals")
         if (matchTotals != null && matchTotals.length() > 0) {
-            addText(panelOdds, "ТОТАЛ МАТЧА · BETBOOM", 10, true, muted)
+            addText(panelOdds, "ТОТАЛ МАТЧА · MELBET", 10, true, muted)
             for (i in 0 until matchTotals.length()) {
                 val line = matchTotals.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", Double.NaN)
@@ -603,7 +603,7 @@ class MainActivity : Activity() {
                 val price = line.optDouble("price", Double.NaN)
                 if (!point.isFinite() || !price.isFinite() || price <= 1.0) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ФОРЫ · лучшие цены BETBOOM", 10, true, muted)
+                    addText(panelOdds, "ФОРЫ · лучшие цены MELBET", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Фора 1" else "Фора 2"
@@ -622,7 +622,7 @@ class MainActivity : Activity() {
                 val side = line.optString("side")
                 // Индивидуальные UNDER-котировки скрыты; в карточке остаются только OVER.\n                if (!side.equals("over", ignoreCase = true) || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · BETBOOM", 10, true, muted)
+                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · MELBET", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
@@ -672,7 +672,7 @@ class MainActivity : Activity() {
         copy.addView(label("Матчи и прогнозы", 22, true, Color.WHITE))
         copy.addView(label("SMART FOOTBALL INTELLIGENCE", 8, true, cyan))
         val features = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "BETBOOM").forEachIndexed { index, caption ->
+        listOf("ВЕРОЯТНОСТИ", "ОЖИДАЕМЫЕ ГОЛЫ", "MELBET").forEachIndexed { index, caption ->
             val chip = label(caption, 7, true, if (index == 2) gold else accent).apply {
                 gravity = Gravity.CENTER
                 setPadding(dp(5), dp(6), dp(5), dp(6))
@@ -1217,7 +1217,7 @@ class MainActivity : Activity() {
 
         val strategyFilters = card()
         addText(strategyFilters, "1. ФИЛЬТРЫ ДОПУСКА", 11, true, accent)
-        addText(strategyFilters, "Данные: матч сопоставлен однозначно; котировка только BetBoom через API-Sport; реальная цена и точное совпадение рынка, стороны и линии обязательны. Для автофиксации бумажной ставки котировка должна обновиться в последние 12 часов до матча; жёсткого фильтра возраста 5 минут нет.", 11, false, Color.WHITE)
+        addText(strategyFilters, "Данные: матч сопоставлен однозначно; котировка только MelBet через API-Sport; реальная цена и точное совпадение рынка, стороны и линии обязательны. Для автофиксации бумажной ставки котировка должна обновиться в последние 12 часов до матча; жёсткого фильтра возраста 5 минут нет.", 11, false, Color.WHITE)
         addText(strategyFilters, "Сигнал A: вероятность модели ≥ 60%; преимущество над break-even ≥ 5 п.п.; EV ≥ +5%; модель проверена на данном типе рынка; сигнал устойчив к небольшим изменениям предположений.", 11, false, Color.WHITE)
         addText(strategyFilters, "B = WAIT: интересный сигнал, но не хватает подтверждений или данных. C = REJECT: отрицательное/недостаточное value, плохие данные или неприемлемый риск.", 11, false, muted)
 
@@ -1233,12 +1233,12 @@ class MainActivity : Activity() {
 
         val strategyMarkets = card()
         addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
-        addText(strategyMarkets, "Только BetBoom через API-Sport. Рабочие рынки: Double Chance 1X/X2, Match Total OVER, Team Total OVER и BTTS YES — только при точной загруженной цене и прохождении фильтров AI. BTTS NO, UNDER, 12, 1X2 без подтверждённой цены и форы отображаются только как наблюдаемые рынки и не создают paper-ставки.", 11, false, Color.WHITE)
+        addText(strategyMarkets, "Только MelBet через API-Sport. Рабочие рынки: Double Chance 1X/X2, Match Total OVER, Team Total OVER и BTTS YES — только при точной загруженной цене и прохождении фильтров AI. BTTS NO, UNDER, 12, 1X2 без подтверждённой цены и форы отображаются только как наблюдаемые рынки и не создают paper-ставки.", 11, false, Color.WHITE)
         addText(strategyMarkets, "Нельзя подставлять коэффициенты другого букмекера, угадывать отсутствующую цену или сравнивать разные линии.", 10, false, muted)
 
         val strategyTesting = card()
         addText(strategyTesting, "5. ТЕСТИРОВАНИЕ И ДОПУСК К ЗАПУСКУ", 11, true, accent)
-        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных BetBoom котировках без реальных ставок. Этап 4 — ограниченный запуск с базовой ставкой 1% банка, без дневного лимита суммарной нагрузки. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
+        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных MelBet котировках без реальных ставок. Этап 4 — ограниченный запуск с базовой ставкой 1% банка, без дневного лимита суммарной нагрузки. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
         addText(strategyTesting, "Стартовые ориентиры: ≥500 исторических сигналов и ≥500 paper-сигналов; желательно ≥150–200 наблюдений на оцениваемый рынок. Эти объёмы не гарантируют статистическую надёжность: показывать доверительные интервалы и учитывать неопределённость.", 11, false, muted)
 
         val strategyMetrics = card()
@@ -1565,7 +1565,7 @@ class MainActivity : Activity() {
         }
         val aiHistoryCard = card()
         addText(aiHistoryCard, "AI · АВТОИСТОРИЯ РЕКОМЕНДАЦИЙ", 10, true, cyan)
-        addText(aiHistoryCard, "Каждый сигнал из раздела AI с котировкой BetBoom фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал; альтернативы считаются отдельно. История локальная для этого устройства.", 9, false, muted)
+        addText(aiHistoryCard, "Каждый сигнал из раздела AI с котировкой MelBet фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал; альтернативы считаются отдельно. История локальная для этого устройства.", 9, false, muted)
         val aiHistory = try {
             JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
         } catch (_: Exception) {
@@ -1849,14 +1849,15 @@ class MainActivity : Activity() {
             val odds = topSignalOdds(candidate, match, minOdds = 1.50)
             if (!probability.isFinite() || probability !in 0.0..1.0 || odds == null) return@mapNotNull null
             val expectedValue = probability * odds - 1.0
+            val kellyFraction = if (odds > 1.0) expectedValue / (odds - 1.0) else Double.NEGATIVE_INFINITY
             candidate.put("lineOdds", odds)
             candidate.put("lineExpectedValue", expectedValue)
-            candidate.put("lineBalanceScore", probability * maxOf(0.0, expectedValue))
+            candidate.put("lineKellyFraction", kellyFraction)
             candidate
         }
         val positiveValue = available.filter { it.optDouble("lineExpectedValue", -1.0) > 0.0 }
         return if (positiveValue.isNotEmpty()) {
-            positiveValue.maxByOrNull { it.optDouble("lineBalanceScore", Double.NEGATIVE_INFINITY) }
+            positiveValue.maxByOrNull { it.optDouble("lineKellyFraction", Double.NEGATIVE_INFINITY) }
         } else {
             // Do not disguise a negative-EV quote as value: retain the most
             // probable qualifying market, with its negative EV shown explicitly.
@@ -1866,7 +1867,9 @@ class MainActivity : Activity() {
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject, minOdds: Double = 1.50): Double? {
         val side = signal.optString("side").trim()
-        val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
+        val oddsBoard = match.optJSONObject("odds") ?: return null
+        if (!oddsBoard.optString("bookmaker").equals("MELBET", ignoreCase = true)) return null
+        val best = oddsBoard.optJSONObject("best") ?: return null
         fun acceptable(value: Double) = value.isFinite() && value >= minOdds
         if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true)) {
             val dc = best.optJSONObject("doubleChance") ?: return null
@@ -1919,7 +1922,7 @@ class MainActivity : Activity() {
     }
 
     // Main-line eligibility is the intersection of a complete model forecast and
-    // an available BetBoom quote from API-Sport; quote age is informational only.
+    // an available MelBet quote from API-Sport; quote age is informational only.
     private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
         val prediction = match.optJSONObject("prediction") ?: return false
         val probabilityFields = listOf(
@@ -1937,14 +1940,9 @@ class MainActivity : Activity() {
         return homeXg.isFinite() && homeXg > 0.0 && awayXg.isFinite() && awayXg > 0.0
     }
 
-    private fun hasActiveBetBoomPrematchLine(match: JSONObject): Boolean {
+    private fun hasActiveMelBetPrematchLine(match: JSONObject): Boolean {
         val odds = match.optJSONObject("odds") ?: return false
-        val bookmaker = odds.optString("bookmaker")
-        val source = odds.optString("source")
-        val isBetBoom = bookmaker.equals("BETBOOM", ignoreCase = true) ||
-            (source.contains("API-Sport", ignoreCase = true) &&
-                source.contains("BetBoom", ignoreCase = true))
-        if (!isBetBoom) return false
+        if (!odds.optString("bookmaker").equals("MELBET", ignoreCase = true)) return false
 
         val best = odds.optJSONObject("best") ?: return false
         fun validPrice(value: Double): Boolean = value.isFinite() && value > 1.0
@@ -2181,7 +2179,7 @@ class MainActivity : Activity() {
         if (stake <= 0.0) return
         AlertDialog.Builder(this)
             .setTitle("Зафиксировать AI-ставку?")
-            .setMessage("Матч: ${match.optString("home")} — ${match.optString("away")}\nРынок: ${signal.optString("side")}\nКоэффициент BetBoom: ${fmt(odds)}\nСумма ставки: ${fmt(stake)} ₽\n\nБумажная ставка — запись в истории приложения. Букмекеру ничего не отправляется.")
+            .setMessage("Матч: ${match.optString("home")} — ${match.optString("away")}\nРынок: ${signal.optString("side")}\nКоэффициент MelBet: ${fmt(odds)}\nСумма ставки: ${fmt(stake)} ₽\n\nБумажная ставка — запись в истории приложения. Букмекеру ничего не отправляется.")
             .setNegativeButton("Отмена", null)
             .setPositiveButton("Зафиксировать") { _, _ ->
                 val now = System.currentTimeMillis()
@@ -2205,17 +2203,14 @@ class MainActivity : Activity() {
 
     private fun collectAiCandidates(json: JSONObject): List<Triple<JSONObject, String, JSONObject>> {
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
-        val leagues = json.optJSONArray("competitions")
-        if (leagues != null) for (i in 0 until leagues.length()) {
+        val leagues = json.optJSONArray("competitions") ?: return emptyList()
+        for (i in 0 until leagues.length()) {
             val league = leagues.optJSONObject(i) ?: continue
             val matches = league.optJSONArray("matches") ?: continue
             for (j in 0 until matches.length()) {
                 val match = matches.optJSONObject(j) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
-                // AI must never consume a price from an arbitrary/stale bookmaker feed.
-                // Require an explicitly identified BetBoom prematch quote before
-                // evaluating any candidate market for this fixture.
-                if (!hasActiveBetBoomPrematchLine(match)) continue
+                if (!hasActiveMelBetPrematchLine(match)) continue
                 val matchDay = match.optString("utcDate").take(10).ifBlank {
                     match.optString("dateEvent").take(10).ifBlank {
                         kickoffTimestamp(match)?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
@@ -2229,58 +2224,33 @@ class MainActivity : Activity() {
                 }.format(Date())
                 if (matchDay < today) continue
                 val prediction = match.optJSONObject("prediction") ?: continue
-                val signals = mutableListOf<JSONObject>()
-                val array = prediction.optJSONArray("signals")
-                if (array != null) for (k in 0 until array.length()) {
-                    array.optJSONObject(k)?.let { signals.add(it) }
+                // AI consumes exactly the one strongest signal already selected for Line.
+                // It must not promote a second-best market when the Line leader fails AI filters.
+                val signal = strongestDisplaySignal(prediction, match) ?: continue
+                val probability = signal.optDouble("modelProbability", Double.NaN)
+                val odds = topSignalOdds(signal, match, minOdds = 1.50) ?: continue
+                if (!probability.isFinite() || probability < 0.60) continue
+                val expectedValue = probability * odds - 1.0
+                val edgePp = if (signal.optBoolean("paperOnly")) {
+                    signal.optDouble("edgePp", Double.NaN)
+                } else {
+                    (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
                 }
-                // Older domestic prediction snapshots may contain strongestSignal
-                // without the newer full signals array. Keep that valid candidate
-                // eligible instead of silently dropping the entire domestic fixture.
-                prediction.optJSONObject("strongestSignal")?.let { strongest ->
-                    val strongestSide = strongest.optString("side").trim()
-                    if (strongestSide.isNotBlank() && signals.none {
-                            it.optString("side").trim().equals(strongestSide, ignoreCase = true)
-                        }) signals.add(strongest)
-                }
-                if (signals.isEmpty() && league.optString("code") in setOf("UCL", "UEL", "UECL")) {
-                    uefaPaperSignal(match)?.let { signals.add(it) }
-                }
-                val qualifying = signals.mapNotNull { signal ->
-                    val selectionEdge = signal.optDouble(
-                        "selectionEdgePp",
-                        signal.optDouble("edgePp", Double.NaN)
-                    )
-                    if (signal.optBoolean("noPositiveSignal") || !selectionEdge.isFinite() || selectionEdge <= 0.0 ||
-                        signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) return@mapNotNull null
-                    val odds = topSignalOdds(signal, match) ?: return@mapNotNull null
-                    if (odds < 1.50) return@mapNotNull null
-                    val probability = signal.optDouble("modelProbability", Double.NaN)
-                    if (!probability.isFinite()) return@mapNotNull null
-                    val ev = probability * odds - 1.0
-                    val passes = if (signal.optBoolean("paperOnly")) {
-                        probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
-                    } else {
-                        val impliedEdge = probability - 1.0 / odds +
-                            signal.optDouble("formAdjustmentPp", 0.0) / 100.0
-                        probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
-                    }
-                    if (passes) signal to ev else null
-                }.sortedByDescending { it.second }
-                if (qualifying.isEmpty()) continue
-                val bundle = JSONObject().put("primary", qualifying.first().first)
-                    .put("alternatives", JSONArray(qualifying.drop(1).map { it.first }))
+                if (signal.optBoolean("noPositiveSignal") ||
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) ||
+                    !expectedValue.isFinite() || expectedValue < 0.05 ||
+                    !edgePp.isFinite() || edgePp < 5.0) continue
+                signal.put("aiExpectedValue", expectedValue)
+                signal.put("aiEdgePp", edgePp)
+                signal.put("aiKellyFraction", expectedValue / (odds - 1.0))
+                val bundle = JSONObject().put("primary", signal).put("alternatives", JSONArray())
                 candidates.add(Triple(match, league.optString("name"), bundle))
             }
         }
-        return candidates.sortedWith(
-            compareBy<Triple<JSONObject, String, JSONObject>> { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
-                .thenByDescending { item ->
-                    val signal = item.third.optJSONObject("primary")
-                    val odds = if (signal != null) topSignalOdds(signal, item.first) ?: 0.0 else 0.0
-                    (signal?.optDouble("modelProbability") ?: 0.0) * odds - 1.0
-                }
-        )
+        return candidates.sortedByDescending { item ->
+            item.third.optJSONObject("primary")?.optDouble("aiKellyFraction", Double.NEGATIVE_INFINITY)
+                ?: Double.NEGATIVE_INFINITY
+        }
     }
 
     private fun aiSignalOutcome(side: String, match: JSONObject): Boolean? {
@@ -2411,11 +2381,11 @@ class MainActivity : Activity() {
         addText(summary, "AI · РЕЗУЛЬТАТ РЕКОМЕНДАЦИЙ", 10, true, cyan)
         addText(summary, "Зафиксировано: ${archive.length()} · W $wins / L $losses · ожидают: $pending", 12, true, Color.WHITE)
         addText(summary, "ROI: $roi · расчёт по 1 условной единице на каждый сигнал", 10, false, muted)
-        if (archive.length() == 0) addText(summary, "История начнёт накапливаться после появления первых сигналов с котировкой BetBoom.", 10, false, muted)
+        if (archive.length() == 0) addText(summary, "История начнёт накапливаться после появления первых сигналов с котировкой MelBet.", 10, false, muted)
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый рынок проходит независимую проверку исторической базы, цены BetBoom и ограничений модели.")
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый рынок проходит независимую проверку исторической базы, цены MelBet и ограничений модели.")
         renderAiSignalPerformanceSummary()
         val sorted = collectAiCandidates(json)
         val betsCountCard = card()
@@ -2425,7 +2395,7 @@ class MainActivity : Activity() {
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
-            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка BetBoom от 1.50 и выполнение порогов стратегии.", 11, false, muted)
+            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка MelBet от 1.50 и выполнение порогов стратегии.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
@@ -2477,7 +2447,7 @@ class MainActivity : Activity() {
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Каждый разрешённый рынок проверяется отдельно: коэффициент BetBoom от 1.50, вероятность модели ≥60%, edge и EV ≥5% по действующим правилам. На карточке все прошедшие рынки; самый сильный выделен первым.", 11, false, muted)
+        addText(footer, "Каждый разрешённый рынок проверяется отдельно: коэффициент MelBet от 1.50, вероятность модели ≥60%, edge и EV ≥5% по действующим правилам. На карточке все прошедшие рынки; самый сильный выделен первым.", 11, false, muted)
     }
 
     private fun addAiSignalDetails(box: LinearLayout, signal: JSONObject, match: JSONObject, primary: Boolean) {
@@ -2486,7 +2456,7 @@ class MainActivity : Activity() {
         val ev = probability * odds - 1.0
         val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
             else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
-        addText(box, "${if (primary) "★ " else "• "}${signal.optString("side")} · BetBoom ${fmt(odds)}", 14, true, if (primary) gold else Color.WHITE)
+        addText(box, "${if (primary) "★ " else "• "}${signal.optString("side")} · MelBet ${fmt(odds)}", 14, true, if (primary) gold else Color.WHITE)
         addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", probability * 100)}% · Edge: ${String.format(Locale.US, "%+.1f", edge)} п.п. · EV: ${String.format(Locale.US, "%+.1f", ev * 100)}%", 11, false, muted)
         if (signal.optBoolean("paperOnly")) {
             addText(box, "Серверный UEFA paper-сигнал", 10, false, muted)
@@ -2524,7 +2494,7 @@ class MainActivity : Activity() {
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · AI-СИГНАЛЫ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена BetBoom. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку с необязательным пользовательским минимумом; разные рынки одного матча разрешены, повтор того же рынка блокируется; дневного лимита нет. Пауза при просадке 10%, остановка при 20%.", 11, false, muted)
+        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена MelBet. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку с необязательным пользовательским минимумом; разные рынки одного матча разрешены, повтор того же рынка блокируется; дневного лимита нет. Пауза при просадке 10%, остановка при 20%.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)
@@ -2624,8 +2594,8 @@ class MainActivity : Activity() {
         }
 
         addText(matchesContainer, "ЛИНИЯ", 9, true, cyan)
-        addText(matchesContainer, "Матчи с действующими коэффициентами BetBoom и прогнозом модели", 16, true, Color.WHITE)
-        addText(matchesContainer, "API-SPORT · BETBOOM · PITCHAPI xG", 9, true, muted)
+        addText(matchesContainer, "Матчи с действующими коэффициентами MelBet и прогнозом модели", 16, true, Color.WHITE)
+        addText(matchesContainer, "API-SPORT · MELBET · PITCHAPI xG", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
         val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL")
         // League filters already live in the persistent horizontal scroller above the content.
@@ -2690,9 +2660,9 @@ class MainActivity : Activity() {
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
                 // Apply the same visibility rule to every competition, including UECL:
                 // show only upcoming fixtures with a complete model prediction and
-                // an active BetBoom prematch line. Keep raw feeds intact for settlement.
+                // an active MelBet prematch line. Keep raw feeds intact for settlement.
                 if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
-                    hasCompleteModelPrediction(m) && hasActiveBetBoomPrematchLine(m)) {
+                    hasCompleteModelPrediction(m) && hasActiveMelBetPrematchLine(m)) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
@@ -2734,7 +2704,7 @@ class MainActivity : Activity() {
             matchesContainer.addView(section)
             if (upcoming.isEmpty()) {
                 val empty = card(content)
-                addText(empty, "Нет матчей с одновременно подтверждённой линией BetBoom и прогнозом модели", 12, false, muted)
+                addText(empty, "Нет матчей с одновременно подтверждённой линией MelBet и прогнозом модели", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
@@ -2856,7 +2826,7 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
                     val oddsTimestamp = m.optJSONObject("odds")?.optString("updatedAt").orEmpty()
                     val quoteTime = if (oddsTimestamp.isBlank()) "время обновления неизвестно" else formatSourceTimestamp(oddsTimestamp)
-                    addText(mainMarkets, "Котировка BetBoom обновлена: $quoteTime", 10, false, muted)
+                    addText(mainMarkets, "Котировка MelBet обновлена: $quoteTime", 10, false, muted)
 
                 }
             }
@@ -2866,6 +2836,6 @@ class MainActivity : Activity() {
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
         addText(footer, "Матчей в линии: $totalUpcoming  ·  с полным прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Линия: API-Sport / BetBoom · вероятности и xG: PitchAPI.", 10, false, muted)
+        addText(footer, "Линия: API-Sport / MelBet · вероятности и xG: PitchAPI.", 10, false, muted)
     }
 }
