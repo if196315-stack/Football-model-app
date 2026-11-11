@@ -70,6 +70,7 @@ class MainActivity : Activity() {
     @Volatile private var lastPayload: String? = null
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
+    private var selectedHistoryTab = "OPEN"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
@@ -1732,8 +1733,40 @@ class MainActivity : Activity() {
             }
         }
 
-        renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Открытых ставок пока нет.")
-        renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
+        val historyTabs = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        listOf("OPEN" to "Открытые ставки", "COMPLETED" to "Завершённые").forEach { (key, title) ->
+            val tab = TextView(this).apply {
+                text = title
+                textSize = 10f
+                typeface = Typeface.DEFAULT_BOLD
+                letterSpacing = 0.02f
+                gravity = Gravity.CENTER
+                setPadding(dp(16), dp(12), dp(16), dp(12))
+                setTextColor(if (selectedHistoryTab == key) bg else muted)
+                background = if (selectedHistoryTab == key)
+                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
+                else rounded(surface, 28)
+                setOnClickListener {
+                    if (selectedHistoryTab == key) return@setOnClickListener
+                    val direction = if (key == "COMPLETED") 1 else -1
+                    selectedHistoryTab = key
+                    render()
+                    matchesContainer.postOnAnimation {
+                        if (currentTab == "history" && selectedHistoryTab == key) animateTabEntry(matchesContainer, direction)
+                    }
+                }
+            }
+            historyTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
+        }
+        matchesContainer.addView(historyTabs)
+        if (selectedHistoryTab == "OPEN") {
+            renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Открытых ставок пока нет.")
+        } else {
+            renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
+        }
     }
 
     private fun renderHelp() {
@@ -2525,7 +2558,7 @@ class MainActivity : Activity() {
     private fun render() {
         val json = data ?: return
         refreshHeaderFinancials()
-        val targetKey = currentTab + "|" + if (currentTab == "matches") selectedLeague else "ALL"
+        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; else -> "ALL" }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
