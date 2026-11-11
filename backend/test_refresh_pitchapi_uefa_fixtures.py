@@ -34,13 +34,15 @@ class FakeSession:
                  "seasons": ["2025/2026", "2026/2027"]},
                 {"id": "uel-id", "name": "Europa League", "country_code": "INT-2",
                  "seasons": ["2025/2026", "2026/2027"]},
+                {"id": "uecl-id", "name": "UEFA Conference League", "country_code": "INT-2",
+                 "seasons": ["2025/2026", "2026/2027"]},
                 {"id": "women-id", "name": "UEFA Women's Champions League",
                  "country_code": "INT-2", "seasons": ["2026/2027"]},
                 {"id": "youth-id", "name": "UEFA Youth League",
                  "country_code": "INT-2", "seasons": ["2026/2027"]},
             ]})
         league_id = url.split("/leagues/")[1].split("/")[0]
-        code = "UCL" if league_id == "ucl-id" else "UEL"
+        code = {"ucl-id": "UCL", "uel-id": "UEL", "uecl-id": "UECL"}[league_id]
         season = (params or {}).get("season")
         return Response({"matches": [{
             "id": f"{code}-{season}", "date": "2026-11-10",
@@ -60,14 +62,14 @@ class UefaFixtureHistoryTests(unittest.TestCase):
                 report_path=root / "report.json", pause_seconds=0,
             )
             cache = load_cache(root / "cache.json")
-            self.assertEqual(set(cache["competitions"]), {"UCL", "UEL"})
-            self.assertEqual(len(cache["matches"]), 4)
-            self.assertEqual(result["report"]["listedMatchesThisRun"], 4)
+            self.assertEqual(set(cache["competitions"]), {"UCL", "UEL", "UECL"})
+            self.assertEqual(len(cache["matches"]), 6)
+            self.assertEqual(result["report"]["listedMatchesThisRun"], 6)
             self.assertTrue(all(row["provider"] == "PitchAPI" for row in cache["matches"].values()))
             self.assertTrue(all("homeXg" not in row and "awayXg" not in row
                                 for row in cache["matches"].values()))
             self.assertFalse(any("/shots" in url for url, _ in session.calls))
-            self.assertEqual(len([1 for url, _ in session.calls if "/matches" in url]), 4)
+            self.assertEqual(len([1 for url, _ in session.calls if "/matches" in url]), 6)
 
     def test_season_requests_are_status_all(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -77,7 +79,7 @@ class UefaFixtureHistoryTests(unittest.TestCase):
                 report_path=Path(tmp) / "report.json", pause_seconds=0,
             )
             requests = [params for url, params in session.calls if "/matches" in url]
-            self.assertEqual(len(requests), 4)
+            self.assertEqual(len(requests), 6)
             self.assertEqual(
                 {(params["season"], params["status"]) for params in requests},
                 {("2025/2026", "all"), ("2026/2027", "all")},
@@ -91,7 +93,7 @@ class UefaFixtureHistoryTests(unittest.TestCase):
                 report_path=Path(tmp) / "report.json", pause_seconds=0, upcoming_only=True,
             )
             requests_made = [params for url, params in session.calls if "/matches" in url]
-            self.assertEqual(len(requests_made), 2)
+            self.assertEqual(len(requests_made), 3)
             self.assertEqual({params["season"] for params in requests_made}, {"2026/2027"})
             self.assertTrue(result["report"]["upcomingSeasonOnly"])
 
