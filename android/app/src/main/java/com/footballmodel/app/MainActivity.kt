@@ -240,6 +240,10 @@ class MainActivity : Activity() {
         leagueScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_NEVER
+            // Оставляем справа часть следующего фильтра видимой как подсказку
+            // о горизонтальной прокрутке. Контент при этом можно пролистать полностью.
+            clipToPadding = false
+            setPadding(0, 0, dp(38), 0)
             addView(leagueBar)
         }
         root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2).apply {
