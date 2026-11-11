@@ -211,6 +211,72 @@ def main() -> int:
             if any(parsed.get(key) for key in ("doubleChance", "totals", "teamTotals", "btts")):
                 parsed_by_code[code] += 1
 
+    # API-Sport has independent tournament IDs even when PitchAPI lacks a league entry.
+    # Query the next 180 days in bounded 31-day windows to discover the full schedule.
+    tournament_ids = {"UNL": 10783, "UECL": 17015}
+    api_sport_schedule = {}
+    for code, tournament_id in tournament_ids.items():
+        cursor_date = today
+        final_date = today + timedelta(days=180)
+        rows_for_tournament = []
+        while cursor_date <= final_date:
+            window_end = min(cursor_date + timedelta(days=30), final_date)
+            response = session.get(
+                API_SPORT_URL,
+                params={
+                    "tournament_id": str(tournament_id),
+                    "date_from": cursor_date.isoformat(),
+                    "date_to": window_end.isoformat(),
+                    "exclude_amateur": "true",
+                    "view": "odds",
+                    "with_bk_odds": "true",
+                    "odds_stage": "all",
+                    "bookmaker_ids": "betboom",
+                    "page_size": 500,
+                    "page": 1,
+                    "sort": "asc",
+                },
+                headers={"Authorization": sport_key, "Accept": "application/json"},
+                timeout=TIMEOUT,
+            )
+            response.raise_for_status()
+            rows_for_tournament.extend(response_items(response.json()))
+            cursor_date = window_end + timedelta(days=1)
+
+        boards = active = parsed_count = 0
+        samples = []
+        for match in rows_for_tournament:
+            board = ((match.get("oddsBk") or {}).get("betboom") or {})
+            if board:
+                boards += 1
+            if (board.get("isBettingActiveByStage") or {}).get("prematch") is True:
+                active += 1
+            parsed = parse_odds(match).get("best") or {}
+            quote_count = sum(len(parsed.get(key) or []) if isinstance(parsed.get(key), list)
+                              else len(parsed.get(key) or {})
+                              for key in ("doubleChance", "totals", "teamTotals", "btts"))
+            if quote_count:
+                parsed_count += 1
+            if len(samples) < 5:
+                samples.append({
+                    "id": match.get("id"),
+                    "home": ((match.get("homeTeam") or {}).get("name")),
+                    "away": ((match.get("awayTeam") or {}).get("name")),
+                    "startTimestamp": match.get("startTimestamp"),
+                    "hasBetBoomBoard": bool(board),
+                    "prematchActive": (board.get("isBettingActiveByStage") or {}).get("prematch"),
+                    "productionParserQuoteCount": quote_count,
+                })
+        api_sport_schedule[code] = {
+            "tournament_id": tournament_id,
+            "fixtures_180d": len(rows_for_tournament),
+            "betboom_boards_180d": boards,
+            "active_prematch_boards_180d": active,
+            "fixtures_with_production_quotes_180d": parsed_count,
+            "fixture_sample": samples,
+        }
+    report["api_sport_tournament_coverage_180d"] = api_sport_schedule
+
     for code, item in report["competitions"].items():
         item["api_sport_fixture_matches_30d"] = matched_by_code[code]
         item["betboom_boards_30d"] = boards_by_code[code]
