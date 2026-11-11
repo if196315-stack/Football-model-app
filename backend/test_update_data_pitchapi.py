@@ -226,6 +226,30 @@ class PitchApiUpdaterTests(unittest.TestCase):
             self.assertGreater(baseline[field], 0.0)
             self.assertLess(baseline[field], 1.0)
 
+    def test_sparse_league_baseline_is_shrunk_toward_other_leagues(self):
+        from update_data import historical_baselines
+
+        rows = []
+        # Sparse target league: all eight matches ended 0-0.
+        for i in range(8):
+            rows.append({"comp": "eng", "date": pd.Timestamp("2026-01-01") + pd.Timedelta(days=i),
+                         "home_score": 0, "away_score": 0})
+        # Other leagues provide a pooled prior with a materially higher BTTS rate.
+        for i in range(40):
+            rows.append({"comp": "esp", "date": pd.Timestamp("2026-01-01") + pd.Timedelta(days=i),
+                         "home_score": 2, "away_score": 1})
+        matches = pd.DataFrame(rows)
+        baseline = historical_baselines(matches, "eng", "2026-06-01")
+
+        self.assertIsNotNone(baseline)
+        self.assertEqual(baseline["matches"], 8)
+        self.assertEqual(baseline["baselinePriorMatches"], 40)
+        self.assertEqual(baseline["baselinePriorStrength"], 20.0)
+        # The posterior must sit between the sparse league rate and pooled prior.
+        self.assertGreater(baseline["bttsYes"], 8.0 / 22.0)
+        self.assertLess(baseline["bttsYes"], 1.0)
+        self.assertGreater(baseline["over15"], 0.5)
+
     def test_zero_handicap_markets_are_not_calculated_or_signalled(self):
         probabilities = markets(1.4, 0.9)
         self.assertNotIn("dnbHome", probabilities)

@@ -148,22 +148,48 @@ def markets(lh,la):
     return result
 
 def historical_baselines(matches, comp, target_date):
-    """Historical league frequencies for the same OVER/YES markets shown in match cards."""
-    g=matches[(matches.comp==comp)&(matches.date<pd.Timestamp(target_date))]
-    n=len(g)
-    if n < 100:return None
-    hs=g.home_score.astype(float); aw=g.away_score.astype(float)
-    total=hs+aw
-    def rate(count,total_matches): return (count+1.0)/(total_matches+2.0)
-    result={"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
-            "bttsYes":rate(int(((hs>0)&(aw>0)).sum()),n),"matches":n}
-    for line in (1.5,2.5,3.5):
-        tag=str(line).replace(".","")
-        result[f"over{tag}"]=rate(int((total>line).sum()),n)
-    for team,goals in (("home",hs),("away",aw)):
-        for line in (0.5,1.5,2.5,3.5):
-            tag=str(line).replace(".","")
-            result[f"{team}Over{tag}"]=rate(int((goals>line).sum()),n)
+    """Empirical-Bayes league frequencies; sparse leagues shrink toward other leagues."""
+    cutoff = pd.Timestamp(target_date)
+    history = matches[matches.date < cutoff]
+    g = history[history.comp == comp]
+    n = len(g)
+    if n == 0:
+        return None
+
+    # Use only other competitions as the prior, avoiding future results and
+    # preventing a small league sample from defining its own prior.
+    pooled = history[history.comp != comp]
+    if pooled.empty:
+        pooled = history
+    prior_n = len(pooled)
+    prior_strength = 20.0
+
+    def market_counts(frame):
+        hs = frame.home_score.astype(float)
+        aw = frame.away_score.astype(float)
+        total = hs + aw
+        counts = {
+            "1x": int((hs >= aw).sum()),
+            "x2": int((aw >= hs).sum()),
+            "bttsYes": int(((hs > 0) & (aw > 0)).sum()),
+        }
+        for line in (1.5, 2.5, 3.5):
+            tag = str(line).replace(".", "")
+            counts[f"over{tag}"] = int((total > line).sum())
+        for team, goals in (("home", hs), ("away", aw)):
+            for line in (0.5, 1.5, 2.5, 3.5):
+                tag = str(line).replace(".", "")
+                counts[f"{team}Over{tag}"] = int((goals > line).sum())
+        return counts
+
+    league_counts = market_counts(g)
+    prior_counts = market_counts(pooled)
+    result = {"matches": n, "baselinePriorMatches": prior_n,
+              "baselinePriorStrength": prior_strength}
+    for field, count in league_counts.items():
+        prior_rate = (prior_counts[field] + 1.0) / (prior_n + 2.0)
+        # Beta-binomial posterior: 20 pseudo-matches from the pooled prior.
+        result[field] = (count + prior_rate * prior_strength) / (n + prior_strength)
     return result
 
 def signal_candidates(pred, baseline, home, away, home_form=None, away_form=None):
