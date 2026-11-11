@@ -1,4 +1,7 @@
+import sys
 import unittest
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audit_melbet_odds_coverage import normalize_market_set
 
 class MelBetCoverageParserTests(unittest.TestCase):
