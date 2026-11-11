@@ -1647,12 +1647,6 @@ class MainActivity : Activity() {
             if (settledCount == 0) addText(sum, "Пока нет рассчитанных ставок", 9, false, muted)
         }
 
-        if (bets.length() == 0) {
-            val empty = card()
-            addText(empty, "Записанных ставок пока нет.", 12, false, muted)
-            return
-        }
-
         val openBets = mutableListOf<JSONObject>()
         val completedBets = mutableListOf<JSONObject>()
         for (i in bets.length() - 1 downTo 0) {
