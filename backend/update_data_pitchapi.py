@@ -352,7 +352,7 @@ def run() -> dict:
         "modelConfig": {"window": WINDOW, "halfLife": HALF_LIFE, "shrinkage": SHRINKAGE},
         "xgProvider": "PitchAPI",
         "resultHistoryMatches": int(len(results)),
-        "resultHistoryByCompetition": {code: int((results.comp == comp).sum()) for code, comp in MAP.items()} if not results.empty else {},
+        "resultHistoryByCompetition": {code: int((results.comp == comp).sum()) for comp, code in MAP.items()} if not results.empty else {},
         "xgHistoryMatches": int(len(s) // 2),
         "xgHistoryPairedMatches": int(len(s) // 2),
         "xgHistoryPending": refreshed["summary"].get("pendingShotXg", 0),
