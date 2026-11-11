@@ -1570,6 +1570,7 @@ class MainActivity : Activity() {
         addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
         addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
         addText(sum, "AI · СТАТИСТИКА ПО ТУРНИРАМ", 10, true, cyan)
+        addText(sum, "По сохранённым в приложении AI-ставкам; это не подсчёт всех показанных рекомендаций.", 9, false, muted)
         val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
