@@ -965,25 +965,45 @@ class MainActivity : Activity() {
 
     private var tabRenderGeneration = 0
 
+    private fun animateTabEntry(view: View, direction: Int) {
+        view.animate().cancel()
+        view.alpha = 0f
+        view.translationX = dp(22).toFloat() * direction.coerceIn(-1, 1)
+        view.visibility = View.VISIBLE
+        view.animate()
+            .alpha(1f)
+            .translationX(0f)
+            .setDuration(240L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator(1.7f))
+            .withLayer()
+            .start()
+    }
+
     private fun selectTab(tab: String) {
         if (currentTab == tab) return
+        val previousIndex = primaryTabs.indexOf(currentTab)
+        val nextIndex = primaryTabs.indexOf(tab)
+        val direction = if (previousIndex >= 0 && nextIndex >= 0) {
+            if (nextIndex > previousIndex) 1 else -1
+        } else 1
         currentTab = tab
         val generation = ++tabRenderGeneration
 
-        // Update navigation immediately; defer expensive screen construction until
-        // the next animation frame so the swipe can finish without waiting for it.
+        // Update navigation immediately; defer screen construction until the next
+        // frame, then ease the new content in instead of showing it abruptly.
         renderTabs()
+        matchesContainer.animate().cancel()
         matchesContainer.visibility = View.INVISIBLE
+        leagueScroll.animate().cancel()
         leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
         matchesContainer.postOnAnimation {
             if (generation != tabRenderGeneration || currentTab != tab) {
-                // Another navigation path (for example the notification shortcut) may
-                // have rendered a different screen while this frame was pending.
                 if (generation == tabRenderGeneration) matchesContainer.visibility = View.VISIBLE
                 return@postOnAnimation
             }
             render()
-            matchesContainer.visibility = View.VISIBLE
+            animateTabEntry(matchesContainer, direction)
+            if (tab == "matches") animateTabEntry(leagueScroll, direction)
         }
 
         // Navigation uses the latest in-memory feed. Network refresh stays on its
