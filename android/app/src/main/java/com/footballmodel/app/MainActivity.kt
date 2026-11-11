@@ -1190,7 +1190,7 @@ class MainActivity : Activity() {
         return null
     }
 
-    // Lock a paper bet as soon as the visible AI candidate qualifies in the next-30-day window.
+    // Lock a paper bet as soon as the visible AI candidate qualifies.
     // The stored odds and quote timestamp remain fixed through settlement.
     private fun processAutoPaperBets(json: JSONObject): List<JSONObject> {
         return synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
@@ -1976,9 +1976,7 @@ class MainActivity : Activity() {
                 }
                 if (matchDay.isBlank()) continue
                 val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
-                val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 30) }
-                val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
-                if (matchDay < today || matchDay > endDay) continue
+                if (matchDay < today) continue
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
