@@ -40,8 +40,6 @@ import kotlin.math.abs
 
 class MainActivity : Activity() {
     private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
-    private val observationSnapshotsUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/odds-snapshots.jsonl"
-    private val observationResultsUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/market-observation-results.jsonl"
     private val uefaDataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json"
     private val bg = Color.rgb(7, 13, 25)
     private val panel = Color.rgb(17, 29, 47)
@@ -59,7 +57,6 @@ class MainActivity : Activity() {
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
-    private var statsSubsection = "working"
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
     private var bets = JSONArray()
@@ -815,11 +812,6 @@ class MainActivity : Activity() {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
                 }
-                // Keep the single bell section monitored during ordinary feed refreshes.
-                val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
-                val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
-                json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
-                json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
                 // Build the AI candidate snapshot off the main thread before checking notifications.
                 val aiCandidates = collectAiCandidates(json).map { item ->
                     val match = item.first
@@ -844,15 +836,13 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     }
-                    // Detect changes to the combined report-and-observations section.
+                    // Keep report notifications independent from the backend-only observation archive.
                     val currentBets = betPrefs.getString("bets", "[]") ?: "[]"
                     val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                     val startingBank = settingsPrefs.getString("initial_bankroll", "") ?: ""
-                    if (snapshotsBody != null && resultsBody != null) {
-                        SectionNotifications.observeAndNotify(this, SectionNotifications.fingerprint(
-                            reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody
-                        ))
-                    }
+                    SectionNotifications.observeAndNotify(this, SectionNotifications.fingerprint(
+                        reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets
+                    ))
                     // Keep existing paper-bet processing and settlement behavior unchanged.
                     processAutoPaperBets(json)
                     if (!changed) {
@@ -989,33 +979,6 @@ class MainActivity : Activity() {
     }
 
     private fun renderStats(json: JSONObject) {
-        val switcher = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(dp(4), dp(4), dp(4), dp(4))
-            background = rounded(Color.rgb(13, 23, 39), 15)
-        }
-        listOf("working" to "РАБОЧИЕ СТАВКИ", "observed" to "НАБЛЮДАЕМЫЕ КОТИРОВКИ").forEach { (key, title) ->
-            val selected = statsSubsection == key
-            val tab = label(title, 10, true, if (selected) bg else muted).apply {
-                gravity = Gravity.CENTER
-                setPadding(dp(8), dp(13), dp(8), dp(13))
-                background = if (selected) rounded(accent, 11) else rounded(Color.TRANSPARENT, 11)
-                isClickable = true
-                isFocusable = true
-                setOnClickListener {
-                    if (statsSubsection != key) {
-                        statsSubsection = key
-                        render()
-                    }
-                }
-            }
-            switcher.addView(tab, LinearLayout.LayoutParams(0, -2, 1f))
-        }
-        matchesContainer.addView(switcher, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
-        if (statsSubsection == "observed") {
-            renderObservedMarketStats(json)
-            return
-        }
         screenHeader("PERFORMANCE CENTER", "Статистика стратегии", "Точность рынков действующей стратегии. Уровни уверенности сохранены без изменений.")
         val statsKey = json.toString().hashCode()
         if (statsMetricsCacheKey != statsKey) {
@@ -1030,8 +993,7 @@ class MainActivity : Activity() {
                         statsMetricsCache = calculated
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
-                        if (currentTab == "stats" && statsSubsection == "working" &&
-                            data?.toString()?.hashCode() == statsKey) {
+                        if (currentTab == "stats" && data?.toString()?.hashCode() == statsKey) {
                             tabViewCache.remove("stats|ALL")
                             render()
                         }
@@ -1100,140 +1062,6 @@ class MainActivity : Activity() {
         addText(strategyMetrics, "Пороговые значения — стартовая конфигурация для проверки, а не доказанное преимущество и не гарантия прибыли. Изменения правил должны получать новую версию и проверяться на независимых данных.", 10, false, muted)
     }
 
-
-    private fun renderObservedMarketStats(json: JSONObject) {
-        screenHeader("MARKET RESEARCH", "Наблюдаемые котировки", "Архивные цены BetBoom. Снимки отображаются сразу, не дожидаясь завершения матча.")
-        val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
-        val results = json.optJSONArray("marketObservationResults") ?: JSONArray()
-        val summary = card()
-        addText(summary, "ОБЪЁМ АРХИВА", 10, true, accent)
-        addText(summary, "Снимков котировок: ${snapshots.length()}", 15, true, Color.WHITE)
-        addText(summary, "Завершённых наблюдений: ${results.length()}", 13, true, Color.WHITE)
-        var totalWins = 0
-        var totalLosses = 0
-        var totalPushes = 0
-        var totalProfit = 0.0
-        for (i in 0 until results.length()) {
-            val row = results.optJSONObject(i) ?: continue
-            when (row.optString("result")) {
-                "WIN" -> totalWins++
-                "LOSS" -> totalLosses++
-                "PUSH" -> totalPushes++
-            }
-            totalProfit += row.optDouble("profit_units", 0.0)
-        }
-        if (results.length() > 0) {
-            addText(summary, "WIN $totalWins · LOSS $totalLosses · PUSH $totalPushes", 12, true, accent)
-            addText(summary, "Условный результат: ${String.format(Locale.US, "%+.2f", totalProfit)} ед. · ROI ${String.format(Locale.US, "%+.2f", totalProfit / results.length() * 100.0)}%", 12, true, gold)
-            addText(summary, "ROI рассчитан по одной условной единице на каждое завершённое наблюдение.", 10, false, muted)
-        } else {
-            addText(summary, "Результатов завершённых матчей пока нет.", 11, false, muted)
-        }
-
-        // Сводка отдельно по каждому точному типу наблюдаемого рынка и линии.
-        fun observationKey(row: JSONObject): String = listOf(
-            row.optString("market"), row.optString("side"), row.optString("point"),
-            row.optString("team"), row.optString("outcome")
-        ).joinToString("|")
-        fun observationTitle(row: JSONObject): String {
-            val market = row.optString("market")
-            val side = row.optString("side").uppercase(Locale.ROOT)
-            val point = if (row.has("point") && !row.isNull("point")) " ${fmt(row.optDouble("point"))}" else ""
-            return when (market) {
-                "double_chance" -> "Двойной шанс ${row.optString("outcome").uppercase(Locale.ROOT)}"
-                "match_total" -> "Тотал матча $side$point"
-                "team_total" -> "${if (row.optString("team") == "home") "Хозяева" else "Гости"} · ИТ $side$point"
-                "btts" -> "Обе забьют · ${if (row.optString("outcome") == "yes") "ДА" else "НЕТ"}"
-                "handicap" -> "Фора ${if (row.optString("team") == "home") "хозяев" else "гостей"} ($point)"
-                else -> market.ifBlank { "Рынок" } + point
-            }
-        }
-        data class ObservationStats(var snapshots: Int = 0, var wins: Int = 0, var losses: Int = 0,
-                                    var pushes: Int = 0, var pending: Int = 0, var profit: Double = 0.0)
-        val grouped = linkedMapOf<String, Pair<JSONObject, ObservationStats>>()
-        fun groupFor(row: JSONObject): ObservationStats {
-            val key = observationKey(row)
-            val existing = grouped[key]
-            if (existing != null) return existing.second
-            val stats = ObservationStats()
-            grouped[key] = row to stats
-            return stats
-        }
-        for (i in 0 until snapshots.length()) {
-            val row = snapshots.optJSONObject(i) ?: continue
-            groupFor(row).snapshots++
-        }
-        for (i in 0 until results.length()) {
-            val row = results.optJSONObject(i) ?: continue
-            val stats = groupFor(row)
-            when (row.optString("result")) {
-                "WIN" -> stats.wins++
-                "LOSS" -> stats.losses++
-                "PUSH" -> stats.pushes++
-                else -> stats.pending++
-            }
-            stats.profit += row.optDouble("profit_units", 0.0)
-        }
-        if (grouped.isNotEmpty()) {
-            addText(matchesContainer, "РЕЗУЛЬТАТЫ ПО КАЖДОМУ РЫНКУ", 10, true, accent)
-            grouped.values.sortedBy { observationTitle(it.first) }.forEach { (sample, stats) ->
-                val settled = stats.wins + stats.losses + stats.pushes
-                val turnover = stats.wins + stats.losses
-                val box = card()
-                addText(box, observationTitle(sample), 14, true, Color.WHITE)
-                addText(box, "Снимков: ${stats.snapshots} · завершено: $settled · ожидают: ${stats.pending}", 11, false, muted)
-                addText(box, "WIN ${stats.wins} · LOSS ${stats.losses} · PUSH ${stats.pushes}", 12, true, accent)
-                if (settled > 0) {
-                    val roi = if (turnover > 0) stats.profit / turnover * 100.0 else 0.0
-                    addText(box, "Условный результат: ${String.format(Locale.US, "%+.2f", stats.profit)} ед. · ROI ${if (turnover > 0) String.format(Locale.US, "%+.2f%%", roi) else "—"}", 12, true, gold)
-                    addText(box, "Попадания: ${stats.wins}/${stats.wins + stats.losses} · доля ${if (stats.wins + stats.losses > 0) String.format(Locale.US, "%.1f%%", stats.wins * 100.0 / (stats.wins + stats.losses)) else "—"}", 11, false, muted)
-                } else {
-                    addText(box, "Недостаточно завершённых наблюдений для ROI и процента попаданий.", 10, false, muted)
-                }
-            }
-        } else {
-            val emptyStats = card()
-            addText(emptyStats, "Сводка по рынкам пока недоступна", 13, true, Color.WHITE)
-            addText(emptyStats, "В архиве нет снимков и результатов. Сводки появятся после того, как workflow начнёт публиковать архив котировок.", 11, false, muted)
-        }
-
-        if (snapshots.length() > 0) {
-            addText(matchesContainer, "АРХИВ КОТИРОВОК · ${snapshots.length()}", 10, true, accent)
-            for (i in snapshots.length() - 1 downTo 0) {
-                val row = snapshots.optJSONObject(i) ?: continue
-                val market = row.optString("market")
-                val side = row.optString("side").uppercase(Locale.ROOT)
-                val point = if (row.has("point") && !row.isNull("point")) " ${fmt(row.optDouble("point"))}" else ""
-                val marketName = when (market) {
-                    "double_chance" -> "Двойной шанс ${row.optString("outcome").uppercase(Locale.ROOT)}"
-                    "match_total" -> "Тотал матча $side$point"
-                    "team_total" -> "${if (row.optString("team") == "home") "Хозяева" else "Гости"} · ИТ $side$point"
-                    "btts" -> "Обе забьют · ${if (row.optString("outcome") == "yes") "ДА" else "НЕТ"}"
-                    "handicap" -> "Фора ${if (row.optString("team") == "home") "хозяев" else "гостей"} (${fmt(row.optDouble("point"))})"
-                    else -> market.ifBlank { "Рынок" }
-                }
-                val price = row.optDouble("price", Double.NaN)
-                val probability = if (!row.isNull("model_probability")) "${String.format(Locale.US, "%.1f", row.optDouble("model_probability") * 100)}%" else "нет оценки модели"
-                val item = card()
-                addText(item, "${row.optString("home_team")} — ${row.optString("away_team")}", 13, true, Color.WHITE)
-                addText(item, "${row.optString("league_code")} · ${formatSourceTimestamp(row.optString("kickoff_utc"))}", 10, false, muted)
-                addText(item, marketName, 11, true, accent)
-                addText(item, "BetBoom ${if (price.isFinite() && price > 1.0) String.format(Locale.US, "%.2f", price) else "—"} · модель $probability", 11, true, gold)
-                addText(item, "Снимок: ${formatSourceTimestamp(row.optString("captured_at"))} · актуальность: ${row.optString("freshness_status", "не указана")}", 9, false, muted)
-                val result = row.optString("result")
-                if (result.isNotBlank()) addText(item, "Результат: $result", 10, true, accent)
-            }
-        } else {
-            val empty = card()
-            addText(empty, "Архив котировок пока пуст", 13, true, Color.WHITE)
-            addText(empty, "Снимки появятся после успешного обновления BetBoom и публикации artifacts/odds-snapshots.jsonl. Если архив ещё не создавался, нужно дождаться первого запуска workflow после его включения.", 11, false, muted)
-        }
-        if (results.length() > 0) {
-            val note = card()
-            addText(note, "ВАЖНО", 10, true, gold)
-            addText(note, "ROI считается по каждой сохранённой котировке как если бы на неё ставили по 1 условной единице. Это исследовательская метрика, не фактическая прибыль и не движение paper-банка.", 11, false, muted)
-        }
-    }
 
     private fun parseFeedTimeMillis(raw: String): Long? {
         return try {
@@ -1874,36 +1702,6 @@ class MainActivity : Activity() {
         addText(summary, "Результат рассчитанных ставок: ${String.format(Locale.US, "%+.2f ₽", profit)}", 13, true, if (profit >= 0) accent else gold)
         addText(summary, "Текущий бумажный банк: ${if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", currentBankroll()) else "не задан"}", 12, false, muted)
 
-        val observations = json.optJSONArray("marketObservationResults") ?: JSONArray()
-        val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
-        var observedWins = 0
-        var observedLosses = 0
-        var observedPushes = 0
-        var observedPending = 0
-        var observedProfit = 0.0
-        for (i in 0 until observations.length()) {
-            val row = observations.optJSONObject(i) ?: continue
-            when (row.optString("result")) {
-                "WIN" -> observedWins++
-                "LOSS" -> observedLosses++
-                "PUSH" -> observedPushes++
-                else -> observedPending++
-            }
-            observedProfit += row.optDouble("profit_units", 0.0)
-        }
-        val observationCard = card()
-        addText(observationCard, "НАБЛЮДАТЕЛЬНЫЕ СТАВКИ · НАКОПИТЕЛЬНО", 10, true, cyan)
-        addText(observationCard, "Снимков котировок: ${snapshots.length()} · записей архива: ${observations.length()}", 12, true, Color.WHITE)
-        addText(observationCard, "WIN $observedWins · LOSS $observedLosses · PUSH $observedPushes · ожидают $observedPending", 12, true, accent)
-        if (observations.length() > 0) {
-            val turnover = observedWins + observedLosses
-            val roi = if (turnover > 0) observedProfit / turnover * 100.0 else 0.0
-            addText(observationCard, "Условный результат: ${String.format(Locale.US, "%+.2f ед.", observedProfit)} · ROI ${String.format(Locale.US, "%+.2f%%", roi)}", 12, true, gold)
-            addText(observationCard, "Это исследовательская статистика архива, не фактическая прибыль и не изменение бумажного банка.", 10, false, muted)
-        } else {
-            addText(observationCard, "Архив результатов пока пуст. Выводы по наблюдениям появятся после накопления и расчёта матчей.", 11, false, muted)
-        }
-
         val strengths = mutableListOf<String>()
         val improvements = mutableListOf<String>()
         if (dayBets.isEmpty()) strengths.add("Сегодня нет записей ставок по дате матча. Подходящих сигналов могло не быть.")
@@ -1912,14 +1710,6 @@ class MainActivity : Activity() {
             if (pending > 0) strengths.add("$pending ставок ещё ожидают расчёта — не считаем их выигрышами или проигрышами.")
             if (losses > wins) improvements.add("Поражений больше, чем побед ($losses против $wins). Проверим рынки и цену, но не будем менять пороги по одному дню.")
             if (profit < 0) improvements.add("Дневной результат отрицательный. Сначала накопим выборку и сравним рынки, не повышая риск.")
-        }
-        if (observations.length() == 0) {
-            improvements.add("Нужно накопить завершённые наблюдательные матчи: пока нельзя честно выделить лучшие рынки.")
-        } else {
-            val settled = observedWins + observedLosses
-            if (settled >= 10 && observedLosses > observedWins) improvements.add("В архиве наблюдений поражений больше побед. Проверим точные рынки и линии отдельно, прежде чем что-либо менять.")
-            else if (settled >= 10 && observedWins > observedLosses) strengths.add("Наблюдательная выборка показывает больше WIN, чем LOSS. Проверим устойчивость результата по рынкам.")
-            else improvements.add("Выборка наблюдений пока небольшая; выводы по ROI и отдельным рынкам предварительные.")
         }
         val strengthsCard = card()
         addText(strengthsCard, "ЧТО ХОРОШО", 10, true, accent)
@@ -1930,9 +1720,8 @@ class MainActivity : Activity() {
 
         val recommendations = card()
         addText(recommendations, "МОИ ВЫВОДЫ", 10, true, cyan)
-        addText(recommendations, "1. Сравнивать рабочие ставки и наблюдательные сигналы отдельно: это разные выборки.", 12, false, Color.WHITE)
-        addText(recommendations, "2. Искать устойчивые закономерности по рынку и линии только на завершённых матчах с достаточным объёмом данных.", 12, false, Color.WHITE)
-        addText(recommendations, "3. Не менять пороги вероятности, edge, EV и риск-менеджмент автоматически. Любые изменения — только после отдельной проверки и согласования.", 12, false, muted)
+        addText(recommendations, "1. Оценивать рабочие ставки только по завершённым матчам с достаточным объёмом данных.", 12, false, Color.WHITE)
+        addText(recommendations, "2. Не менять пороги вероятности, edge, EV и риск-менеджмент автоматически. Любые изменения — только после отдельной проверки и согласования.", 12, false, muted)
     }
 
     private fun confirmManualAiSignalBet(match: JSONObject, league: String, signal: JSONObject, odds: Double) {
