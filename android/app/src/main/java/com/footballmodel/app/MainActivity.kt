@@ -1640,7 +1640,7 @@ class MainActivity : Activity() {
 
     // Recalculate quote age from the bookmaker board timestamp; the stored feed age becomes stale.
     private fun currentBookmakerQuoteAgeSeconds(odds: JSONObject?): Double? {
-        if (odds == null || odds.optString("freshnessStatus") != "fresh") return null
+        if (odds == null) return null
         val raw = odds.optString("updatedAt").trim()
         if (raw.isBlank()) return null
         return try {
@@ -1653,13 +1653,20 @@ class MainActivity : Activity() {
         } catch (_: Exception) { null }
     }
 
-    private fun hasFreshBookmakerQuote(match: JSONObject): Boolean {
-        val age = currentBookmakerQuoteAgeSeconds(match.optJSONObject("odds")) ?: return false
-        return age in 0.0..300.0
+    private fun bookmakerQuoteAgeLabel(odds: JSONObject?): String {
+        val age = currentBookmakerQuoteAgeSeconds(odds) ?: return "возраст неизвестен"
+        if (age < 0.0) return "время источника из будущего"
+        val seconds = age.toLong()
+        return when {
+            seconds < 60 -> "$seconds сек. назад"
+            seconds < 3600 -> "${seconds / 60} мин. назад"
+            seconds < 86400 -> "${seconds / 3600} ч. назад"
+            else -> "${seconds / 86400} дн. назад"
+        }
     }
 
     // Main-line eligibility is the intersection of a complete model forecast and
-    // a currently fresh, supported BetBoom prematch quote from API-Sport.
+    // an available BetBoom quote from API-Sport; quote age is informational only.
     private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
         val prediction = match.optJSONObject("prediction") ?: return false
         val probabilityFields = listOf(
@@ -1684,7 +1691,7 @@ class MainActivity : Activity() {
         val isBetBoom = bookmaker.equals("BETBOOM", ignoreCase = true) ||
             (source.contains("API-Sport", ignoreCase = true) &&
                 source.contains("BetBoom", ignoreCase = true))
-        if (!isBetBoom || !hasFreshBookmakerQuote(match)) return false
+        if (!isBetBoom) return false
 
         val best = odds.optJSONObject("best") ?: return false
         fun validPrice(value: Double): Boolean = value.isFinite() && value > 1.0
@@ -2390,6 +2397,9 @@ class MainActivity : Activity() {
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
+                    val oddsTimestamp = m.optJSONObject("odds")?.optString("updatedAt").orEmpty()
+                    val quoteTime = if (oddsTimestamp.isBlank()) "время обновления неизвестно" else formatSourceTimestamp(oddsTimestamp)
+                    addText(mainMarkets, "Котировка BetBoom обновлена: $quoteTime · ${bookmakerQuoteAgeLabel(m.optJSONObject("odds"))}", 10, false, muted)
 
                 }
             }
