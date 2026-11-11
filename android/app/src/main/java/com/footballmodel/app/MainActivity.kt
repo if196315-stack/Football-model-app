@@ -2322,7 +2322,20 @@ class MainActivity : Activity() {
                 setPadding(dp(16), dp(12), dp(16), dp(12))
                 setTextColor(if (selectedLeague == code) bg else muted)
                 background = if (selectedLeague == code) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() } else rounded(surface, 28)
-                setOnClickListener { selectedLeague = code; render() }
+                setOnClickListener {
+                    if (selectedLeague == code) return@setOnClickListener
+                    val previousIndex = codes.indexOf(selectedLeague)
+                    val nextIndex = codes.indexOf(code)
+                    val direction = if (nextIndex >= previousIndex) 1 else -1
+                    selectedLeague = code
+                    render()
+                    // Keep the league chips fixed; animate only the match content.
+                    matchesContainer.postOnAnimation {
+                        if (selectedLeague == code && currentTab == "matches") {
+                            animateTabEntry(matchesContainer, direction)
+                        }
+                    }
+                }
             }
             val lp = LinearLayout.LayoutParams(-2, -2)
             lp.setMargins(0, 8, 7, 12)
