@@ -41,3 +41,18 @@ The PitchAPI snapshot stores all 39 affected scheduled fixtures as date-only str
 ## Production safety
 
 Read-only diagnostic only. No production matcher, source selection, ingestion, odds parsing, prematch-stage filter, probabilities, paper bets, or app files were changed. Do not relax date/time matching based on these results. A safe production change would require authoritative fixture scheduling evidence and independent negative-case tests first.
+
+
+## Important limitation found in the PitchAPI production path
+
+A subsequent source review found that PitchAPI normalization preserves both provider fields:
+- `date` → cached `date`
+- `time_utc` → cached `timeUtc`
+
+However, `backend/update_data_pitchapi.py` builds the app feed using only `row["date"]` for `utcDate`. It does not pass `row["timeUtc"]` into `docs/data.json`. Thus the app snapshot is date-only by construction in this path, even when the upstream PitchAPI cache may contain a kickoff time.
+
+This means the previous timestamp audit did **not** compare PitchAPI raw kickoff timestamps. It compared API-Sport raw timestamps against PitchAPI's date-only app snapshot. Its statement that PitchAPI has no time/offset is therefore only true of the published app snapshot, not established for the upstream PitchAPI response/cache.
+
+The current evidence still cannot establish the root cause. A conclusive provider-to-provider comparison requires retrieving the original PitchAPI `time_utc` values for these 39 fixture IDs from the persisted `backend/cache/pitchapi_history.json` or from a narrowly scoped PitchAPI fixture listing, and comparing them in UTC with API-Sport `startTimestamp`. The persisted cache is maintained by GitHub Actions cache and is not committed to the repository, so it was not available in this read-only repository inspection.
+
+No production code was changed. Do not infer a timezone defect or change matching rules until the raw PitchAPI `time_utc` values are actually compared.
