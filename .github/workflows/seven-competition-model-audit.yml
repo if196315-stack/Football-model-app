@@ -1,6 +1,11 @@
 name: Seven-competition model audit
 
 on:
+  pull_request:
+    paths:
+      - "backend/backtest_all_markets.py"
+      - "backend/test_backtest_all_markets.py"
+      - ".github/workflows/seven-competition-model-audit.yml"
   push:
     branches: [main]
     paths:
@@ -18,13 +23,13 @@ concurrency:
 
 jobs:
   audit:
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.head.sha || 'main' }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
