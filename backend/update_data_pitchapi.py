@@ -63,8 +63,6 @@ def build_model_frames(cache: dict):
                         "xg": home_xg, "xg_against": away_xg})
         history.append({**common, "team": row["away"], "side": "away",
                         "xg": away_xg, "xg_against": home_xg})
-        results.append({**common, "home_team": row["home"], "away_team": row["away"],
-                        "home_score": home_score, "away_score": away_score})
 
     # Historical baseline/form use every valid finished score, even when
     # PitchAPI has no usable shot feed for that match. This does not add xG.
