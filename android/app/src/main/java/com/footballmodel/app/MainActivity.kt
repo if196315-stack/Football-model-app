@@ -1238,10 +1238,7 @@ class MainActivity : Activity() {
                 }
                 val kickoffDate = dayFormat.format(java.util.Date(kickoff))
                 val today = dayFormat.format(java.util.Date(now))
-                val endDate = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
-                    add(java.util.Calendar.DAY_OF_YEAR, 30)
-                }.let { dayFormat.format(it.time) }
-                if (kickoffDate < today || kickoffDate > endDate) continue
+                if (kickoffDate < today) continue
                 val odds = match.optJSONObject("odds") ?: continue
                 val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
                 // Lock the visible BetBoom quote when the candidate first qualifies in the AI window.
@@ -2047,7 +2044,7 @@ class MainActivity : Activity() {
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Окно отбора — 30 дней. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Используются реальные котировки BetBoom.", 11, false, muted)
+        addText(footer, "Временного горизонта отбора нет. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Используются реальные котировки BetBoom.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
@@ -2055,11 +2052,7 @@ class MainActivity : Activity() {
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
-        val endCalendar = java.util.Calendar.getInstance(utc).apply {
-            add(java.util.Calendar.DAY_OF_YEAR, 14)
-        }
-        val endDate = dayFormat.format(endCalendar.time)
-        val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
+val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
             val league = leagues.optJSONObject(i) ?: continue
@@ -2068,7 +2061,7 @@ class MainActivity : Activity() {
                 val m = matches.optJSONObject(j) ?: continue
                 if (m.optString("status") !in listOf("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED")) continue
                 val matchDay = m.optString("utcDate").take(10)
-                if (matchDay < today || matchDay > endDate) continue
+                if (matchDay.isBlank() || matchDay < today) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
@@ -2210,15 +2203,10 @@ class MainActivity : Activity() {
             return
         }
 
-        // Keep the fixture feed focused on the next calendar month without changing
-        // ingestion, cached payloads, predictions, or historical/live tracked matches.
+        // Show every upcoming fixture in the loaded feed; no artificial date horizon.
         val fixtureUtc = java.util.TimeZone.getTimeZone("UTC")
         val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = fixtureUtc }
         val fixtureToday = fixtureDayFormat.format(Date())
-        val fixtureMonthEnd = java.util.Calendar.getInstance(fixtureUtc).apply {
-            add(java.util.Calendar.MONTH, 1)
-        }
-        val fixtureEndDay = fixtureDayFormat.format(fixtureMonthEnd.time)
 
         var totalUpcoming = 0
         var totalPredicted = 0
@@ -2237,11 +2225,10 @@ class MainActivity : Activity() {
                         kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
                     }
                 }
-                val withinNextMonth = fixtureDate.isNotBlank() &&
-                    fixtureDate >= fixtureToday && fixtureDate <= fixtureEndDay
-                // The visible line contains only upcoming matches that pass both
+                val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
+                // The visible line contains all upcoming matches that pass both
                 // independent gates. Raw feeds remain untouched for paper-bet settlement.
-                if (matchStatus in listOf("SCHEDULED", "TIMED") && withinNextMonth &&
+                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
                     hasCompleteModelPrediction(m) && hasActiveBetBoomPrematchLine(m)) {
                     upcoming.add(m)
                     totalUpcoming++
