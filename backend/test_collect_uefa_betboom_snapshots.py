@@ -173,8 +173,8 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         session = FakeSession()
         rows = fetch_provider_fixtures("test-key", session=session, today=date(2026, 11, 11))
         tournament_calls = [params for params in session.calls if "tournament_id" in params]
-        self.assertEqual({params["tournament_id"] for params in tournament_calls}, {"10783", "17015"})
-        self.assertEqual(len(tournament_calls), 12)
+        self.assertEqual({params["tournament_id"] for params in tournament_calls}, {"7", "679", "17015"})
+        self.assertEqual(len(tournament_calls), 18)
         for params in tournament_calls:
             self.assertLessEqual(
                 (date.fromisoformat(params["date_to"]) -

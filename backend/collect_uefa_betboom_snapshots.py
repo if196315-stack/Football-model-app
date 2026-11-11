@@ -273,7 +273,8 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
                         else page_payload.get("matches") or [])
     # UEFA competitions are fetched by tournament ID so the odds feed is not
     # limited to the generic 30-day date window. API-Sport caps date ranges at 31 days.
-    tournament_ids = {"UNL": 10783, "UECL": 17015}
+    # IDs: Champions League 7, Europa League 679, Conference League 17015.
+    tournament_ids = {"UCL": 7, "UEL": 679, "UECL": 17015}
     final_date = start + timedelta(days=180)
     cursor = start
     for tournament_id in tournament_ids.values():
