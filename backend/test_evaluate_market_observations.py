@@ -16,10 +16,10 @@ class MarketObservationTests(unittest.TestCase):
                 "id": "fixture-1", "utcDate": "2026-11-12T19:00:00Z",
                 "home": "Arsenal", "away": "Chelsea",
                 "prediction": {"under25": 0.42, "over25": 0.58},
-                "odds": {"bookmaker": "BETBOOM", "updatedAt": "2026-11-10T10:00:00Z",
+                "odds": {"bookmaker": "MELBET", "updatedAt": "2026-11-10T10:00:00Z",
                          "bookmakerUpdatedAt": "2026-11-10T10:00:00Z",
                          "freshnessStatus": "fresh",
-                         "bookmakers": [{"key": "betboom", "title": "BETBOOM",
+                         "bookmakers": [{"key": "melbet", "title": "MELBET",
                                          "totals": [{"side": "under", "point": 2.5, "price": 1.8}]}]}
             }]
         }]}
