@@ -153,14 +153,16 @@ def historical_baselines(matches, comp, target_date):
     history = matches[matches.date < cutoff]
     g = history[history.comp == comp]
     n = len(g)
-    if n == 0:
-        return None
 
     # Use only other competitions as the prior, avoiding future results and
-    # preventing a small league sample from defining its own prior.
+    # preventing a small league sample from defining its own prior. This also
+    # covers a league with zero paired results: its baseline is then fully
+    # pooled from other competitions instead of disabling every signal.
     pooled = history[history.comp != comp]
     if pooled.empty:
         pooled = history
+    if pooled.empty:
+        return None
     prior_n = len(pooled)
     prior_strength = 20.0
 
