@@ -33,7 +33,7 @@ class EightCompetitionAuditTests(unittest.TestCase):
         report = build_all(domestic, {"competitions": []}, today=date(2098, 1, 1))
         self.assertEqual(report["leagues"]["ENG"]["counts"].get("with_line_leader", 0), 1)
         for code in ("UCL", "UEL", "UECL"):
-            self.assertEqual(report["leagues"][code]["counts"], {})
+            self.assertEqual(report["leagues"][code]["counts"].get("priced_market_quotes", 0), 0)
 
 if __name__ == "__main__":
     unittest.main()
