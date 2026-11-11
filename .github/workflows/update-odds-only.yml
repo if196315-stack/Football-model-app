@@ -10,7 +10,7 @@ on:
       - ".github/workflows/update-odds-only.yml"
   workflow_dispatch:
   schedule:
-    - cron: "41 */6 * * *"
+    - cron: "41 * * * *"
 
 concurrency:
   group: football-domestic-data-write
