@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds_api_sport import parse_odds, match_fixture, sim, betboom_market_diagnostics, is_in_date_window
+from update_odds_api_sport import parse_odds, match_fixture, sim, betboom_market_diagnostics, is_in_date_window, iter_date_windows
 
 
 class ApiSportOddsTests(unittest.TestCase):
@@ -287,3 +287,25 @@ class ApiSportOddsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ApiSportDateWindowTests(unittest.TestCase):
+    def test_date_windows_cover_range_without_gaps_or_overlaps(self):
+        from datetime import date
+        windows = list(iter_date_windows(date(2026, 11, 1), date(2026, 12, 5)))
+        self.assertEqual(windows, [
+            (date(2026, 11, 1), date(2026, 12, 1)),
+            (date(2026, 12, 2), date(2026, 12, 5)),
+        ])
+
+    def test_date_windows_never_exceed_31_inclusive_days(self):
+        from datetime import date
+        windows = list(iter_date_windows(date(2026, 1, 1), date(2026, 3, 31)))
+        self.assertTrue(all((end - start).days < 31 for start, end in windows))
+        self.assertEqual(windows[0][0], date(2026, 1, 1))
+        self.assertEqual(windows[-1][1], date(2026, 3, 31))
+
+    def test_date_windows_reject_non_positive_limit(self):
+        from datetime import date
+        with self.assertRaises(ValueError):
+            list(iter_date_windows(date(2026, 1, 1), date(2026, 1, 2), max_days=0))
