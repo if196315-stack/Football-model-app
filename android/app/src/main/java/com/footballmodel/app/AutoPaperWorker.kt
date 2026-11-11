@@ -139,7 +139,15 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val match = matches.optJSONObject(j) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
                 val matchDay = match.optString("utcDate").take(10).ifBlank {
-                    match.optString("dateEvent").take(10)
+                    match.optString("dateEvent").take(10).ifBlank {
+                        val timestamp = match.optLong("startTimestamp", 0L)
+                        if (timestamp > 0L) {
+                            val millis = if (timestamp < 10_000_000_000L) timestamp * 1000L else timestamp
+                            SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                                timeZone = TimeZone.getTimeZone("UTC")
+                            }.format(Date(millis))
+                        } else ""
+                    }
                 }
                 if (matchDay.isBlank() || matchDay < today) continue
                 val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
