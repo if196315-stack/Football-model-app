@@ -29,7 +29,7 @@ class MelBetCoverageParserTests(unittest.TestCase):
   }}}}
   self.assertTrue(all(v is None for v in normalize_market_set(source).values()))
  def test_does_not_mix_betboom_prices(self):
-  source={"oddsBk":{"melbet":{"markets":{"btts":{"status":"open","stage":"prematch","stakes":{"yes":{"factor":1.81}}}}},"betboom":{"markets":{"btts":{"status":"open","stage":"prematch","stakes":{"yes":{"factor":9.99}}}}}}
+  source={"oddsBk":{"melbet":{"markets":{"btts":{"status":"open","stage":"prematch","stakes":{"yes":{"factor":1.81}}}}},"betboom":{"markets":{"btts":{"status":"open","stage":"prematch","stakes":{"yes":{"factor":9.99}}}}}}}
   self.assertEqual(normalize_market_set(source)["btts_yes"],1.81)
 
 if __name__=="__main__": unittest.main()
