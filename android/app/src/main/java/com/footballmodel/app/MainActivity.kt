@@ -1852,29 +1852,44 @@ class MainActivity : Activity() {
                     timeZone = java.util.TimeZone.getTimeZone("UTC")
                 }.format(Date())
                 if (matchDay < today) continue
-                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
-                    ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
-                val price = topSignalOdds(signal, m) ?: continue
-                if (price < 1.50) continue
-                candidates.add(Triple(m, league.optString("name"), signal))
+
+                val prediction = m.optJSONObject("prediction") ?: continue
+                // Evaluate every backend-approved YES/OVER signal independently.
+                // UEFA paper fallback remains a single server-qualified candidate.
+                val signals = mutableListOf<JSONObject>()
+                val allSignals = prediction.optJSONArray("signals")
+                if (allSignals != null) {
+                    for (k in 0 until allSignals.length()) {
+                        allSignals.optJSONObject(k)?.let { signals.add(it) }
+                    }
+                }
+                if (signals.isEmpty() && (league.optString("code") == "UCL" || league.optString("code") == "UEL")) {
+                    uefaPaperSignal(m)?.let { signals.add(it) }
+                }
+
+                val qualifying = signals.mapNotNull { signal ->
+                    if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                        signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) return@mapNotNull null
+                    val price = topSignalOdds(signal, m) ?: return@mapNotNull null
+                    if (price < 1.50) return@mapNotNull null
+                    val probability = signal.optDouble("modelProbability", Double.NaN)
+                    if (!probability.isFinite()) return@mapNotNull null
+                    val ev = probability * price - 1.0
+                    val passes = if (signal.optBoolean("paperOnly")) {
+                        probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
+                    } else {
+                        val impliedEdge = probability - 1.0 / price +
+                            signal.optDouble("formAdjustmentPp", 0.0) / 100.0
+                        probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+                    }
+                    if (passes) signal to ev else null
+                }
+                // One AI pick per match: highest EV among all markets that passed.
+                val best = qualifying.maxByOrNull { it.second }?.first ?: continue
+                candidates.add(Triple(m, league.optString("name"), best))
             }
         }
-        return candidates.filter { item ->
-            val m = item.first
-            val signal = item.third
-            val price = topSignalOdds(signal, m) ?: return@filter false
-            val probability = signal.optDouble("modelProbability", Double.NaN)
-            val ev = probability * price - 1.0
-            if (signal.optBoolean("paperOnly")) {
-                probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
-            } else {
-                val impliedEdge = probability - 1.0 / price + signal.optDouble("formAdjustmentPp", 0.0) / 100.0
-                probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
-            }
-        }.sortedWith(
+        return candidates.sortedWith(
             compareBy<Triple<JSONObject, String, JSONObject>> { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
                 .thenByDescending {
                     val price = topSignalOdds(it.third, it.first) ?: 0.0
