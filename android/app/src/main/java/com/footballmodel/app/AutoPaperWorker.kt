@@ -131,9 +131,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         val highWater = max(storedHigh ?: bankBeforeEntries, bankBeforeEntries)
         if (storedHigh == null || highWater > storedHigh) settings.edit().putString("paper_high_watermark", highWater.toString()).commit()
         val drawdown = if (highWater > 0.0) (highWater - bankBeforeEntries) / highWater else 0.0
-        if (drawdown >= 0.10) settings.edit().putBoolean("paper_auto_stopped", true).commit()
+        if (drawdown >= 0.20) settings.edit().putBoolean("paper_auto_stopped", true).commit()
         val autoStopped = settings.getBoolean("paper_auto_stopped", false)
-        val drawdownPaused = drawdown >= 0.05
+        val drawdownPaused = drawdown >= 0.10
         for (ci in 0 until competitions.length()) {
             val competition = competitions.optJSONObject(ci) ?: continue
             val matches = competition.optJSONArray("matches") ?: continue
@@ -204,8 +204,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     }
                     if (duplicate || autoStopped || drawdownPaused) continue
                     val bank = currentBank(bets)
-                    val minimumStake = settings.getString("minimum_stake", "25")?.replace(',', '.')?.toDoubleOrNull()
-                        ?.takeIf { it.isFinite() && it > 0.0 } ?: 25.0
+                    val minimumStake = settings.getString("minimum_stake", null)?.replace(',', '.')?.toDoubleOrNull()
+                        ?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
                     val stake = max(bank * 0.01, minimumStake)
                     bets.put(JSONObject()
                         .put("id", id).put("source", "AI_AUTO").put("status", "PENDING")
