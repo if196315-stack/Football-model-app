@@ -30,6 +30,10 @@ class BuildUefaAppFeedTests(unittest.TestCase):
                       "home": "A", "away": "B", "homeScore": 2, "awayScore": 0},
             "uel-1": {"leagueCode": "UEL", "status": "not_started", "date": "2026-11-20",
                       "home": "C", "away": "D"},
+            "uecl-1": {"leagueCode": "UECL", "status": "not_started", "date": "2026-11-21",
+                       "home": "E", "away": "F", "provider": "PitchAPI"},
+            "UNL:1": {"leagueCode": "UNL", "status": "not_started", "date": "2026-11-22",
+                      "home": "Czechia", "away": "Spain", "provider": "API-Sport"},
         }}
         history = {"matches": []}
         bets = [{"signal_id": "s1", "fixture_id": "ucl-1", "league_code": "UCL",
@@ -38,11 +42,15 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         settlements = [{"signal_id": "s1", "result": "LOSS", "profit_units": -1.0,
                         "home_score": 2, "away_score": 0}]
         feed = build_feed(cache, history, [], bets, settlements, predictions={})
-        self.assertEqual([c["code"] for c in feed["competitions"]], ["UCL", "UEL"])
+        self.assertEqual([c["code"] for c in feed["competitions"]], ["UCL", "UEL", "UECL", "UNL"])
         ucl_match = feed["competitions"][0]["matches"][0]
         self.assertEqual(ucl_match["paperSignals"][0]["result"], "LOSS")
         self.assertEqual(ucl_match["status"], "FINISHED")
         self.assertEqual(feed["competitions"][1]["matches"], [])
+        self.assertEqual(feed["competitions"][2]["matches"][0]["home"], "E")
+        self.assertIsNone(feed["competitions"][2]["matches"][0]["prediction"])
+        self.assertEqual(feed["competitions"][3]["matches"][0]["home"], "Czechia")
+        self.assertIsNone(feed["competitions"][3]["matches"][0]["prediction"])
 
 
 if __name__ == "__main__":
