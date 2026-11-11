@@ -1,0 +1,53 @@
+name: All-eight-competitions audit
+
+on:
+  pull_request:
+    paths:
+      - "backend/audit_domestic_ai_signals.py"
+      - "backend/audit_all_competitions.py"
+      - "backend/test_audit_domestic_ai_signals.py"
+      - "backend/test_audit_all_competitions.py"
+      - ".github/workflows/audit-all-competitions.yml"
+      - "docs/data.json"
+      - "docs/uefa-data.json"
+  push:
+    branches: [main]
+    paths:
+      - "backend/audit_domestic_ai_signals.py"
+      - "backend/audit_all_competitions.py"
+      - "backend/test_audit_domestic_ai_signals.py"
+      - "backend/test_audit_all_competitions.py"
+      - ".github/workflows/audit-all-competitions.yml"
+      - "docs/data.json"
+      - "docs/uefa-data.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile and test Android-parity audit
+        run: |
+          python -m py_compile backend/audit_domestic_ai_signals.py backend/audit_all_competitions.py
+          python -m unittest backend.test_audit_domestic_ai_signals backend.test_audit_all_competitions -v
+      - name: Run audit against domestic and UEFA feeds
+        run: |
+          python backend/audit_all_competitions.py --input docs/data.json --uefa-input docs/uefa-data.json --json-out ai-all-competitions-audit.json --markdown-out ai-all-competitions-audit.md
+      - name: Add report to workflow summary
+        run: cat ai-all-competitions-audit.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload machine-readable and Markdown reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-eight-competitions-ai-line-audit
+          path: |
+            ai-all-competitions-audit.md
+            ai-all-competitions-audit.json
+          if-no-files-found: error
+          retention-days: 30

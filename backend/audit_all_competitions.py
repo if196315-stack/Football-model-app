@@ -7,6 +7,8 @@ from pathlib import Path
 
 import audit_domestic_ai_signals as audit
 
+DOMESTIC_CODES = {item[0] for item in audit.LEAGUES.values()}
+
 UEFA = {
     "UCL": ("UCL", "Лига чемпионов УЕФА"),
     "UEL": ("UEL", "Лига Европы УЕФА"),
@@ -22,7 +24,7 @@ def combine(domestic, uefa):
                 continue
             comp = dict(original)
             code = str(comp.get("code") or comp.get("id") or "").upper()
-            if code not in audit.LEAGUES and code not in UEFA:
+            if code not in DOMESTIC_CODES and code not in UEFA:
                 continue
             comp["code"] = code
             matches = []
@@ -44,7 +46,7 @@ def build_all(domestic, uefa, today=None):
     report = audit.build(combined, today=today)
     today = today or datetime.now(timezone.utc).date()
     for code, league in report["leagues"].items():
-        comp = next((x for x in combined["competitions"] if x["code"] == code), {})
+        comp = next((x for x in combined["competitions"] if x["code"] == audit.LEAGUES[code][0]), {})
         priced = 0
         for match in comp.get("matches", []):
             if match.get("status") not in ("SCHEDULED", "TIMED"):
