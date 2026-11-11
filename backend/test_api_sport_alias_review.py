@@ -10,15 +10,25 @@ class ApiSportAliasReviewTests(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
         self.assertEqual(len(ALIASES), 16)
 
-    def test_exact_reviewed_alias_resolves(self):
-        self.assertEqual(
-            resolve_reviewed_team_id("Roma", 23, "AS Roma", "2702"), "2702"
-        )
+    def test_every_reviewed_alias_resolves_only_with_exact_evidence(self):
+        for (pitchapi_name, tournament_id), (observed_name, team_id) in ALIASES.items():
+            with self.subTest(team=pitchapi_name):
+                self.assertEqual(
+                    resolve_reviewed_team_id(
+                        pitchapi_name, tournament_id, observed_name, team_id
+                    ),
+                    team_id,
+                )
 
-    def test_wrong_tournament_is_rejected(self):
-        self.assertIsNone(
-            resolve_reviewed_team_id("Roma", 35, "AS Roma", "2702")
-        )
+    def test_every_alias_rejects_wrong_tournament(self):
+        for (pitchapi_name, tournament_id), (observed_name, team_id) in ALIASES.items():
+            wrong_tournament = tournament_id + 1
+            with self.subTest(team=pitchapi_name, wrong_tournament=wrong_tournament):
+                self.assertIsNone(
+                    resolve_reviewed_team_id(
+                        pitchapi_name, wrong_tournament, observed_name, team_id
+                    )
+                )
 
     def test_wrong_team_id_is_rejected(self):
         self.assertIsNone(
@@ -27,7 +37,9 @@ class ApiSportAliasReviewTests(unittest.TestCase):
 
     def test_wrong_observed_name_is_rejected(self):
         self.assertIsNone(
-            resolve_reviewed_team_id("Borussia Mönchengladbach", 35, "Borussia U19", "2527")
+            resolve_reviewed_team_id(
+                "Borussia Mönchengladbach", 35, "Borussia U19", "2527"
+            )
         )
 
     def test_unreviewed_slavia_name_is_not_resolved(self):
@@ -42,7 +54,14 @@ class ApiSportAliasReviewTests(unittest.TestCase):
 
     def test_unknown_tournament_id_is_not_resolved(self):
         self.assertIsNone(
-            resolve_reviewed_team_id("Ararat Armenia", 35, "FC Ararat-Armenia", "262229")
+            resolve_reviewed_team_id(
+                "Ararat Armenia", 35, "FC Ararat-Armenia", "262229"
+            )
+        )
+
+    def test_unknown_name_is_not_resolved(self):
+        self.assertIsNone(
+            resolve_reviewed_team_id("Unknown FC", 23, "AS Roma", "2702")
         )
 
 
