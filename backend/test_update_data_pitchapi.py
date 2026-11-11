@@ -199,16 +199,22 @@ class PitchApiUpdaterTests(unittest.TestCase):
         best = strongest_signal(prediction, baseline, "Home", "Away")
         self.assertIn(best["side"], sides)
 
-    def test_low_probability_is_not_inverted_into_forbidden_under_or_1x2_signal(self):
-        from update_data import signal_candidates
+    def test_low_probability_markets_remain_candidates_for_match_level_ranking(self):
+        from update_data import signal_candidates, strongest_signal
 
         fields = ("1x", "x2", "bttsYes", "over15", "over25", "over35",
                   "homeOver05", "homeOver15", "homeOver25", "homeOver35",
                   "awayOver05", "awayOver15", "awayOver25", "awayOver35")
-        prediction = {field: 0.20 for field in fields}
+        prediction = {field: 0.10 for field in fields}
+        prediction["over25"] = 0.35
         baseline = {field: 0.50 for field in fields}
         baseline["matches"] = 250
-        self.assertEqual(signal_candidates(prediction, baseline, "Home", "Away"), [])
+
+        candidates = signal_candidates(prediction, baseline, "Home", "Away")
+        self.assertEqual(len(candidates), 14)
+        best = strongest_signal(prediction, baseline, "Home", "Away")
+        self.assertEqual(best["side"], "ТБ 2.5")
+        self.assertLess(best["selectionEdgePp"], 0.0)
 
     def test_historical_baselines_cover_all_displayed_yes_and_over_markets(self):
         from update_data import historical_baselines
