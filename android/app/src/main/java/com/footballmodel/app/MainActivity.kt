@@ -2390,7 +2390,6 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "AI проверяет только сильнейший сигнал каждого матча из раздела Линия: цена MelBet, вероятность, edge и EV.")
-        renderAiSignalPerformanceSummary()
         val sorted = collectAiCandidates(json)
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
