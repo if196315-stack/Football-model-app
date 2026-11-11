@@ -194,17 +194,18 @@ class ApiSportOddsTests(unittest.TestCase):
 
 
 
-    def test_odds_eligibility_is_limited_to_requested_30_day_window(self):
+    def test_odds_eligibility_has_no_upper_date_horizon(self):
         from datetime import date
         self.assertTrue(is_in_date_window(
             {"utcDate": "2026-11-20", "home": "A", "away": "B"},
-            date(2026, 11, 9), date(2026, 12, 9)))
-        self.assertFalse(is_in_date_window(
+            date(2026, 11, 9)))
+        self.assertTrue(is_in_date_window(
             {"utcDate": "2027-01-20", "home": "A", "away": "B"},
-            date(2026, 11, 9), date(2026, 12, 9)))
+            date(2026, 11, 9)))
         self.assertFalse(is_in_date_window(
             {"utcDate": "2026-11-08", "home": "A", "away": "B"},
-            date(2026, 11, 9), date(2026, 12, 9)))
+            date(2026, 11, 9)))
+
 
     def test_matches_date_only_model_fixture_on_same_calendar_day(self):
         target = {"utcDate": "2026-11-21", "home": "Manchester City", "away": "Fulham"}

@@ -58,8 +58,18 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     if (bet.optString("source") == "AI_AUTO" && bet.optString("status") == "PENDING") pendingAuto++
                 }
             }
-            newAutoBets.forEach { bet ->
-                PaperBetNotifications.show(applicationContext, bet)
+            // Monitor the same combined section in the background while the app is closed.
+            // The first successful check establishes a baseline; archived old rows do not notify.
+            val snapshotsBody = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/odds-snapshots.jsonl")
+            val resultsBody = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/market-observation-results.jsonl")
+            if (snapshotsBody != null && resultsBody != null) {
+                val currentBets = prefs.getString("bets", "[]") ?: "[]"
+                val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val startingBank = settings.getString("initial_bankroll", "") ?: ""
+                SectionNotifications.observeAndNotify(
+                    applicationContext,
+                    SectionNotifications.fingerprint(reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody)
+                )
             }
             settings.edit()
                 .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
@@ -126,14 +136,20 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         val competitions = feed.optJSONArray("competitions") ?: return changed
         val now = System.currentTimeMillis()
         val dayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now))
+        val hasInitialBankroll = settings.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()?.let { it.isFinite() && it > 0.0 } ?: false
         val bankBeforeEntries = currentBank(bets)
         val storedHigh = settings.getString("paper_high_watermark", null)?.toDoubleOrNull()
         val highWater = max(storedHigh ?: bankBeforeEntries, bankBeforeEntries)
-        if (storedHigh == null || highWater > storedHigh) settings.edit().putString("paper_high_watermark", highWater.toString()).commit()
-        val drawdown = if (highWater > 0.0) (highWater - bankBeforeEntries) / highWater else 0.0
-        if (drawdown >= 0.10) settings.edit().putBoolean("paper_auto_stopped", true).commit()
+        if (hasInitialBankroll && (storedHigh == null || highWater > storedHigh)) settings.edit().putString("paper_high_watermark", highWater.toString()).commit()
+        val drawdown = if (hasInitialBankroll && highWater > 0.0) (highWater - bankBeforeEntries) / highWater else 0.0
+        if (settings.getInt("paper_risk_policy_version", 0) < 2) {
+            val migration = settings.edit().putInt("paper_risk_policy_version", 2)
+            if (drawdown < 0.20) migration.putBoolean("paper_auto_stopped", false)
+            migration.commit()
+        }
+        if (drawdown >= 0.20) settings.edit().putBoolean("paper_auto_stopped", true).commit()
         val autoStopped = settings.getBoolean("paper_auto_stopped", false)
-        val drawdownPaused = drawdown >= 0.05
+        val drawdownPaused = drawdown >= 0.10
         for (ci in 0 until competitions.length()) {
             val competition = competitions.optJSONObject(ci) ?: continue
             val matches = competition.optJSONArray("matches") ?: continue
@@ -146,10 +162,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 }
                 val kickoffDate = dayFormat.format(Date(kickoff))
                 val today = dayFormat.format(Date(now))
-                val endDate = java.util.Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                    add(java.util.Calendar.DAY_OF_YEAR, 30)
-                }.let { dayFormat.format(it.time) }
-                if (kickoffDate < today || kickoffDate > endDate) continue
+                if (kickoffDate < today) continue
 
                 val odds = match.optJSONObject("odds") ?: continue
                 if (!odds.optString("source").contains("BetBoom", true)) continue
@@ -202,10 +215,10 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                         val prior = bets.optJSONObject(bi) ?: continue
                         if (prior.optString("id") == id) { duplicate = true; break }
                     }
-                    if (duplicate || autoStopped || drawdownPaused) continue
+                    if (duplicate || autoStopped || drawdownPaused || !hasInitialBankroll) continue
                     val bank = currentBank(bets)
-                    val minimumStake = settings.getString("minimum_stake", "25")?.replace(',', '.')?.toDoubleOrNull()
-                        ?.takeIf { it.isFinite() && it > 0.0 } ?: 25.0
+                    val minimumStake = settings.getString("minimum_stake", null)?.replace(',', '.')?.toDoubleOrNull()
+                        ?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
                     val stake = max(bank * 0.01, minimumStake)
                     bets.put(JSONObject()
                         .put("id", id).put("source", "AI_AUTO").put("status", "PENDING")
@@ -273,8 +286,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     }
 
     private fun currentBank(bets: JSONArray): Double {
-        val start = settings.getString("initial_bankroll", "5000")?.replace(',', '.')?.toDoubleOrNull()
-            ?.takeIf { it.isFinite() && it > 0.0 } ?: 5000.0
+        val start = settings.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
         var bank = start
         for (i in 0 until bets.length()) {
             val b = bets.optJSONObject(i) ?: continue

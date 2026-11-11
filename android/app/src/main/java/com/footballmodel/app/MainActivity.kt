@@ -3,6 +3,9 @@ package com.footballmodel.app
 import android.app.Activity
 import android.app.AlertDialog
 import android.text.InputType
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -51,6 +54,7 @@ class MainActivity : Activity() {
     private lateinit var statusView: TextView
     private lateinit var headerBalanceView: TextView
     private lateinit var headerAiRoiView: TextView
+    private lateinit var notificationsButton: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
@@ -77,11 +81,25 @@ class MainActivity : Activity() {
     private val liveRefreshTask = object : Runnable {
         override fun run() {
             refreshWorkerStatusUi()
-            if (!loadInProgress.get() && currentTab in listOf("matches", "history", "desk")) loadData()
+            refreshNotificationBell()
+            if (!loadInProgress.get()) loadData()
             liveRefreshHandler.postDelayed(this, 60 * 1000L)
         }
     }
 
+    private fun refreshNotificationBell() {
+        if (!::notificationsButton.isInitialized) return
+        val unread = settingsPrefs.getBoolean(SectionNotifications.UNREAD_KEY, false)
+        notificationsButton.text = if (unread) SpannableString("🔔 •").apply {
+            setSpan(ForegroundColorSpan(Color.rgb(255, 82, 96)), length - 1, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        } else SpannableString("🔔")
+        notificationsButton.background = GradientDrawable().apply {
+            setColor(surface)
+            cornerRadius = dp(13).toFloat()
+            setStroke(dp(if (unread) 2 else 1), if (unread) Color.rgb(255, 82, 96) else Color.rgb(39, 61, 82))
+        }
+        notificationsButton.contentDescription = if (unread) "Новое в разделе «Отчёт и наблюдения»" else "Отчёт и наблюдения"
+    }
     private fun refreshWorkerStatusUi() {
         val lastRun = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
         val status = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
@@ -119,6 +137,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         currentTab = intent.getStringExtra("open_tab") ?: "matches"
+        if (currentTab == "notifications") SectionNotifications.markRead(this)
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
@@ -138,8 +157,8 @@ class MainActivity : Activity() {
         }
         scroll.addView(root)
         setContentView(scroll)
-        PaperBetNotifications.ensureChannel(this)
-        PaperBetNotifications.requestPermissionIfNeeded(this)
+        SectionNotifications.ensureChannel(this)
+        SectionNotifications.requestPermissionIfNeeded(this)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -168,16 +187,18 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
         }
-        val notificationsButton = TextView(this).apply {
+        notificationsButton = TextView(this).apply {
             text = "🔔"
             textSize = 22f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
             background = rounded(surface, 13)
-            contentDescription = "Ежедневный отчёт и аналитика"
+            contentDescription = "Отчёт и наблюдения"
             isClickable = true
             isFocusable = true
             setOnClickListener {
+                SectionNotifications.markRead(this@MainActivity)
+                refreshNotificationBell()
                 currentTab = "notifications"
                 tabViewCache.clear()
                 renderedKey = null
@@ -186,6 +207,7 @@ class MainActivity : Activity() {
             }
         }
         headerRight.addView(notificationsButton, LinearLayout.LayoutParams(dp(42), dp(38)).apply { bottomMargin = dp(3) })
+        refreshNotificationBell()
         headerBalanceView = label("-- ₽", 12, true, Color.WHITE).apply { gravity = Gravity.END; maxLines = 1 }
         headerRight.addView(headerBalanceView)
         headerAiRoiView = label("AI ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
@@ -264,7 +286,14 @@ class MainActivity : Activity() {
         super.onNewIntent(intent)
         setIntent(intent)
         val requestedTab = intent.getStringExtra("open_tab")
-        if (requestedTab == "desk") {
+        if (requestedTab == "notifications") {
+            currentTab = "notifications"
+            SectionNotifications.markRead(this)
+            refreshNotificationBell()
+            tabViewCache.clear()
+            renderedKey = null
+            if (data != null) render() else loadData()
+        } else if (requestedTab == "desk") {
             currentTab = "desk"
             tabViewCache.clear()
             renderedKey = null
@@ -274,6 +303,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        refreshNotificationBell()
         val latestBets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         if (latestBets.toString() != bets.toString()) {
             bets = latestBets
@@ -785,16 +815,11 @@ class MainActivity : Activity() {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
                 }
-                // Download the append-only archives only when Stats is opened; match refreshes stay lightweight.
-                if (currentTab == "stats" || currentTab == "notifications") {
-                    val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
-                    val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
-                    json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
-                    json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
-                } else {
-                    json.put("marketObservationSnapshots", JSONArray())
-                    json.put("marketObservationResults", JSONArray())
-                }
+                // Keep the single bell section monitored during ordinary feed refreshes.
+                val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
+                val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
+                json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
+                json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
                 val payload = json.toString()
                 feedCache.edit()
                     .putString("merged_json", payload)
@@ -809,10 +834,17 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     }
-                    // Evaluate every successful feed check, even when the payload is unchanged.
-                    // Duplicate protection makes this safe and lets newly valid quotes lock promptly.
-                    val newAutoBets = processAutoPaperBets(json)
-                    newAutoBets.forEach { PaperBetNotifications.show(this, it) }
+                    // Detect changes to the combined report-and-observations section.
+                    val currentBets = betPrefs.getString("bets", "[]") ?: "[]"
+                    val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                    val startingBank = settingsPrefs.getString("initial_bankroll", "") ?: ""
+                    if (snapshotsBody != null && resultsBody != null) {
+                        SectionNotifications.observeAndNotify(this, SectionNotifications.fingerprint(
+                            reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody
+                        ))
+                    }
+                    // Keep existing paper-bet processing and settlement behavior unchanged.
+                    processAutoPaperBets(json)
                     if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }
@@ -983,7 +1015,7 @@ class MainActivity : Activity() {
 
         // IQ MATCH Strategy v1.1 — постоянно доступная памятка с правилами отбора и риска.
         val strategyIntro = card()
-        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.1", 10, true, accent)
+        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.2", 10, true, accent)
         addText(strategyIntro, "СТРОГИЙ ОТБОР · УМЕРЕННЫЙ РИСК · ОГРАНИЧЕННЫЙ ЗАПУСК", 13, true, Color.WHITE)
         addText(strategyIntro, "Ставка допускается только после проверки данных, вероятности, value и риска. Если хотя бы один обязательный фильтр не пройден — WAIT или REJECT. Отсутствие ставки является полноценным решением.", 11, false, muted)
 
@@ -1000,8 +1032,8 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее минимальной ставки BetBoom 25 ₽. Поэтому при балансе 2 500 ₽ ставка 25 ₽, а при 2 499 ₽ (1% = 24,99 ₽) всё равно ставится 25 ₽ — это обязательный минимум букмекера. Дневного лимита суммарной нагрузки нет: фиксируются все сигналы, прошедшие критерии стратегии.", 11, false, Color.WHITE)
-        addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
+        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее установленного пользователем минимума. По умолчанию минимум не задан: тогда ставка равна ровно 1% банка. Дневного лимита суммарной нагрузки нет; разные рынки одного матча разрешены, повтор одной и той же ставки на тот же рынок блокируется.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 10% от локального максимума — пауза автоматической фиксации paper bets; 20% — остановка автоматической фиксации до явного пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
         addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
@@ -1190,7 +1222,7 @@ class MainActivity : Activity() {
         return null
     }
 
-    // Lock a paper bet as soon as the visible AI candidate qualifies in the next-30-day window.
+    // Lock a paper bet as soon as the visible AI candidate qualifies.
     // The stored odds and quote timestamp remain fixed through settlement.
     private fun processAutoPaperBets(json: JSONObject): List<JSONObject> {
         return synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
@@ -1215,11 +1247,16 @@ class MainActivity : Activity() {
         val currentBankForRisk = currentBankroll()
         val storedHigh = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull()
         val highWater = maxOf(storedHigh ?: currentBankForRisk, currentBankForRisk)
-        if (storedHigh == null || highWater > storedHigh) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
-        val drawdown = if (highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
-        if (drawdown >= 0.10) settingsPrefs.edit().putBoolean("paper_auto_stopped", true).apply()
+        if (hasInitialBankroll() && (storedHigh == null || highWater > storedHigh)) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
+        val drawdown = if (hasInitialBankroll() && highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
+        if (settingsPrefs.getInt("paper_risk_policy_version", 0) < 2) {
+            val migration = settingsPrefs.edit().putInt("paper_risk_policy_version", 2)
+            if (drawdown < 0.20) migration.putBoolean("paper_auto_stopped", false)
+            migration.apply()
+        }
+        if (drawdown >= 0.20) settingsPrefs.edit().putBoolean("paper_auto_stopped", true).apply()
         val autoStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
-        val drawdownPaused = drawdown >= 0.05
+        val drawdownPaused = drawdown >= 0.10
         val competitions = json.optJSONArray("competitions")
         if (competitions != null) for (i in 0 until competitions.length()) {
             val competition = competitions.optJSONObject(i) ?: continue
@@ -1233,13 +1270,10 @@ class MainActivity : Activity() {
                 }
                 val kickoffDate = dayFormat.format(java.util.Date(kickoff))
                 val today = dayFormat.format(java.util.Date(now))
-                val endDate = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
-                    add(java.util.Calendar.DAY_OF_YEAR, 30)
-                }.let { dayFormat.format(it.time) }
-                if (kickoffDate < today || kickoffDate > endDate) continue
+                if (kickoffDate < today) continue
                 val odds = match.optJSONObject("odds") ?: continue
                 val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
-                // Lock the visible BetBoom quote when the candidate first qualifies in the AI window.
+                // Lock the visible BetBoom quote when the candidate first qualifies.
                 if (quoteUpdatedAt > now) continue
                 val prediction = match.optJSONObject("prediction")
                 val signals = mutableListOf<JSONObject>()
@@ -1285,7 +1319,7 @@ class MainActivity : Activity() {
                         val prior = bets.optJSONObject(k) ?: continue
                         if (prior.optString("id") == id) { duplicate = true; break }
                     }
-                    if (duplicate || autoStopped || drawdownPaused) continue
+                    if (duplicate || autoStopped || drawdownPaused || !hasInitialBankroll()) continue
                     val bank = currentBankroll()
                     val stake = maxOf(bank * 0.01, minimumStake())
                     val newBet = JSONObject()
@@ -1345,6 +1379,43 @@ class MainActivity : Activity() {
             elevation = dp(2).toFloat(); setOnClickListener { action() }
         }
         parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
+    }
+
+    private fun compactHistoryButton(parent: LinearLayout, title: String, destructive: Boolean = false, action: () -> Unit) {
+        val tint = if (destructive) Color.rgb(218, 111, 119) else Color.rgb(150, 190, 205)
+        val button = Button(this).apply {
+            text = title
+            textSize = 11f
+            isAllCaps = false
+            typeface = Typeface.DEFAULT_BOLD
+            minHeight = dp(36)
+            minimumHeight = dp(36)
+            setPadding(dp(12), 0, dp(12), 0)
+            setTextColor(tint)
+            background = GradientDrawable().apply {
+                cornerRadius = dp(10).toFloat()
+                setColor(Color.rgb(22, 34, 49))
+                setStroke(dp(1), if (destructive) Color.rgb(105, 55, 66) else Color.rgb(55, 79, 96))
+            }
+            elevation = 0f
+            setOnClickListener { action() }
+        }
+        parent.addView(button, LinearLayout.LayoutParams(0, dp(36), 1f).apply {
+            marginEnd = dp(6)
+        })
+    }
+
+    private fun isAiBetRecorded(match: JSONObject, signal: JSONObject): Boolean {
+        val marketKey = marketKeyForAutoSignal(signal, match) ?: return false
+        val matchId = match.optString("id").ifBlank {
+            match.optString("utcDate") + match.optString("home") + match.optString("away")
+        }
+        return (0 until bets.length()).any { index ->
+            val bet = bets.optJSONObject(index) ?: return@any false
+            bet.optString("matchId") == matchId &&
+                bet.optString("marketKey") == marketKey &&
+                bet.optString("source") in listOf("AI_AUTO", "AI_MANUAL")
+        }
     }
     private fun settleCoupon(j: JSONObject, bet: JSONObject) {
         if (bet.optString("status") != "PENDING") return
@@ -1464,13 +1535,13 @@ class MainActivity : Activity() {
         val bank = currentBankroll()
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
-        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 28, true, Color.WHITE)
-        addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
-        addText(bankrollCard, "Правило ставки: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽.", 12, true, accent)
+        addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
+        addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
+        addText(bankrollCard, "Правило ставки: ${minimumStakeDescription()}", 12, true, accent)
 
         val strategyCard = card()
         addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
-        addText(strategyCard, "Размер каждой ставки: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽.", 12, true, Color.WHITE)
+        addText(strategyCard, "Размер каждой ставки: ${minimumStakeDescription()}", 12, true, Color.WHITE)
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             if (b.optString("marketKey") == "COUPON") {
@@ -1497,6 +1568,7 @@ class MainActivity : Activity() {
         }
         if(changed) saveBets()
         var stakeAll=0.0; var turnover=0.0; var profit=0.0; var payout=0.0
+        var possiblePayout=0.0; var possibleProfit=0.0
         var wins=0; var losses=0; var pushes=0; var pending=0
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             val st=b.optDouble("stake"); val o=b.optDouble("odds"); stakeAll+=st
@@ -1504,13 +1576,14 @@ class MainActivity : Activity() {
                 "WON"->{wins++;turnover+=st;profit+=st*(o-1);payout+=st*o}
                 "LOST"->{losses++;turnover+=st;profit-=st}
                 "PUSH"->{pushes++;turnover+=st;payout+=st}
-                else->pending++
+                else->{pending++;possiblePayout+=st*o;possibleProfit+=st*(o-1.0)}
             }
         }
         val sum=card()
         addText(sum,"СТАТИСТИКА СТАВОК",10,true,accent)
         addText(sum,"Всего: "+bets.length()+" · выигрыш: "+wins+" · проигрыш: "+losses+" · возврат: "+pushes+" · не рассчитаны: "+pending,12,true)
         addText(sum,"Сумма ставок: "+fmt(stakeAll),13,true)
+        addText(sum,"Возможная выплата по ожидающим: "+fmt(possiblePayout)+" · чистый выигрыш: +"+fmt(possibleProfit),12,true,accent)
         addText(sum,"Выплаты: "+fmt(payout)+" · чистый результат: "+(if(profit>=0)"+" else "")+fmt(profit),12,true,if(profit>=0)accent else Color.RED)
         addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
         addText(sum,"ОБЩИЙ ROI · все бумажные ставки",10,true,cyan)
@@ -1560,15 +1633,26 @@ class MainActivity : Activity() {
                 else -> ""
             }
             addText(box,status+liveStatus+(if(b.has("score"))" · счёт "+b.optString("score") else ""),12,true,col)
-            if(st=="PENDING") actionButton(box,"Изменить фактический коэффициент") { showEditBetOddsDialog(b) }
-            if(st=="WON") addText(box,"Чистая прибыль: +"+fmt(b.optDouble("stake")*(b.optDouble("odds")-1)),12,true,accent)
-            if(st=="LOST") addText(box,"Убыток: −"+fmt(b.optDouble("stake")),12,true,col)
-            if(st=="PUSH") addText(box,"Возврат: "+fmt(b.optDouble("stake")),12,true,accent)
-            actionButton(box,"Удалить запись") {
+            val stake = b.optDouble("stake")
+            val odds = b.optDouble("odds")
+            if (st == "PENDING") {
+                val possiblePayout = stake * odds
+                addText(box, "Возможная выплата: ${fmt(possiblePayout)} ₽ · чистый выигрыш: +${fmt(possiblePayout - stake)} ₽", 12, true, accent)
+            }
+            if(st=="WON") addText(box,"Чистая прибыль: +"+fmt(stake*(odds-1)),12,true,accent)
+            if(st=="LOST") addText(box,"Убыток: −"+fmt(stake),12,true,col)
+            if(st=="PUSH") addText(box,"Возврат: "+fmt(stake),12,true,accent)
+            val actions = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            if (st == "PENDING") compactHistoryButton(actions, "Кэф") { showEditBetOddsDialog(b) }
+            compactHistoryButton(actions, "Удалить", destructive = true) {
                 val id=b.optString("id"); val next=JSONArray()
                 for(k in 0 until bets.length()) { val x=bets.optJSONObject(k) ?: continue; if(x.optString("id")!=id)next.put(x) }
                 bets=next;saveBets(preserveBackgroundAuto = false);render()
             }
+            box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
     }
 
@@ -1576,12 +1660,12 @@ class MainActivity : Activity() {
         screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки банка и состояние фоновых обновлений.")
         val profile = card()
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
-        addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
-        addText(profile, "Минимальная сумма ставки: ${fmt(minimumStake())} ₽", 12, true, Color.WHITE)
-        addText(profile, "Правило: 1% от текущего баланса, но не менее заданного минимума.", 11, false, muted)
-        actionButton(profile, "Изменить минимальную сумму ставки") { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимальную сумму. Размер ставки будет равен 1% текущего баланса, если это больше заданного минимума; иначе будет использован минимум.") }
-        addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
-        actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
+        addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${if (hasInitialBankroll()) fmt(currentBankroll()) + " ₽" else "не задан"}", 12, true, accent)
+        addText(profile, "Минимальная сумма ставки: ${if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "не задана"}", 12, true, Color.WHITE)
+        addText(profile, "Правило: 1% от текущего баланса; пользовательский минимум можно задать отдельно.", 11, false, muted)
+        actionButton(profile, "Изменить минимальную сумму ставки") { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.") }
+        addText(profile, "Стартовый банк: ${if (hasInitialBankroll()) fmt(initialBankroll()) + " ₽" else "не задан"}", 12, false, muted)
+        actionButton(profile, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.") }
 
         val workerCard = card()
         val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
@@ -1638,24 +1722,54 @@ class MainActivity : Activity() {
         return null
     }
 
-    // Recalculate quote age from the bookmaker board timestamp; the stored feed age becomes stale.
-    private fun currentBookmakerQuoteAgeSeconds(odds: JSONObject?): Double? {
-        if (odds == null || odds.optString("freshnessStatus") != "fresh") return null
-        val raw = odds.optString("updatedAt").trim()
-        if (raw.isBlank()) return null
-        return try {
-            var normalized = raw.replace(Regex("\\.\\d+"), "")
-            normalized = normalized.replace("T", " ").replace("Z", "+0000")
-                .replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
-            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ", Locale.US).apply { isLenient = false }
-            val timestamp = format.parse(normalized)?.time ?: return null
-            (System.currentTimeMillis() - timestamp) / 1000.0
-        } catch (_: Exception) { null }
+    // Main-line eligibility is the intersection of a complete model forecast and
+    // an available BetBoom quote from API-Sport; quote age is informational only.
+    private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
+        val prediction = match.optJSONObject("prediction") ?: return false
+        val probabilityFields = listOf(
+            "1x", "x2", "over15", "over25", "over35",
+            "homeOver05", "homeOver15", "homeOver25", "homeOver35",
+            "awayOver05", "awayOver15", "awayOver25", "awayOver35",
+            "bttsYes", "bttsNo"
+        )
+        if (!probabilityFields.all { field ->
+                val value = prediction.optDouble(field, Double.NaN)
+                value.isFinite() && value in 0.0..1.0
+            }) return false
+        val homeXg = prediction.optDouble("expectedHomeGoals", Double.NaN)
+        val awayXg = prediction.optDouble("expectedAwayGoals", Double.NaN)
+        return homeXg.isFinite() && homeXg > 0.0 && awayXg.isFinite() && awayXg > 0.0
     }
 
-    private fun hasFreshBookmakerQuote(match: JSONObject): Boolean {
-        val age = currentBookmakerQuoteAgeSeconds(match.optJSONObject("odds")) ?: return false
-        return age in 0.0..300.0
+    private fun hasActiveBetBoomPrematchLine(match: JSONObject): Boolean {
+        val odds = match.optJSONObject("odds") ?: return false
+        val bookmaker = odds.optString("bookmaker")
+        val source = odds.optString("source")
+        val isBetBoom = bookmaker.equals("BETBOOM", ignoreCase = true) ||
+            (source.contains("API-Sport", ignoreCase = true) &&
+                source.contains("BetBoom", ignoreCase = true))
+        if (!isBetBoom) return false
+
+        val best = odds.optJSONObject("best") ?: return false
+        fun validPrice(value: Double): Boolean = value.isFinite() && value > 1.0
+        val doubleChance = best.optJSONObject("doubleChance")
+        if (doubleChance != null &&
+            listOf("1x", "x2").any { validPrice(doubleChance.optDouble(it, Double.NaN)) }) return true
+
+        val btts = best.optJSONObject("btts")
+        if (btts != null &&
+            listOf("yes", "no").any { validPrice(btts.optDouble(it, Double.NaN)) }) return true
+
+        fun hasOverQuote(field: String): Boolean {
+            val rows = best.optJSONArray(field) ?: return false
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                if (row.optString("side").equals("over", ignoreCase = true) &&
+                    validPrice(row.optDouble("price", Double.NaN))) return true
+            }
+            return false
+        }
+        return hasOverQuote("totals") || hasOverQuote("teamTotals")
     }
 
     private fun uefaPaperSignal(match: JSONObject): JSONObject? {
@@ -1704,33 +1818,42 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "5000")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 5000.0
+    private fun hasInitialBankroll(): Boolean = settingsPrefs.getString("initial_bankroll", null)
+        ?.replace(',', '.')?.toDoubleOrNull()?.let { it.isFinite() && it > 0.0 } ?: false
+
+    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", null)
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
 
     private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
 
-    private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", "25")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 25.0
+    private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", null)
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
+
+    private fun minimumStakeDescription(): String = if (minimumStake() > 0.0)
+        "1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽."
+    else "1% от текущего баланса; пользовательский минимум не задан."
 
     private fun showBankSettingDialog(key: String, title: String, current: Double, message: String) {
         val field = EditText(this).apply {
             hint = "Сумма в рублях"
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
             setSingleLine(true)
-            setText(String.format(Locale.US, "%.2f", current))
+            if (key != "initial_bankroll" || current > 0.0) setText(String.format(Locale.US, "%.2f", current))
             setSelection(text.length)
         }
         val dialog = AlertDialog.Builder(this).setTitle(title).setMessage(message).setView(field)
             .setNegativeButton("Отмена", null).setPositiveButton("Сохранить", null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val value = field.text.toString().replace(',', '.').toDoubleOrNull()
-                if (value == null || !value.isFinite() || value <= 0.0) {
-                    Toast.makeText(this, "Введи сумму больше нуля", Toast.LENGTH_SHORT).show()
+                val rawValue = field.text.toString().trim().replace(',', '.')
+                val value = if (rawValue.isEmpty() && key == "initial_bankroll") 0.0 else rawValue.toDoubleOrNull()
+                if (value == null || !value.isFinite() || value < 0.0) {
+                    Toast.makeText(this, "Введи положительную сумму или оставь поле пустым", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                settingsPrefs.edit().putString(key, value.toString()).apply()
+                if (value == 0.0) settingsPrefs.edit().remove(key).apply()
+                else settingsPrefs.edit().putString(key, value.toString()).apply()
                 // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
                 if (key == "initial_bankroll" || key == "minimum_stake") {
                     tabViewCache.clear()
@@ -1779,7 +1902,7 @@ class MainActivity : Activity() {
 
     private fun refreshHeaderFinancials() {
         if (!::headerBalanceView.isInitialized || !::headerAiRoiView.isInitialized) return
-        headerBalanceView.text = String.format(Locale.US, "%.0f ₽", currentBankroll())
+        headerBalanceView.text = if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —"
         val (roi, count) = aiPaperRoiPercent()
         headerAiRoiView.text = if (roi == null) "AI ROI —" else String.format(Locale.US, "AI ROI %+.1f%% · %d", roi, count)
         headerAiRoiView.setTextColor(if (roi == null) muted else if (roi >= 0.0) accent else gold)
@@ -1811,7 +1934,7 @@ class MainActivity : Activity() {
         addText(summary, "Бумажные ставки: ${dayBets.size}", 16, true, Color.WHITE)
         addText(summary, "WIN $wins · LOSS $losses · возврат $pushes · ожидают $pending", 12, true, accent)
         addText(summary, "Результат рассчитанных ставок: ${String.format(Locale.US, "%+.2f ₽", profit)}", 13, true, if (profit >= 0) accent else gold)
-        addText(summary, "Текущий бумажный банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, false, muted)
+        addText(summary, "Текущий бумажный банк: ${if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", currentBankroll()) else "не задан"}", 12, false, muted)
 
         val observations = json.optJSONArray("marketObservationResults") ?: JSONArray()
         val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
@@ -1893,7 +2016,12 @@ class MainActivity : Activity() {
         val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
             else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
         val ev = probability * odds - 1.0
+        if (!hasInitialBankroll()) {
+            Toast.makeText(this, "Сначала задай стартовый банк в профиле", Toast.LENGTH_LONG).show()
+            return
+        }
         val stake = maxOf(currentBankroll() * 0.01, minimumStake())
+        if (stake <= 0.0) return
         AlertDialog.Builder(this)
             .setTitle("Зафиксировать AI-ставку?")
             .setMessage("${match.optString("home")} — ${match.optString("away")}\\n${signal.optString("side")}\\nКоэффициент BetBoom: ${fmt(odds)}\\nСумма: ${fmt(stake)} ₽\\n\\nЭто будет бумажная ставка в истории, не реальная отправка букмекеру.")
@@ -1939,9 +2067,7 @@ class MainActivity : Activity() {
                 }
                 if (matchDay.isBlank()) continue
                 val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
-                val end = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { add(java.util.Calendar.DAY_OF_YEAR, 30) }
-                val endDay = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(end.time)
-                if (matchDay < today || matchDay > endDay) continue
+                if (matchDay < today) continue
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
@@ -2003,11 +2129,15 @@ class MainActivity : Activity() {
             }
             addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
             addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
-            actionButton(box, "Зафиксировать эту ставку вручную") { confirmManualAiSignalBet(m, league, signal, odds) }
+            if (isAiBetRecorded(m, signal)) {
+                addText(box, "✓ Уже в истории", 12, true, accent)
+            } else {
+                actionButton(box, "Зафиксировать") { confirmManualAiSignalBet(m, league, signal, odds) }
+            }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Окно отбора — 30 дней. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Используются реальные котировки BetBoom.", 11, false, muted)
+        addText(footer, "Временного горизонта отбора нет. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Используются реальные котировки BetBoom.", 11, false, muted)
     }
 
     private fun renderDay(json: JSONObject) {
@@ -2015,10 +2145,6 @@ class MainActivity : Activity() {
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
-        val endCalendar = java.util.Calendar.getInstance(utc).apply {
-            add(java.util.Calendar.DAY_OF_YEAR, 14)
-        }
-        val endDate = dayFormat.format(endCalendar.time)
         val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -2028,7 +2154,7 @@ class MainActivity : Activity() {
                 val m = matches.optJSONObject(j) ?: continue
                 if (m.optString("status") !in listOf("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED")) continue
                 val matchDay = m.optString("utcDate").take(10)
-                if (matchDay < today || matchDay > endDate) continue
+                if (matchDay.isBlank() || matchDay < today) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
@@ -2042,7 +2168,7 @@ class MainActivity : Activity() {
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · AI-СИГНАЛЫ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена BetBoom. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку, не более 1% на матч без дневного лимита суммарной нагрузки.", 11, false, muted)
+        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена BetBoom. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку с необязательным пользовательским минимумом; разные рынки одного матча разрешены, повтор того же рынка блокируется; дневного лимита нет. Пауза при просадке 10%, остановка при 20%.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)
@@ -2141,9 +2267,9 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
-        addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
-        addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
-        addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
+        addText(matchesContainer, "ЛИНИЯ", 9, true, cyan)
+        addText(matchesContainer, "Матчи с действующими коэффициентами BetBoom и прогнозом модели", 16, true, Color.WHITE)
+        addText(matchesContainer, "API-SPORT · BETBOOM · PITCHAPI xG", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL")
         val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL")
         // League filters already live in the persistent horizontal scroller above the content.
@@ -2170,15 +2296,10 @@ class MainActivity : Activity() {
             return
         }
 
-        // Keep the fixture feed focused on the next calendar month without changing
-        // ingestion, cached payloads, predictions, or historical/live tracked matches.
+        // Show every upcoming fixture in the loaded feed; no artificial date horizon.
         val fixtureUtc = java.util.TimeZone.getTimeZone("UTC")
         val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = fixtureUtc }
         val fixtureToday = fixtureDayFormat.format(Date())
-        val fixtureMonthEnd = java.util.Calendar.getInstance(fixtureUtc).apply {
-            add(java.util.Calendar.MONTH, 1)
-        }
-        val fixtureEndDay = fixtureDayFormat.format(fixtureMonthEnd.time)
 
         var totalUpcoming = 0
         var totalPredicted = 0
@@ -2192,19 +2313,16 @@ class MainActivity : Activity() {
                 // Do not show fixtures without a complete model prediction.
                 // A scheduled match with insufficient paired xG/history stays out of the app.
                 val matchStatus = m.optString("status")
-                val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
-                val hasTrackedBet = (0 until bets.length()).any { bets.optJSONObject(it)?.optString("matchId") == matchId }
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
                         kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
                     }
                 }
-                val withinNextMonth = fixtureDate.isNotBlank() &&
-                    fixtureDate >= fixtureToday && fixtureDate <= fixtureEndDay
-                if ((matchStatus in listOf("SCHEDULED", "TIMED") &&
-                        withinNextMonth && m.optJSONObject("prediction") != null) ||
-                    (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) ||
-                    (matchStatus == "FINISHED" && hasTrackedBet)) {
+                val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
+                // The visible line contains all upcoming matches that pass both
+                // independent gates. Raw feeds remain untouched for paper-bet settlement.
+                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
+                    hasCompleteModelPrediction(m) && hasActiveBetBoomPrematchLine(m)) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
@@ -2246,7 +2364,7 @@ class MainActivity : Activity() {
             matchesContainer.addView(section)
             if (upcoming.isEmpty()) {
                 val empty = card(content)
-                addText(empty, "Нет предстоящих матчей в расписании поставщика", 12, false, muted)
+                addText(empty, "Нет матчей с одновременно подтверждённой линией BetBoom и прогнозом модели", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
@@ -2342,6 +2460,9 @@ class MainActivity : Activity() {
                     }
                     addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
+                    val oddsTimestamp = m.optJSONObject("odds")?.optString("updatedAt").orEmpty()
+                    val quoteTime = if (oddsTimestamp.isBlank()) "время обновления неизвестно" else formatSourceTimestamp(oddsTimestamp)
+                    addText(mainMarkets, "Котировка BetBoom обновлена: $quoteTime", 10, false, muted)
 
                 }
             }
@@ -2349,8 +2470,8 @@ class MainActivity : Activity() {
 
         val footer = card()
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
-        addText(footer, "Предстоящих матчей: $totalUpcoming  ·  с прогнозом: $totalPredicted", 13, true)
+        addText(footer, "Матчей в линии: $totalUpcoming  ·  с полным прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Источники: PitchAPI (матчи и xG) · API-Sport / BetBoom (котировки).", 10, false, muted)
+        addText(footer, "Линия: API-Sport / BetBoom · вероятности и xG: PitchAPI.", 10, false, muted)
     }
 }
