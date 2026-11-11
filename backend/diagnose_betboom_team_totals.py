@@ -5,12 +5,21 @@ This is a manual diagnostic only. It never writes model data and never prints cr
 import json
 import os
 import sys
+import re
 from pathlib import Path
 
 import requests
 
 BASE_URL = "https://api.api-sport.ru/v2/football/matches"
 DEFAULT_IDS = (16363661,)  # Manchester City - Fulham, API-Sport fixture ID
+TEAM_TOTAL_SLUG = re.compile(r"^(?:(?:first|second)_half_|(?:1st|2nd)_half_)?total_team_[12]$")
+
+
+def is_team_total_market_slug(slug):
+    """Match explicit API-Sport team-total identifiers, never display labels."""
+    return bool(TEAM_TOTAL_SLUG.fullmatch(str(slug or "").strip().lower()))
+
+
 BASE_PARAMS = {
     "with_bk_odds": "true",
     "odds_stage": "all",
@@ -49,12 +58,11 @@ def summarize(match):
     for slug, market in (markets or {}).items():
         if not isinstance(market, dict):
             continue
+        if not is_team_total_market_slug(slug):
+            continue
         name = market.get("name") or {}
         if isinstance(name, dict):
             name = name.get("en") or name.get("ru") or ""
-        label = (str(slug) + " " + str(name)).lower()
-        if not any(token in label for token in ("team", "итб", "тотал команды", "individual total")):
-            continue
         outcomes = {}
         for outcome, stake in (market.get("stakes") or {}).items():
             if not isinstance(stake, dict):
