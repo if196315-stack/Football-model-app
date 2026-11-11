@@ -20,6 +20,7 @@ internal object AiMatchNotifications {
     private const val CHANNEL_NAME = "Новые матчи в AI"
     private const val NOTIFICATION_ID = 7304
 
+    @Synchronized
     fun observe(context: Context, candidates: List<Pair<String, String>>) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val previous = prefs.getStringSet(SEEN_IDS_KEY, null)
