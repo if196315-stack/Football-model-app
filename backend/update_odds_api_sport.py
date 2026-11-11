@@ -1,4 +1,4 @@
-"""API-Sport.ru odds ingestion using BetBoom exclusively. Fixture/model source remains PitchAPI."""
+"""API-Sport.ru odds ingestion using MelBet exclusively. Fixture/model source remains PitchAPI."""
 import json, os, re, unicodedata
 from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
@@ -8,7 +8,7 @@ import requests
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/"docs"/"data.json"
 URL="https://api.api-sport.ru/v2/football/matches"
-BOOKS=("betboom",)
+BOOKS=("melbet",)
 
 def norm(v):
     s=unicodedata.normalize("NFKD",str(v or "").lower())
@@ -200,11 +200,11 @@ def parse_odds(m):
     best={"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
     books_best={"doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
     book_rows=[]
-    # BetBoom is the single reference bookmaker; never mix other prices.
-    betboom=(m.get("oddsBk") or {}).get("betboom")
-    if isinstance(betboom,dict):
-        bk="betboom"; board=betboom
-        row={"key":bk,"title":"BETBOOM","doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
+    # MelBet is the single reference bookmaker; never mix other prices.
+    melbet=(m.get("oddsBk") or {}).get("melbet")
+    if isinstance(melbet,dict):
+        bk="melbet"; board=melbet
+        row={"key":bk,"title":"MELBET","doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
         for slug,market in (board.get("markets") or {}).items():
             if (not isinstance(market,dict) or market.get("status")!="open"
                     or market.get("stage")!="prematch"):continue
@@ -292,8 +292,8 @@ def parse_odds(m):
     books_best={k:v for k,v in books_best.items() if v}
     board_updated_at = None
     board_age_seconds = None
-    if isinstance(betboom, dict):
-        raw_updated = (betboom.get("updatedAtByStage") or {}).get("prematch") or betboom.get("updatedAt")
+    if isinstance(melbet, dict):
+        raw_updated = (melbet.get("updatedAtByStage") or {}).get("prematch") or melbet.get("updatedAt")
         try:
             board_updated_at = datetime.fromtimestamp(int(raw_updated) / 1000, tz=timezone.utc).isoformat()
             board_age_seconds = (datetime.now(timezone.utc) - datetime.fromtimestamp(int(raw_updated) / 1000, tz=timezone.utc)).total_seconds()
@@ -302,14 +302,14 @@ def parse_odds(m):
     freshness = "fresh" if board_age_seconds is not None and 0 <= board_age_seconds <= 300 else (
         "stale" if board_age_seconds is not None else "unknown"
     )
-    return {"eventId":str(m.get("id") or ""),"bookmaker":"BETBOOM",
+    return {"eventId":str(m.get("id") or ""),"bookmaker":"MELBET",
             "updatedAt":board_updated_at or datetime.now(timezone.utc).isoformat(),
             "bookmakerUpdatedAt":board_updated_at,"bookmakerUpdateAgeSeconds":round(board_age_seconds,3) if board_age_seconds is not None else None,
             "freshnessStatus":freshness,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 
-def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
-    """Explain whether BetBoom publishes team totals and whether our parser sees them."""
+def melbet_market_diagnostics(fixtures, window_start=None, window_end=None):
+    """Explain whether MelBet publishes team totals and whether our parser sees them."""
     from collections import Counter
     counts = Counter()
     examples = {}
@@ -329,10 +329,10 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
         in_window = fixture_date is not None and fixture_date >= window_start and (window_end is None or fixture_date <= window_end)
         if in_window:
             window_fixtures += 1
-        board = (fixture.get("oddsBk") or {}).get("betboom") or {}
+        board = (fixture.get("oddsBk") or {}).get("melbet") or {}
         if not isinstance(board, dict):
             continue
-        counts["fixtures_with_betboom_board"] += 1
+        counts["fixtures_with_melbet_board"] += 1
         parsed = parse_odds(fixture).get("best") or {}
         counts["parsed_team_total_quotes"] += len(parsed.get("teamTotals") or [])
         if in_window:
@@ -388,7 +388,7 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
                         for line in lines[:8] if isinstance(line, dict)
                     ]
     return {
-        "fixtures_with_betboom_board": counts["fixtures_with_betboom_board"],
+        "fixtures_with_melbet_board": counts["fixtures_with_melbet_board"],
         "team_total_markets_classified": counts["team_total_markets_classified"],
         "team_total_markets_open_prematch": counts["team_total_markets_open_prematch"],
         "team_total_markets_fulltime": counts["team_total_markets_fulltime"],
@@ -481,7 +481,7 @@ def main():
                 comp_code, {"eligible": 0, "matched": 0, "updated": 0,
                             "team_total_fixtures": 0, "team_total_quotes": 0})
             comp_stats["eligible"] += 1
-            # Clear legacy-provider prices. Never label stale prices as BetBoom.
+            # Clear legacy-provider prices. Never label stale prices as MelBet.
             match.pop("odds",None)
             source=match_fixture(match,fixtures)
             if not source:
@@ -526,14 +526,14 @@ def main():
                                  "away": (source.get("awayTeam") or {}).get("name")},
                     "team_totals": team_total_quotes[:8],
                 })
-    market_diagnostics = betboom_market_diagnostics(fixtures, today)
-    data["oddsProvider"]="API-Sport / BetBoom"
-    data["oddsBookmaker"]="betboom"
+    market_diagnostics = melbet_market_diagnostics(fixtures, today)
+    data["oddsProvider"]="API-Sport / MelBet"
+    data["oddsBookmaker"]="melbet"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
-    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched}
+    data["oddsCoverage"]={"eligible":eligible,"matched":matched,"updated":updated,"noMelBetQuotes":matched-updated,"notMatched":eligible-matched}
     data["oddsStatus"]="ready" if updated else "no_quotes"
-    data["oddsNotice"]=f"BetBoom: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки BetBoom."
+    data["oddsNotice"]=f"MelBet: получены котировки для {updated} матчей." if updated else "Для ближайших матчей не найдены подходящие котировки MelBet."
     DATA.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"provider":"API-Sport / BetBoom","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noBetBoomQuotes":matched-updated,"notMatched":eligible-matched,"matchedTeamTotalFixtures":matched_team_total_fixtures,"matchedTeamTotalQuotes":matched_team_total_quotes,"matchedTeamTotalsByCompetition":matched_team_totals_by_competition,"coverageByCompetition":coverage_by_competition,"matchedFixtureSamples":matched_fixture_samples,"unmatchedFixtureSamples":unmatched_fixture_samples,"teamTotalDiagnostics":market_diagnostics}, ensure_ascii=False))
+    print(json.dumps({"provider":"API-Sport / MelBet","fixtures":len(fixtures),"eligible":eligible,"matched":matched,"updated":updated,"noMelBetQuotes":matched-updated,"notMatched":eligible-matched,"matchedTeamTotalFixtures":matched_team_total_fixtures,"matchedTeamTotalQuotes":matched_team_total_quotes,"matchedTeamTotalsByCompetition":matched_team_totals_by_competition,"coverageByCompetition":coverage_by_competition,"matchedFixtureSamples":matched_fixture_samples,"unmatchedFixtureSamples":unmatched_fixture_samples,"teamTotalDiagnostics":market_diagnostics}, ensure_ascii=False))
 
 if __name__=="__main__":main()
