@@ -140,8 +140,9 @@ class ApiSportOddsTests(unittest.TestCase):
             }}
         }}}}
         best = parse_odds(source)["best"]
-        self.assertEqual(len(best["totals"]), 2)
-        self.assertEqual({x["price"] for x in best["totals"]}, {1.4, 2.8})
+        self.assertEqual(len(best["totals"]), 1)
+        self.assertEqual({x["price"] for x in best["totals"]}, {1.4})
+        self.assertEqual({x["side"] for x in best["totals"]}, {"over"})
         self.assertEqual({x["market_group"] for x in best["totals"]}, {"total goals"})
         self.assertEqual({x["market_slug"] for x in best["totals"]}, {"total_goals"})
 
@@ -260,8 +261,9 @@ class ApiSportOddsTests(unittest.TestCase):
         }}}}
         quotes = parse_odds(source)["best"]["teamTotals"]
         self.assertIn(("home", 1.5, "over"), {(x["team"], x["point"], x["side"]) for x in quotes})
-        self.assertIn(("home", 1.5, "under"), {(x["team"], x["point"], x["side"]) for x in quotes})
+        self.assertNotIn(("home", 1.5, "under"), {(x["team"], x["point"], x["side"]) for x in quotes})
         self.assertIn(("away", 0.5, "over"), {(x["team"], x["point"], x["side"]) for x in quotes})
+        self.assertTrue(all(x["side"] == "over" for x in quotes))
 
     def test_team_total_diagnostics_count_raw_but_closed_and_half_time_separately(self):
         source = {"id": 502, "oddsBk": {"betboom": {"markets": {
