@@ -983,7 +983,7 @@ class MainActivity : Activity() {
 
         // IQ MATCH Strategy v1.1 — постоянно доступная памятка с правилами отбора и риска.
         val strategyIntro = card()
-        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.1", 10, true, accent)
+        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.2", 10, true, accent)
         addText(strategyIntro, "СТРОГИЙ ОТБОР · УМЕРЕННЫЙ РИСК · ОГРАНИЧЕННЫЙ ЗАПУСК", 13, true, Color.WHITE)
         addText(strategyIntro, "Ставка допускается только после проверки данных, вероятности, value и риска. Если хотя бы один обязательный фильтр не пройден — WAIT или REJECT. Отсутствие ставки является полноценным решением.", 11, false, muted)
 
@@ -1000,8 +1000,8 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее минимальной ставки BetBoom 25 ₽. Поэтому при балансе 2 500 ₽ ставка 25 ₽, а при 2 499 ₽ (1% = 24,99 ₽) всё равно ставится 25 ₽ — это обязательный минимум букмекера. Дневного лимита суммарной нагрузки нет: фиксируются все сигналы, прошедшие критерии стратегии.", 11, false, Color.WHITE)
-        addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 5% от локального максимума — пауза и аудит; 10% — остановка реальных ставок до пересмотра.", 11, false, muted)
+        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее установленного пользователем минимума. По умолчанию минимум не задан: тогда ставка равна ровно 1% банка. Дневного лимита суммарной нагрузки нет; разные рынки одного матча разрешены, повтор одной и той же ставки на тот же рынок блокируется.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 10% от локального максимума — пауза автоматической фиксации paper bets; 20% — остановка автоматической фиксации до явного пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
         addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
@@ -1217,9 +1217,9 @@ class MainActivity : Activity() {
         val highWater = maxOf(storedHigh ?: currentBankForRisk, currentBankForRisk)
         if (storedHigh == null || highWater > storedHigh) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
         val drawdown = if (highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
-        if (drawdown >= 0.10) settingsPrefs.edit().putBoolean("paper_auto_stopped", true).apply()
+        if (drawdown >= 0.20) settingsPrefs.edit().putBoolean("paper_auto_stopped", true).apply()
         val autoStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
-        val drawdownPaused = drawdown >= 0.05
+        val drawdownPaused = drawdown >= 0.10
         val competitions = json.optJSONArray("competitions")
         if (competitions != null) for (i in 0 until competitions.length()) {
             val competition = competitions.optJSONObject(i) ?: continue
@@ -1466,11 +1466,11 @@ class MainActivity : Activity() {
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
         addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 28, true, Color.WHITE)
         addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
-        addText(bankrollCard, "Правило ставки: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽.", 12, true, accent)
+        addText(bankrollCard, "Правило ставки: ${minimumStakeDescription()}", 12, true, accent)
 
         val strategyCard = card()
         addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
-        addText(strategyCard, "Размер каждой ставки: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽.", 12, true, Color.WHITE)
+        addText(strategyCard, "Размер каждой ставки: ${minimumStakeDescription()}", 12, true, Color.WHITE)
         var changed=false
         for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
             if (b.optString("marketKey") == "COUPON") {
@@ -1577,9 +1577,9 @@ class MainActivity : Activity() {
         val profile = card()
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
         addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
-        addText(profile, "Минимальная сумма ставки: ${fmt(minimumStake())} ₽", 12, true, Color.WHITE)
-        addText(profile, "Правило: 1% от текущего баланса, но не менее заданного минимума.", 11, false, muted)
-        actionButton(profile, "Изменить минимальную сумму ставки") { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимальную сумму. Размер ставки будет равен 1% текущего баланса, если это больше заданного минимума; иначе будет использован минимум.") }
+        addText(profile, "Минимальная сумма ставки: ${if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "не задана"}", 12, true, Color.WHITE)
+        addText(profile, "Правило: 1% от текущего баланса; пользовательский минимум можно задать отдельно.", 11, false, muted)
+        actionButton(profile, "Изменить минимальную сумму ставки") { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.") }
         addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
         actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
 
@@ -1740,8 +1740,12 @@ class MainActivity : Activity() {
     private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
 
-    private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", "25")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 25.0
+    private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", null)
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
+
+    private fun minimumStakeDescription(): String = if (minimumStake() > 0.0)
+        "1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽."
+    else "1% от текущего баланса; пользовательский минимум не задан."
 
     private fun showBankSettingDialog(key: String, title: String, current: Double, message: String) {
         val field = EditText(this).apply {
@@ -1756,11 +1760,12 @@ class MainActivity : Activity() {
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val value = field.text.toString().replace(',', '.').toDoubleOrNull()
-                if (value == null || !value.isFinite() || value <= 0.0) {
-                    Toast.makeText(this, "Введи сумму больше нуля", Toast.LENGTH_SHORT).show()
+                if (value == null || !value.isFinite() || value < 0.0 || (value == 0.0 && key != "minimum_stake")) {
+                    Toast.makeText(this, "Введи положительную сумму; для минимума ставки можно указать 0", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                settingsPrefs.edit().putString(key, value.toString()).apply()
+                if (key == "minimum_stake" && value == 0.0) settingsPrefs.edit().remove(key).apply()
+                else settingsPrefs.edit().putString(key, value.toString()).apply()
                 // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
                 if (key == "initial_bankroll" || key == "minimum_stake") {
                     tabViewCache.clear()
