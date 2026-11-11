@@ -2267,23 +2267,23 @@ class MainActivity : Activity() {
             archive.optJSONObject(i)?.let { known.add(it.optString("signalKey")) }
         }
         val now = System.currentTimeMillis()
-        candidates.forEach { (match, leagueName, bundle) ->
+        candidates.forEach candidateLoop@ { (match, leagueName, bundle) ->
             val matchId = match.optString("id").ifBlank {
                 listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
             }
-            val kickoff = kickoffTimestamp(match) ?: return@forEach
-            if (kickoff <= now) return@forEach
+            val kickoff = kickoffTimestamp(match) ?: return@candidateLoop
+            if (kickoff <= now) return@candidateLoop
             val signals = mutableListOf<JSONObject>()
             bundle.optJSONObject("primary")?.let { signals.add(it) }
             val alternatives = bundle.optJSONArray("alternatives")
             if (alternatives != null) for (i in 0 until alternatives.length()) {
                 alternatives.optJSONObject(i)?.let { signals.add(it) }
             }
-            signals.forEach { signal ->
+            signals.forEach signalLoop@ { signal ->
                 val side = signal.optString("side").trim()
-                val price = topSignalOdds(signal, match) ?: return@forEach
+                val price = topSignalOdds(signal, match) ?: return@signalLoop
                 val signalKey = "$matchId|$side"
-                if (signalKey in known) return@forEach
+                if (signalKey in known) return@signalLoop
                 val leagueCode = json.optJSONArray("competitions")?.let { competitions ->
                     (0 until competitions.length()).firstNotNullOfOrNull { index ->
                         val competition = competitions.optJSONObject(index) ?: return@firstNotNullOfOrNull null
