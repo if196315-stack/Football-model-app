@@ -73,7 +73,7 @@ internal object SectionNotifications {
         val pendingIntent = PendingIntent.getActivity(context, NOTIFICATION_ID, openApp, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(context, CHANNEL_ID) else Notification.Builder(context)
         val notification = builder
-            .setSmallIcon(context.applicationInfo.icon)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Новое в отчёте и наблюдениях")
             .setContentText("В едином разделе появились новые данные. Нажмите, чтобы посмотреть.")
             .setContentIntent(pendingIntent)
