@@ -1962,11 +1962,11 @@ class MainActivity : Activity() {
             val league = leagues.optJSONObject(i) ?: continue
             val matches = league.optJSONArray("matches") ?: continue
             for (j in 0 until matches.length()) {
-                val m = matches.optJSONObject(j) ?: continue
-                if (m.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
-                val matchDay = m.optString("utcDate").take(10).ifBlank {
-                    m.optString("dateEvent").take(10).ifBlank {
-                        kickoffTimestamp(m)?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                val match = matches.optJSONObject(j) ?: continue
+                if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val matchDay = match.optString("utcDate").take(10).ifBlank {
+                    match.optString("dateEvent").take(10).ifBlank {
+                        kickoffTimestamp(match)?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
                             timeZone = java.util.TimeZone.getTimeZone("UTC")
                         }.format(Date(it)) }.orEmpty()
                     }
@@ -1976,85 +1976,127 @@ class MainActivity : Activity() {
                     timeZone = java.util.TimeZone.getTimeZone("UTC")
                 }.format(Date())
                 if (matchDay < today) continue
-                val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
-                    ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) ||
-                    strongestSignalDisplayLabel(signal, m) == null) continue
-                val price = topSignalOdds(signal, m) ?: continue
-                if (price < 1.50) continue
-                candidates.add(Triple(m, league.optString("name"), signal))
+                val prediction = match.optJSONObject("prediction") ?: continue
+                val signals = mutableListOf<JSONObject>()
+                val array = prediction.optJSONArray("signals")
+                if (array != null) for (k in 0 until array.length()) {
+                    array.optJSONObject(k)?.let { signals.add(it) }
+                }
+                if (signals.isEmpty() && (league.optString("code") == "UCL" || league.optString("code") == "UEL")) {
+                    uefaPaperSignal(match)?.let { signals.add(it) }
+                }
+                val qualifying = signals.mapNotNull { signal ->
+                    if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                        signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) return@mapNotNull null
+                    val odds = topSignalOdds(signal, match) ?: return@mapNotNull null
+                    if (odds < 1.50) return@mapNotNull null
+                    val probability = signal.optDouble("modelProbability", Double.NaN)
+                    if (!probability.isFinite()) return@mapNotNull null
+                    val ev = probability * odds - 1.0
+                    val passes = if (signal.optBoolean("paperOnly")) {
+                        probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
+                    } else {
+                        val impliedEdge = probability - 1.0 / odds +
+                            signal.optDouble("formAdjustmentPp", 0.0) / 100.0
+                        probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+                    }
+                    if (passes) signal to ev else null
+                }.sortedByDescending { it.second }
+                if (qualifying.isEmpty()) continue
+                val bundle = JSONObject().put("primary", qualifying.first().first)
+                    .put("alternatives", JSONArray(qualifying.drop(1).map { it.first }))
+                candidates.add(Triple(match, league.optString("name"), bundle))
             }
         }
-        return candidates.filter { item ->
-            val m = item.first
-            val signal = item.third
-            val price = topSignalOdds(signal, m) ?: return@filter false
-            val probability = signal.optDouble("modelProbability", Double.NaN)
-            val ev = probability * price - 1.0
-            if (signal.optBoolean("paperOnly")) {
-                probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
-            } else {
-                val impliedEdge = probability - 1.0 / price + signal.optDouble("formAdjustmentPp", 0.0) / 100.0
-                probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
-            }
-        }.sortedWith(
+        return candidates.sortedWith(
             compareBy<Triple<JSONObject, String, JSONObject>> { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
-                .thenByDescending {
-                    val price = topSignalOdds(it.third, it.first) ?: 0.0
-                    it.third.optDouble("modelProbability") * price - 1.0
+                .thenByDescending { item ->
+                    val signal = item.third.optJSONObject("primary")
+                    val odds = if (signal != null) topSignalOdds(signal, item.first) ?: 0.0 else 0.0
+                    (signal?.optDouble("modelProbability") ?: 0.0) * odds - 1.0
                 }
         )
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
-        val bank = currentBankroll()
-
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый рынок проходит независимую проверку исторической базы, цены BetBoom и ограничений модели.")
         val sorted = collectAiCandidates(json)
         val betsCountCard = card()
-        addText(betsCountCard, "НАЙДЕНО AI-СИГНАЛОВ", 10, true, cyan)
+        addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "Матчей, прошедших фильтры стратегии. AI-сигналы автоматически фиксируются в бумажной истории при выполнении защитных условий.", 11, false, muted)
+        addText(betsCountCard, "В карточке показаны все рынки матча, прошедшие строгие фильтры. Можно зафиксировать любой из них в бумажной истории.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
-            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка BetBoom от 1.50 и выполнение порогов стратегии. Возраст цены показываем отдельно; перед ставкой проверь актуальный коэффициент в BetBoom.", 11, false, muted)
+            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка BetBoom от 1.50 и выполнение порогов стратегии.", 11, false, muted)
             return
         }
         sorted.forEachIndexed { index, item ->
-            val (m, league, signal) = item
-            val p = signal.optDouble("modelProbability", Double.NaN)
-            val baseline = signal.optDouble("baselineProbability", Double.NaN)
-            val edge = signal.optDouble("edgePp", Double.NaN)
-             val odds = topSignalOdds(signal, m) ?: return@forEachIndexed
-            val implied = 1.0 / odds
-            val ev = p * odds - 1.0
+            val (m, league, bundle) = item
+            val primary = bundle.optJSONObject("primary") ?: return@forEachIndexed
+            val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
             val box = card()
-            addText(box, "КАНДИДАТ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
+            addText(box, "МАТЧ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
             addText(box, kickoffLabel(m), 10, false, muted)
-            addText(box, "Рынок: ${signal.optString("side")} · BetBoom ${String.format(Locale.US, "%.2f", odds)}", 14, true, gold)
-            addText(box, "ПОЧЕМУ ВЫБРАНО", 10, true, cyan)
-            if (signal.optBoolean("paperOnly")) {
-                addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; рыночный порог для оценки: ${String.format(Locale.US, "%.1f", baseline * 100)}%.", 11, false, Color.WHITE)
-                addText(box, "Преимущество над рыночным порогом: +${String.format(Locale.US, "%.1f", edge)} п.п. · сигнал прошёл серверную проверку UEFA.", 11, false, muted)
-            } else {
-                addText(box, "Модель: ${String.format(Locale.US, "%.1f", p * 100)}%; историческая база: ${String.format(Locale.US, "%.1f", baseline * 100)}% на ${signal.optInt("baselineMatches")} матчах.", 11, false, Color.WHITE)
-                addText(box, "Отклонение модели от базы: +${String.format(Locale.US, "%.1f", edge)} п.п.", 11, false, muted)
+            addText(box, "САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, cyan)
+            addAiSignalDetails(box, primary, m, true)
+            if (alternatives.length() > 0) {
+                addText(box, "АЛЬТЕРНАТИВЫ · ТОЖЕ ПРОШЛИ ФИЛЬТРЫ", 10, true, cyan)
+                for (k in 0 until alternatives.length()) {
+                    val alt = alternatives.optJSONObject(k) ?: continue
+                    addAiSignalDetails(box, alt, m, false)
+                }
             }
-            addText(box, "ПРОВЕРКА ЦЕНЫ", 10, true, cyan)
-            addText(box, "Безубыточная вероятность по коэффициенту: ${String.format(Locale.US, "%.1f", implied * 100)}%. Простое EV модели: ${if (ev >= 0) "+" else ""}${String.format(Locale.US, "%.1f", ev * 100)}%.", 11, false, Color.WHITE)
-            if (isAiBetRecorded(m, signal)) {
-                addText(box, "✓ Уже в истории", 12, true, accent)
+            val available = mutableListOf<JSONObject>()
+            available.add(primary)
+            for (k in 0 until alternatives.length()) alternatives.optJSONObject(k)?.let { available.add(it) }
+            val notRecorded = available.filterNot { isAiBetRecorded(m, it) }
+            if (notRecorded.isEmpty()) {
+                addText(box, "✓ Все прошедшие сигналы уже записаны в историю", 12, true, accent)
             } else {
-                actionButton(box, "Зафиксировать") { confirmManualAiSignalBet(m, league, signal, odds) }
+                actionButton(box, if (notRecorded.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории") {
+                    if (notRecorded.size == 1) {
+                        val signal = notRecorded.first()
+                        val odds = topSignalOdds(signal, m) ?: return@actionButton
+                        confirmManualAiSignalBet(m, league, signal, odds)
+                    } else {
+                        val labels = notRecorded.map { signal ->
+                            val odds = topSignalOdds(signal, m) ?: 0.0
+                            "${signal.optString("side")} · ${fmt(odds)} · EV ${String.format(Locale.US, "%+.1f", (signal.optDouble("modelProbability") * odds - 1.0) * 100)}%"
+                        }.toTypedArray()
+                        AlertDialog.Builder(this)
+                            .setTitle("Выбери рынок для бумажной ставки")
+                            .setItems(labels) { _, which ->
+                                val signal = notRecorded[which]
+                                val odds = topSignalOdds(signal, m) ?: return@setItems
+                                confirmManualAiSignalBet(m, league, signal, odds)
+                            }
+                            .setNegativeButton("Отмена", null)
+                            .show()
+                    }
+                }
             }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Временного горизонта отбора нет. UEFA: серверный edge после удаления маржи, p ≥60%, EV ≥5% и совпадение реальной цены с квалифицирующим снимком. Остальные лиги: p ≥60%, break-even edge ≥5 п.п., EV ≥5%. Используются реальные котировки BetBoom.", 11, false, muted)
+        addText(footer, "Каждый разрешённый рынок проверяется отдельно: коэффициент BetBoom от 1.50, вероятность модели ≥60%, edge и EV ≥5% по действующим правилам. На карточке все прошедшие рынки; самый сильный выделен первым.", 11, false, muted)
+    }
+
+    private fun addAiSignalDetails(box: LinearLayout, signal: JSONObject, match: JSONObject, primary: Boolean) {
+        val odds = topSignalOdds(signal, match) ?: return
+        val probability = signal.optDouble("modelProbability", 0.0)
+        val ev = probability * odds - 1.0
+        val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
+            else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
+        addText(box, "${if (primary) "★ " else "• "}${signal.optString("side")} · BetBoom ${fmt(odds)}", 14, true, if (primary) gold else Color.WHITE)
+        addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", probability * 100)}% · Edge: ${String.format(Locale.US, "%+.1f", edge)} п.п. · EV: ${String.format(Locale.US, "%+.1f", ev * 100)}%", 11, false, muted)
+        if (signal.optBoolean("paperOnly")) {
+            addText(box, "Серверный UEFA paper-сигнал", 10, false, muted)
+        } else {
+            addText(box, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}% · ${signal.optInt("baselineMatches")} матчей", 10, false, muted)
+        }
+        if (isAiBetRecorded(match, signal)) addText(box, "✓ Уже в истории", 10, true, accent)
     }
 
     private fun renderDay(json: JSONObject) {
