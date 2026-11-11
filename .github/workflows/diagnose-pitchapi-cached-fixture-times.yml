@@ -1,0 +1,32 @@
+name: PitchAPI cached raw kickoff audit
+
+on:
+  push:
+    branches:
+      - "audit/api-sport-tournament-ids"
+    paths:
+      - "backend/diagnose_pitchapi_cached_fixture_times.py"
+      - ".github/workflows/diagnose-pitchapi-cached-fixture-times.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cached-time-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore existing default-branch PitchAPI cache (read-only)
+        id: pitchapi-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-${{ runner.os }}-audit-read-only-never-created
+          restore-keys: |
+            pitchapi-history-${{ runner.os }}-main-
+      - name: Extract raw PitchAPI date and timeUtc for 39 targets
+        run: python backend/diagnose_pitchapi_cached_fixture_times.py
