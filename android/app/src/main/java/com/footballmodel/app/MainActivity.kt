@@ -1707,6 +1707,12 @@ class MainActivity : Activity() {
             }
         }
 
+        // UECL stores validated historical candidates in paperSignals rather than prediction.signals.
+        // Reuse the same BetBoom-validated fallback as the AI desk.
+        if (candidates.isEmpty() && match.optJSONArray("paperSignals") != null) {
+            uefaPaperSignal(match)?.let { candidates.add(it) }
+        }
+
         return candidates.asSequence()
             .filter { strongestSignalDisplayLabel(it, match) != null }
             .filter { topSignalOdds(it, match) != null }
