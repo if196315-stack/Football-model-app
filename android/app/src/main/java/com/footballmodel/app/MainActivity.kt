@@ -914,6 +914,70 @@ class MainActivity : Activity() {
         val date: String, val confidence: Double
     )
 
+    private data class StatsBandRow(val label: String, val n: Int, val hits: Int)
+    private data class StatsMetricRow(
+        val name: String, val n: Int, val hits: Int, val brier: Double,
+        val logLoss: Double, val bands: List<StatsBandRow>
+    )
+    @Volatile private var statsMetricsCacheKey: Int? = null
+    @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
+    private val statsCalculationInProgress = AtomicBoolean(false)
+
+    private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
+        val metrics = mutableListOf<StatsMetricRow>()
+        val evaluatedMatches = json.optJSONArray("evaluationMatches")
+        fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
+            var n = 0
+            var hits = 0
+            var brier = 0.0
+            var logLoss = 0.0
+            val bandCounts = IntArray(4)
+            val bandHits = IntArray(4)
+            if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
+                val m = evaluatedMatches.optJSONObject(i) ?: continue
+                if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                val p = m.optJSONObject("prediction") ?: continue
+                if (!p.has(key) || p.isNull(key)) continue
+                val h = m.optInt("homeScore")
+                val aw = m.optInt("awayScore")
+                if (excludeDraws && h == aw) continue
+                val outcome = actual(h, aw)
+                val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
+                val confidence = maxOf(probability, 1.0 - probability)
+                val band = when {
+                    confidence < 0.6 -> 0
+                    confidence < 0.7 -> 1
+                    confidence < 0.8 -> 2
+                    else -> 3
+                }
+                val correct = outcome == (probability >= 0.5)
+                val y = if (outcome) 1.0 else 0.0
+                n++
+                if (correct) hits++
+                bandCounts[band]++
+                if (correct) bandHits[band]++
+                brier += (probability - y) * (probability - y)
+                logLoss += -(y * kotlin.math.ln(probability) + (1.0 - y) * kotlin.math.ln(1.0 - probability))
+            }
+            if (n > 0) {
+                val labels = listOf("50–59%", "60–69%", "70–79%", "80%+")
+                val bands = labels.indices.map { StatsBandRow(labels[it], bandCounts[it], bandHits[it]) }
+                metrics.add(StatsMetricRow(title, n, hits, brier / n, logLoss / n, bands))
+            }
+        }
+        collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h, a -> h >= a })
+        collect("x2", "X2 · гости победят ИЛИ будет ничья", { h, a -> a >= h })
+        collect("homeOver15", "ИТБ 1.5 · хозяева", { h, _ -> h >= 2 })
+        collect("awayOver15", "ИТБ 1.5 · гости", { _, a -> a >= 2 })
+        collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h, a -> h + a >= 3 })
+        collect("bttsYes", "ОЗ — да", { h, a -> h >= 1 && a >= 1 })
+        collect("over15", "ТБ 1.5", { h, a -> h + a >= 2 })
+        collect("over35", "ТБ 3.5", { h, a -> h + a >= 4 })
+        collect("homeOver25", "ИТБ 2.5 · хозяева", { h, _ -> h >= 3 })
+        collect("awayOver25", "ИТБ 2.5 · гости", { _, a -> a >= 3 })
+        return metrics
+    }
+
     private fun renderStats(json: JSONObject) {
         val switcher = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -943,55 +1007,30 @@ class MainActivity : Activity() {
             return
         }
         screenHeader("PERFORMANCE CENTER", "Статистика стратегии", "Точность рынков действующей стратегии. Уровни уверенности сохранены без изменений.")
-        data class BandRow(val label: String, val n: Int, val hits: Int)
-        data class MetricRow(val name: String, val n: Int, val hits: Int, val brier: Double, val logLoss: Double, val bands: List<BandRow>)
-        val metrics = mutableListOf<MetricRow>()
-        val evaluatedMatches = json.optJSONArray("evaluationMatches")
-        fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
-            var n = 0; var hits = 0; var brier = 0.0; var logLoss = 0.0
-            val bandCounts = IntArray(4)
-            val bandHits = IntArray(4)
-            if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
-                val m = evaluatedMatches.optJSONObject(i) ?: continue
-                if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
-                val p = m.optJSONObject("prediction") ?: continue
-                if (!p.has(key) || p.isNull(key)) continue
-                val h = m.optInt("homeScore"); val aw = m.optInt("awayScore")
-                if (excludeDraws && h == aw) continue
-                val outcome = actual(h, aw)
-                val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
-                val predictedYes = probability >= 0.5
-                val confidence = maxOf(probability, 1.0 - probability)
-                val band = when {
-                    confidence < 0.6 -> 0
-                    confidence < 0.7 -> 1
-                    confidence < 0.8 -> 2
-                    else -> 3
+        val statsKey = json.toString().hashCode()
+        if (statsMetricsCacheKey != statsKey) {
+            val loading = card()
+            addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
+            addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
+            if (statsCalculationInProgress.compareAndSet(false, true)) {
+                val snapshot = JSONObject(json.toString())
+                thread(name = "stats-metrics-calculation") {
+                    val calculated = calculateStatsMetrics(snapshot)
+                    runOnUiThread {
+                        statsMetricsCache = calculated
+                        statsMetricsCacheKey = statsKey
+                        statsCalculationInProgress.set(false)
+                        if (currentTab == "stats" && statsSubsection == "working" &&
+                            data?.toString()?.hashCode() == statsKey) {
+                            tabViewCache.remove("stats|ALL")
+                            render()
+                        }
+                    }
                 }
-                val correct = outcome == predictedYes
-                val y = if (outcome) 1.0 else 0.0
-                n++; if (correct) hits++
-                bandCounts[band]++
-                if (correct) bandHits[band]++
-                brier += (probability-y)*(probability-y)
-                logLoss += -(y*kotlin.math.ln(probability)+(1.0-y)*kotlin.math.ln(1.0-probability))
             }
-            if (n > 0) {
-                val labels = listOf("50–59%", "60–69%", "70–79%", "80%+")
-                val bands = labels.indices.map { BandRow(labels[it], bandCounts[it], bandHits[it]) }
-                metrics.add(MetricRow(title,n,hits,brier/n,logLoss/n,bands))
-            }
+            return
         }
-        collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h,a -> h >= a })
-        collect("x2", "X2 · гости победят ИЛИ будет ничья", { h,a -> a >= h })
-        collect("homeOver15", "ИТБ 1.5 · хозяева", { h,_ -> h >= 2 })
-        collect("awayOver15", "ИТБ 1.5 · гости", { _,a -> a >= 2 })
-        collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h,a -> h + a >= 3 })
-        collect("bttsYes", "ОЗ — да", { h,a -> h >= 1 && a >= 1 })
-        collect("over15", "ТБ 1.5", { h,a -> h+a >= 2 })
-        collect("over35", "ТБ 3.5", { h,a -> h+a >= 4 })
-        collect("homeOver25", "ИТБ 2.5 · хозяева", { h,_ -> h >= 3 })
-        collect("awayOver25", "ИТБ 2.5 · гости", { _,a -> a >= 3 })
+        val metrics = statsMetricsCache
         if (metrics.isEmpty()) {
             val empty = card()
             addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
