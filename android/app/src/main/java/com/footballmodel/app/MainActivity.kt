@@ -1565,7 +1565,7 @@ class MainActivity : Activity() {
         }
         val aiHistoryCard = card()
         addText(aiHistoryCard, "AI · АВТОИСТОРИЯ РЕКОМЕНДАЦИЙ", 10, true, cyan)
-        addText(aiHistoryCard, "Каждый сигнал из раздела AI с котировкой MelBet фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал; альтернативы считаются отдельно. История локальная для этого устройства.", 9, false, muted)
+        addText(aiHistoryCard, "Каждый прошедший AI сильнейший сигнал с котировкой MelBet фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал. История локальная для этого устройства.", 9, false, muted)
         val aiHistory = try {
             JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
         } catch (_: Exception) {
@@ -1842,7 +1842,7 @@ class MainActivity : Activity() {
 
         // The Line card optimizes probability and price together. Only exact
         // MelBet quotes >= 1.50 qualify; positive-EV candidates are ranked by
-        // probability-weighted EV so neither raw odds nor probability dominates.
+        // full-Kelly fraction, calculated from model probability and exact MelBet price.
         val available = candidates.mapNotNull { candidate ->
             if (strongestSignalDisplayLabel(candidate, match) == null) return@mapNotNull null
             val probability = candidate.optDouble("modelProbability", Double.NaN)
@@ -1868,7 +1868,7 @@ class MainActivity : Activity() {
     private fun topSignalOdds(signal: JSONObject, match: JSONObject, minOdds: Double = 1.50): Double? {
         val side = signal.optString("side").trim()
         val oddsBoard = match.optJSONObject("odds") ?: return null
-        if (!oddsBoard.optString("bookmaker").equals("MELBET", ignoreCase = true)) return null
+        if (!(oddsBoard.optString("bookmaker").equals("MELBET", ignoreCase = true) || oddsBoard.optString("source").contains("MelBet", ignoreCase = true))) return null
         val best = oddsBoard.optJSONObject("best") ?: return null
         fun acceptable(value: Double) = value.isFinite() && value >= minOdds
         if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true)) {
@@ -1942,7 +1942,7 @@ class MainActivity : Activity() {
 
     private fun hasActiveMelBetPrematchLine(match: JSONObject): Boolean {
         val odds = match.optJSONObject("odds") ?: return false
-        if (!odds.optString("bookmaker").equals("MELBET", ignoreCase = true)) return false
+        if (!(odds.optString("bookmaker").equals("MELBET", ignoreCase = true) || odds.optString("source").contains("MelBet", ignoreCase = true))) return false
 
         val best = odds.optJSONObject("best") ?: return false
         fun validPrice(value: Double): Boolean = value.isFinite() && value > 1.0
@@ -2391,7 +2391,7 @@ class MainActivity : Activity() {
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "В карточке показаны все рынки матча, прошедшие строгие фильтры. Можно зафиксировать любой из них в бумажной истории.", 11, false, muted)
+        addText(betsCountCard, "В AI попадает только сильнейший сигнал раздела Линия по критерию Kelly. Если он не проходит строгие фильтры, альтернативный рынок вместо него не подставляется.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
@@ -2447,7 +2447,7 @@ class MainActivity : Activity() {
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Каждый разрешённый рынок проверяется отдельно: коэффициент MelBet от 1.50, вероятность модели ≥60%, edge и EV ≥5% по действующим правилам. На карточке все прошедшие рынки; самый сильный выделен первым.", 11, false, muted)
+        addText(footer, "Один сильнейший сигнал на матч из раздела Линия: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Если лидер не проходит фильтры, матч исключается; другие рынки не подменяют его.", 11, false, muted)
     }
 
     private fun addAiSignalDetails(box: LinearLayout, signal: JSONObject, match: JSONObject, primary: Boolean) {
