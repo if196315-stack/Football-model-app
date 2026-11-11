@@ -1,6 +1,11 @@
 name: Discover UEFA Nations League and Conference League coverage
 
 on:
+  pull_request:
+    paths:
+      - "backend/diagnose_two_uefa_competitions.py"
+      - "backend/test_diagnose_two_uefa_competitions.py"
+      - ".github/workflows/discover-two-uefa-competitions.yml"
   push:
     branches:
       - main
