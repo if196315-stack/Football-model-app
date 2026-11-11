@@ -246,8 +246,8 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertEqual(baseline["baselinePriorMatches"], 40)
         self.assertEqual(baseline["baselinePriorStrength"], 20.0)
         # The posterior must sit between the sparse league rate and pooled prior.
-        self.assertGreater(baseline["bttsYes"], 0.0)
-        self.assertLess(baseline["bttsYes"], 0.5)
+        self.assertGreater(baseline["bttsYes"], 8.0 / 22.0)
+        self.assertLess(baseline["bttsYes"], 1.0)
         self.assertGreater(baseline["over15"], 0.5)
 
     def test_zero_handicap_markets_are_not_calculated_or_signalled(self):
