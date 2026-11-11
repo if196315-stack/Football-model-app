@@ -148,28 +148,55 @@ def markets(lh,la):
     return result
 
 def historical_baselines(matches, comp, target_date):
+    """Historical league frequencies for the same OVER/YES markets shown in match cards."""
     g=matches[(matches.comp==comp)&(matches.date<pd.Timestamp(target_date))]
     n=len(g)
     if n < 100:return None
     hs=g.home_score.astype(float); aw=g.away_score.astype(float)
-    home_w=int((hs>aw).sum()); away_w=int((aw>hs).sum())
-    def rate(count,total): return (count+1.0)/(total+2.0)
-    return {"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
-      "homeOver15":rate(int((hs>=2).sum()),n),"awayOver15":rate(int((aw>=2).sum()),n),"matches":n}
+    total=hs+aw
+    def rate(count,total_matches): return (count+1.0)/(total_matches+2.0)
+    result={"1x":rate(int((hs>=aw).sum()),n),"x2":rate(int((aw>=hs).sum()),n),
+            "bttsYes":rate(int(((hs>0)&(aw>0)).sum()),n),"matches":n}
+    for line in (1.5,2.5,3.5):
+        tag=str(line).replace(".","")
+        result[f"over{tag}"]=rate(int((total>line).sum()),n)
+    for team,goals in (("home",hs),("away",aw)):
+        for line in (0.5,1.5,2.5,3.5):
+            tag=str(line).replace(".","")
+            result[f"{team}Over{tag}"]=rate(int((goals>line).sum()),n)
+    return result
 
 def signal_candidates(pred, baseline, home, away, home_form=None, away_form=None):
+    """Rank only positive selections from markets actually displayed in match cards.
+
+    Never turn an under-probability into an inverse label (П1/П2/ничья/ИТМ/ТМ).
+    """
     if not baseline:return []
-    definitions=[("1X","Хозяева не проиграют","1x","1X","Не 1X"),
-      ("X2","Гости не проиграют","x2","X2","Не X2"),
-      ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15",f"ИТБ 1.5 · {home}",f"ИТМ 1.5 · {home}"),
-      ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15",f"ИТБ 1.5 · {away}",f"ИТМ 1.5 · {away}")]
+    definitions=[
+      ("1X","Двойной шанс 1X","1x","1X"),
+      ("X2","Двойной шанс X2","x2","X2"),
+      ("ОЗ ДА","Обе команды забьют","bttsYes","ОЗ ДА"),
+      ("ТБ 1.5","Тотал матча больше 1.5","over15","ТБ 1.5"),
+      ("ТБ 2.5","Тотал матча больше 2.5","over25","ТБ 2.5"),
+      ("ТБ 3.5","Тотал матча больше 3.5","over35","ТБ 3.5"),
+      ("ИТБ 0.5 хозяев","Хозяева забьют","homeOver05",f"ИТБ 0.5 · {home}"),
+      ("ИТБ 1.5 хозяев","Хозяева забьют 2+","homeOver15",f"ИТБ 1.5 · {home}"),
+      ("ИТБ 2.5 хозяев","Хозяева забьют 3+","homeOver25",f"ИТБ 2.5 · {home}"),
+      ("ИТБ 3.5 хозяев","Хозяева забьют 4+","homeOver35",f"ИТБ 3.5 · {home}"),
+      ("ИТБ 0.5 гостей","Гости забьют","awayOver05",f"ИТБ 0.5 · {away}"),
+      ("ИТБ 1.5 гостей","Гости забьют 2+","awayOver15",f"ИТБ 1.5 · {away}"),
+      ("ИТБ 2.5 гостей","Гости забьют 3+","awayOver25",f"ИТБ 2.5 · {away}"),
+      ("ИТБ 3.5 гостей","Гости забьют 4+","awayOver35",f"ИТБ 3.5 · {away}"),
+    ]
     items=[]
-    for key,title,field,yes,no in definitions:
+    for title,description,field,side in definitions:
+      if field not in pred or field not in baseline:continue
       p=float(pred[field]); b=float(baseline[field])
-      if p>=0.5: side,mp,bp=yes,p,b
-      else: side,mp,bp=no,1-p,1-b
-      edge=mp-bp
-      item={"market":title,"side":side,"modelProbability":mp,"baselineProbability":bp,
+      # Only the displayed YES/OVER selection is eligible; never invert it.
+      if p < 0.5:continue
+      edge=p-b
+      item={"market":title,"description":description,"side":side,
+        "modelProbability":p,"baselineProbability":b,
         "edgePp":edge*100.0,"baselineMatches":baseline["matches"],
         "homeTeam":home,"awayTeam":away}
       adjustment = form_adjustment(item, home_form or {}, away_form or {})
