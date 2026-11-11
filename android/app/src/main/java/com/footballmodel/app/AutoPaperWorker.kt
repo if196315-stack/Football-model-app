@@ -131,6 +131,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         val highWater = max(storedHigh ?: bankBeforeEntries, bankBeforeEntries)
         if (storedHigh == null || highWater > storedHigh) settings.edit().putString("paper_high_watermark", highWater.toString()).commit()
         val drawdown = if (highWater > 0.0) (highWater - bankBeforeEntries) / highWater else 0.0
+        if (settings.getInt("paper_risk_policy_version", 0) < 2) {
+            val migration = settings.edit().putInt("paper_risk_policy_version", 2)
+            if (drawdown < 0.20) migration.putBoolean("paper_auto_stopped", false)
+            migration.commit()
+        }
         if (drawdown >= 0.20) settings.edit().putBoolean("paper_auto_stopped", true).commit()
         val autoStopped = settings.getBoolean("paper_auto_stopped", false)
         val drawdownPaused = drawdown >= 0.10
