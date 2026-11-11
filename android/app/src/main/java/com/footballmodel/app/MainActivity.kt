@@ -343,8 +343,9 @@ class MainActivity : Activity() {
             addView(leagueBar)
         }
         // Keep a narrow viewport so the next league chip remains visibly peeking in.
+        // Use the full available width; the next chip remains partially visible
+        // at the right edge as a hint that the league row scrolls horizontally.
         root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2).apply {
-            rightMargin = dp(28)
             topMargin = dp(2)
             bottomMargin = dp(2)
         })
