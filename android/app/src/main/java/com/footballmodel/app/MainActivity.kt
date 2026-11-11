@@ -1868,7 +1868,9 @@ class MainActivity : Activity() {
     private fun topSignalOdds(signal: JSONObject, match: JSONObject, minOdds: Double = 1.50): Double? {
         val side = signal.optString("side").trim()
         val oddsBoard = match.optJSONObject("odds") ?: return null
-        if (!(oddsBoard.optString("bookmaker").equals("MELBET", ignoreCase = true) || oddsBoard.optString("source").contains("MelBet", ignoreCase = true))) return null
+        val bookmaker = oddsBoard.optString("bookmaker")
+        val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true) else oddsBoard.optString("source").contains("MelBet", ignoreCase = true)
+        if (!isMelBet) return null
         val best = oddsBoard.optJSONObject("best") ?: return null
         fun acceptable(value: Double) = value.isFinite() && value >= minOdds
         if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true)) {
@@ -1942,7 +1944,9 @@ class MainActivity : Activity() {
 
     private fun hasActiveMelBetPrematchLine(match: JSONObject): Boolean {
         val odds = match.optJSONObject("odds") ?: return false
-        if (!(odds.optString("bookmaker").equals("MELBET", ignoreCase = true) || odds.optString("source").contains("MelBet", ignoreCase = true))) return false
+        val bookmaker = odds.optString("bookmaker")
+        val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true) else odds.optString("source").contains("MelBet", ignoreCase = true)
+        if (!isMelBet) return false
 
         val best = odds.optJSONObject("best") ?: return false
         fun validPrice(value: Double): Boolean = value.isFinite() && value > 1.0
