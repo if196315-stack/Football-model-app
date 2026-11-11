@@ -9,7 +9,8 @@ import re
 import requests
 
 BASE_URL = "https://api.api-sport.ru/v2/football/matches"
-DEFAULT_IDS = (16363661,)  # Manchester City - Fulham, API-Sport fixture ID
+# Five domestic fixtures from the latest successful odds refresh (API-Sport IDs).
+DEFAULT_IDS = (16363661, 16363658, 16363655, 16363654, 16363657)
 BASE_PARAMS = {
     "with_bk_odds": "true",
     "odds_stage": "all",
@@ -54,13 +55,27 @@ def summarize(match):
         "hasBkOddsBetboom": flags.get("betboom") if isinstance(flags, dict) else None,
         "hasBetboomBoard": isinstance(board, dict),
         "teamTotalMarkets": [],
+        "teamLikeMarkets": [],
+        "unrecognizedTeamLikeMarkets": [],
     }
     for slug, market in (markets or {}).items():
-        if not isinstance(market, dict) or not is_team_total_market_slug(slug):
+        if not isinstance(market, dict):
             continue
         name = market.get("name") or {}
         if isinstance(name, dict):
             name = name.get("en") or name.get("ru") or ""
+        team_hint = bool(re.search(
+            r"team|individual|total_team|team_total|итб|индивидуальн|тотал команды|команд",
+            f"{slug} {name}", re.I,
+        )) and "btts" not in str(slug).lower() and "both teams to score" not in str(name).lower()
+        if team_hint:
+            compact = {"slug": str(slug), "name": str(name),
+                       "status": market.get("status"), "stage": market.get("stage")}
+            result["teamLikeMarkets"].append(compact)
+            if not is_team_total_market_slug(slug):
+                result["unrecognizedTeamLikeMarkets"].append(compact)
+        if not is_team_total_market_slug(slug):
+            continue
         outcomes = {}
         for outcome, stake in (market.get("stakes") or {}).items():
             if not isinstance(stake, dict):
