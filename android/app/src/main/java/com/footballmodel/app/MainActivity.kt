@@ -17,6 +17,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.MotionEvent
 import android.widget.*
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -57,6 +58,7 @@ class MainActivity : Activity() {
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
+    private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
     private var bets = JSONArray()
@@ -138,7 +140,69 @@ class MainActivity : Activity() {
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
-        val scroll = ScrollView(this).apply {
+        val scroll = object : ScrollView(this) {
+            private var gestureDownX = 0f
+            private var gestureDownY = 0f
+            private var swipeOriginInLeagueFilters = false
+            private var horizontalSwipeCaptured = false
+
+            override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        gestureDownX = event.x
+                        gestureDownY = event.y
+                        horizontalSwipeCaptured = false
+                        swipeOriginInLeagueFilters = false
+                        if (::leagueScroll.isInitialized) {
+                            val location = IntArray(2)
+                            leagueScroll.getLocationOnScreen(location)
+                            val x = event.rawX.toInt()
+                            val y = event.rawY.toInt()
+                            swipeOriginInLeagueFilters =
+                                x >= location[0] && x <= location[0] + leagueScroll.width &&
+                                y >= location[1] && y <= location[1] + leagueScroll.height
+                        }
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val dx = event.x - gestureDownX
+                        val dy = event.y - gestureDownY
+                        if (!swipeOriginInLeagueFilters &&
+                            kotlin.math.abs(dx) > dp(64) &&
+                            kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.25f) {
+                            horizontalSwipeCaptured = true
+                            return true
+                        }
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        if (!horizontalSwipeCaptured) swipeOriginInLeagueFilters = false
+                    }
+                }
+                return horizontalSwipeCaptured || super.onInterceptTouchEvent(event)
+            }
+
+            override fun onTouchEvent(event: MotionEvent): Boolean {
+                if (horizontalSwipeCaptured) {
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_UP -> {
+                            val dx = event.x - gestureDownX
+                            if (kotlin.math.abs(dx) > dp(64)) {
+                                selectAdjacentTab(if (dx < 0f) 1 else -1)
+                            }
+                            horizontalSwipeCaptured = false
+                            swipeOriginInLeagueFilters = false
+                            return true
+                        }
+                        MotionEvent.ACTION_CANCEL -> {
+                            horizontalSwipeCaptured = false
+                            swipeOriginInLeagueFilters = false
+                            return true
+                        }
+                        else -> return true
+                    }
+                }
+                return super.onTouchEvent(event)
+            }
+        }.apply {
             setBackgroundColor(bg)
             isFillViewport = true
             clipToPadding = false
@@ -240,6 +304,10 @@ class MainActivity : Activity() {
         leagueScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_NEVER
+            // Оставляем справа часть следующего фильтра видимой как подсказку
+            // о горизонтальной прокрутке. Контент при этом можно пролистать полностью.
+            clipToPadding = false
+            setPadding(0, 0, dp(38), 0)
             addView(leagueBar)
         }
         root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2).apply {
@@ -861,6 +929,41 @@ class MainActivity : Activity() {
         }
     }
 
+    private var tabRenderGeneration = 0
+
+    private fun selectTab(tab: String) {
+        if (currentTab == tab) return
+        currentTab = tab
+        val generation = ++tabRenderGeneration
+
+        // Update navigation immediately; defer expensive screen construction until
+        // the next animation frame so the swipe can finish without waiting for it.
+        renderTabs()
+        matchesContainer.visibility = View.INVISIBLE
+        leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
+        matchesContainer.postOnAnimation {
+            if (generation != tabRenderGeneration || currentTab != tab) {
+                // Another navigation path (for example the notification shortcut) may
+                // have rendered a different screen while this frame was pending.
+                if (generation == tabRenderGeneration) matchesContainer.visibility = View.VISIBLE
+                return@postOnAnimation
+            }
+            render()
+            matchesContainer.visibility = View.VISIBLE
+        }
+
+        // Navigation uses the latest in-memory feed. Network refresh stays on its
+        // independent refresh schedule instead of starting on every tab change.
+        if (data == null && (tab == "desk" || tab == "stats")) loadData()
+    }
+
+    private fun selectAdjacentTab(direction: Int) {
+        val index = primaryTabs.indexOf(currentTab)
+        if (index < 0) return
+        val nextIndex = (index + direction).coerceIn(0, primaryTabs.lastIndex)
+        if (nextIndex != index) selectTab(primaryTabs[nextIndex])
+    }
+
     private fun renderTabs() {
         val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "История", "stats" to "Stats", "help" to "Профиль")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
@@ -875,13 +978,7 @@ class MainActivity : Activity() {
                     setPadding(dp(3), dp(5), dp(3), dp(5))
                     isClickable = true
                     isFocusable = true
-                    setOnClickListener {
-                        if (currentTab != item.first) {
-                            currentTab = item.first
-                            render()
-                            if (currentTab == "desk" || currentTab == "stats") loadData()
-                        }
-                    }
+                    setOnClickListener { selectTab(item.first) }
                 }
                 tabBar.addView(t, LinearLayout.LayoutParams(0, -1, 1f).apply {
                     setMargins(dp(2), dp(2), dp(2), dp(2))
@@ -919,7 +1016,7 @@ class MainActivity : Activity() {
         val name: String, val n: Int, val hits: Int, val brier: Double,
         val logLoss: Double, val bands: List<StatsBandRow>
     )
-    @Volatile private var statsMetricsCacheKey: Int? = null
+    @Volatile private var statsMetricsCacheKey: String? = null
     @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
     private val statsCalculationInProgress = AtomicBoolean(false)
 
@@ -978,22 +1075,30 @@ class MainActivity : Activity() {
         return metrics
     }
 
+    private fun statsCacheKey(json: JSONObject): String {
+        // A cheap feed signature avoids serializing the entire match archive on the UI thread.
+        return json.optString("updatedAt") + "|" +
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0)
+    }
+
     private fun renderStats(json: JSONObject) {
         screenHeader("PERFORMANCE CENTER", "Статистика стратегии", "Точность рынков действующей стратегии. Уровни уверенности сохранены без изменений.")
-        val statsKey = json.toString().hashCode()
+        val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
             addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
             if (statsCalculationInProgress.compareAndSet(false, true)) {
-                val snapshot = JSONObject(json.toString())
+                // The feed object is replaced, not mutated, on refresh; read it on the worker.
                 thread(name = "stats-metrics-calculation") {
-                    val calculated = calculateStatsMetrics(snapshot)
+                    val calculated = calculateStatsMetrics(json)
                     runOnUiThread {
                         statsMetricsCache = calculated
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
-                        if (currentTab == "stats" && data?.toString()?.hashCode() == statsKey) {
+                        if (currentTab == "stats") {
+                            // Rebuild even when this result became stale while calculating;
+                            // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
                             render()
                         }
@@ -1505,6 +1610,25 @@ class MainActivity : Activity() {
         workerCard.addView(workerCountTextView)
     }
 
+    // Only show a strongest signal when its market is actually listed in the match card.
+    // Under markets are intentionally excluded; team totals shown in the card are OVER (ИТБ) only.
+    private fun strongestSignalDisplayLabel(signal: JSONObject, match: JSONObject): String? {
+        val side = signal.optString("side").trim()
+        if (side.isBlank()) return null
+        if (side.contains("ИТМ", ignoreCase = true) || side.startsWith("ТМ ", ignoreCase = true) ||
+            side.contains("UNDER", ignoreCase = true) || side.equals("Не X2", ignoreCase = true)) return null
+        if (side == "1X" || side == "X2" || side == "ОЗ ДА") return side
+        if (side in listOf("ТБ 1.5", "ТБ 2.5", "ТБ 3.5")) return side
+        if (side.startsWith("ИТБ ")) {
+            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull()
+                ?: return null
+            val team = side.substringAfter("·", "").trim()
+            if (point in listOf(0.5, 1.5, 2.5, 3.5) &&
+                (team == match.optString("home") || team == match.optString("away"))) return side
+        }
+        return null
+    }
+
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
         val side = signal.optString("side")
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
@@ -1856,7 +1980,8 @@ class MainActivity : Activity() {
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) ||
+                    strongestSignalDisplayLabel(signal, m) == null) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
                 candidates.add(Triple(m, league.optString("name"), signal))
@@ -1950,8 +2075,9 @@ class MainActivity : Activity() {
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
-                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0) continue
-                // Require a real quote for the exact strongest side, at decimal odds >= 1.50.
+                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0 ||
+                    strongestSignalDisplayLabel(signal, m) == null) continue
+                // Require a real quote for the exact strongest eligible market, at decimal odds >= 1.50.
                 if (topSignalOdds(signal, m) == null) continue
                 items.add(Triple(m, league.optString("name"), signal))
             }
@@ -2194,13 +2320,18 @@ class MainActivity : Activity() {
                         addText(signalBox, if (leagueCode == "UCL" || leagueCode == "UEL") "Вероятности рассчитаны по историческим xG; проверенные тестовые сигналы и их результаты — ниже." else "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
                     } else {
                         val edge = signal.optDouble("edgePp")
-                        if (signal.optBoolean("noPositiveSignal")) {
-                            addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: ${signal.optString("side")} · ${String.format(Locale.US, "%.1f", edge)} п.п.", 12, true, Color.rgb(242, 190, 104))
+                        val displayLabel = strongestSignalDisplayLabel(signal, m)
+                        if (displayLabel == null) {
+                            addText(signalBox, "Среди отображаемых рынков нет подтверждённого сильнейшего сигнала.", 12, true, Color.rgb(242, 190, 104))
                         } else {
-                            addText(signalBox, "${signal.optString("side")} · +${String.format(Locale.US, "%.1f", edge)} п.п. к базе", 15, true, accent)
+                            if (signal.optBoolean("noPositiveSignal")) {
+                                addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: $displayLabel · ${String.format(Locale.US, "%.1f", edge)} п.п.", 12, true, Color.rgb(242, 190, 104))
+                            } else {
+                                addText(signalBox, "$displayLabel · +${String.format(Locale.US, "%.1f", edge)} п.п. к базе", 15, true, accent)
+                            }
+                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
+                            addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
                         }
-                        addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
-                        addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
                     }
                     val mainMarkets = card(box)
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
