@@ -1685,24 +1685,33 @@ class MainActivity : Activity() {
         return null
     }
 
-    // If the backend's top candidate cannot be rendered, use the best valid
-    // candidate from the full list rather than hiding every available signal.
+    // Choose the strongest permitted signal that has an exact, usable BetBoom quote.
+    // The backend's strongestSignal may not have a matching price in the currently loaded line,
+    // so it must not prevent fallback to another candidate from prediction.signals.
     private fun strongestDisplaySignal(prediction: JSONObject, match: JSONObject): JSONObject? {
-        val strongest = prediction.optJSONObject("strongestSignal")
-        if (strongest != null && strongestSignalDisplayLabel(strongest, match) != null) return strongest
-        val candidates = prediction.optJSONArray("signals") ?: return null
-        var best: JSONObject? = null
-        var bestEdge = Double.NEGATIVE_INFINITY
-        for (index in 0 until candidates.length()) {
-            val candidate = candidates.optJSONObject(index) ?: continue
-            if (strongestSignalDisplayLabel(candidate, match) == null) continue
-            val edge = candidate.optDouble("selectionEdgePp", candidate.optDouble("edgePp", Double.NEGATIVE_INFINITY))
-            if (edge.isFinite() && edge > bestEdge) {
-                best = candidate
-                bestEdge = edge
+        val candidates = mutableListOf<JSONObject>()
+        prediction.optJSONObject("strongestSignal")?.let { candidates.add(it) }
+        val signals = prediction.optJSONArray("signals")
+        if (signals != null) {
+            for (index in 0 until signals.length()) {
+                signals.optJSONObject(index)?.let { candidate ->
+                    if (candidates.none { it.optString("side") == candidate.optString("side") }) {
+                        candidates.add(candidate)
+                    }
+                }
             }
         }
-        return best
+
+        return candidates.asSequence()
+            .filter { strongestSignalDisplayLabel(it, match) != null }
+            .filter { topSignalOdds(it, match) != null }
+            .filter {
+                val edge = it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NaN))
+                edge.isFinite()
+            }
+            .maxByOrNull {
+                it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NEGATIVE_INFINITY))
+            }
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
