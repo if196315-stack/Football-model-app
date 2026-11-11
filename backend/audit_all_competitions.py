@@ -46,7 +46,7 @@ def build_all(domestic, uefa, today=None):
     report = audit.build(combined, today=today)
     today = today or datetime.now(timezone.utc).date()
     for code, league in report["leagues"].items():
-        comp = next((x for x in combined["competitions"] if x["code"] == code), {})
+        comp = next((x for x in combined["competitions"] if x["code"] == audit.LEAGUES[code][0]), {})
         priced = 0
         for match in comp.get("matches", []):
             if match.get("status") not in ("SCHEDULED", "TIMED"):
