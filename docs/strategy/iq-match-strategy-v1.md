@@ -1,8 +1,8 @@
-# IQ MATCH Strategy v1.1
+# IQ MATCH Strategy v1.2
 
-**Status:** initial strategy specification  
+**Status:** current strategy specification  
 **Selection:** STRICT  
-**Risk:** MODERATE, base stake 1% bank; maximum 1% per bet and 5% daily exposure  
+**Risk:** MODERATE, stake 1% of current bank with optional user-defined minimum; pause at 10% drawdown and stop at 20%  
 **Launch:** LIMITED  
 **Bookmaker/data source:** BetBoom odds supplied through API-Sport only
 
@@ -14,7 +14,7 @@ This document is the source of truth for the initial IQ MATCH strategy. Threshol
 2. Obtain the model probability for the exact market and line.
 3. Calculate break-even probability, edge and expected value (EV).
 4. Apply signal-quality and market-specific validation.
-5. Apply match, daily and correlation exposure limits.
+5. Apply duplicate-market protection and drawdown controls. There is no daily aggregate exposure cap; different markets in the same match are permitted.
 6. Return exactly one decision: BET, WAIT or REJECT, with a reason.
 
 No bet is a valid outcome. A high predicted probability alone is not sufficient.
@@ -61,17 +61,17 @@ For multi-outcome market analysis, account for bookmaker margin when comparing m
 
 ## 4. Bank and exposure policy
 
-- Base and minimum model stake: 1% of current bank, subject to the bookmaker minimum of 25 ₽.
-- No reduced-stake tier below 1% is used in this strategy version.
-- Absolute maximum per bet: 1%.
-- Aggregate exposure per match: maximum 1%.
-- Aggregate daily exposure: maximum 5%.
-- Correlated bets must be treated as combined exposure.
-- No chasing losses, no automatic stake increase after wins, and no full Kelly in v1.1.
-- 5% drawdown from the local bank peak: pause new automatic paper entries and audit.
-- 10% drawdown from the local bank peak: stop automatic paper entries and any real betting until explicit review and approval.
+- Stake size is 1% of the current bank, but never below the minimum amount explicitly set by the user.
+- The minimum stake is unset by default. When unset, the stake is exactly 1% of the current bank; there is no hard-coded 25 ₽ default.
+- If the user sets a minimum, stake = max(1% of current bank, user-defined minimum). The configured minimum may therefore make the stake exceed 1%.
+- There is no daily aggregate exposure cap and no aggregate per-match cap in this strategy.
+- Different markets in the same match are permitted; duplicate protection blocks only a repeat of the same market for the same match.
+- No chasing losses, no automatic stake increase after wins, and no full Kelly in v1.2.
+- Drawdown is measured from the local bank high-water mark.
+- 10% drawdown: pause new automatic paper entries.
+- 20% drawdown: stop automatic paper entries until explicit review and approval.
 
-The 1% value is both the base stake and the absolute ceiling per bet; the bookmaker minimum may make a stake inadmissible when it exceeds that ceiling. Any stake calculation must respect all aggregate caps.
+The 10% pause and 20% stop are risk controls for paper-bet automation. They do not submit, authorize, or execute real bookmaker bets.
 
 ## 5. Market scope
 
@@ -113,7 +113,7 @@ Use chronological splits for training, validation and a final untouched test set
 Run against current BetBoom quotes without placing real bets. Record BET, WAIT and REJECT candidates, decision-time odds and pre-kickoff closing odds. Do not change thresholds mid-cohort; version every change.
 
 ### Stage 4 — limited real launch
-Only after prior gates pass. Begin with 1% stakes, retain the 1% per-bet / per-match cap and 5% daily exposure cap, and manually review results. Do not expand markets or limits automatically.
+Only after prior gates pass. Begin with 1% stakes, apply any user-defined minimum stake, retain the 10% drawdown pause and 20% drawdown stop, and manually review results. Do not expand markets or limits automatically.
 
 ### Stage 5 — ongoing review
 Review market-level performance, calibration, CLV, drawdown, data quality and rejection reasons. Change one rule group at a time and retest on independent data.
@@ -140,8 +140,8 @@ A positive backtest alone is insufficient. Require out-of-sample and paper-tradi
 - Widespread fixture/market mapping errors: block new BET decisions.
 - Invalid or abnormal model probabilities: block new BET decisions.
 - Daily exposure cap reached: block further bets for the day.
-- 5% drawdown: pause automatic paper entries and audit.
-- 10% drawdown: stop automatic paper entries and any real betting pending explicit review.
+- 10% drawdown: pause automatic paper entries and audit.
+- 20% drawdown: stop automatic paper entries pending explicit review.
 
 A pause must not silently reset the next day. Resumption requires checking the cause.
 
@@ -149,4 +149,4 @@ A pause must not silently reset the next day. Resumption requires checking the c
 
 The Stats screen must keep this strategy guide accessible, including selection gates, value formulas, bank limits, market scope, test stages and risk stop rules. Each decision should expose its reason. Strategy version must be attached to every recorded signal.
 
-**Governance:** v1.1 thresholds remain provisional until independently validated. No profit guarantee; no automatic execution is authorized by this document.
+**Governance:** v1.2 thresholds remain provisional until independently validated. No profit guarantee; no automatic execution is authorized by this document.
