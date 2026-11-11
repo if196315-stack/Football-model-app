@@ -17,7 +17,7 @@ from predict_uefa_markets import predict_upcoming
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
 XG_HISTORY = ROOT / "artifacts" / "uefa-xg-history.json"
-ODDS_ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
+ODDS_ARCHIVE = ROOT / "artifacts" / "uefa-melbet-odds-snapshots.jsonl"
 PAPER_BETS = ROOT / "artifacts" / "uefa-paper-bets.jsonl"
 SETTLEMENTS = ROOT / "artifacts" / "uefa-paper-settlements.jsonl"
 OUTPUT = ROOT / "docs" / "uefa-data.json"
@@ -56,7 +56,7 @@ def _valid_fresh_snapshot(rows: list[dict], now: datetime) -> list[dict]:
     for row in selected:
         source_time = _parse_time(row.get("bookmaker_updated_at"))
         if (row.get("freshness_status") != "fresh"
-                or row.get("market_parser_version") != "betboom-fulltime-v2"
+                or row.get("market_parser_version") != "melbet-fulltime-v2"
                 or source_time is None):
             continue
         current_age = (now - source_time).total_seconds()
@@ -105,7 +105,7 @@ def build_odds(rows: list[dict], now: datetime | None = None) -> dict | None:
     return {
         "best": best,
         "updatedAt": board_time or captured_at,
-        "source": "API-Sport / BetBoom",
+        "source": "API-Sport / MelBet",
         "freshnessStatus": "fresh",
         "bookmakerUpdateAgeSeconds": round(max((now - _parse_time(r["bookmaker_updated_at"])).total_seconds() for r in fresh), 3),
     }
@@ -256,7 +256,7 @@ def build_feed(
     return {
         "schemaVersion": 1,
         "updatedAt": updated_at or datetime.now(timezone.utc).isoformat(),
-        "source": "PitchAPI fixtures/xG + API-Sport fixtures/BetBoom",
+        "source": "PitchAPI fixtures/xG + API-Sport fixtures/MelBet",
         "paperOnly": True,
         "predictionArchive": archive,
         "evaluationMatches": [
