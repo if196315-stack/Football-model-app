@@ -167,8 +167,10 @@ class MainActivity : Activity() {
                         val dx = event.x - gestureDownX
                         val dy = event.y - gestureDownY
                         if (!swipeOriginInLeagueFilters &&
-                            kotlin.math.abs(dx) > dp(64) &&
-                            kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.25f) {
+                            // Capture horizontal motion before a small vertical drift
+                            // lets ScrollView claim the gesture.
+                            kotlin.math.abs(dx) > dp(12) &&
+                            kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.15f) {
                             horizontalSwipeCaptured = true
                             return true
                         }
@@ -185,7 +187,7 @@ class MainActivity : Activity() {
                     when (event.actionMasked) {
                         MotionEvent.ACTION_UP -> {
                             val dx = event.x - gestureDownX
-                            if (kotlin.math.abs(dx) > dp(64)) {
+                            if (kotlin.math.abs(dx) > dp(48)) {
                                 selectAdjacentTab(if (dx < 0f) 1 else -1)
                             }
                             horizontalSwipeCaptured = false
@@ -306,11 +308,13 @@ class MainActivity : Activity() {
             overScrollMode = View.OVER_SCROLL_NEVER
             // Оставляем справа часть следующего фильтра видимой как подсказку
             // о горизонтальной прокрутке. Контент при этом можно пролистать полностью.
-            clipToPadding = false
-            setPadding(0, 0, dp(38), 0)
+            clipToPadding = true
+            setPadding(0, 0, 0, 0)
             addView(leagueBar)
         }
+        // Keep a narrow viewport so the next league chip remains visibly peeking in.
         root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2).apply {
+            rightMargin = dp(28)
             topMargin = dp(2)
             bottomMargin = dp(2)
         })
@@ -1629,6 +1633,26 @@ class MainActivity : Activity() {
         return null
     }
 
+    // If the backend's top candidate cannot be rendered, use the best valid
+    // candidate from the full list rather than hiding every available signal.
+    private fun strongestDisplaySignal(prediction: JSONObject, match: JSONObject): JSONObject? {
+        val strongest = prediction.optJSONObject("strongestSignal")
+        if (strongest != null && strongestSignalDisplayLabel(strongest, match) != null) return strongest
+        val candidates = prediction.optJSONArray("signals") ?: return strongest
+        var best: JSONObject? = null
+        var bestEdge = Double.NEGATIVE_INFINITY
+        for (index in 0 until candidates.length()) {
+            val candidate = candidates.optJSONObject(index) ?: continue
+            if (strongestSignalDisplayLabel(candidate, match) == null) continue
+            val edge = candidate.optDouble("selectionEdgePp", candidate.optDouble("edgePp", Double.NEGATIVE_INFINITY))
+            if (edge > bestEdge) {
+                best = candidate
+                bestEdge = edge
+            }
+        }
+        return best ?: strongest
+    }
+
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
         val side = signal.optString("side")
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
@@ -2115,7 +2139,7 @@ class MainActivity : Activity() {
                 val matchDay = m.optString("utcDate").take(10)
                 if (matchDay.isBlank() || matchDay < today) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
-                val signal = prediction.optJSONObject("strongestSignal") ?: continue
+                val signal = strongestDisplaySignal(prediction, m) ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
                 if (signal.optBoolean("noPositiveSignal") || edge <= 0.0 ||
                     strongestSignalDisplayLabel(signal, m) == null) continue
