@@ -75,7 +75,7 @@ class MelBetOddsArchiveTests(unittest.TestCase):
 
     def test_rejects_legacy_non_melbet_odds(self):
         data = self.sample()
-        data["competitions"][0]["matches"][0]["odds"]["bookmaker"] = "MELBET"
+        data["competitions"][0]["matches"][0]["odds"]["bookmaker"] = "BETBOOM"
         self.assertEqual(list(snapshot_rows(data, "2026-11-10T10:00:00Z")), [])
 
     def test_preserves_stale_source_status_instead_of_relabelling_it_fresh(self):
