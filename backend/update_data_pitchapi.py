@@ -351,7 +351,9 @@ def run() -> dict:
         "modelVersion": "PitchAPI shot xG · incremental migration",
         "modelConfig": {"window": WINDOW, "halfLife": HALF_LIFE, "shrinkage": SHRINKAGE},
         "xgProvider": "PitchAPI",
-        "xgHistoryMatches": int(len(results)),
+        "resultHistoryMatches": int(len(results)),
+        "resultHistoryByCompetition": {code: int((results.comp == comp).sum()) for code, comp in MAP.items()} if not results.empty else {},
+        "xgHistoryMatches": int(len(s) // 2),
         "xgHistoryPairedMatches": int(len(s) // 2),
         "xgHistoryPending": refreshed["summary"].get("pendingShotXg", 0),
         "xgUpdatedAt": cache.get("lastRefresh"),
@@ -404,7 +406,7 @@ def run() -> dict:
     payload["status"] = "ready" if upcoming else "no_predictions"
     payload["notice"] = (
         f"Прогнозы доступны для {len(upcoming)} предстоящих матчей; "
-        f"в истории {len(results)} матчей с парным xG, ожидают xG: {payload['xgHistoryPending']}."
+        f"в истории результатов {len(results)} матчей; парный xG есть у {len(s) // 2}, ожидают xG: {payload['xgHistoryPending']}."
     )
     update_prediction_archive(payload)
     retained = preserve_odds_by_identity(payload)
