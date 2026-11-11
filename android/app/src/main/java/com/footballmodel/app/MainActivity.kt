@@ -63,6 +63,7 @@ class MainActivity : Activity() {
     private var data: JSONObject? = null
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
+    private val aiSignalPrefs by lazy { getSharedPreferences("ai_signal_history", MODE_PRIVATE) }
     private val settingsPrefs by lazy { getSharedPreferences("bank_settings", MODE_PRIVATE) }
     private val feedCache by lazy { getSharedPreferences("feed_cache_v1", MODE_PRIVATE) }
     private val loadInProgress = AtomicBoolean(false)
@@ -934,7 +935,9 @@ class MainActivity : Activity() {
                     }
                 }
                 // Build the AI candidate snapshot off the main thread before checking notifications.
-                val aiCandidates = collectAiCandidates(json).map { item ->
+                val aiMatchCandidates = collectAiCandidates(json)
+                updateAiSignalArchive(json, aiMatchCandidates)
+                val aiCandidates = aiMatchCandidates.map { item ->
                     val match = item.first
                     val matchId = match.optString("id").ifBlank {
                         listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
@@ -1560,8 +1563,46 @@ class MainActivity : Activity() {
                 else -> { pending++; possiblePayout += stake * odds; possibleProfit += stake * (odds - 1.0) }
             }
         }
+        val aiHistoryCard = card()
+        addText(aiHistoryCard, "AI · АВТОИСТОРИЯ РЕКОМЕНДАЦИЙ", 10, true, cyan)
+        addText(aiHistoryCard, "Каждый сигнал из раздела AI с котировкой BetBoom фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал; альтернативы считаются отдельно. История локальная для этого устройства.", 9, false, muted)
+        val aiHistory = try {
+            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
+        } catch (_: Exception) {
+            JSONArray()
+        }
+        val aiLeagueNames = linkedMapOf(
+            "PL" to "Англия · Премьер-лига",
+            "PD" to "Испания · Ла Лига",
+            "SA" to "Италия · Серия A",
+            "BL1" to "Германия · Бундеслига",
+            "FL1" to "Франция · Лига 1",
+            "UCL" to "Лига чемпионов УЕФА",
+            "UEL" to "Лига Европы УЕФА",
+            "UECL" to "Лига конференций УЕФА",
+        )
+        val aiRowsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
+        aiLeagueNames.forEach { (code, _) -> aiRowsByLeague[code] = mutableListOf() }
+        for (i in 0 until aiHistory.length()) {
+            val row = aiHistory.optJSONObject(i) ?: continue
+            val code = row.optString("leagueCode")
+            aiRowsByLeague.getOrPut(code.ifBlank { row.optString("league") }) { mutableListOf() }.add(row)
+        }
+        aiRowsByLeague.forEach { (code, rows) ->
+            val wins = rows.count { it.optString("status") == "WON" }
+            val losses = rows.count { it.optString("status") == "LOST" }
+            val pendingSignals = rows.count { it.optString("status") == "PENDING" }
+            val settledSignals = wins + losses
+            val profitUnits = rows.filter { it.optString("status") in listOf("WON", "LOST") }
+                .sumOf { it.optDouble("profitUnits", 0.0) }
+            val roi = if (settledSignals > 0) String.format(Locale.US, "%.1f%%", profitUnits / settledSignals * 100.0) else "—"
+            val name = aiLeagueNames[code] ?: code
+            addText(aiHistoryCard, "$name · сигналов ${rows.size} · W $wins / L $losses / ждут $pendingSignals · ROI $roi", 10, false, muted)
+        }
+        if (aiHistory.length() == 0) addText(aiHistoryCard, "Пока нет сохранённых AI-рекомендаций. Новые сигналы будут фиксироваться автоматически.", 10, false, muted)
+
         val sum = card()
-        addText(sum, "СТАТИСТИКА СТАВОК", 10, true, accent)
+        addText(sum, "СТАТИСТИКА СОХРАНЁННЫХ СТАВОК", 10, true, accent)
         addText(sum, "Всего: " + bets.length() + " · выигрыш: " + wins + " · проигрыш: " + losses + " · возврат: " + pushes + " · открытые: " + pending, 12, true)
         addText(sum, "Сумма ставок: " + fmt(stakeAll), 13, true)
         addText(sum, "Возможная выплата по открытым: " + fmt(possiblePayout) + " · чистый выигрыш: +" + fmt(possibleProfit), 12, true, accent)
@@ -1569,8 +1610,8 @@ class MainActivity : Activity() {
         addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + " · рассчитанный оборот: " + fmt(turnover), 12, true)
         addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
         addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
-        addText(sum, "AI · СТАТИСТИКА ПО ТУРНИРАМ", 10, true, cyan)
-        addText(sum, "По сохранённым в приложении AI-ставкам; это не подсчёт всех показанных рекомендаций.", 9, false, muted)
+        addText(sum, "ПОЛЬЗОВАТЕЛЬСКИЕ СТАВКИ · ПО ТУРНИРАМ", 10, true, cyan)
+        addText(sum, "Только ставки, которые пользователь сохранил отдельно; автоматическая история AI-рекомендаций показана выше.", 9, false, muted)
         val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
         listOf(
             "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
@@ -2186,8 +2227,140 @@ class MainActivity : Activity() {
         )
     }
 
+    private fun aiSignalOutcome(side: String, match: JSONObject): Boolean? {
+        if (match.isNull("homeScore") || match.isNull("awayScore")) return null
+        val homeScore = match.optInt("homeScore")
+        val awayScore = match.optInt("awayScore")
+        return when {
+            side.equals("1X", ignoreCase = true) -> homeScore >= awayScore
+            side.equals("X2", ignoreCase = true) -> awayScore >= homeScore
+            side.equals("ОЗ ДА", ignoreCase = true) -> homeScore > 0 && awayScore > 0
+            side.startsWith("ТБ ", ignoreCase = true) -> {
+                val line = side.substringAfter("ТБ ").trim().toDoubleOrNull() ?: return null
+                homeScore + awayScore > line
+            }
+            side.startsWith("ИТБ ", ignoreCase = true) -> {
+                val line = side.substringAfter("ИТБ ").substringBefore("·").trim().toDoubleOrNull() ?: return null
+                val team = side.substringAfter("·", "").trim()
+                val teamScore = when {
+                    team.equals(match.optString("home"), ignoreCase = true) -> homeScore
+                    team.equals(match.optString("away"), ignoreCase = true) -> awayScore
+                    else -> return null
+                }
+                teamScore > line
+            }
+            else -> null
+        }
+    }
+
+    private fun updateAiSignalArchive(
+        json: JSONObject,
+        candidates: List<Triple<JSONObject, String, JSONObject>>
+    ) {
+        val archive = try {
+            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
+        } catch (_: Exception) {
+            JSONArray()
+        }
+        val known = mutableSetOf<String>()
+        for (i in 0 until archive.length()) {
+            archive.optJSONObject(i)?.let { known.add(it.optString("signalKey")) }
+        }
+        val now = System.currentTimeMillis()
+        candidates.forEach candidateLoop@ { (match, leagueName, bundle) ->
+            val matchId = match.optString("id").ifBlank {
+                listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
+            }
+            val kickoff = kickoffTimestamp(match) ?: return@candidateLoop
+            if (kickoff <= now) return@candidateLoop
+            val signals = mutableListOf<JSONObject>()
+            bundle.optJSONObject("primary")?.let { signals.add(it) }
+            val alternatives = bundle.optJSONArray("alternatives")
+            if (alternatives != null) for (i in 0 until alternatives.length()) {
+                alternatives.optJSONObject(i)?.let { signals.add(it) }
+            }
+            signals.forEach signalLoop@ { signal ->
+                val side = signal.optString("side").trim()
+                val price = topSignalOdds(signal, match) ?: return@signalLoop
+                val signalKey = "$matchId|$side"
+                if (signalKey in known) return@signalLoop
+                val leagueCode = json.optJSONArray("competitions")?.let { competitions ->
+                    (0 until competitions.length()).firstNotNullOfOrNull { index ->
+                        val competition = competitions.optJSONObject(index) ?: return@firstNotNullOfOrNull null
+                        val matches = competition.optJSONArray("matches") ?: return@firstNotNullOfOrNull null
+                        val found = (0 until matches.length()).any { matches.optJSONObject(it)?.optString("id") == matchId }
+                        if (found) competition.optString("code") else null
+                    }
+                }.orEmpty()
+                archive.put(JSONObject()
+                    .put("signalKey", signalKey)
+                    .put("matchId", matchId)
+                    .put("leagueCode", leagueCode)
+                    .put("league", leagueName)
+                    .put("home", match.optString("home"))
+                    .put("away", match.optString("away"))
+                    .put("kickoff", match.optString("utcDate"))
+                    .put("side", side)
+                    .put("market", signal.optString("market"))
+                    .put("price", price)
+                    .put("modelProbability", signal.optDouble("modelProbability", Double.NaN))
+                    .put("edgePp", signal.optDouble("selectionEdgePp", signal.optDouble("edgePp", 0.0)))
+                    .put("capturedAt", now)
+                    .put("status", "PENDING"))
+                known.add(signalKey)
+            }
+        }
+
+        for (i in 0 until archive.length()) {
+            val row = archive.optJSONObject(i) ?: continue
+            if (row.optString("status") != "PENDING") continue
+            val match = findMatch(json, JSONObject().put("matchId", row.optString("matchId"))) ?: continue
+            when (match.optString("status")) {
+                "FINISHED" -> {
+                    val won = aiSignalOutcome(row.optString("side"), match) ?: continue
+                    val price = row.optDouble("price", 1.0)
+                    row.put("status", if (won) "WON" else "LOST")
+                        .put("homeScore", match.optInt("homeScore"))
+                        .put("awayScore", match.optInt("awayScore"))
+                        .put("profitUnits", if (won) price - 1.0 else -1.0)
+                        .put("settledAt", now)
+                }
+                "POSTPONED", "CANCELED", "CANCELLED" -> row.put("status", "VOID").put("settledAt", now)
+            }
+        }
+        aiSignalPrefs.edit().putString("signals", archive.toString()).apply()
+    }
+
+    private fun renderAiSignalPerformanceSummary() {
+        val archive = try {
+            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
+        } catch (_: Exception) {
+            JSONArray()
+        }
+        var wins = 0
+        var losses = 0
+        var pending = 0
+        var profitUnits = 0.0
+        for (i in 0 until archive.length()) {
+            val row = archive.optJSONObject(i) ?: continue
+            when (row.optString("status")) {
+                "WON" -> { wins++; profitUnits += row.optDouble("profitUnits", 0.0) }
+                "LOST" -> { losses++; profitUnits += row.optDouble("profitUnits", 0.0) }
+                "PENDING" -> pending++
+            }
+        }
+        val settled = wins + losses
+        val roi = if (settled > 0) String.format(Locale.US, "%.1f%%", profitUnits / settled * 100.0) else "—"
+        val summary = card()
+        addText(summary, "AI · РЕЗУЛЬТАТ РЕКОМЕНДАЦИЙ", 10, true, cyan)
+        addText(summary, "Зафиксировано: ${archive.length()} · W $wins / L $losses · ожидают: $pending", 12, true, Color.WHITE)
+        addText(summary, "ROI: $roi · расчёт по 1 условной единице на каждый сигнал", 10, false, muted)
+        if (archive.length() == 0) addText(summary, "История начнёт накапливаться после появления первых сигналов с котировкой BetBoom.", 10, false, muted)
+    }
+
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый рынок проходит независимую проверку исторической базы, цены BetBoom и ограничений модели.")
+        renderAiSignalPerformanceSummary()
         val sorted = collectAiCandidates(json)
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
