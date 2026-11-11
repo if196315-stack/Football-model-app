@@ -6,7 +6,7 @@
 **Launch:** LIMITED  
 **Bookmaker/data source:** BetBoom odds supplied through API-Sport only
 
-This document is the source of truth for the initial IQ MATCH strategy. Thresholds are starting engineering parameters, not validated optimal values and not a promise of profitability.
+This document is the source of truth for the current IQ MATCH strategy. Thresholds are starting engineering parameters, not validated optimal values and not a promise of profitability.
 
 ## 1. Decision pipeline
 
