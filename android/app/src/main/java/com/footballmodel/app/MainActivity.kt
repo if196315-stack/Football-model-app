@@ -1572,6 +1572,11 @@ class MainActivity : Activity() {
         addText(sum, "AI · СТАТИСТИКА ПО ТУРНИРАМ", 10, true, cyan)
         addText(sum, "По сохранённым в приложении AI-ставкам; это не подсчёт всех показанных рекомендаций.", 9, false, muted)
         val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
+        listOf(
+            "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
+            "Германия · Бундеслига", "Франция · Лига 1",
+            "Лига чемпионов УЕФА", "Лига Европы УЕФА", "Лига конференций УЕФА",
+        ).forEach { betsByLeague[it] = mutableListOf() }
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             val league = bet.optString("league").ifBlank { "Турнир не указан" }
