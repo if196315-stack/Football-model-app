@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture timestamped BetBoom odds for UEFA Champions League and Europa League.
+"""Capture timestamped BetBoom odds for UEFA Champions League, Europa League and Conference League.
 
 The archive stores only the strategy's supported markets and exact line values.
 It records both capture time and the bookmaker board's source-side prematch update
