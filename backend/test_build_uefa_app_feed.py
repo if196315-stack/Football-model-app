@@ -52,5 +52,50 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertNotIn("UNL", [c["code"] for c in feed["competitions"]])
 
 
+
+    def test_uecl_calendar_keeps_all_fixtures_when_betboom_covers_only_subset(self):
+        now = datetime.now(timezone.utc)
+        captured_at = now.isoformat()
+        fixtures = {
+            f"uecl-{i}": {
+                "leagueCode": "UECL", "status": "not_started",
+                "date": f"2026-12-{20 + i:02d}T18:00:00Z",
+                "home": f"Home {i}", "away": f"Away {i}",
+            }
+            for i in range(1, 4)
+        }
+        prediction = {
+            "markets": {
+                "double_chance": {"1x": 0.7, "x2": 0.6},
+                "match_total": {"over": {"1.5": 0.8, "2.5": 0.6, "3.5": 0.4}},
+                "team_total": {
+                    "home": {"over": {"0.5": 0.8, "1.5": 0.5, "2.5": 0.2, "3.5": 0.1}},
+                    "away": {"over": {"0.5": 0.7, "1.5": 0.4, "2.5": 0.2, "3.5": 0.1}},
+                },
+                "btts": {"yes": 0.55, "no": 0.45},
+            },
+            "home_lambda": 1.4, "away_lambda": 1.1, "model_version": "test",
+        }
+        odds_rows = [{
+            "fixture_id": "uecl-1", "league_code": "UECL",
+            "captured_at": captured_at, "bookmaker_updated_at": captured_at,
+            "freshness_status": "fresh", "market_parser_version": "betboom-fulltime-v2",
+            "market": "btts", "outcome": "yes", "price": 1.9,
+        }]
+
+        feed = build_feed(
+            {"matches": fixtures}, {"matches": []}, odds_rows, [], [],
+            predictions={"uecl-1": prediction}, updated_at=captured_at,
+        )
+        matches = feed["competitions"][2]["matches"]
+        self.assertEqual(len(matches), 3)
+        by_id = {match["id"]: match for match in matches}
+        self.assertIsNotNone(by_id["uecl-1"]["prediction"])
+        self.assertIsNotNone(by_id["uecl-1"]["odds"])
+        self.assertIsNone(by_id["uecl-2"]["odds"])
+        self.assertIsNone(by_id["uecl-3"]["odds"])
+        self.assertIsNone(by_id["uecl-2"]["prediction"])
+        self.assertIsNone(by_id["uecl-3"]["prediction"])
+
 if __name__ == "__main__":
     unittest.main()
