@@ -834,6 +834,16 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     }
+                    // Notify once when a fixture first enters the fully filtered AI candidate list.
+                    val aiCandidates = collectAiCandidates(json)
+                    AiMatchNotifications.observe(this, aiCandidates.map { item ->
+                        val match = item.first
+                        val matchId = match.optString("id").ifBlank {
+                            listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
+                        }
+                        val title = "${match.optString("home")} — ${match.optString("away")}"
+                        matchId to title
+                    })
                     // Detect changes to the combined report-and-observations section.
                     val currentBets = betPrefs.getString("bets", "[]") ?: "[]"
                     val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -1974,10 +1984,7 @@ class MainActivity : Activity() {
             }.show()
     }
 
-    private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
-        val bank = currentBankroll()
-
+    private fun collectAiCandidates(json: JSONObject): List<Triple<JSONObject, String, JSONObject>> {
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
@@ -1994,18 +2001,21 @@ class MainActivity : Activity() {
                     }
                 }
                 if (matchDay.isBlank()) continue
-                val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }.format(Date())
                 if (matchDay < today) continue
                 val signal = m.optJSONObject("prediction")?.optJSONObject("strongestSignal")
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 || signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
                 candidates.add(Triple(m, league.optString("name"), signal))
             }
         }
-        val sorted = candidates.filter { item ->
+        return candidates.filter { item ->
             val m = item.first
             val signal = item.third
             val price = topSignalOdds(signal, m) ?: return@filter false
@@ -2024,6 +2034,13 @@ class MainActivity : Activity() {
                     it.third.optDouble("modelProbability") * price - 1.0
                 }
         )
+    }
+
+    private fun renderBettingDesk(json: JSONObject) {
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый кандидат проходит проверку исторической базы, цены BetBoom и ограничений модели.")
+        val bank = currentBankroll()
+
+        val sorted = collectAiCandidates(json)
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО AI-СИГНАЛОВ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
