@@ -1,6 +1,6 @@
 """API-Sport.ru odds ingestion using BetBoom exclusively. Fixture/model source remains PitchAPI."""
 import json, os, re, unicodedata
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 import requests
@@ -408,29 +408,63 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
     }
 
 
+def iter_date_windows(start_date, end_date, max_days=31):
+    """Yield inclusive API-Sport date ranges no longer than max_days."""
+    if max_days < 1:
+        raise ValueError("max_days must be positive")
+    current = start_date
+    while current <= end_date:
+        window_end = min(current + timedelta(days=max_days - 1), end_date)
+        yield current, window_end
+        current = window_end + timedelta(days=1)
+
+
+def _response_matches(response):
+    # Keep the provider's validation message in Actions logs; HTTPError alone
+    # hides the JSON error body that explains invalid query parameters.
+    if not response.ok:
+        raise RuntimeError(
+            f"API-Sport request failed ({response.status_code}): "
+            f"{response.text[:1000]}"
+        )
+    payload = response.json()
+    return payload if isinstance(payload, list) else list(payload.get("matches") or []), (
+        1 if isinstance(payload, list) else min(int(payload.get("totalPages") or 1), 100)
+    )
+
+
 def main():
     key=os.getenv("API_SPORT_KEY","").strip()
     if not key:raise RuntimeError("API_SPORT_KEY missing from GitHub Secrets")
     data=json.loads(DATA.read_text(encoding="utf-8"))
     today=datetime.now(timezone.utc).date()
-    # No artificial upper date bound: request every upcoming fixture available to API-Sport.
-    params={"date_from":today.isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
+    relevant_dates = [
+        kickoff(match).date()
+        for comp in data.get("competitions", [])
+        for match in comp.get("matches", [])
+        if match.get("status") in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED")
+        and kickoff(match) is not None
+        and kickoff(match).date() >= today
+    ]
+    # API-Sport requires date_from and date_to together and limits each
+    # inclusive range to 31 days. Fetch only as far as the model feed needs.
+    end_date = max(relevant_dates, default=today)
+    base_params={"exclude_amateur":"true","view":"odds","with_bk_odds":"true",
+                 "odds_stage":"all","bookmaker_ids":",".join(BOOKS),
+                 "page_size":500,"sort":"asc"}
     session=requests.Session();session.headers.update({"Authorization":key})
-    # API pages are capped at 500 fixtures; walk all reported pages (up to the safety cap).
-    params["page"]=1
-    resp=session.get(URL,params=params,timeout=60);resp.raise_for_status()
-    payload=resp.json()
-    if isinstance(payload,list):
-        fixtures=payload
-    else:
-        fixtures=list(payload.get("matches") or [])
-        total_pages=min(int(payload.get("totalPages") or 1),100)
+    fixtures=[]
+    for date_from, date_to in iter_date_windows(today, end_date, max_days=31):
+        params={**base_params,"date_from":date_from.isoformat(),
+                "date_to":date_to.isoformat(),"page":1}
+        response=session.get(URL,params=params,timeout=60)
+        page_matches,total_pages=_response_matches(response)
+        fixtures.extend(page_matches)
         for page in range(2,total_pages+1):
             page_params={**params,"page":page}
-            page_resp=session.get(URL,params=page_params,timeout=60)
-            page_resp.raise_for_status()
-            page_payload=page_resp.json()
-            fixtures.extend(page_payload if isinstance(page_payload,list) else page_payload.get("matches") or [])
+            page_response=session.get(URL,params=page_params,timeout=60)
+            page_matches,_=_response_matches(page_response)
+            fixtures.extend(page_matches)
     eligible=matched=updated=retained=0
     matched_team_total_quotes = matched_team_total_fixtures = 0
     matched_team_totals_by_competition = {}
