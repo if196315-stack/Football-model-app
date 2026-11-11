@@ -95,3 +95,18 @@ No production ingestion, source selection, probabilities, odds parser, prematch-
 | SA | 2027-05-30 | 2027-05-29 | Monza – Torino | 16285286 |
 | SA | 2027-05-30 | 2027-05-29 | Napoli – Atalanta | 16285287 |
 | SA | 2027-05-30 | 2027-05-29 | Sassuolo – Inter | 16285284 |
+
+
+## Why the 31 same-date pairs were still rejected by the original matcher
+
+A follow-up comparison applied the current production name-score thresholds to the best team candidates scoped to the expected tournament:
+
+- Only **1 of the 31** same-calendar-date pairs clears the current name thresholds (`home >= 0.68`, `away >= 0.68`, combined score `>= 1.48`).
+- **30 of 31** fall below at least one of those name thresholds. The recurring low-similarity aliases include Roma/AS Roma, Napoli/SSC Napoli, Milan/AC Milan, Paderborn/SC Paderborn 07, Elversberg/SV 07 Elversberg, Slavia Prague and Salzburg.
+- The remaining Chelsea–Aston Villa pair has two API-Sport rows with the same team IDs and date. The production matcher deliberately rejects near-tied duplicate candidates, which explains why a pair can exist but still not be selected unambiguously.
+
+This is a diagnostic explanation, not a recommendation to lower fuzzy-match thresholds. Lowering thresholds globally could create false positives, especially where similarly named reserve/youth teams exist. A safe future improvement would require a reviewed, competition-scoped alias map and explicit duplicate handling, validated against negative examples before any production change.
+
+## Important correction to interpretation
+
+The 31 same-date cases are **not** evidence that kickoff times agree. The pair-ID output retained only the date field, not the full raw kickoff timestamp. The 39 date-offset cases also require raw timestamp/time-zone verification before attributing the discrepancy to a provider calendar convention. No additional API-Sport detail calls were made in this follow-up, to avoid spending API budget. The date-offset pattern is observed in the downloaded fixture rows, but its cause is not yet proven.
