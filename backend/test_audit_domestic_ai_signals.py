@@ -19,7 +19,7 @@ class AndroidParityTests(unittest.TestCase):
     def test_line_leader_is_max_kelly_among_positive_ev_not_max_probability(self):
         match = melbet_match({
             "doubleChance": {"1x": 1.8},
-            "totals": [{"side": "over", "point": 2.5, "price": 2.2}],
+            "totals": [{"side": "over", "point": 2.5, "price": 10.0}],
         })
         prediction = {"signals": [
             {"side": "1X", "modelProbability": .80},
