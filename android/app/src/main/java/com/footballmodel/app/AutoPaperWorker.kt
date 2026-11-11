@@ -126,11 +126,12 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         val competitions = feed.optJSONArray("competitions") ?: return changed
         val now = System.currentTimeMillis()
         val dayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now))
+        val hasInitialBankroll = settings.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()?.let { it.isFinite() && it > 0.0 } ?: false
         val bankBeforeEntries = currentBank(bets)
         val storedHigh = settings.getString("paper_high_watermark", null)?.toDoubleOrNull()
         val highWater = max(storedHigh ?: bankBeforeEntries, bankBeforeEntries)
-        if (storedHigh == null || highWater > storedHigh) settings.edit().putString("paper_high_watermark", highWater.toString()).commit()
-        val drawdown = if (highWater > 0.0) (highWater - bankBeforeEntries) / highWater else 0.0
+        if (hasInitialBankroll && (storedHigh == null || highWater > storedHigh)) settings.edit().putString("paper_high_watermark", highWater.toString()).commit()
+        val drawdown = if (hasInitialBankroll && highWater > 0.0) (highWater - bankBeforeEntries) / highWater else 0.0
         if (settings.getInt("paper_risk_policy_version", 0) < 2) {
             val migration = settings.edit().putInt("paper_risk_policy_version", 2)
             if (drawdown < 0.20) migration.putBoolean("paper_auto_stopped", false)
@@ -204,7 +205,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                         val prior = bets.optJSONObject(bi) ?: continue
                         if (prior.optString("id") == id) { duplicate = true; break }
                     }
-                    if (duplicate || autoStopped || drawdownPaused) continue
+                    if (duplicate || autoStopped || drawdownPaused || !hasInitialBankroll) continue
                     val bank = currentBank(bets)
                     val minimumStake = settings.getString("minimum_stake", null)?.replace(',', '.')?.toDoubleOrNull()
                         ?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
@@ -275,8 +276,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     }
 
     private fun currentBank(bets: JSONArray): Double {
-        val start = settings.getString("initial_bankroll", "5000")?.replace(',', '.')?.toDoubleOrNull()
-            ?.takeIf { it.isFinite() && it > 0.0 } ?: 5000.0
+        val start = settings.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
         var bank = start
         for (i in 0 until bets.length()) {
             val b = bets.optJSONObject(i) ?: continue
