@@ -2791,7 +2791,12 @@ class MainActivity : Activity() {
                                     10, false, muted)
                             }
                             if (signal.has("baselineProbability")) {
-                                addText(signalBox, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}% · ${signal.optInt("baselineMatches")} матчей до даты игры.", 10, false, muted)
+                                addText(signalBox, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}% · ${signal.optInt("baselineMatches")} матчей своей лиги до игры.", 10, false, muted)
+                                val priorMatches = signal.optInt("baselinePriorMatches", 0)
+                                val priorStrength = signal.optInt("baselinePriorStrength", 0)
+                                if (priorMatches > 0 && priorStrength > 0) {
+                                    addText(signalBox, "Общая база других лиг: ${priorMatches} матчей; вес в расчёте — ${priorStrength} условных матчей.", 10, false, muted)
+                                }
                             }
                             val formAdjustment = signal.optDouble("formAdjustmentPp", 0.0)
                             if (formAdjustment.isFinite() && formAdjustment != 0.0) {
