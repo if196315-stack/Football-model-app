@@ -218,18 +218,19 @@ def parse_odds(m):
                 for line in lines(stake):
                     price=float(line["factor"]); arg=line.get("argument"); key=outcome.lower()
                     if kind=="dc":
-                        key={"home_or_draw":"1x","draw_or_away":"x2","home_or_away":"12"}.get(key,key)
-                        if key not in ("1x","x2","12"):continue
+                        key={"home_or_draw":"1x","draw_or_away":"x2"}.get(key,key)
+                        if key not in ("1x","x2"):continue
                         best["doubleChance"][key]=max(price,best["doubleChance"].get(key,0))
                         books_best["doubleChance"][key]=bk.upper(); row["doubleChance"][key]=price
                     elif kind=="btts":
-                        side = ("yes" if key in ("yes", "true", "1") or key.endswith("_yes") else
-                                "no" if key in ("no", "false", "2") or key.endswith("_no") else None)
+                        side = ("yes" if key in ("yes", "true", "1") or key.endswith("_yes") else None)
                         if not side:continue
                         if price>best["btts"].get(side,0):
                             best["btts"][side]=price; books_best["btts"][side]=bk.upper()
                         row["btts"][side]=price
                     elif kind=="spread":
+                        # Handicap markets are not part of the model's approved market set.
+                        continue
                         side="home" if key in ("handicap_1","w1","home","1") or slug.endswith("_1") else ("away" if key in ("handicap_2","w2","away","2") or slug.endswith("_2") else None)
                         if side is None or arg is None or abs(float(arg))>.001:continue
                         q={"team":side,"point":0.0,"price":price,
@@ -244,8 +245,7 @@ def parse_odds(m):
                         # API-Sport may encode the selection as "over", "over_1_5",
                         # or "Over 1.5". Normalize the selection without relying on
                         # the exact line suffix; the line itself comes from argument.
-                        side_key = ("over" if key in ("over", "больше") or key.startswith(("over", "больше")) else
-                                    "under" if key in ("under", "меньше") or key.startswith(("under", "меньше")) else None)
+                        side_key = ("over" if key in ("over", "больше") or key.startswith(("over", "больше")) else None)
                         if side_key is None or arg is None:continue
                         try:
                             point = float(arg)
