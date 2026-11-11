@@ -178,6 +178,54 @@ class PitchApiUpdaterTests(unittest.TestCase):
             finally:
                 updater.OUT = old_out
 
+    def test_strongest_signal_uses_only_displayed_yes_and_over_markets(self):
+        from update_data import signal_candidates, strongest_signal
+
+        fields = ("1x", "x2", "bttsYes", "over15", "over25", "over35",
+                  "homeOver05", "homeOver15", "homeOver25", "homeOver35",
+                  "awayOver05", "awayOver15", "awayOver25", "awayOver35")
+        prediction = {field: 0.80 for field in fields}
+        baseline = {field: 0.50 for field in fields}
+        baseline["matches"] = 250
+        candidates = signal_candidates(prediction, baseline, "Home", "Away")
+        sides = {item["side"] for item in candidates}
+        self.assertIn("1X", sides)
+        self.assertIn("X2", sides)
+        self.assertIn("ОЗ ДА", sides)
+        self.assertIn("ТБ 2.5", sides)
+        self.assertIn("ИТБ 1.5 · Home", sides)
+        self.assertFalse(any("Не " in side or "ИТМ" in side or side.startswith("ТМ ")
+                             or side in ("П1", "П2", "Ничья") for side in sides))
+        best = strongest_signal(prediction, baseline, "Home", "Away")
+        self.assertIn(best["side"], sides)
+
+    def test_low_probability_is_not_inverted_into_forbidden_under_or_1x2_signal(self):
+        from update_data import signal_candidates
+
+        fields = ("1x", "x2", "bttsYes", "over15", "over25", "over35",
+                  "homeOver05", "homeOver15", "homeOver25", "homeOver35",
+                  "awayOver05", "awayOver15", "awayOver25", "awayOver35")
+        prediction = {field: 0.20 for field in fields}
+        baseline = {field: 0.50 for field in fields}
+        baseline["matches"] = 250
+        self.assertEqual(signal_candidates(prediction, baseline, "Home", "Away"), [])
+
+    def test_historical_baselines_cover_all_displayed_yes_and_over_markets(self):
+        from update_data import historical_baselines
+
+        rows = []
+        for i in range(120):
+            rows.append({"comp": "eng", "date": pd.Timestamp("2026-01-01") + pd.Timedelta(days=i),
+                         "home_score": i % 4, "away_score": (i // 2) % 3})
+        matches = pd.DataFrame(rows)
+        baseline = historical_baselines(matches, "eng", "2026-06-01")
+        self.assertEqual(baseline["matches"], 120)
+        for field in ("1x", "x2", "bttsYes", "over15", "over25", "over35",
+                      "homeOver05", "homeOver15", "homeOver25", "homeOver35",
+                      "awayOver05", "awayOver15", "awayOver25", "awayOver35"):
+            self.assertGreater(baseline[field], 0.0)
+            self.assertLess(baseline[field], 1.0)
+
     def test_zero_handicap_markets_are_not_calculated_or_signalled(self):
         probabilities = markets(1.4, 0.9)
         self.assertNotIn("dnbHome", probabilities)
