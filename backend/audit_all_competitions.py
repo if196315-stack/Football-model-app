@@ -63,6 +63,7 @@ def build_all(domestic, uefa, today=None):
                         and audit.odds_for({"side": side}, match) is not None):
                     priced += 1
         league["counts"]["priced_market_quotes"] = priced
+    report["totals"]["priced_market_quotes"] = sum(x["counts"].get("priced_market_quotes", 0) for x in report["leagues"].values())
     report["scope"] = ["ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL"]
     report["sources"] = ["docs/data.json", "docs/uefa-data.json"]
     return report
