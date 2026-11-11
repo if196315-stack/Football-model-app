@@ -97,5 +97,52 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertIsNone(by_id["uecl-2"]["prediction"])
         self.assertIsNone(by_id["uecl-3"]["prediction"])
 
+    def test_freezes_pre_kickoff_prediction_and_adds_final_result_without_rewriting(self):
+        kickoff = "2026-11-20T18:00:00Z"
+        now_before = datetime(2026, 11, 19, 12, 0, tzinfo=timezone.utc)
+        prediction = {
+            "markets": {
+                "double_chance": {"1x": 0.71, "x2": 0.62},
+                "match_total": {"over": {"1.5": 0.80, "2.5": 0.61, "3.5": 0.39}},
+                "team_total": {
+                    "home": {"over": {"0.5": 0.81, "1.5": 0.56, "2.5": 0.27, "3.5": 0.10}},
+                    "away": {"over": {"0.5": 0.72, "1.5": 0.43, "2.5": 0.19, "3.5": 0.07}},
+                },
+                "btts": {"yes": 0.58, "no": 0.42},
+            },
+            "home_lambda": 1.5, "away_lambda": 1.0, "model_version": "test",
+            "history_max_date": "2026-11-18",
+        }
+        upcoming_cache = {"matches": {
+            "uecl-archive-1": {"leagueCode": "UECL", "status": "scheduled",
+                               "date": kickoff, "home": "Alpha", "away": "Beta"}
+        }}
+        first = build_feed(
+            upcoming_cache, {"matches": []}, [], [], [],
+            predictions={"uecl-archive-1": prediction},
+            now=now_before,
+        )
+        key = "UECL:uecl-archive-1"
+        frozen = first["predictionArchive"]["matches"][key]["prediction"]
+        self.assertEqual(frozen["over25"], 0.61)
+        self.assertEqual(first["evaluationMatches"], [])
+
+        finished_cache = {"matches": {
+            "uecl-archive-1": {"leagueCode": "UECL", "status": "finished",
+                               "date": kickoff, "home": "Alpha", "away": "Beta",
+                               "homeScore": 2, "awayScore": 1}
+        }}
+        second = build_feed(
+            finished_cache, {"matches": []}, [], [], [],
+            predictions={}, previous_archive=first["predictionArchive"],
+            now=datetime(2026, 11, 21, 12, 0, tzinfo=timezone.utc),
+        )
+        self.assertEqual(second["predictionArchive"]["matches"][key]["prediction"], frozen)
+        self.assertEqual(len(second["evaluationMatches"]), 1)
+        evaluated = second["evaluationMatches"][0]
+        self.assertEqual(evaluated["homeScore"], 2)
+        self.assertEqual(evaluated["awayScore"], 1)
+        self.assertEqual(evaluated["leagueCode"], "UECL")
+
 if __name__ == "__main__":
     unittest.main()
