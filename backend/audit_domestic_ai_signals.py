@@ -5,7 +5,7 @@ from collections import Counter
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-LEAGUES = {"ENG":"Англия · Премьер-лига","ESP":"Испания · Ла Лига","ITA":"Италия · Серия A","GER":"Германия · Бундеслига","FRA":"Франция · Лига 1"}
+LEAGUES = {"ENG":("PL","Англия · Премьер-лига"),"ESP":("PD","Испания · Ла Лига"),"ITA":("SA","Италия · Серия A"),"GER":("BL1","Германия · Бундеслига"),"FRA":("FL1","Франция · Лига 1")}
 MIN_ODDS, MIN_PROB, MIN_EV, MIN_IMPLIED = 1.50, 0.60, 0.05, 0.05
 
 def num(v, default=float("nan")):
@@ -104,8 +104,8 @@ def build(data):
     today=datetime.now(timezone.utc).date()
     out={"generated_at_utc":datetime.now(timezone.utc).isoformat(),"as_of_utc_date":today.isoformat(),"thresholds":{"min_odds":MIN_ODDS,"min_probability":MIN_PROB,"min_ev_pct":MIN_EV*100,"min_selection_edge_pp":"> 0","min_implied_edge_pct_non_paper":MIN_IMPLIED*100,"min_raw_edge_pp_paper_only":5},"leagues":{}}
     comps=data.get("competitions",[])
-    for code,name in LEAGUES.items():
-        comp=next((x for x in comps if isinstance(x,dict) and s(x.get("code")).upper()==code),{})
+    for code,(feed_code,name) in LEAGUES.items():
+        comp=next((x for x in comps if isinstance(x,dict) and s(x.get("code")).upper()==feed_code),{})
         counts=Counter(); qualifying=[]; with_candidates=[]
         for m in comp.get("matches",[]) if isinstance(comp,dict) else []:
             if not isinstance(m,dict) or s(m.get("status")) not in ("SCHEDULED","TIMED"): continue
