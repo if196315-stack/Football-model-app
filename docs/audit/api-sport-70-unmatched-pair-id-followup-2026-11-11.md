@@ -136,3 +136,10 @@ The pair-ID follow-up therefore establishes candidate ordered-pair presence in t
 The saved pair-ID output contains calendar dates, not raw kickoff timestamps with offsets. The logs and artifacts from this run do not provide a recoverable raw fixture payload, and the workflow produced no artifact. Consequently, the repeated one-day Serie A/Bundesliga offsets cannot be attributed to UTC conversion, timezone handling, or provider schedule revisions from the existing evidence.
 
 No further API-Sport calls were made during this follow-up review. To establish the cause, a later explicitly budgeted diagnostic would need to retain the raw provider kickoff fields and timezone/offset metadata for the 39 shifted pairs, alongside the corresponding PitchAPI source values. Until then, treat the dates as unresolved provider-calendar discrepancies and do not alter production matching.
+
+
+## Raw kickoff timestamp follow-up
+
+The 39 one-day date offsets were rechecked against raw API-Sport `dateEvent` and `startTimestamp` fields, plus the checked-in PitchAPI snapshots. All 39 ordered team-ID pairs were found exactly once. PitchAPI stores all 39 scheduled fixtures as date-only values, while API-Sport reports a uniform round-level timestamp (13:00 UTC for the 30 Serie A fixtures and 10:00 UTC for the 9 Bundesliga fixtures). Since PitchAPI provides no kickoff time or timezone offset, the cause of the date shift remains unproven; API-Sport's identical times across each round should not be treated as confirmed per-match kickoff times.
+
+Detailed method and results: [API-Sport/PitchAPI raw kickoff timestamp audit](api-sport-39-fixture-timestamp-audit-2026-11-11.md).
