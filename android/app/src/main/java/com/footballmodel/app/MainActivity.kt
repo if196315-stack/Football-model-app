@@ -1638,33 +1638,6 @@ class MainActivity : Activity() {
         return null
     }
 
-    // Recalculate quote age from the bookmaker board timestamp; the stored feed age becomes stale.
-    private fun currentBookmakerQuoteAgeSeconds(odds: JSONObject?): Double? {
-        if (odds == null) return null
-        val raw = odds.optString("updatedAt").trim()
-        if (raw.isBlank()) return null
-        return try {
-            var normalized = raw.replace(Regex("\\.\\d+"), "")
-            normalized = normalized.replace("T", " ").replace("Z", "+0000")
-                .replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
-            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ", Locale.US).apply { isLenient = false }
-            val timestamp = format.parse(normalized)?.time ?: return null
-            (System.currentTimeMillis() - timestamp) / 1000.0
-        } catch (_: Exception) { null }
-    }
-
-    private fun bookmakerQuoteAgeLabel(odds: JSONObject?): String {
-        val age = currentBookmakerQuoteAgeSeconds(odds) ?: return "возраст неизвестен"
-        if (age < 0.0) return "время источника из будущего"
-        val seconds = age.toLong()
-        return when {
-            seconds < 60 -> "$seconds сек. назад"
-            seconds < 3600 -> "${seconds / 60} мин. назад"
-            seconds < 86400 -> "${seconds / 3600} ч. назад"
-            else -> "${seconds / 86400} дн. назад"
-        }
-    }
-
     // Main-line eligibility is the intersection of a complete model forecast and
     // an available BetBoom quote from API-Sport; quote age is informational only.
     private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
@@ -2399,7 +2372,7 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
                     val oddsTimestamp = m.optJSONObject("odds")?.optString("updatedAt").orEmpty()
                     val quoteTime = if (oddsTimestamp.isBlank()) "время обновления неизвестно" else formatSourceTimestamp(oddsTimestamp)
-                    addText(mainMarkets, "Котировка BetBoom обновлена: $quoteTime · ${bookmakerQuoteAgeLabel(m.optJSONObject("odds"))}", 10, false, muted)
+                    addText(mainMarkets, "Котировка BetBoom обновлена: $quoteTime", 10, false, muted)
 
                 }
             }
