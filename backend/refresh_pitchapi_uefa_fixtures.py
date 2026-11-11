@@ -1,4 +1,4 @@
-"""Incremental, fixture-only history cache for UEFA Champions League and Europa League.
+"""Incremental, fixture-only history cache for UEFA Champions League, Europa League and Conference League.
 
 This job is deliberately isolated from the production model and docs/data.json.
 It does not request shot/xG endpoints or bookmaker odds.
@@ -25,6 +25,7 @@ TIMEOUT = 30
 TARGETS = {
     "UCL": "champions league",
     "UEL": "europa league",
+    "UECL": "conference league",
 }
 
 
@@ -217,7 +218,7 @@ def refresh_uefa_fixtures(
     report = {
         "generatedAt": cache["updatedAt"],
         "provider": "PitchAPI",
-        "scope": "UEFA Champions League and Europa League fixtures/results only; no xG or odds calls",
+        "scope": "UEFA Champions League, Europa League and Conference League fixtures/results only; no xG or odds calls",
         "upcomingSeasonOnly": upcoming_only,
         "listedMatchesThisRun": listed_total,
         "cachedMatches": len(stored),
