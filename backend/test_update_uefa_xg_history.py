@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from update_uefa_xg_history import update_history
+from update_uefa_xg_history import history_report_metadata, update_history
 
 
 class UefaXgHistoryUpdateTests(unittest.TestCase):
@@ -60,6 +60,51 @@ class UefaXgHistoryUpdateTests(unittest.TestCase):
         unl = next(row for row in updated["matches"] if row["id"] == "unl_pitchapi")
         self.assertEqual(unl["leagueCode"], "UNL")
         self.assertTrue(unl["pairedXg"])
+
+
+    def test_report_metadata_is_rebuilt_from_fixture_cache_and_paired_rows(self):
+        cache = {"matches": {
+            "paired": {"id": "paired", "leagueCode": "UECL", "provider": "PitchAPI",
+                       "status": "finished", "homeScore": 2, "awayScore": 1},
+            "missing_xg": {"id": "missing_xg", "leagueCode": "UCL",
+                           "status": "finished", "homeScore": 0, "awayScore": 0},
+            "missing_score": {"id": "missing_score", "leagueCode": "UEL",
+                              "status": "finished", "homeScore": None, "awayScore": None},
+            "api_sport": {"id": "api_sport", "leagueCode": "UNL", "provider": "API-Sport",
+                          "status": "finished", "homeScore": 1, "awayScore": 0},
+            "scheduled": {"id": "scheduled", "leagueCode": "UNL",
+                          "status": "scheduled"},
+            "domestic": {"id": "domestic", "leagueCode": "PL", "status": "finished"},
+        }}
+        rows = [{"id": "paired", "pairedXg": True, "homeXg": 1.2, "awayXg": 0.7}]
+        metadata = history_report_metadata(cache, rows, "2026-11-11T12:00:00+00:00")
+        self.assertEqual(metadata, {
+            "fixture_cache_matches": 6,
+            "xg_report_generated_at": "2026-11-11T12:00:00+00:00",
+            "finished_matches_with_paired_xg_and_scores": 1,
+            "finished_matches_missing_paired_xg": 1,
+            "finished_matches_missing_scores": 1,
+        })
+
+    def test_update_history_refreshes_stale_report_counters(self):
+        now = datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc)
+        cache = {"matches": {
+            "finished": {"id": "finished", "leagueCode": "UECL", "status": "finished",
+                         "homeScore": 1, "awayScore": 0},
+        }}
+        history = {
+            "fixture_cache_matches": 1840,
+            "finished_matches_with_paired_xg_and_scores": 1693,
+            "finished_matches_missing_paired_xg": 3,
+            "finished_matches_missing_scores": 0,
+            "matches": [{"id": "finished", "pairedXg": True, "homeXg": 0.9, "awayXg": 0.2}],
+        }
+        updated, _ = update_history(cache, history, lambda _: None, now)
+        self.assertEqual(updated["fixture_cache_matches"], 1)
+        self.assertEqual(updated["finished_matches_with_paired_xg_and_scores"], 1)
+        self.assertEqual(updated["finished_matches_missing_paired_xg"], 0)
+        self.assertEqual(updated["finished_matches_missing_scores"], 0)
+        self.assertEqual(updated["xg_report_generated_at"], now.isoformat())
 
 
 if __name__ == "__main__":
