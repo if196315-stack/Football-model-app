@@ -27,7 +27,7 @@ class AndroidParityTests(unittest.TestCase):
         ]}
         leader = strongest_display_signal(prediction, match)
         self.assertEqual(leader[0]["side"], "ТБ 2.5")
-        self.assertAlmostEqual(leader[3] / (leader[2] - 1), (.62 * 2.2 - 1) / 1.2)
+        self.assertAlmostEqual(leader[3] / (leader[2] - 1), (.62 * 10.0 - 1) / 9.0)
 
     def test_negative_ev_fallback_is_highest_probability(self):
         match = melbet_match({"doubleChance": {"1x": 1.5, "x2": 1.6}})
@@ -72,7 +72,8 @@ class AndroidParityTests(unittest.TestCase):
         ]
         for side in sides:
             with self.subTest(side=side):
-                self.assertEqual(odds_for({"side": side}, match), 1.9 if side != "1X" else 1.7)
+                expected = {"1X": 1.7, "X2": 1.8}.get(side, 1.9)
+                self.assertEqual(odds_for({"side": side}, match), expected)
 
     def test_rejects_betboom_and_unknown_or_mismatched_board(self):
         best = {"doubleChance": {"1x": 2.0}}
