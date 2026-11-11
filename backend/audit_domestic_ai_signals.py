@@ -192,7 +192,10 @@ def legacy_paper_signals(match):
         if (price is not None and math.isfinite(archived_price) and abs(price-archived_price) < .005
                 and probability >= MIN_PROBABILITY and edge >= .05 and ev >= MIN_EV):
             result.append(signal)
-    return result
+    if not result:
+        return []
+    # Android uefaPaperSignal selects its legacy paper candidate by EV before Line ranking.
+    return [max(result, key=lambda signal: number(signal.get("modelProbability")) * (odds_for(signal, match) or 0.0) - 1.0)]
 
 def ai_eligibility(signal, match, odds, probability, ev):
     """Exact collectAiCandidates gates; returns a reason or the admitted row."""
