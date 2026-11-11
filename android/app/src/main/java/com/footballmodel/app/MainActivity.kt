@@ -2191,11 +2191,24 @@ class MainActivity : Activity() {
                 if (array != null) for (k in 0 until array.length()) {
                     array.optJSONObject(k)?.let { signals.add(it) }
                 }
+                // Older domestic prediction snapshots may contain strongestSignal
+                // without the newer full signals array. Keep that valid candidate
+                // eligible instead of silently dropping the entire domestic fixture.
+                prediction.optJSONObject("strongestSignal")?.let { strongest ->
+                    val strongestSide = strongest.optString("side").trim()
+                    if (strongestSide.isNotBlank() && signals.none {
+                            it.optString("side").trim().equals(strongestSide, ignoreCase = true)
+                        }) signals.add(strongest)
+                }
                 if (signals.isEmpty() && league.optString("code") in setOf("UCL", "UEL", "UECL")) {
                     uefaPaperSignal(match)?.let { signals.add(it) }
                 }
                 val qualifying = signals.mapNotNull { signal ->
-                    if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                    val selectionEdge = signal.optDouble(
+                        "selectionEdgePp",
+                        signal.optDouble("edgePp", Double.NaN)
+                    )
+                    if (signal.optBoolean("noPositiveSignal") || !selectionEdge.isFinite() || selectionEdge <= 0.0 ||
                         signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) return@mapNotNull null
                     val odds = topSignalOdds(signal, match) ?: return@mapNotNull null
                     if (odds < 1.50) return@mapNotNull null
