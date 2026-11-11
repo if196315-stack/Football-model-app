@@ -938,7 +938,12 @@ class MainActivity : Activity() {
         matchesContainer.visibility = View.INVISIBLE
         leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
         matchesContainer.postOnAnimation {
-            if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
+            if (generation != tabRenderGeneration || currentTab != tab) {
+                // Another navigation path (for example the notification shortcut) may
+                // have rendered a different screen while this frame was pending.
+                if (generation == tabRenderGeneration) matchesContainer.visibility = View.VISIBLE
+                return@postOnAnimation
+            }
             render()
             matchesContainer.visibility = View.VISIBLE
         }
