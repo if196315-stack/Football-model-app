@@ -92,7 +92,7 @@ class UefaFixtureHistoryTests(unittest.TestCase):
                                          for url, _ in session.calls if "/matches" in url])
             self.assertEqual(result["report"]["optionalCompetitionsMissing"], [])
 
-    def test_missing_optional_nations_league_does_not_break_existing_refresh(self):
+    def test_unlisted_nations_league_is_not_part_of_active_refresh_scope(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = refresh_uefa_fixtures(
                 "test-key", session=FakeSession(), cache_path=Path(tmp) / "cache.json",
