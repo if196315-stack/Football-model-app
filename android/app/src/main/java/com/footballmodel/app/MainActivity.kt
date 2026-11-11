@@ -60,6 +60,7 @@ class MainActivity : Activity() {
     private var currentTab = "matches"
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
+    private lateinit var mainScrollView: ScrollView
     private var data: JSONObject? = null
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
@@ -142,7 +143,7 @@ class MainActivity : Activity() {
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
-        val scroll = object : ScrollView(this) {
+        mainScrollView = object : ScrollView(this) {
             private var gestureDownX = 0f
             private var gestureDownY = 0f
             private var swipeOriginInLeagueFilters = false
@@ -250,8 +251,8 @@ class MainActivity : Activity() {
             setPadding(dp(16), dp(22), dp(16), dp(28))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
-        scroll.addView(root)
-        setContentView(scroll)
+        mainScrollView.addView(root)
+        setContentView(mainScrollView)
         SectionNotifications.ensureChannel(this)
         SectionNotifications.requestPermissionIfNeeded(this)
 
@@ -1747,11 +1748,16 @@ class MainActivity : Activity() {
                 else rounded(surface, 28)
                 setOnClickListener {
                     if (selectedHistoryTab == key) return@setOnClickListener
-                    val direction = if (key == "COMPLETED") 1 else -1
+                    // Keep the outer page at the same vertical position when
+                    // switching between Open and Completed history subtabs.
+                    val previousScrollY = mainScrollView.scrollY
                     selectedHistoryTab = key
+                    matchesContainer.animate().cancel()
                     render()
-                    matchesContainer.postOnAnimation {
-                        if (currentTab == "history" && selectedHistoryTab == key) animateTabEntry(matchesContainer, direction)
+                    mainScrollView.post {
+                        mainScrollView.scrollTo(0, previousScrollY)
+                        matchesContainer.alpha = 1f
+                        matchesContainer.translationX = 0f
                     }
                 }
             }
