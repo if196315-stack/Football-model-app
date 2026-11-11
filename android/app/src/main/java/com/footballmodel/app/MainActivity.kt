@@ -820,6 +820,16 @@ class MainActivity : Activity() {
                 val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
                 json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
                 json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
+                // Build the AI candidate snapshot off the main thread before checking notifications.
+                val aiCandidates = collectAiCandidates(json).map { item ->
+                    val match = item.first
+                    val matchId = match.optString("id").ifBlank {
+                        listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
+                    }
+                    val title = "${match.optString("home")} — ${match.optString("away")}"
+                    matchId to title
+                }
+                AiMatchNotifications.observe(applicationContext, aiCandidates)
                 val payload = json.toString()
                 feedCache.edit()
                     .putString("merged_json", payload)
@@ -834,16 +844,6 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     }
-                    // Notify once when a fixture first enters the fully filtered AI candidate list.
-                    val aiCandidates = collectAiCandidates(json)
-                    AiMatchNotifications.observe(this, aiCandidates.map { item ->
-                        val match = item.first
-                        val matchId = match.optString("id").ifBlank {
-                            listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
-                        }
-                        val title = "${match.optString("home")} — ${match.optString("away")}"
-                        matchId to title
-                    })
                     // Detect changes to the combined report-and-observations section.
                     val currentBets = betPrefs.getString("bets", "[]") ?: "[]"
                     val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
