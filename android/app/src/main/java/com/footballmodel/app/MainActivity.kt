@@ -1215,8 +1215,8 @@ class MainActivity : Activity() {
         val currentBankForRisk = currentBankroll()
         val storedHigh = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull()
         val highWater = maxOf(storedHigh ?: currentBankForRisk, currentBankForRisk)
-        if (storedHigh == null || highWater > storedHigh) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
-        val drawdown = if (highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
+        if (hasInitialBankroll() && (storedHigh == null || highWater > storedHigh)) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
+        val drawdown = if (hasInitialBankroll() && highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
         if (settingsPrefs.getInt("paper_risk_policy_version", 0) < 2) {
             val migration = settingsPrefs.edit().putInt("paper_risk_policy_version", 2)
             if (drawdown < 0.20) migration.putBoolean("paper_auto_stopped", false)
@@ -1287,7 +1287,7 @@ class MainActivity : Activity() {
                         val prior = bets.optJSONObject(k) ?: continue
                         if (prior.optString("id") == id) { duplicate = true; break }
                     }
-                    if (duplicate || autoStopped || drawdownPaused) continue
+                    if (duplicate || autoStopped || drawdownPaused || !hasInitialBankroll()) continue
                     val bank = currentBankroll()
                     val stake = maxOf(bank * 0.01, minimumStake())
                     val newBet = JSONObject()
@@ -1503,8 +1503,8 @@ class MainActivity : Activity() {
         val bank = currentBankroll()
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
-        addText(bankrollCard, String.format(Locale.US, "%.2f ₽", bank), 28, true, Color.WHITE)
-        addText(bankrollCard, "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам.", 11, false, muted)
+        addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
+        addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
         addText(bankrollCard, "Правило ставки: ${minimumStakeDescription()}", 12, true, accent)
 
         val strategyCard = card()
@@ -1626,12 +1626,12 @@ class MainActivity : Activity() {
         screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки банка и состояние фоновых обновлений.")
         val profile = card()
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
-        addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, true, accent)
+        addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${if (hasInitialBankroll()) fmt(currentBankroll()) + " ₽" else "не задан"}", 12, true, accent)
         addText(profile, "Минимальная сумма ставки: ${if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "не задана"}", 12, true, Color.WHITE)
         addText(profile, "Правило: 1% от текущего баланса; пользовательский минимум можно задать отдельно.", 11, false, muted)
         actionButton(profile, "Изменить минимальную сумму ставки") { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.") }
-        addText(profile, "Стартовый банк: ${fmt(initialBankroll())} ₽", 12, false, muted)
-        actionButton(profile, "Изменить стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи сумму банка, от которой считать результат. Записанные ставки и результаты сохраняются.") }
+        addText(profile, "Стартовый банк: ${if (hasInitialBankroll()) fmt(initialBankroll()) + " ₽" else "не задан"}", 12, false, muted)
+        actionButton(profile, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.") }
 
         val workerCard = card()
         val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
@@ -1784,8 +1784,11 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", "5000")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 5000.0
+    private fun hasInitialBankroll(): Boolean = settingsPrefs.getString("initial_bankroll", null)
+        ?.replace(',', '.')?.toDoubleOrNull()?.let { it.isFinite() && it > 0.0 } ?: false
+
+    private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", null)
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
 
     private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
@@ -1802,7 +1805,7 @@ class MainActivity : Activity() {
             hint = "Сумма в рублях"
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
             setSingleLine(true)
-            setText(String.format(Locale.US, "%.2f", current))
+            if (key != "initial_bankroll" || current > 0.0) setText(String.format(Locale.US, "%.2f", current))
             setSelection(text.length)
         }
         val dialog = AlertDialog.Builder(this).setTitle(title).setMessage(message).setView(field)
@@ -1810,11 +1813,11 @@ class MainActivity : Activity() {
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val value = field.text.toString().replace(',', '.').toDoubleOrNull()
-                if (value == null || !value.isFinite() || value < 0.0 || (value == 0.0 && key != "minimum_stake")) {
-                    Toast.makeText(this, "Введи положительную сумму; для минимума ставки можно указать 0", Toast.LENGTH_SHORT).show()
+                if (value == null || !value.isFinite() || value < 0.0) {
+                    Toast.makeText(this, "Введи положительную сумму или оставь поле пустым", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                if (key == "minimum_stake" && value == 0.0) settingsPrefs.edit().remove(key).apply()
+                if (value == 0.0) settingsPrefs.edit().remove(key).apply()
                 else settingsPrefs.edit().putString(key, value.toString()).apply()
                 // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
                 if (key == "initial_bankroll" || key == "minimum_stake") {
@@ -1864,7 +1867,7 @@ class MainActivity : Activity() {
 
     private fun refreshHeaderFinancials() {
         if (!::headerBalanceView.isInitialized || !::headerAiRoiView.isInitialized) return
-        headerBalanceView.text = String.format(Locale.US, "%.0f ₽", currentBankroll())
+        headerBalanceView.text = if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —"
         val (roi, count) = aiPaperRoiPercent()
         headerAiRoiView.text = if (roi == null) "AI ROI —" else String.format(Locale.US, "AI ROI %+.1f%% · %d", roi, count)
         headerAiRoiView.setTextColor(if (roi == null) muted else if (roi >= 0.0) accent else gold)
@@ -1896,7 +1899,7 @@ class MainActivity : Activity() {
         addText(summary, "Бумажные ставки: ${dayBets.size}", 16, true, Color.WHITE)
         addText(summary, "WIN $wins · LOSS $losses · возврат $pushes · ожидают $pending", 12, true, accent)
         addText(summary, "Результат рассчитанных ставок: ${String.format(Locale.US, "%+.2f ₽", profit)}", 13, true, if (profit >= 0) accent else gold)
-        addText(summary, "Текущий бумажный банк: ${String.format(Locale.US, "%.2f ₽", currentBankroll())}", 12, false, muted)
+        addText(summary, "Текущий бумажный банк: ${if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", currentBankroll()) else "не задан"}", 12, false, muted)
 
         val observations = json.optJSONArray("marketObservationResults") ?: JSONArray()
         val snapshots = json.optJSONArray("marketObservationSnapshots") ?: JSONArray()
@@ -1978,7 +1981,12 @@ class MainActivity : Activity() {
         val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
             else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
         val ev = probability * odds - 1.0
+        if (!hasInitialBankroll()) {
+            Toast.makeText(this, "Сначала задай стартовый банк в профиле", Toast.LENGTH_LONG).show()
+            return
+        }
         val stake = maxOf(currentBankroll() * 0.01, minimumStake())
+        if (stake <= 0.0) return
         AlertDialog.Builder(this)
             .setTitle("Зафиксировать AI-ставку?")
             .setMessage("${match.optString("home")} — ${match.optString("away")}\\n${signal.optString("side")}\\nКоэффициент BetBoom: ${fmt(odds)}\\nСумма: ${fmt(stake)} ₽\\n\\nЭто будет бумажная ставка в истории, не реальная отправка букмекеру.")
