@@ -1,4 +1,4 @@
-"""Incremental fixture history cache for UEFA club competitions and Nations League.
+"""Incremental fixture history cache for UEFA Champions League, Europa League and Conference League.
 
 This job is deliberately isolated from the production model and docs/data.json.
 It does not request shot/xG endpoints or bookmaker odds.
@@ -26,10 +26,8 @@ TARGETS = {
     "UCL": "champions league",
     "UEL": "europa league",
     "UECL": "conference league",
-    "UNL": "nations league",
 }
-# Nations League is optional: its absence from a provider catalogue must never
-# interrupt the three established UEFA club-competition refreshes.
+# Only the three UEFA club competitions are in the active model scope.
 REQUIRED_TARGETS = {"UCL", "UEL", "UECL"}
 
 
@@ -222,7 +220,7 @@ def refresh_uefa_fixtures(
     report = {
         "generatedAt": cache["updatedAt"],
         "provider": "PitchAPI",
-        "scope": "UEFA club competitions and optional Nations League fixtures/results only; no xG or odds calls",
+        "scope": "UEFA Champions League, Europa League and Conference League fixtures/results only; no xG or odds calls",
         "upcomingSeasonOnly": upcoming_only,
         "listedMatchesThisRun": listed_total,
         "cachedMatches": len(stored),
