@@ -195,9 +195,12 @@ def historical_baselines(matches, comp, target_date):
     return result
 
 def signal_candidates(pred, baseline, home, away, home_form=None, away_form=None):
-    """Rank only positive selections from markets actually displayed in match cards.
+    """Build candidates for every supported YES/OVER market in this fixture.
 
-    Never turn an under-probability into an inverse label (П1/П2/ничья/ИТМ/ТМ).
+    This is the match-card ranking, not the betting-strategy filter: include
+    negative edges and probabilities below 50%, then let the UI select the
+    strongest available market for this individual match. Never invert an
+    under-probability into an inverse label (П1/П2/ничья/ИТМ/ТМ).
     """
     if not baseline:return []
     definitions=[
@@ -220,8 +223,10 @@ def signal_candidates(pred, baseline, home, away, home_form=None, away_form=None
     for title,description,field,side in definitions:
       if field not in pred or field not in baseline:continue
       p=float(pred[field]); b=float(baseline[field])
-      # Only the displayed YES/OVER selection is eligible; never invert it.
-      if p < 0.5:continue
+      # Include every modelled probability, not just positive selections.
+      # The strongest match forecast may still have a negative edge.
+      if not math.isfinite(p) or not 0.0 <= p <= 1.0:continue
+      if not math.isfinite(b) or not 0.0 <= b <= 1.0:continue
       edge=p-b
       item={"market":title,"description":description,"side":side,
         "modelProbability":p,"baselineProbability":b,
