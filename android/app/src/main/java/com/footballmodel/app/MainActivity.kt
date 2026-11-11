@@ -1812,7 +1812,8 @@ class MainActivity : Activity() {
             .setNegativeButton("Отмена", null).setPositiveButton("Сохранить", null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val value = field.text.toString().replace(',', '.').toDoubleOrNull()
+                val rawValue = field.text.toString().trim().replace(',', '.')
+                val value = if (rawValue.isEmpty() && key == "initial_bankroll") 0.0 else rawValue.toDoubleOrNull()
                 if (value == null || !value.isFinite() || value < 0.0) {
                     Toast.makeText(this, "Введи положительную сумму или оставь поле пустым", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
