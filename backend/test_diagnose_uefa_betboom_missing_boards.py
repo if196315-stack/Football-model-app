@@ -1,5 +1,8 @@
+import sys
 import unittest
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from diagnose_uefa_betboom_missing_boards import run_diagnostic
 
 
