@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from collect_uefa_betboom_snapshots import snapshot_rows
+from collect_uefa_betboom_snapshots import fetch_provider_fixtures, snapshot_rows
 
 
 class UefaBetBoomSnapshotTests(unittest.TestCase):
@@ -136,6 +136,73 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertEqual(over["provider_market_group"], "total_goals")
         self.assertEqual(over["provider_market_slug"], "total_goals")
         self.assertEqual(diagnostics["matches_with_model_prediction"], 1)
+
+    def test_archives_nations_league_using_exact_api_sport_event_id(self):
+        source = {
+            "id": 9002,
+            "startTimestamp": 1794312000000,
+            "homeTeam": {"name": "Czechia"},
+            "awayTeam": {"name": "Spain"},
+            "oddsBk": {"betboom": {
+                "updatedAt": 1794311880000,
+                "updatedAtByStage": {"prematch": 1794311880000},
+                "isBettingActiveByStage": {"prematch": True},
+                "markets": {
+                    "double_chance": {"status": "open", "stage": "prematch",
+                                      "stakes": {"1x": {"factor": 1.3}, "x2": {"factor": 2.7}}},
+                    "total_goals": {"status": "open", "stage": "prematch",
+                                    "stakes": {"over": {"lines": [
+                                        {"argument": 1.5, "factor": 1.2},
+                                        {"argument": 2.5, "factor": 1.9}]}}},
+                    "both_teams_to_score": {"status": "open", "stage": "prematch",
+                                            "stakes": {"yes": {"factor": 1.75}}},
+                },
+            }},
+        }
+        cache = {"matches": {
+            "UNL:9002": {
+                "id": "UNL:9002", "provider": "API-Sport", "providerEventId": "9002",
+                "leagueCode": "UNL", "season": "2026/2027",
+                "date": "2026-11-10T12:00:00+00:00", "status": "not_started",
+                "home": "Czechia", "away": "Spain",
+            },
+        }}
+        rows = snapshot_rows(cache, [source], "2026-11-10T12:02:00+00:00")
+        self.assertTrue(rows)
+        self.assertEqual({row["league_code"] for row in rows}, {"UNL"})
+        self.assertEqual({row["provider_event_id"] for row in rows}, {"9002"})
+        self.assertTrue(all(row["fixture_id"] == "UNL:9002" for row in rows))
+
+    def test_fetch_provider_fixtures_queries_both_uefa_tournaments_for_180_days(self):
+        from datetime import date
+
+        class Response:
+            def __init__(self, payload):
+                self.payload = payload
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return self.payload
+
+        class FakeSession:
+            def __init__(self):
+                self.calls = []
+            def get(self, url, params=None, **kwargs):
+                self.calls.append(params)
+                event_id = len(self.calls)
+                return Response({"matches": [{"id": event_id}], "totalPages": 1})
+
+        session = FakeSession()
+        rows = fetch_provider_fixtures("test-key", session=session, today=date(2026, 11, 11))
+        tournament_calls = [params for params in session.calls if "tournament_id" in params]
+        self.assertEqual({params["tournament_id"] for params in tournament_calls}, {"10783", "17015"})
+        self.assertEqual(len(tournament_calls), 12)
+        for params in tournament_calls:
+            self.assertLessEqual(
+                (date.fromisoformat(params["date_to"]) -
+                 date.fromisoformat(params["date_from"])).days, 30
+            )
+        self.assertEqual(len(rows), len({str(row["id"]) for row in rows}))
 
     def test_empty_provider_data_produces_no_snapshots(self):
         cache = {"matches": {"1": {

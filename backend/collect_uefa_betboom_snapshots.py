@@ -81,7 +81,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
     model_predictions_by_league = Counter()
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
-        if league not in ("UCL", "UEL"):
+        if league not in ("UCL", "UEL", "UECL", "UNL"):
             continue
         if str(match.get("status") or "").casefold() not in ("not_started", "scheduled", "timed"):
             continue
@@ -93,7 +93,13 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         }
         if not target["utcDate"] or not target["home"] or not target["away"]:
             continue
-        source = match_fixture(target, provider_fixtures)
+        source = None
+        if match.get("provider") == "API-Sport" and match.get("providerEventId") is not None:
+            provider_id = str(match.get("providerEventId"))
+            source = next((row for row in provider_fixtures
+                           if str(row.get("id")) == provider_id), None)
+        if source is None:
+            source = match_fixture(target, provider_fixtures)
         if not source:
             continue
         matched_fixtures += 1
@@ -255,10 +261,8 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
     response = session.get(URL, params=params, headers={"Authorization": api_key}, timeout=60)
     response.raise_for_status()
     payload = response.json()
-    if isinstance(payload, list):
-        return payload
-    fixtures = list(payload.get("matches") or [])
-    total_pages = min(int(payload.get("totalPages") or 1), 100)
+    fixtures = list(payload) if isinstance(payload, list) else list(payload.get("matches") or [])
+    total_pages = min(int(payload.get("totalPages") or 1), 100) if isinstance(payload, dict) else 1
     for page in range(2, total_pages + 1):
         page_params = {**params, "page": page}
         page_response = session.get(URL, params=page_params,
@@ -267,7 +271,35 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
         page_payload = page_response.json()
         fixtures.extend(page_payload if isinstance(page_payload, list)
                         else page_payload.get("matches") or [])
-    return fixtures
+    # UEFA competitions are fetched by tournament ID so the odds feed is not
+    # limited to the generic 30-day date window. API-Sport caps date ranges at 31 days.
+    tournament_ids = {"UNL": 10783, "UECL": 17015}
+    final_date = start + timedelta(days=180)
+    cursor = start
+    for tournament_id in tournament_ids.values():
+        cursor = start
+        while cursor <= final_date:
+            window_end = min(cursor + timedelta(days=30), final_date)
+            tournament_params = {
+                **params,
+                "tournament_id": str(tournament_id),
+                "date_from": cursor.isoformat(),
+                "date_to": window_end.isoformat(),
+            }
+            tournament_response = session.get(
+                URL, params=tournament_params,
+                headers={"Authorization": api_key}, timeout=60,
+            )
+            tournament_response.raise_for_status()
+            tournament_payload = tournament_response.json()
+            fixtures.extend(tournament_payload if isinstance(tournament_payload, list)
+                            else tournament_payload.get("matches") or [])
+            cursor = window_end + timedelta(days=1)
+    unique = {}
+    for row in fixtures:
+        if row.get("id") is not None:
+            unique[str(row["id"])] = row
+    return list(unique.values())
 
 
 def append_rows(rows: list[dict], output_path: str | Path = ARCHIVE,
