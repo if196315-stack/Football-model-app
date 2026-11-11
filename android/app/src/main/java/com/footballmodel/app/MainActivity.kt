@@ -2385,7 +2385,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый рынок проходит независимую проверку исторической базы, цены MelBet и ограничений модели.")
+        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "AI проверяет только сильнейший сигнал каждого матча из раздела Линия: цена MelBet, вероятность, edge и EV.")
         renderAiSignalPerformanceSummary()
         val sorted = collectAiCandidates(json)
         val betsCountCard = card()
@@ -2754,8 +2754,12 @@ class MainActivity : Activity() {
                             if (expectedValue.isFinite()) {
                                 val evText = String.format(Locale.US, "%+.1f%%", expectedValue * 100.0)
                                 addText(signalBox, "Ожидаемая доходность (EV): $evText", 11, true, if (positiveValue) accent else Color.rgb(242, 190, 104))
+                                val kelly = signal.optDouble("lineKellyFraction", Double.NaN)
+                                if (positiveValue && kelly.isFinite()) {
+                                    addText(signalBox, "Доля полного Kelly для ранжирования: ${String.format(Locale.US, "%.1f", kelly * 100.0)}%", 10, false, muted)
+                                }
                                 addText(signalBox, if (positiveValue)
-                                    "Выбран баланс вероятности и положительного EV среди рынков с коэффициентом от 1.50."
+                                    "Выбран рынок с максимальной долей полного Kelly среди положительных EV и коэффициентов от 1.50."
                                 else
                                     "Нет рынка с положительным EV при коэффициенте от 1.50. Показан самый вероятный доступный вариант.",
                                     10, false, muted)
