@@ -10,22 +10,26 @@ from probe_pitchapi_unl_date_index import probe
 class Response:
     def __init__(self, matches):
         self.matches = matches
+
     def raise_for_status(self):
         pass
+
     def json(self):
         return {"data": {"matches": self.matches}}
 
 
 class FakeSession:
-    def __init__(self):
+    def __init__(self, matches=None):
         self.calls = []
-    def get(self, url, **kwargs):
-        self.calls.append(url)
-        return Response([{
+        self.matches = matches if matches is not None else [{
             "id": "m_ABC123",
             "home_team": {"id": "t_HOME12", "name": "Czechia"},
             "away_team": {"id": "t_AWAY12", "name": "Spain"},
-        }])
+        }]
+
+    def get(self, url, **kwargs):
+        self.calls.append(url)
+        return Response(self.matches)
 
 
 class UnlDateIndexProbeTests(unittest.TestCase):
@@ -51,17 +55,19 @@ class UnlDateIndexProbeTests(unittest.TestCase):
         self.assertEqual(session.calls, ["https://api.pitchapi.dev/v1/date/2026-11-12"])
 
     def test_nonmatching_fixture_is_not_sent_to_shots_endpoint(self):
+        session = FakeSession(matches=[])
         report = probe(
             {"matches": {"a": {
                 "provider": "API-Sport", "leagueCode": "UNL",
                 "date": "2026-11-12", "home": "Czechia", "away": "Spain",
             }}},
-            "test-key", session=FakeSession(),
+            "test-key", session=session,
             fetch_shots_fn=lambda _: self.fail("shots must not be requested"),
             pause=0,
         )
         self.assertEqual(report["dateIndexMatches"], 0)
         self.assertEqual(report["matchesWithPairedXg"], 0)
+        self.assertEqual(session.calls, ["https://api.pitchapi.dev/v1/date/2026-11-12"])
 
     def test_missing_key_fails_before_requests(self):
         with self.assertRaises(ValueError):
