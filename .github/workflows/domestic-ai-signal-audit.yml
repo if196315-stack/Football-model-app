@@ -1,0 +1,42 @@
+name: Domestic AI signal threshold audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/audit_domestic_ai_signals.py"
+      - ".github/workflows/domestic-ai-signal-audit.yml"
+      - "docs/data.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run audit against current domestic feed
+        run: |
+          python -m py_compile backend/audit_domestic_ai_signals.py
+          python backend/audit_domestic_ai_signals.py \
+            --input docs/data.json \
+            --json-out ai-domestic-audit.json \
+            --markdown-out ai-domestic-audit.md
+      - name: Add report to workflow summary
+        run: cat ai-domestic-audit.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload machine-readable and Markdown reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: domestic-ai-signal-audit
+          path: |
+            ai-domestic-audit.md
+            ai-domestic-audit.json
+          if-no-files-found: error
+          retention-days: 30
