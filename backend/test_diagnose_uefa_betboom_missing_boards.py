@@ -34,7 +34,10 @@ class FakeSession:
             "homeTeam": {"name": "Arsenal"},
             "awayTeam": {"name": "Borussia Dortmund"},
             "hasBkOdds": {"betboom": True},
-            "oddsBk": {"betboom": {"markets": {"total": {"stakes": {}}}}},
+            "oddsBk": {
+                "betboom": {"markets": {"total": {"stakes": {}}}},
+                "pinnacle": {"markets": {"moneyline": {"stakes": {}}}},
+            },
         }})
 
 
@@ -64,6 +67,9 @@ class DiagnosticTests(unittest.TestCase):
         self.assertEqual(result["provider_matches_found"], 1)
         self.assertEqual(result["with_betboom_board"], 1)
         self.assertEqual(result["results"][0]["provider_event_id"], "9876")
+        self.assertEqual(result["results"][0]["available_bookmakers"], ["betboom", "pinnacle"])
+        self.assertNotIn("bookmaker_ids", session.calls[0][1])
+        self.assertNotIn("bookmaker_ids", session.calls[1][1])
 
 
 if __name__ == "__main__":
