@@ -1338,6 +1338,8 @@ class MainActivity : Activity() {
             betPrefs.edit().putString("bets", bets.toString()).commit()
         }
         tabViewCache.remove("history|ALL")
+        tabViewCache.remove("history|OPEN")
+        tabViewCache.remove("history|COMPLETED")
         tabViewCache.remove("desk|ALL")
         tabViewCache.remove("stats|ALL")
     }
