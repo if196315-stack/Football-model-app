@@ -43,22 +43,25 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertEqual(report["input_matches"], 8)
         self.assertEqual(report["input_matches_by_competition"], {"ENG": 8})
         self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 6})
-        self.assertIn("1X2", report["markets"])
+        self.assertIn("DC_1X", report["markets"])
+        self.assertIn("DC_X2", report["markets"])
         self.assertIn("BTTS", report["markets"])
         self.assertIn("TOTAL_OVER_2.5", report["markets"])
         self.assertIn("HOME_OVER_1.5", report["markets"])
-        self.assertIn("DNB_HOME", report["markets"])
-        self.assertEqual(report["markets"]["1X2"]["holdout"]["model"]["n"], 2)
-        self.assertIn("ENG", report["markets"]["1X2"]["holdout_by_competition"])
-        self.assertIn("ENG", report["markets"]["1X2"]["all_by_competition"])
-        self.assertIn("brier_skill", report["markets"]["1X2"]["holdout"])
+        self.assertEqual(len(report["markets"]), 14)
+        self.assertNotIn("1X2", report["markets"])
+        self.assertNotIn("DNB_HOME", report["markets"])
+        self.assertEqual(report["markets"]["DC_1X"]["holdout"]["model"]["n"], 2)
+        self.assertIn("ENG", report["markets"]["DC_1X"]["holdout_by_competition"])
+        self.assertIn("ENG", report["markets"]["DC_1X"]["all_by_competition"])
+        self.assertIn("brier_skill", report["markets"]["DC_1X"]["holdout"])
         self.assertIn("limitations", report)
-        self.assertEqual(report["independent_market_count"], 15)
-        self.assertIn("DNB_HOME", report["market_relationships"])
-        self.assertIn("calibration_global", report["markets"]["1X2"])
-        self.assertEqual(report["markets"]["1X2"]["calibration_global"]["calibrator"]["train_n"], 4)
-        self.assertFalse(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
-        self.assertIn("ENG", report["markets"]["1X2"]["calibration_by_competition"])
+        self.assertEqual(report["independent_market_count"], 14)
+        self.assertTrue(report["allowed_markets_only"])
+        self.assertIn("calibration_global", report["markets"]["DC_1X"])
+        self.assertEqual(report["markets"]["DC_1X"]["calibration_global"]["calibrator"]["train_n"], 4)
+        self.assertFalse(report["markets"]["DC_1X"]["calibration_global"]["calibrator"]["available"])
+        self.assertIn("ENG", report["markets"]["DC_1X"]["calibration_by_competition"])
 
     def test_walk_forward_produces_predictions_only_after_history_exists(self):
         rows = [
@@ -77,22 +80,17 @@ class AllMarketBacktestTests(unittest.TestCase):
 
 
     def test_vector_scaling_uses_training_rows_and_preserves_probability_simplex(self):
-        train = []
-        for i in range(120):
-            actual = "1" if i % 3 == 0 else "X" if i % 3 == 1 else "2"
-            train.append({
-                "market": "1X2", "actual": actual,
-                "model": {"1": 0.60, "X": 0.25, "2": 0.15},
-            })
-        params = fit_vector_scaling(train, "1X2")
+        train = [
+            {"market": "BTTS", "actual": "1" if i % 2 == 0 else "0", "model": 0.60}
+            for i in range(120)
+        ]
+        params = fit_vector_scaling(train, "BTTS")
         self.assertTrue(params["available"])
         self.assertEqual(params["train_n"], 120)
-        self.assertEqual(set(params["classes"]), {"1", "X", "2"})
-        holdout = {"market": "1X2", "actual": "2",
-                   "model": {"1": 0.55, "X": 0.30, "2": 0.15}}
+        self.assertEqual(set(params["classes"]), {"0", "1"})
+        holdout = {"market": "BTTS", "actual": "1", "model": 0.55}
         calibrated = apply_vector_scaling(holdout, params)["calibrated"]
-        self.assertAlmostEqual(sum(calibrated.values()), 1.0, places=8)
-        self.assertTrue(all(0.0 <= value <= 1.0 for value in calibrated.values()))
+        self.assertTrue(0.0 <= calibrated <= 1.0)
 
     def test_bootstrap_interval_is_reproducible_and_contains_mean(self):
         train = []
@@ -110,6 +108,15 @@ class AllMarketBacktestTests(unittest.TestCase):
         ci_again = paired_bootstrap_brier_delta(holdout, params, "BTTS", replicates=250)
         self.assertEqual(ci, ci_again)
         self.assertTrue(ci["conditional_on_fitted_calibrator"])
+
+    def test_binary_brier_uses_standard_single_event_definition(self):
+        from backtest_all_markets import score
+        rows = [
+            {"actual": 1, "model": 0.8},
+            {"actual": 0, "model": 0.2},
+        ]
+        metrics = score(rows, "BTTS", "model")
+        self.assertAlmostEqual(metrics["brier"], 0.04, places=8)
 
     def test_vector_scaling_refuses_small_training_sample(self):
         params = fit_vector_scaling([
