@@ -32,6 +32,8 @@ def main():
             row for row in matches.values()
             if row.get("leagueCode")=={"SA":"ITA","BL1":"GER"}[comp]
             and row.get("home")==home and row.get("away")==away
+            and row.get("season")=="2026/2027"
+            and row.get("status")=="not_started"
         ]
         output.append({
             "competition":comp,"expectedDate":pitch_date,"home":home,"away":away,
