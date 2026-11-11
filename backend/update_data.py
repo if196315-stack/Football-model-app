@@ -206,7 +206,14 @@ def signal_candidates(pred, baseline, home, away, home_form=None, away_form=None
       items.append(item)
     return items
 
-def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None):
+def strongest_signal(pred, baseline, home, away, home_form=None, away_form=None,
+                    *, lineups=None, predicted_lineups=None):
+    """Choose a signal from model/form inputs only.
+
+    Lineups are accepted as descriptive context for callers but intentionally
+    do not alter model probabilities or signal ranking.
+    """
+    _ = lineups, predicted_lineups
     items = signal_candidates(pred, baseline, home, away, home_form, away_form)
     best = max(items, key=lambda item: item["selectionEdgePp"], default=None)
     if best is not None and best["selectionEdgePp"]<=0:best["noPositiveSignal"]=True
