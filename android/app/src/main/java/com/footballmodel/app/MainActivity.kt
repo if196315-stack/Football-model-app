@@ -1658,6 +1658,56 @@ class MainActivity : Activity() {
         return age in 0.0..300.0
     }
 
+    // Main-line eligibility is the intersection of a complete model forecast and
+    // a currently fresh, supported BetBoom prematch quote from API-Sport.
+    private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
+        val prediction = match.optJSONObject("prediction") ?: return false
+        val probabilityFields = listOf(
+            "1x", "x2", "over15", "over25", "over35",
+            "homeOver05", "homeOver15", "homeOver25", "homeOver35",
+            "awayOver05", "awayOver15", "awayOver25", "awayOver35",
+            "bttsYes", "bttsNo"
+        )
+        if (!probabilityFields.all { field ->
+                val value = prediction.optDouble(field, Double.NaN)
+                value.isFinite() && value in 0.0..1.0
+            }) return false
+        val homeXg = prediction.optDouble("expectedHomeGoals", Double.NaN)
+        val awayXg = prediction.optDouble("expectedAwayGoals", Double.NaN)
+        return homeXg.isFinite() && homeXg > 0.0 && awayXg.isFinite() && awayXg > 0.0
+    }
+
+    private fun hasActiveBetBoomPrematchLine(match: JSONObject): Boolean {
+        val odds = match.optJSONObject("odds") ?: return false
+        val bookmaker = odds.optString("bookmaker")
+        val source = odds.optString("source")
+        val isBetBoom = bookmaker.equals("BETBOOM", ignoreCase = true) ||
+            (source.contains("API-Sport", ignoreCase = true) &&
+                source.contains("BetBoom", ignoreCase = true))
+        if (!isBetBoom || !hasFreshBookmakerQuote(match)) return false
+
+        val best = odds.optJSONObject("best") ?: return false
+        fun validPrice(value: Double): Boolean = value.isFinite() && value > 1.0
+        val doubleChance = best.optJSONObject("doubleChance")
+        if (doubleChance != null &&
+            listOf("1x", "x2").any { validPrice(doubleChance.optDouble(it, Double.NaN)) }) return true
+
+        val btts = best.optJSONObject("btts")
+        if (btts != null &&
+            listOf("yes", "no").any { validPrice(btts.optDouble(it, Double.NaN)) }) return true
+
+        fun hasOverQuote(field: String): Boolean {
+            val rows = best.optJSONArray(field) ?: return false
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                if (row.optString("side").equals("over", ignoreCase = true) &&
+                    validPrice(row.optDouble("price", Double.NaN))) return true
+            }
+            return false
+        }
+        return hasOverQuote("totals") || hasOverQuote("teamTotals")
+    }
+
     private fun uefaPaperSignal(match: JSONObject): JSONObject? {
         val rows = match.optJSONArray("paperSignals") ?: return null
         val candidates = mutableListOf<JSONObject>()
@@ -2141,9 +2191,9 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
-        addText(matchesContainer, "РАСПИСАНИЕ", 9, true, cyan)
-        addText(matchesContainer, "Выбери лигу и открой карточку матча", 16, true, Color.WHITE)
-        addText(matchesContainer, "ВЕРОЯТНОСТИ МОДЕЛИ · КОТИРОВКИ BETBOOM", 9, true, muted)
+        addText(matchesContainer, "ЛИНИЯ", 9, true, cyan)
+        addText(matchesContainer, "Матчи с действующими коэффициентами BetBoom и прогнозом модели", 16, true, Color.WHITE)
+        addText(matchesContainer, "API-SPORT · BETBOOM · PITCHAPI xG", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL")
         val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL")
         // League filters already live in the persistent horizontal scroller above the content.
@@ -2192,8 +2242,6 @@ class MainActivity : Activity() {
                 // Do not show fixtures without a complete model prediction.
                 // A scheduled match with insufficient paired xG/history stays out of the app.
                 val matchStatus = m.optString("status")
-                val matchId = m.optString("id",m.optString("utcDate")+m.optString("home")+m.optString("away"))
-                val hasTrackedBet = (0 until bets.length()).any { bets.optJSONObject(it)?.optString("matchId") == matchId }
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
                         kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
@@ -2201,10 +2249,10 @@ class MainActivity : Activity() {
                 }
                 val withinNextMonth = fixtureDate.isNotBlank() &&
                     fixtureDate >= fixtureToday && fixtureDate <= fixtureEndDay
-                if ((matchStatus in listOf("SCHEDULED", "TIMED") &&
-                        withinNextMonth && m.optJSONObject("prediction") != null) ||
-                    (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) ||
-                    (matchStatus == "FINISHED" && hasTrackedBet)) {
+                // The visible line contains only upcoming matches that pass both
+                // independent gates. Raw feeds remain untouched for paper-bet settlement.
+                if (matchStatus in listOf("SCHEDULED", "TIMED") && withinNextMonth &&
+                    hasCompleteModelPrediction(m) && hasActiveBetBoomPrematchLine(m)) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
@@ -2246,7 +2294,7 @@ class MainActivity : Activity() {
             matchesContainer.addView(section)
             if (upcoming.isEmpty()) {
                 val empty = card(content)
-                addText(empty, "Нет предстоящих матчей в расписании поставщика", 12, false, muted)
+                addText(empty, "Нет матчей с одновременно подтверждённой линией BetBoom и прогнозом модели", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
@@ -2349,8 +2397,8 @@ class MainActivity : Activity() {
 
         val footer = card()
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
-        addText(footer, "Предстоящих матчей: $totalUpcoming  ·  с прогнозом: $totalPredicted", 13, true)
+        addText(footer, "Матчей в линии: $totalUpcoming  ·  с полным прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
-        addText(footer, "Источники: PitchAPI (матчи и xG) · API-Sport / BetBoom (котировки).", 10, false, muted)
+        addText(footer, "Линия: API-Sport / BetBoom · вероятности и xG: PitchAPI.", 10, false, muted)
     }
 }
