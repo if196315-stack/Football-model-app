@@ -103,6 +103,7 @@ def build_odds(rows: list[dict], now: datetime | None = None) -> dict | None:
     board_time = next((r.get("bookmaker_updated_at") for r in fresh if r.get("bookmaker_updated_at")), None)
     captured_at = max(str(r.get("captured_at") or "") for r in fresh)
     return {
+        "bookmaker": "MELBET",
         "best": best,
         "updatedAt": board_time or captured_at,
         "source": "API-Sport / MelBet",
