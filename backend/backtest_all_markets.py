@@ -94,8 +94,7 @@ def market_probs(home_lambda, away_lambda):
 
 
 def score(rows, market, source):
-    classes = ("1", "X", "2") if market == "1X2" else (
-        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    classes = ("0", "1")
     if not rows:
         return None
     brier = log_loss = correct = 0.0
@@ -106,8 +105,8 @@ def score(rows, market, source):
         if market != "1X2" and not market.startswith("DNB") and not isinstance(probabilities, dict):
             probability_yes = float(probabilities)
             probabilities = {"0": 1.0 - probability_yes, "1": probability_yes}
-        brier += sum((float(probabilities[label]) - (1.0 if label == actual else 0.0)) ** 2
-                     for label in classes)
+        # Standard binary Brier score (not the doubled two-class variant).
+        brier += (float(probabilities["1"]) - (1.0 if actual == "1" else 0.0)) ** 2
         log_loss -= math.log(max(1e-15, float(probabilities[actual])))
         correct += int(max(classes, key=lambda label: probabilities[label]) == actual)
         for label in classes:
@@ -142,8 +141,7 @@ def compare(model, baseline):
 
 def fit_vector_scaling(train_rows, market, min_n=100):
     """Fit regularized vector scaling on prior walk-forward predictions only."""
-    classes = ("1", "X", "2") if market == "1X2" else (
-        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    classes = ("0", "1")
     if len(train_rows) < min_n:
         return {"available": False, "reason": "insufficient_training_rows",
                 "train_n": len(train_rows), "classes": list(classes)}
@@ -202,8 +200,7 @@ def paired_bootstrap_brier_delta(rows, params, market, replicates=1000, seed=202
     """Paired match-level bootstrap CI for raw-minus-calibrated Brier improvement."""
     if not rows or not params.get("available"):
         return None
-    classes = ("1", "X", "2") if market == "1X2" else (
-        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    classes = ("0", "1")
     deltas = []
     for row in rows:
         raw = row["model"]
@@ -212,10 +209,9 @@ def paired_bootstrap_brier_delta(rows, params, market, replicates=1000, seed=202
             raw = {"0": 1.0 - float(raw), "1": float(raw)}
             calibrated = {"0": 1.0 - float(calibrated), "1": float(calibrated)}
         actual = str(row["actual"])
-        raw_loss = sum((float(raw[label]) - (1.0 if actual == label else 0.0)) ** 2
-                       for label in classes)
-        calibrated_loss = sum((float(calibrated[label]) - (1.0 if actual == label else 0.0)) ** 2
-                              for label in classes)
+        outcome = 1.0 if actual == "1" else 0.0
+        raw_loss = (float(raw["1"]) - outcome) ** 2
+        calibrated_loss = (float(calibrated["1"]) - outcome) ** 2
         deltas.append(raw_loss - calibrated_loss)
     values = np.asarray(deltas, dtype=float)
     rng = np.random.default_rng(seed)
@@ -258,10 +254,10 @@ def run(rows, holdout):
         by_date[row["date"]].append(row)
 
     predictions = []
-    markets = ["1X2", "DC_1X", "DC_X2", "BTTS",
+    # Strict app allowlist: 2 double-chance, BTTS YES, 3 match overs and 8 team overs.
+    markets = ["DC_1X", "DC_X2", "BTTS",
                *(f"TOTAL_OVER_{line}" for line in MATCH_LINES),
-               *(f"{side}_OVER_{line}" for side in ("HOME", "AWAY") for line in TEAM_LINES),
-               "DNB_HOME", "DNB_AWAY"]
+               *(f"{side}_OVER_{line}" for side in ("HOME", "AWAY") for line in TEAM_LINES)]
     for date in sorted(by_date):
         today = by_date[date]
         base = {}
@@ -325,18 +321,20 @@ def run(rows, holdout):
         },
         "competitions": sorted({row["league"] for row in rows}),
         "markets": {},
-        "independent_market_count": 15,
-        "market_relationships": {
-            "DNB_HOME": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
-            "DNB_AWAY": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
-        },
+        "independent_market_count": 14,
+        "allowed_markets_only": True,
+        "allowed_market_definition": [
+            "DC_1X", "DC_X2", "BTTS",
+            "TOTAL_OVER_1.5", "TOTAL_OVER_2.5", "TOTAL_OVER_3.5",
+            "HOME_OVER_0.5", "HOME_OVER_1.5", "HOME_OVER_2.5", "HOME_OVER_3.5",
+            "AWAY_OVER_0.5", "AWAY_OVER_1.5", "AWAY_OVER_2.5", "AWAY_OVER_3.5"
+        ],
         "baseline_definition": "Expanding historical frequency within each competition, Laplace +1 smoothing; only results before the fixture date are used.",
         "model_definition": f"Independent Poisson using prior paired-xG team history; window={WINDOW}, half_life={HALF_LIFE}, shrinkage={SHRINKAGE}; same-calendar-day leakage prevented.",
         "limitations": [
             "No historical odds are present: edge, EV, bookmaker comparison and ROI are not measured.",
             "This research backtest is not a claim that the Android production candidate engine uses identical probabilities.",
-            "BTTS NO is the complement of BTTS YES and is not reported as a separate row.",
-            "DNB metrics include push as a third outcome class."
+            "BTTS NO, unders, 1X2 and DNB are intentionally excluded from the allowed-market audit."
         ],
     }
     for market in markets:
@@ -372,10 +370,10 @@ def run(rows, holdout):
             "calibration_by_competition": per_competition_calibration,
         }
     result["calibration_method"] = (
-        "Regularized multinomial vector scaling (log probabilities / temperature + class bias), "
+        "Regularized binary vector scaling (log probabilities / temperature + class bias), "
         "fit only on pre-holdout chronological walk-forward predictions; evaluated once on holdout. "
-        "Per-market global and per-competition calibrators are reported. This is an evaluation, "
-        "not a production strategy change."
+        "Per-market global and per-competition calibrators are reported. Calibration is diagnostic "
+        "only and is not applied to production forecasts."
     )
     return result
 
@@ -416,10 +414,7 @@ def main():
             "calibrated_log_loss": holdout_metrics["log_loss"] if holdout_metrics else None,
             "log_loss_delta_vs_raw": cal["log_loss_delta_vs_raw"],
         }
-        # DNB_HOME/AWAY reuse the same W/P/L partition as 1X2; exclude them
-        # from competition-level aggregate improvement counts to avoid double weight.
-        if market in ("DNB_HOME", "DNB_AWAY"):
-            continue
+        # Every scored market is a distinct permitted binary selection.
         for league, league_cal in metrics["calibration_by_competition"].items():
             target = calibration_by_competition.setdefault(league, {"markets_tested": 0, "markets_brier_improved": 0,
                                                                        "markets_ci_positive": 0, "markets_ci_negative": 0,
