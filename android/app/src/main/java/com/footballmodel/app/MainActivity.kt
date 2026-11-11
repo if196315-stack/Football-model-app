@@ -2378,7 +2378,7 @@ class MainActivity : Activity() {
                         addText(box, m.optString("predictionWarning", "Прогноз пока недоступен"), 11, false, Color.rgb(242, 190, 104))
                     }
                 } else {
-                    val signal = pred.optJSONObject("strongestSignal")
+                    val signal = strongestDisplaySignal(pred, m)
                     val signalBox = card(box)
                     signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(32, 55, 66), Color.rgb(17, 34, 52))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(67, 137, 119)) }
                     addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, gold)
