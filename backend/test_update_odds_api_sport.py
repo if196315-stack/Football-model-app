@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds_api_sport import parse_odds, match_fixture, sim, melbet_market_diagnostics, is_in_date_window, iter_date_windows
+from update_odds_api_sport import BOOKS, parse_odds, match_fixture, sim, melbet_market_diagnostics, is_in_date_window, iter_date_windows
 
 
 class ApiSportOddsTests(unittest.TestCase):
@@ -279,6 +279,18 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual(report["team_total_markets_open_prematch"], 1)
         self.assertEqual(report["team_total_markets_fulltime"], 1)
         self.assertEqual(report["team_total_markets_active_fulltime"], 0)
+
+
+    def test_melbet_is_the_only_configured_bookmaker_and_no_betboom_fallback(self):
+        self.assertEqual(BOOKS, ("melbet",))
+        source = {"id": 777, "oddsBk": {"betboom": {"markets": {
+            "both_teams_to_score": {"status": "open", "stage": "prematch",
+                                    "stakes": {"yes": {"factor": 1.8}}}
+        }}}}
+        quote = parse_odds(source)
+        self.assertEqual(quote["bookmaker"], "MELBET")
+        self.assertEqual(quote["best"], {})
+        self.assertEqual(quote["bookmakers"], [])
 
 
 if __name__ == "__main__":
