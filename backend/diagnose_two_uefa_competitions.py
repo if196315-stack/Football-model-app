@@ -35,6 +35,34 @@ def discover_pitchapi_competitions(rows: list[dict]) -> dict[str, dict]:
     return found
 
 
+def matching_catalogue_names(rows: list[dict]) -> list[str]:
+    return sorted({
+        str(row.get("name")) for row in rows
+        if any(token in norm(row.get("name")) for token in ("nation", "conference"))
+    })
+
+
+def search_entities(payload: Any) -> list[dict]:
+    found = []
+    def visit(value):
+        if isinstance(value, dict):
+            name = value.get("name") or value.get("title")
+            if name and any(token in norm(name) for token in ("nation", "conference")):
+                found.append(value)
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+    visit(payload)
+    unique = {}
+    for row in found:
+        key = (str(row.get("id") or row.get("tournamentId") or ""),
+               str(row.get("name") or row.get("title") or ""))
+        unique[key] = row
+    return list(unique.values())[:20]
+
+
 def response_items(payload: Any) -> list[dict]:
     if isinstance(payload, list):
         return [row for row in payload if isinstance(row, dict)]
@@ -72,8 +100,26 @@ def main() -> int:
         raise ValueError("Unexpected PitchAPI /leagues response")
     catalog = catalog_body["data"].get("leagues") or []
     competitions = discover_pitchapi_competitions(catalog)
+    api_sport_search = {}
+    for query in ("UEFA Nations League", "UEFA Conference League"):
+        try:
+            search_response = session.get(
+                "https://api.api-sport.ru/v2/football/search",
+                params={"q": query, "type": "tournament", "limit": 10},
+                headers={"Authorization": sport_key, "Accept": "application/json"},
+                timeout=TIMEOUT,
+            )
+            search_response.raise_for_status()
+            api_sport_search[query] = search_entities(search_response.json())
+        except Exception as exc:
+            api_sport_search[query] = {"error": f"{type(exc).__name__}: {str(exc)[:160]}"}
 
-    report: dict[str, Any] = {"provider": "PitchAPI + API-Sport", "competitions": {}}
+    report: dict[str, Any] = {
+        "provider": "PitchAPI + API-Sport",
+        "pitchapi_catalogue_candidates": matching_catalogue_names(catalog),
+        "api_sport_tournament_search": api_sport_search,
+        "competitions": {},
+    }
     all_targets = []
     today = datetime.now(timezone.utc).date()
     for code in sorted(TARGETS):
