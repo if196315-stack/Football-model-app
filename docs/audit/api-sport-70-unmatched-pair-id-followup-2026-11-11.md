@@ -12,7 +12,7 @@ Job conclusion: success. API-Sport rows scanned: 50,267. No truncated date windo
 
 ## Results
 
-All 70/70 target pairs were found in the expected API-Sport tournament after resolving team-name aliases.
+All 70/70 target pairs were found in the expected API-Sport tournament after resolving team-name aliases. One target (Schalke 04–1. FC Köln) returned an additional weak fuzzy candidate involving Union Berlin; the correct Köln pair is also present and is dated 2027-03-03.
 
 | Competition | Targets | Pair found | Same calendar date | Different date |
 |---|---:|---:|---:|---:|
@@ -34,7 +34,7 @@ No target lacked a candidate home-team ID or away-team ID in its expected tourna
   - PitchAPI 2027-05-30 → API-Sport 2027-05-29: 10 fixtures.
 - Bundesliga: 8 pairs are one day later in API-Sport:
   - PitchAPI 2027-03-02 → API-Sport 2027-03-03.
-- Bundesliga: one additional pair, Schalke 04–1. FC Köln, is found on 2027-02-06 in API-Sport while the PitchAPI target date is 2027-03-02 (24 days earlier in API-Sport). This is a pair-only match, not a date-confirmed match; it warrants separate schedule verification.
+- Bundesliga: Schalke 04–1. FC Köln has the correct ordered team-ID pair on 2027-03-03 (one day after the PitchAPI target date 2027-03-02). The fuzzy search also returned an extra weak candidate against Union Berlin on 2027-02-06; that is a false positive and must be discarded.
 
 The other 31 pairs have the same calendar date in both sources. The pair search ignores kickoff time, so same-date results do not by themselves prove kickoff-time agreement.
 
@@ -42,8 +42,8 @@ The other 31 pairs have the same calendar date in both sources. The pair search 
 
 1. The earlier 70 unmatched cases are not evidence that API-Sport lacks these team pairings. All 70 ordered pairs occur in the downloaded rows under the expected tournament IDs.
 2. For 31 targets, the pair and calendar date agree; the original matcher may have failed because of kickoff-time or exact team-name representation differences, or duplicate/provider row details.
-3. For 38 targets, the observed pair has a one-day calendar-date offset (30 Serie A and 8 Bundesliga). The common one-day pattern across whole Serie A rounds suggests a systematic calendar/date convention discrepancy between the two feeds, but this diagnostic alone does not establish which provider's date is authoritative.
-4. The Schalke–Köln result is a larger 24-day discrepancy and must not be treated as a confirmed reschedule without independent verification.
+3. For 39 targets, the correct ordered pair has a one-day calendar-date offset: 30 Serie A pairs are one day earlier in API-Sport, and 9 Bundesliga pairs are one day later. The repeated one-day pattern is consistent with provisional/snapshot calendar differences, but this diagnostic alone does not establish which provider's date is authoritative.
+4. The Schalke–Köln candidate on 2027-02-06 was a false fuzzy match to Union Berlin (similarity 0.603), not a valid Köln fixture. The correct Köln team ID 2671 is present and the correct pair is found on 2027-03-03.
 5. Pair identity was inferred using team-name similarity thresholds and team IDs scoped to the expected tournament. It is stronger than free-text name matching, but not an independent official fixture confirmation.
 6. The search was limited to the 50,267 API-Sport rows fetched for the scanned date windows. It does not prove API-Sport never lists a fixture outside those windows.
 7. This is a future-fixture catalogue coverage diagnostic, not historical odds coverage, and it says nothing about ROI, CLV, or profitability.
@@ -62,7 +62,7 @@ No production ingestion, source selection, probabilities, odds parser, prematch-
 | BL1 | 2027-03-02 | 2027-03-03 | Eintracht Frankfurt – Borussia Dortmund | 16434235 |
 | BL1 | 2027-03-02 | 2027-03-03 | Elversberg – RB Leipzig | 16434229 |
 | BL1 | 2027-03-02 | 2027-03-03 | Hamburger SV – Paderborn | 16434234 |
-| BL1 | 2027-03-02 | 2027-02-06 | Schalke 04 – 1. FC Köln | 16434198 |
+| BL1 | 2027-03-02 | 2027-03-03 | Schalke 04 – 1. FC Köln | 16434232 |
 | BL1 | 2027-03-02 | 2027-03-03 | Union Berlin – Augsburg | 16434233 |
 | BL1 | 2027-03-02 | 2027-03-03 | Werder Bremen – Mainz 05 | 16434227 |
 | SA | 2027-05-16 | 2027-05-15 | Bologna – Frosinone | 16285250 |
@@ -109,4 +109,11 @@ This is a diagnostic explanation, not a recommendation to lower fuzzy-match thre
 
 ## Important correction to interpretation
 
-The 31 same-date cases are **not** evidence that kickoff times agree. The pair-ID output retained only the date field, not the full raw kickoff timestamp. The 39 date-offset cases also require raw timestamp/time-zone verification before attributing the discrepancy to a provider calendar convention. No additional API-Sport detail calls were made in this follow-up, to avoid spending API budget. The date-offset pattern is observed in the downloaded fixture rows, but its cause is not yet proven.
+The 31 same-date cases are **not** evidence that kickoff times agree. The pair-ID output retained only the date field, not the full raw kickoff timestamp. The 39 one-day-offset cases also require raw timestamp/time-zone verification before attributing the discrepancy to a provider calendar convention. No additional API-Sport detail calls were made in this follow-up, to avoid spending API budget. The date-offset pattern is observed in the downloaded fixture rows, but its cause is not yet proven.
+
+
+### False-positive candidate excluded from the discrepancy table
+
+| PitchAPI fixture | Weak fuzzy candidate | Why excluded |
+|---|---|---|
+| Schalke 04 – 1. FC Köln (2027-03-02) | FC Schalke 04 – 1. FC Union Berlin (2027-02-06), API-Sport fixture 16434198 | Away-team similarity was only 0.603; it is not Köln. The correct Köln team ID 2671 is found in fixture 16434232 on 2027-03-03. |
