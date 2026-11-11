@@ -1918,7 +1918,8 @@ class MainActivity : Activity() {
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) ||
+                    strongestSignalDisplayLabel(signal, m) == null) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
                 candidates.add(Triple(m, league.optString("name"), signal))
@@ -2012,8 +2013,9 @@ class MainActivity : Activity() {
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
-                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0) continue
-                // Require a real quote for the exact strongest side, at decimal odds >= 1.50.
+                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0 ||
+                    strongestSignalDisplayLabel(signal, m) == null) continue
+                // Require a real quote for the exact strongest eligible market, at decimal odds >= 1.50.
                 if (topSignalOdds(signal, m) == null) continue
                 items.add(Triple(m, league.optString("name"), signal))
             }
