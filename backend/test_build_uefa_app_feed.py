@@ -24,7 +24,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         stale = build_odds([rows[0]], datetime(2026, 11, 10, 10, 10, 0, tzinfo=timezone.utc))
         self.assertIsNone(stale)
 
-    def test_feed_contains_two_separate_competitions_and_settled_paper_signal(self):
+    def test_feed_contains_only_active_club_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
             "ucl-1": {"leagueCode": "UCL", "status": "finished", "date": "2026-11-01",
                       "home": "A", "away": "B", "homeScore": 2, "awayScore": 0},
@@ -42,15 +42,14 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         settlements = [{"signal_id": "s1", "result": "LOSS", "profit_units": -1.0,
                         "home_score": 2, "away_score": 0}]
         feed = build_feed(cache, history, [], bets, settlements, predictions={})
-        self.assertEqual([c["code"] for c in feed["competitions"]], ["UCL", "UEL", "UECL", "UNL"])
+        self.assertEqual([c["code"] for c in feed["competitions"]], ["UCL", "UEL", "UECL"])
         ucl_match = feed["competitions"][0]["matches"][0]
         self.assertEqual(ucl_match["paperSignals"][0]["result"], "LOSS")
         self.assertEqual(ucl_match["status"], "FINISHED")
         self.assertEqual(feed["competitions"][1]["matches"], [])
         self.assertEqual(feed["competitions"][2]["matches"][0]["home"], "E")
         self.assertIsNone(feed["competitions"][2]["matches"][0]["prediction"])
-        self.assertEqual(feed["competitions"][3]["matches"][0]["home"], "Czechia")
-        self.assertIsNone(feed["competitions"][3]["matches"][0]["prediction"])
+        self.assertNotIn("UNL", [c["code"] for c in feed["competitions"]])
 
 
 if __name__ == "__main__":
