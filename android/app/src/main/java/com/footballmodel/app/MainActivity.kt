@@ -2331,8 +2331,36 @@ class MainActivity : Activity() {
         aiSignalPrefs.edit().putString("signals", archive.toString()).apply()
     }
 
+    private fun renderAiSignalPerformanceSummary() {
+        val archive = try {
+            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
+        } catch (_: Exception) {
+            JSONArray()
+        }
+        var wins = 0
+        var losses = 0
+        var pending = 0
+        var profitUnits = 0.0
+        for (i in 0 until archive.length()) {
+            val row = archive.optJSONObject(i) ?: continue
+            when (row.optString("status")) {
+                "WON" -> { wins++; profitUnits += row.optDouble("profitUnits", 0.0) }
+                "LOST" -> { losses++; profitUnits += row.optDouble("profitUnits", 0.0) }
+                "PENDING" -> pending++
+            }
+        }
+        val settled = wins + losses
+        val roi = if (settled > 0) String.format(Locale.US, "%.1f%%", profitUnits / settled * 100.0) else "—"
+        val summary = card()
+        addText(summary, "AI · РЕЗУЛЬТАТ РЕКОМЕНДАЦИЙ", 10, true, cyan)
+        addText(summary, "Зафиксировано: ${archive.length()} · W $wins / L $losses · ожидают: $pending", 12, true, Color.WHITE)
+        addText(summary, "ROI: $roi · расчёт по 1 условной единице на каждый сигнал", 10, false, muted)
+        if (archive.length() == 0) addText(summary, "История начнёт накапливаться после появления первых сигналов с котировкой BetBoom.", 10, false, muted)
+    }
+
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "Каждый рынок проходит независимую проверку исторической базы, цены BetBoom и ограничений модели.")
+        renderAiSignalPerformanceSummary()
         val sorted = collectAiCandidates(json)
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
