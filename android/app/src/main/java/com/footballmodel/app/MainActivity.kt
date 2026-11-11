@@ -1840,25 +1840,27 @@ class MainActivity : Activity() {
             uefaPaperSignal(match)?.let { candidates.add(it) }
         }
 
-        val available = candidates.filter {
-            strongestSignalDisplayLabel(it, match) != null &&
-                topSignalOdds(it, match, minOdds = 1.01) != null
+        // The Line card optimizes probability and price together. Only exact
+        // MelBet quotes >= 1.50 qualify; positive-EV candidates are ranked by
+        // probability-weighted EV so neither raw odds nor probability dominates.
+        val available = candidates.mapNotNull { candidate ->
+            if (strongestSignalDisplayLabel(candidate, match) == null) return@mapNotNull null
+            val probability = candidate.optDouble("modelProbability", Double.NaN)
+            val odds = topSignalOdds(candidate, match, minOdds = 1.50)
+            if (!probability.isFinite() || probability !in 0.0..1.0 || odds == null) return@mapNotNull null
+            val expectedValue = probability * odds - 1.0
+            candidate.put("lineOdds", odds)
+            candidate.put("lineExpectedValue", expectedValue)
+            candidate.put("lineBalanceScore", probability * maxOf(0.0, expectedValue))
+            candidate
         }
-        // Edge points and raw model probability are different scales. Never
-        // compare them in one max() operation: domestic feeds have historical
-        // baselines, while UEFA currently ranks by model probability alone.
-        val edgeRanked = available.mapNotNull { candidate ->
-            val selectionEdge = candidate.optDouble("selectionEdgePp", Double.NaN)
-            val rawEdge = candidate.optDouble("edgePp", Double.NaN)
-            val score = if (selectionEdge.isFinite()) selectionEdge else rawEdge
-            if (score.isFinite()) candidate to score else null
-        }
-        return if (edgeRanked.isNotEmpty()) {
-            edgeRanked.maxByOrNull { it.second }?.first
+        val positiveValue = available.filter { it.optDouble("lineExpectedValue", -1.0) > 0.0 }
+        return if (positiveValue.isNotEmpty()) {
+            positiveValue.maxByOrNull { it.optDouble("lineBalanceScore", Double.NEGATIVE_INFINITY) }
         } else {
-            available.maxByOrNull {
-                it.optDouble("modelProbability", Double.NEGATIVE_INFINITY)
-            }
+            // Do not disguise a negative-EV quote as value: retain the most
+            // probable qualifying market, with its negative EV shown explicitly.
+            available.maxByOrNull { it.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }
         }
     }
 
@@ -2773,24 +2775,27 @@ class MainActivity : Activity() {
                         if (displayLabel == null) {
                             addText(signalBox, "Среди разрешённых рынков нет корректного сигнала для отображения.", 12, true, Color.rgb(242, 190, 104))
                         } else {
-                            val baselineEdge = signal.optDouble("edgePp", Double.NaN)
-                            val formAdjustment = signal.optDouble("formAdjustmentPp", 0.0)
-                            val selectionEdge = signal.optDouble("selectionEdgePp", baselineEdge)
-                            if (baselineEdge.isFinite()) {
-                                val edgeColor = if (selectionEdge.isFinite() && selectionEdge <= 0.0)
-                                    Color.rgb(242, 190, 104) else accent
-                                addText(signalBox, "$displayLabel · ${String.format(Locale.US, "%+.1f", baselineEdge)} п.п. к исторической базе", 14, true, edgeColor)
-                                if (formAdjustment.isFinite() && formAdjustment != 0.0) {
-                                    addText(signalBox, "Поправка недавней формы: ${String.format(Locale.US, "%+.1f", formAdjustment)} п.п. · учитывается при ранжировании", 10, false, muted)
-                                }
-                            } else {
-                                addText(signalBox, "$displayLabel · выбран по вероятности модели среди рынков с котировкой MelBet", 13, true, accent)
+                            val probability = signal.optDouble("modelProbability", 0.0)
+                            val odds = signal.optDouble("lineOdds", Double.NaN)
+                            val expectedValue = signal.optDouble("lineExpectedValue", Double.NaN)
+                            val positiveValue = expectedValue.isFinite() && expectedValue > 0.0
+                            addText(signalBox, displayLabel, 15, true, if (positiveValue) accent else Color.rgb(242, 190, 104))
+                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", probability * 100)}%  ·  Коэффициент MelBet: ${if (odds.isFinite()) String.format(Locale.US, "%.2f", odds) else "—"}", 12, true, Color.WHITE)
+                            if (expectedValue.isFinite()) {
+                                val evText = String.format(Locale.US, "%+.1f%%", expectedValue * 100.0)
+                                addText(signalBox, "Ожидаемая доходность (EV): $evText", 11, true, if (positiveValue) accent else Color.rgb(242, 190, 104))
+                                addText(signalBox, if (positiveValue)
+                                    "Выбран баланс вероятности и положительного EV среди рынков с коэффициентом от 1.50."
+                                else
+                                    "Нет рынка с положительным EV при коэффициенте от 1.50. Показан самый вероятный доступный вариант.",
+                                    10, false, muted)
                             }
-                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}%", 11, false, Color.WHITE)
                             if (signal.has("baselineProbability")) {
-                                addText(signalBox, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}% · ${signal.optInt("baselineMatches")} матчей до даты игры.", 10, false, muted)
-                            } else {
-                                addText(signalBox, "Историческое преимущество для этого турнира пока не рассчитывается.", 10, false, muted)
+                                addText(signalBox, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}% · ${signal.optInt("baselineMatches")} матчей до даты игры.", 10, false, muted)
+                            }
+                            val formAdjustment = signal.optDouble("formAdjustmentPp", 0.0)
+                            if (formAdjustment.isFinite() && formAdjustment != 0.0) {
+                                addText(signalBox, "Контекст формы: ${String.format(Locale.US, "%+.1f", formAdjustment)} п.п. (справочно)", 10, false, muted)
                             }
                         }
                     }
