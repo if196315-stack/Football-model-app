@@ -2009,7 +2009,7 @@ class MainActivity : Activity() {
         if (stake <= 0.0) return
         AlertDialog.Builder(this)
             .setTitle("Зафиксировать AI-ставку?")
-            .setMessage("${match.optString("home")} — ${match.optString("away")}\\n${signal.optString("side")}\\nКоэффициент BetBoom: ${fmt(odds)}\\nСумма: ${fmt(stake)} ₽\\n\\nЭто будет бумажная ставка в истории, не реальная отправка букмекеру.")
+            .setMessage("Матч: ${match.optString("home")} — ${match.optString("away")}\nРынок: ${signal.optString("side")}\nКоэффициент BetBoom: ${fmt(odds)}\nСумма ставки: ${fmt(stake)} ₽\n\nБумажная ставка — запись в истории приложения. Букмекеру ничего не отправляется.")
             .setNegativeButton("Отмена", null)
             .setPositiveButton("Зафиксировать") { _, _ ->
                 val now = System.currentTimeMillis()
