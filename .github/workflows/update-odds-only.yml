@@ -38,19 +38,19 @@ jobs:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/update_odds_api_sport.py
       - name: Append immutable model-market odds snapshots
-        run: python backend/collect_odds_snapshots.py --input docs/data.json --output artifacts/odds-snapshots.jsonl
+        run: python backend/collect_odds_snapshots.py --input docs/data.json --output artifacts/melbet-odds-snapshots.jsonl
       - name: Evaluate archived observations with available final scores
-        run: python backend/evaluate_market_observations.py --snapshots artifacts/odds-snapshots.jsonl --data docs/data.json --output artifacts/market-observation-results.jsonl
+        run: python backend/evaluate_market_observations.py --snapshots artifacts/melbet-odds-snapshots.jsonl --data docs/data.json --output artifacts/melbet-market-observation-results.jsonl
       - name: Commit refreshed odds and snapshot history
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/data.json
-          if [ -f artifacts/odds-snapshots.jsonl ]; then
-            git add artifacts/odds-snapshots.jsonl
+          if [ -f artifacts/melbet-odds-snapshots.jsonl ]; then
+            git add artifacts/melbet-odds-snapshots.jsonl
           fi
-          if [ -f artifacts/market-observation-results.jsonl ]; then
-            git add artifacts/market-observation-results.jsonl
+          if [ -f artifacts/melbet-market-observation-results.jsonl ]; then
+            git add artifacts/melbet-market-observation-results.jsonl
           fi
           git diff --cached --quiet || git commit -m "Update odds and append snapshot history"
           git pull --rebase origin main
