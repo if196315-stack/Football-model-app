@@ -1548,6 +1548,25 @@ class MainActivity : Activity() {
         workerCard.addView(workerCountTextView)
     }
 
+    // Only show a strongest signal when its market is actually listed in the match card.
+    // Under markets are intentionally excluded; team totals shown in the card are OVER (ИТБ) only.
+    private fun strongestSignalDisplayLabel(signal: JSONObject, match: JSONObject): String? {
+        val side = signal.optString("side").trim()
+        if (side.isBlank()) return null
+        if (side.contains("ИТМ", ignoreCase = true) || side.startsWith("ТМ ", ignoreCase = true) ||
+            side.contains("UNDER", ignoreCase = true) || side.equals("Не X2", ignoreCase = true)) return null
+        if (side == "1X" || side == "X2" || side == "ОЗ ДА") return side
+        if (side in listOf("ТБ 1.5", "ТБ 2.5", "ТБ 3.5")) return side
+        if (side.startsWith("ИТБ ")) {
+            val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull()
+                ?: return null
+            val team = side.substringAfter("·", "").trim()
+            if (point in listOf(0.5, 1.5, 2.5, 3.5) &&
+                (team == match.optString("home") || team == match.optString("away"))) return side
+        }
+        return null
+    }
+
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
         val side = signal.optString("side")
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
@@ -1899,7 +1918,8 @@ class MainActivity : Activity() {
                     ?: (if (league.optString("code") == "UCL" || league.optString("code") == "UEL") uefaPaperSignal(m) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) ||
+                    strongestSignalDisplayLabel(signal, m) == null) continue
                 val price = topSignalOdds(signal, m) ?: continue
                 if (price < 1.50) continue
                 candidates.add(Triple(m, league.optString("name"), signal))
@@ -1993,8 +2013,9 @@ class MainActivity : Activity() {
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = prediction.optJSONObject("strongestSignal") ?: continue
                 val edge = signal.optDouble("edgePp", 0.0)
-                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0) continue
-                // Require a real quote for the exact strongest side, at decimal odds >= 1.50.
+                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0 ||
+                    strongestSignalDisplayLabel(signal, m) == null) continue
+                // Require a real quote for the exact strongest eligible market, at decimal odds >= 1.50.
                 if (topSignalOdds(signal, m) == null) continue
                 items.add(Triple(m, league.optString("name"), signal))
             }
@@ -2237,13 +2258,18 @@ class MainActivity : Activity() {
                         addText(signalBox, if (leagueCode == "UCL" || leagueCode == "UEL") "Вероятности рассчитаны по историческим xG; проверенные тестовые сигналы и их результаты — ниже." else "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
                     } else {
                         val edge = signal.optDouble("edgePp")
-                        if (signal.optBoolean("noPositiveSignal")) {
-                            addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: ${signal.optString("side")} · ${String.format(Locale.US, "%.1f", edge)} п.п.", 12, true, Color.rgb(242, 190, 104))
+                        val displayLabel = strongestSignalDisplayLabel(signal, m)
+                        if (displayLabel == null) {
+                            addText(signalBox, "Среди отображаемых рынков нет подтверждённого сильнейшего сигнала.", 12, true, Color.rgb(242, 190, 104))
                         } else {
-                            addText(signalBox, "${signal.optString("side")} · +${String.format(Locale.US, "%.1f", edge)} п.п. к базе", 15, true, accent)
+                            if (signal.optBoolean("noPositiveSignal")) {
+                                addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: $displayLabel · ${String.format(Locale.US, "%.1f", edge)} п.п.", 12, true, Color.rgb(242, 190, 104))
+                            } else {
+                                addText(signalBox, "$displayLabel · +${String.format(Locale.US, "%.1f", edge)} п.п. к базе", 15, true, accent)
+                            }
+                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
+                            addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
                         }
-                        addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
-                        addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
                     }
                     val mainMarkets = card(box)
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
