@@ -3,6 +3,9 @@ package com.footballmodel.app
 import android.app.Activity
 import android.app.AlertDialog
 import android.text.InputType
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -51,6 +54,7 @@ class MainActivity : Activity() {
     private lateinit var statusView: TextView
     private lateinit var headerBalanceView: TextView
     private lateinit var headerAiRoiView: TextView
+    private lateinit var notificationsButton: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
@@ -77,11 +81,25 @@ class MainActivity : Activity() {
     private val liveRefreshTask = object : Runnable {
         override fun run() {
             refreshWorkerStatusUi()
-            if (!loadInProgress.get() && currentTab in listOf("matches", "history", "desk")) loadData()
+            refreshNotificationBell()
+            if (!loadInProgress.get()) loadData()
             liveRefreshHandler.postDelayed(this, 60 * 1000L)
         }
     }
 
+    private fun refreshNotificationBell() {
+        if (!::notificationsButton.isInitialized) return
+        val unread = settingsPrefs.getBoolean(SectionNotifications.UNREAD_KEY, false)
+        notificationsButton.text = if (unread) SpannableString("🔔 •").apply {
+            setSpan(ForegroundColorSpan(Color.rgb(255, 82, 96)), length - 1, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        } else SpannableString("🔔")
+        notificationsButton.background = GradientDrawable().apply {
+            setColor(surface)
+            cornerRadius = dp(13).toFloat()
+            setStroke(dp(if (unread) 2 else 1), if (unread) Color.rgb(255, 82, 96) else Color.rgb(39, 61, 82))
+        }
+        notificationsButton.contentDescription = if (unread) "Новое в разделе «Отчёт и наблюдения»" else "Отчёт и наблюдения"
+    }
     private fun refreshWorkerStatusUi() {
         val lastRun = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
         val status = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
@@ -119,6 +137,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         currentTab = intent.getStringExtra("open_tab") ?: "matches"
+        if (currentTab == "notifications") SectionNotifications.markRead(this)
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
@@ -138,8 +157,8 @@ class MainActivity : Activity() {
         }
         scroll.addView(root)
         setContentView(scroll)
-        PaperBetNotifications.ensureChannel(this)
-        PaperBetNotifications.requestPermissionIfNeeded(this)
+        SectionNotifications.ensureChannel(this)
+        SectionNotifications.requestPermissionIfNeeded(this)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -168,16 +187,18 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
         }
-        val notificationsButton = TextView(this).apply {
+        notificationsButton = TextView(this).apply {
             text = "🔔"
             textSize = 22f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
             background = rounded(surface, 13)
-            contentDescription = "Ежедневный отчёт и аналитика"
+            contentDescription = "Отчёт и наблюдения"
             isClickable = true
             isFocusable = true
             setOnClickListener {
+                SectionNotifications.markRead(this@MainActivity)
+                refreshNotificationBell()
                 currentTab = "notifications"
                 tabViewCache.clear()
                 renderedKey = null
@@ -186,6 +207,7 @@ class MainActivity : Activity() {
             }
         }
         headerRight.addView(notificationsButton, LinearLayout.LayoutParams(dp(42), dp(38)).apply { bottomMargin = dp(3) })
+        refreshNotificationBell()
         headerBalanceView = label("-- ₽", 12, true, Color.WHITE).apply { gravity = Gravity.END; maxLines = 1 }
         headerRight.addView(headerBalanceView)
         headerAiRoiView = label("AI ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
@@ -264,7 +286,14 @@ class MainActivity : Activity() {
         super.onNewIntent(intent)
         setIntent(intent)
         val requestedTab = intent.getStringExtra("open_tab")
-        if (requestedTab == "desk") {
+        if (requestedTab == "notifications") {
+            currentTab = "notifications"
+            SectionNotifications.markRead(this)
+            refreshNotificationBell()
+            tabViewCache.clear()
+            renderedKey = null
+            if (data != null) render() else loadData()
+        } else if (requestedTab == "desk") {
             currentTab = "desk"
             tabViewCache.clear()
             renderedKey = null
@@ -274,6 +303,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        refreshNotificationBell()
         val latestBets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         if (latestBets.toString() != bets.toString()) {
             bets = latestBets
@@ -785,16 +815,11 @@ class MainActivity : Activity() {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
                 }
-                // Download the append-only archives only when Stats is opened; match refreshes stay lightweight.
-                if (currentTab == "stats" || currentTab == "notifications") {
-                    val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
-                    val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
-                    json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
-                    json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
-                } else {
-                    json.put("marketObservationSnapshots", JSONArray())
-                    json.put("marketObservationResults", JSONArray())
-                }
+                // Keep the single bell section monitored during ordinary feed refreshes.
+                val snapshotsBody = fetchFeed(observationSnapshotsUrl, "market_observation_snapshots", false)
+                val resultsBody = fetchFeed(observationResultsUrl, "market_observation_results", false)
+                json.put("marketObservationSnapshots", jsonArrayFromJsonLines(snapshotsBody))
+                json.put("marketObservationResults", jsonArrayFromJsonLines(resultsBody))
                 val payload = json.toString()
                 feedCache.edit()
                     .putString("merged_json", payload)
@@ -809,10 +834,15 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     }
-                    // Evaluate every successful feed check, even when the payload is unchanged.
-                    // Duplicate protection makes this safe and lets newly valid quotes lock promptly.
-                    val newAutoBets = processAutoPaperBets(json)
-                    newAutoBets.forEach { PaperBetNotifications.show(this, it) }
+                    // Detect changes to the combined report-and-observations section.
+                    val currentBets = betPrefs.getString("bets", "[]") ?: "[]"
+                    if (snapshotsBody != null && resultsBody != null) {
+                        SectionNotifications.observeAndNotify(this, SectionNotifications.fingerprint(
+                            currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody
+                        ))
+                    }
+                    // Keep existing paper-bet processing and settlement behavior unchanged.
+                    processAutoPaperBets(json)
                     if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }

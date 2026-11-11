@@ -58,8 +58,16 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     if (bet.optString("source") == "AI_AUTO" && bet.optString("status") == "PENDING") pendingAuto++
                 }
             }
-            newAutoBets.forEach { bet ->
-                PaperBetNotifications.show(applicationContext, bet)
+            // Monitor the same combined section in the background while the app is closed.
+            // The first successful check establishes a baseline; archived old rows do not notify.
+            val snapshotsBody = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/odds-snapshots.jsonl")
+            val resultsBody = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/market-observation-results.jsonl")
+            if (snapshotsBody != null && resultsBody != null) {
+                val currentBets = prefs.getString("bets", "[]") ?: "[]"
+                SectionNotifications.observeAndNotify(
+                    applicationContext,
+                    SectionNotifications.fingerprint(currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody)
+                )
             }
             settings.edit()
                 .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
