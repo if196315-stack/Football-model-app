@@ -16,6 +16,37 @@ ROOT = Path(__file__).resolve().parents[1]
 HISTORY = ROOT / "artifacts" / "uefa-xg-history.json"
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
 RETRY_UNPAIRED_AFTER = timedelta(hours=24)
+UEFA_COMPETITIONS = ("UCL", "UEL", "UECL", "UNL")
+
+
+def history_report_metadata(cache: dict, matches: list[dict], generated_at: str) -> dict:
+    """Rebuild archive counters from the current fixture cache and paired-xG rows."""
+    finished = [
+        fixture for fixture in (cache.get("matches") or {}).values()
+        if fixture.get("leagueCode") in UEFA_COMPETITIONS
+        and fixture.get("provider") in (None, "PitchAPI")
+        and fixture.get("status") == "finished"
+    ]
+    history_by_id = {str(row.get("id")): row for row in matches}
+    with_scores = [
+        fixture for fixture in finished
+        if isinstance(fixture.get("homeScore"), int)
+        and isinstance(fixture.get("awayScore"), int)
+    ]
+    paired_with_scores = sum(
+        1 for fixture in with_scores
+        if (row := history_by_id.get(str(fixture.get("id"))))
+        and row.get("pairedXg") is True
+        and isinstance(row.get("homeXg"), (int, float))
+        and isinstance(row.get("awayXg"), (int, float))
+    )
+    return {
+        "fixture_cache_matches": len(cache.get("matches") or {}),
+        "xg_report_generated_at": generated_at,
+        "finished_matches_with_paired_xg_and_scores": paired_with_scores,
+        "finished_matches_missing_paired_xg": len(with_scores) - paired_with_scores,
+        "finished_matches_missing_scores": len(finished) - len(with_scores),
+    }
 
 
 def update_history(cache: dict, history: dict, fetch_shots,
@@ -72,11 +103,13 @@ def update_history(cache: dict, history: dict, fetch_shots,
     matches = sorted(existing.values(), key=lambda row: (
         str(row.get("date") or ""), str(row.get("leagueCode") or ""), str(row.get("id") or "")
     ))
+    generated_at = now.isoformat()
     updated = {
         **history,
+        **history_report_metadata(cache, matches, generated_at),
         "schema_version": history.get("schema_version", 1),
         "provider": "PitchAPI",
-        "updated_at": now.isoformat(),
+        "updated_at": generated_at,
         "matches": matches,
     }
     summary = {
