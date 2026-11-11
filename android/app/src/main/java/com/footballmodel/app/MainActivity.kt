@@ -1338,6 +1338,8 @@ class MainActivity : Activity() {
             betPrefs.edit().putString("bets", bets.toString()).commit()
         }
         tabViewCache.remove("history|ALL")
+        tabViewCache.remove("history|OPEN")
+        tabViewCache.remove("history|COMPLETED")
         tabViewCache.remove("desk|ALL")
         tabViewCache.remove("stats|ALL")
     }
@@ -1643,12 +1645,6 @@ class MainActivity : Activity() {
             val roi = if (leagueTurnover > 0.0) String.format(Locale.US, "%.1f%%", leagueProfit / leagueTurnover * 100.0) else "—"
             addText(sum, "$league · ${rows.size} ставок · W $leagueWins / L $leagueLosses / возврат $leaguePushes · ROI $roi", 10, false, muted)
             if (settledCount == 0) addText(sum, "Пока нет рассчитанных ставок", 9, false, muted)
-        }
-
-        if (bets.length() == 0) {
-            val empty = card()
-            addText(empty, "Записанных ставок пока нет.", 12, false, muted)
-            return
         }
 
         val openBets = mutableListOf<JSONObject>()
@@ -2214,28 +2210,36 @@ class MainActivity : Activity() {
         }
         val stake = maxOf(currentBankroll() * 0.01, minimumStake())
         if (stake <= 0.0) return
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("Зафиксировать AI-ставку?")
             .setMessage("Матч: ${match.optString("home")} — ${match.optString("away")}\nРынок: ${signal.optString("side")}\nКоэффициент MelBet: ${fmt(odds)}\nСумма ставки: ${fmt(stake)} ₽\n\nБумажная ставка — запись в истории приложения. Букмекеру ничего не отправляется.")
             .setNegativeButton("Отмена", null)
-            .setPositiveButton("Зафиксировать") { _, _ ->
-                val now = System.currentTimeMillis()
-                val bet = JSONObject()
-                    .put("id", id).put("source", "AI_MANUAL").put("status", "PENDING")
-                    .put("matchId", matchId).put("league", league)
-                    .put("date", match.optString("utcDate"))
-                    .put("betDay", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now)))
-                    .put("home", match.optString("home")).put("away", match.optString("away"))
-                    .put("market", signal.optString("side")).put("marketKey", marketKey)
-                    .put("odds", odds).put("stake", stake).put("probability", probability)
-                    .put("edgePp", edge).put("expectedValue", ev)
-                    .put("quoteUpdatedAt", match.optJSONObject("odds")?.optString("updatedAt", ""))
-                    .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
-                bets.put(bet)
+            .setPositiveButton("Зафиксировать", null)
+            .show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            // Close the confirmation immediately; disk persistence must not block the dialog animation.
+            dialog.dismiss()
+            val now = System.currentTimeMillis()
+            val bet = JSONObject()
+                .put("id", id).put("source", "AI_MANUAL").put("status", "PENDING")
+                .put("matchId", matchId).put("league", league)
+                .put("date", match.optString("utcDate"))
+                .put("betDay", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now)))
+                .put("home", match.optString("home")).put("away", match.optString("away"))
+                .put("market", signal.optString("side")).put("marketKey", marketKey)
+                .put("odds", odds).put("stake", stake).put("probability", probability)
+                .put("edgePp", edge).put("expectedValue", ev)
+                .put("quoteUpdatedAt", match.optJSONObject("odds")?.optString("updatedAt", ""))
+                .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
+            bets.put(bet)
+            Thread {
                 saveBets()
-                Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
-                render()
-            }.show()
+                runOnUiThread {
+                    Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
+                    render()
+                }
+            }.start()
+        }
     }
 
     private fun collectAiCandidates(json: JSONObject): List<Triple<JSONObject, String, JSONObject>> {
