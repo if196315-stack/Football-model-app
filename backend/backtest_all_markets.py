@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seven-competition chronological xG backtest for supported goal markets.
+"""Eight-competition chronological xG backtest for supported goal markets.
 
 Offline only. Same-calendar-day fixtures are scored before same-day results/xG
 enter history. Baselines are expanding, Laplace-smoothed competition outcome
@@ -15,7 +15,7 @@ from backtest_pitchapi import WINDOW, HALF_LIFE, SHRINKAGE, poisson, team_streng
 
 MATCH_LINES = (1.5, 2.5, 3.5)
 TEAM_LINES = (0.5, 1.5, 2.5, 3.5)
-EXPECTED_COMPETITIONS = {"ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL"}
+EXPECTED_COMPETITIONS = {"ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL"}
 
 
 def domestic_rows(path):
@@ -393,7 +393,7 @@ def main():
     missing = EXPECTED_COMPETITIONS - found
     unexpected = found - EXPECTED_COMPETITIONS
     if missing or unexpected:
-        raise SystemExit(f"Archive must cover exactly seven competitions; missing={sorted(missing)}, unexpected={sorted(unexpected)}")
+        raise SystemExit(f"Archive must cover exactly eight competitions; missing={sorted(missing)}, unexpected={sorted(unexpected)}")
     report = run(rows, args.holdout_from)
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
