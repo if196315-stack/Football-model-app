@@ -1244,102 +1244,9 @@ class MainActivity : Activity() {
                 if (before != existing.optString("status")) changed = true
             }
         }
-        val currentBankForRisk = currentBankroll()
-        val storedHigh = settingsPrefs.getString("paper_high_watermark", null)?.toDoubleOrNull()
-        val highWater = maxOf(storedHigh ?: currentBankForRisk, currentBankForRisk)
-        if (hasInitialBankroll() && (storedHigh == null || highWater > storedHigh)) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
-        val drawdown = if (hasInitialBankroll() && highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
-        if (settingsPrefs.getInt("paper_risk_policy_version", 0) < 2) {
-            val migration = settingsPrefs.edit().putInt("paper_risk_policy_version", 2)
-            if (drawdown < 0.20) migration.putBoolean("paper_auto_stopped", false)
-            migration.apply()
-        }
-        if (drawdown >= 0.20) settingsPrefs.edit().putBoolean("paper_auto_stopped", true).apply()
-        val autoStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
-        val drawdownPaused = drawdown >= 0.10
-        val competitions = json.optJSONArray("competitions")
-        if (competitions != null) for (i in 0 until competitions.length()) {
-            val competition = competitions.optJSONObject(i) ?: continue
-            val matches = competition.optJSONArray("matches") ?: continue
-            for (j in 0 until matches.length()) {
-                val match = matches.optJSONObject(j) ?: continue
-                if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
-                val kickoff = parseFeedTimeMillis(match.optString("utcDate")) ?: continue
-                val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("UTC")
-                }
-                val kickoffDate = dayFormat.format(java.util.Date(kickoff))
-                val today = dayFormat.format(java.util.Date(now))
-                if (kickoffDate < today) continue
-                val odds = match.optJSONObject("odds") ?: continue
-                val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
-                // Lock the visible BetBoom quote when the candidate first qualifies.
-                if (quoteUpdatedAt > now) continue
-                val prediction = match.optJSONObject("prediction")
-                val signals = mutableListOf<JSONObject>()
-                prediction?.optJSONObject("strongestSignal")?.let { signals.add(it) }
-                for (field in listOf("signals", "paperSignals")) {
-                    val rows = prediction?.optJSONArray(field) ?: continue
-                    for (si in 0 until rows.length()) rows.optJSONObject(si)?.let { signals.add(it) }
-                }
-                if (competition.optString("code") in listOf("UCL", "UEL")) {
-                    val rows = match.optJSONArray("paperSignals")
-                    if (rows != null) for (si in 0 until rows.length()) {
-                        val row = rows.optJSONObject(si) ?: continue
-                        val side = when (row.optString("market")) {
-                            "double_chance" -> when (row.optString("outcome")) { "1x" -> "1X"; "x2" -> "X2"; else -> "" }
-                            "match_total_over" -> "ТБ " + row.optDouble("point").toString()
-                            "team_total_over" -> "ИТБ " + row.optDouble("point").toString() + " · " + if (row.optString("team") == "home") match.optString("home") else match.optString("away")
-                            "btts" -> if (row.optString("outcome") == "yes") "ОЗ ДА" else ""
-                            else -> ""
-                        }
-                        if (side.isBlank()) continue
-                        val probability = row.optDouble("model_probability", Double.NaN)
-                        val signal = JSONObject().put("side", side).put("modelProbability", probability)
-                            .put("edgePp", row.optDouble("edge", Double.NaN) * 100.0).put("paperOnly", true)
-                        val price = topSignalOdds(signal, match) ?: continue
-                        if (kotlin.math.abs(price - row.optDouble("price", Double.NaN)) < 0.005 &&
-                            probability.isFinite() && row.optDouble("edge", Double.NaN) >= 0.05 &&
-                            row.optDouble("expected_value", Double.NaN) >= 0.05) signals.add(signal)
-                    }
-                }
-                val matchId = match.optString("id", match.optString("utcDate") + match.optString("home") + match.optString("away"))
-                for (signal in signals) {
-                    if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                        signal.optString("side") == "ОЗ НЕТ") continue
-                    val price = topSignalOdds(signal, match) ?: continue
-                    val probability = signal.optDouble("modelProbability", Double.NaN)
-                    val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", Double.NaN) else (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
-                    val ev = probability * price - 1.0
-                    if (!probability.isFinite() || probability < 0.60 || !edge.isFinite() || edge < 5.0 || ev < 0.05 || price < 1.50) continue
-                    val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
-                    val id = "AI_AUTO:" + matchId + ":" + marketKey
-                    var duplicate = false
-                    for (k in 0 until bets.length()) {
-                        val prior = bets.optJSONObject(k) ?: continue
-                        if (prior.optString("id") == id) { duplicate = true; break }
-                    }
-                    if (duplicate || autoStopped || drawdownPaused || !hasInitialBankroll()) continue
-                    val bank = currentBankroll()
-                    val stake = maxOf(bank * 0.01, minimumStake())
-                    val newBet = JSONObject()
-                        .put("id", id).put("source", "AI_AUTO").put("status", "PENDING")
-                        .put("matchId", matchId).put("league", competition.optString("name"))
-                        .put("date", match.optString("utcDate")).put("betDay", localDay)
-                        .put("home", match.optString("home")).put("away", match.optString("away"))
-                        .put("market", signal.optString("side")).put("marketKey", marketKey)
-                        .put("odds", price).put("stake", stake).put("probability", probability)
-                        .put("edgePp", edge).put("expectedValue", ev)
-                        .put("quoteUpdatedAt", odds.optString("updatedAt")).put("createdAt", now)
-                        .put("matchStatus", "SCHEDULED").put("score", "")
-                    bets.put(newBet)
-                    newAutoBets.add(JSONObject(newBet.toString()))
-                    changed = true
-                }
-            }
-        }
+        // Automatic paper-bet creation is disabled. Keep settlement of existing bets above.
         if (changed) saveBets()
-        return newAutoBets
+        return emptyList()
     }
 
     private fun saveBets(preserveBackgroundAuto: Boolean = true) {
@@ -1588,24 +1495,6 @@ class MainActivity : Activity() {
         addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
         addText(sum,"ОБЩИЙ ROI · все бумажные ставки",10,true,cyan)
         addText(sum,"ROI = чистый результат / рассчитанный оборот. Возвраты и ожидающие ставки не входят.",10,false,muted)
-        var aiTurnover=0.0; var aiProfit=0.0; var aiWins=0; var aiLosses=0; var aiPushes=0; var aiPending=0
-        for(i in 0 until bets.length()) {
-            val b=bets.optJSONObject(i) ?: continue
-            if(b.optString("source")!="AI_AUTO") continue
-            val st=b.optDouble("stake"); val o=b.optDouble("odds")
-            when(b.optString("status")) {
-                "WON"->{aiWins++;aiTurnover+=st;aiProfit+=st*(o-1.0)}
-                "LOST"->{aiLosses++;aiTurnover+=st;aiProfit-=st}
-                "PUSH"->{aiPushes++;aiTurnover+=st}
-                "PENDING"->aiPending++
-            }
-        }
-        val ai=card()
-        addText(ai,"AI · АВТОМАТИЧЕСКИЕ БУМАЖНЫЕ СТАВКИ",10,true,accent)
-        addText(ai,"Ставок: "+(aiWins+aiLosses+aiPushes+aiPending)+" · выигрыш: "+aiWins+" · проигрыш: "+aiLosses+" · возврат: "+aiPushes+" · ожидают: "+aiPending,12,true)
-        addText(ai,"Чистый результат: "+(if(aiProfit>=0) "+" else "")+fmt(aiProfit)+" ₽ · оборот: "+fmt(aiTurnover)+" ₽",12,true)
-        addText(ai,"AI ROI: "+(if(aiTurnover>0.0) String.format(Locale.US,"%.1f%%",aiProfit/aiTurnover*100.0) else "—"),18,true,if(aiProfit>=0) accent else Color.RED)
-        addText(ai,"Учитываются только ставки, автоматически открытые из AI. Ожидающие и возвраты не входят в оборот.",10,false,muted)
         if(bets.length()==0) { val e=card(); addText(e,"Записанных ставок пока нет.",12,false,muted); return }
         for(i in bets.length()-1 downTo 0) { val b=bets.optJSONObject(i) ?: continue; val box=card()
             val st=b.optString("status")
