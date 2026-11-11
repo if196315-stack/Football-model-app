@@ -17,6 +17,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.MotionEvent
 import android.widget.*
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -57,6 +58,7 @@ class MainActivity : Activity() {
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
+    private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
     private var data: JSONObject? = null
     private var bets = JSONArray()
@@ -138,7 +140,69 @@ class MainActivity : Activity() {
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
-        val scroll = ScrollView(this).apply {
+        val scroll = object : ScrollView(this) {
+            private var gestureDownX = 0f
+            private var gestureDownY = 0f
+            private var swipeOriginInLeagueFilters = false
+            private var horizontalSwipeCaptured = false
+
+            override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        gestureDownX = event.x
+                        gestureDownY = event.y
+                        horizontalSwipeCaptured = false
+                        swipeOriginInLeagueFilters = false
+                        if (::leagueScroll.isInitialized) {
+                            val location = IntArray(2)
+                            leagueScroll.getLocationOnScreen(location)
+                            val x = event.rawX.toInt()
+                            val y = event.rawY.toInt()
+                            swipeOriginInLeagueFilters =
+                                x >= location[0] && x <= location[0] + leagueScroll.width &&
+                                y >= location[1] && y <= location[1] + leagueScroll.height
+                        }
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val dx = event.x - gestureDownX
+                        val dy = event.y - gestureDownY
+                        if (!swipeOriginInLeagueFilters &&
+                            kotlin.math.abs(dx) > dp(64) &&
+                            kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.25f) {
+                            horizontalSwipeCaptured = true
+                            return true
+                        }
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        if (!horizontalSwipeCaptured) swipeOriginInLeagueFilters = false
+                    }
+                }
+                return horizontalSwipeCaptured || super.onInterceptTouchEvent(event)
+            }
+
+            override fun onTouchEvent(event: MotionEvent): Boolean {
+                if (horizontalSwipeCaptured) {
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_UP -> {
+                            val dx = event.x - gestureDownX
+                            if (kotlin.math.abs(dx) > dp(64)) {
+                                selectAdjacentTab(if (dx < 0f) 1 else -1)
+                            }
+                            horizontalSwipeCaptured = false
+                            swipeOriginInLeagueFilters = false
+                            return true
+                        }
+                        MotionEvent.ACTION_CANCEL -> {
+                            horizontalSwipeCaptured = false
+                            swipeOriginInLeagueFilters = false
+                            return true
+                        }
+                        else -> return true
+                    }
+                }
+                return super.onTouchEvent(event)
+            }
+        }.apply {
             setBackgroundColor(bg)
             isFillViewport = true
             clipToPadding = false
@@ -861,6 +925,20 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun selectTab(tab: String) {
+        if (currentTab == tab) return
+        currentTab = tab
+        render()
+        if (currentTab == "desk" || currentTab == "stats") loadData()
+    }
+
+    private fun selectAdjacentTab(direction: Int) {
+        val index = primaryTabs.indexOf(currentTab)
+        if (index < 0) return
+        val nextIndex = (index + direction).coerceIn(0, primaryTabs.lastIndex)
+        if (nextIndex != index) selectTab(primaryTabs[nextIndex])
+    }
+
     private fun renderTabs() {
         val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "История", "stats" to "Stats", "help" to "Профиль")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
@@ -875,13 +953,7 @@ class MainActivity : Activity() {
                     setPadding(dp(3), dp(5), dp(3), dp(5))
                     isClickable = true
                     isFocusable = true
-                    setOnClickListener {
-                        if (currentTab != item.first) {
-                            currentTab = item.first
-                            render()
-                            if (currentTab == "desk" || currentTab == "stats") loadData()
-                        }
-                    }
+                    setOnClickListener { selectTab(item.first) }
                 }
                 tabBar.addView(t, LinearLayout.LayoutParams(0, -1, 1f).apply {
                     setMargins(dp(2), dp(2), dp(2), dp(2))
