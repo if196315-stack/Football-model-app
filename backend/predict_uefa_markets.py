@@ -13,6 +13,7 @@ from backtest_pitchapi import WINDOW, probabilities, poisson, team_strength
 MODEL_VERSION = "uefa-xg-poisson-v1"
 MATCH_TOTAL_LINES = (1.5, 2.5, 3.5)
 TEAM_TOTAL_LINES = (0.5, 1.5, 2.5, 3.5)
+SUPPORTED_LEAGUES = {"UCL", "UEL", "UECL"}
 
 
 def _state_before(history_rows: list[dict], cutoff_date: str) -> tuple[dict, dict, dict, str | None]:
@@ -113,7 +114,7 @@ def predict_upcoming(history_payload: dict, fixture_cache: dict,
         for fixture in fixtures:
             league = str(fixture.get("leagueCode") or "")
             home, away = fixture.get("home"), fixture.get("away")
-            if not league or not home or not away:
+            if league not in SUPPORTED_LEAGUES or not home or not away:
                 continue
             home_history = histories[(league, home)]
             away_history = histories[(league, away)]
