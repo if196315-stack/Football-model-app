@@ -1241,7 +1241,7 @@ class MainActivity : Activity() {
                 if (kickoffDate < today) continue
                 val odds = match.optJSONObject("odds") ?: continue
                 val quoteUpdatedAt = parseFeedTimeMillis(odds.optString("updatedAt")) ?: continue
-                // Lock the visible BetBoom quote when the candidate first qualifies in the AI window.
+                // Lock the visible BetBoom quote when the candidate first qualifies.
                 if (quoteUpdatedAt > now) continue
                 val prediction = match.optJSONObject("prediction")
                 val signals = mutableListOf<JSONObject>()
@@ -2052,7 +2052,7 @@ class MainActivity : Activity() {
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
         val today = dayFormat.format(java.util.Date())
-val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
+        val items = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions")
         if (leagues != null) for (i in 0 until leagues.length()) {
             val league = leagues.optJSONObject(i) ?: continue
