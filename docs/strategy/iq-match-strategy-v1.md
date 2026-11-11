@@ -19,6 +19,8 @@ This document is the source of truth for the current IQ MATCH strategy. Threshol
 
 No bet is a valid outcome. A high predicted probability alone is not sufficient.
 
+**Fixture horizon:** there is no fixed 14-day, 30-day, or calendar-month cutoff for upcoming fixtures. The app, paper-signal selection, automatic paper-entry worker, and API-Sport odds ingestion may process every upcoming fixture present in their respective feeds. Past fixtures remain excluded from new entries; existing history and settlement are preserved.
+
 ## 2. Data-quality gate
 
 A BET is prohibited unless all applicable checks pass:
