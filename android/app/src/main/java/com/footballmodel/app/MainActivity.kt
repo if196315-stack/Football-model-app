@@ -1802,8 +1802,40 @@ class MainActivity : Activity() {
             }
         }
 
-        // UECL stores validated historical candidates in paperSignals rather than prediction.signals.
-        // Reuse the same BetBoom-validated fallback as the AI desk.
+        // UEFA feeds publish the complete model probabilities but do not have the
+        // domestic empirical-baseline signal objects. Build equivalent per-market
+        // candidates from those probabilities so the match card still ranks all
+        // supported markets instead of depending on paperSignals.
+        val rawMarkets = listOf(
+            "1x" to "1X",
+            "x2" to "X2",
+            "bttsYes" to "ОЗ ДА",
+            "over15" to "ТБ 1.5",
+            "over25" to "ТБ 2.5",
+            "over35" to "ТБ 3.5",
+            "homeOver05" to "ИТБ 0.5 · ${match.optString("home")}",
+            "homeOver15" to "ИТБ 1.5 · ${match.optString("home")}",
+            "homeOver25" to "ИТБ 2.5 · ${match.optString("home")}",
+            "homeOver35" to "ИТБ 3.5 · ${match.optString("home")}",
+            "awayOver05" to "ИТБ 0.5 · ${match.optString("away")}",
+            "awayOver15" to "ИТБ 1.5 · ${match.optString("away")}",
+            "awayOver25" to "ИТБ 2.5 · ${match.optString("away")}",
+            "awayOver35" to "ИТБ 3.5 · ${match.optString("away")}"
+        )
+        rawMarkets.forEach { (field, side) ->
+            val probability = prediction.optDouble(field, Double.NaN)
+            if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
+            val exists = candidates.any {
+                it.optString("side").trim().replace(Regex("\\s+"), " ")
+                    .equals(side.trim().replace(Regex("\\s+"), " "), ignoreCase = true)
+            }
+            if (!exists) {
+                candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
+            }
+        }
+
+        // Legacy UEFA paper-only entries are retained only when no full model
+        // probability candidate could be built.
         if (candidates.isEmpty() && match.optJSONArray("paperSignals") != null) {
             uefaPaperSignal(match)?.let { candidates.add(it) }
         }
@@ -1811,12 +1843,9 @@ class MainActivity : Activity() {
         return candidates.asSequence()
             .filter { strongestSignalDisplayLabel(it, match) != null }
             .filter { topSignalOdds(it, match, minOdds = 1.01) != null }
-            .filter {
-                val edge = it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NaN))
-                edge.isFinite()
-            }
             .maxByOrNull {
-                it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NEGATIVE_INFINITY))
+                val edge = it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NaN))
+                if (edge.isFinite()) edge else it.optDouble("modelProbability", Double.NEGATIVE_INFINITY) * 100.0
             }
     }
 
@@ -2737,8 +2766,10 @@ class MainActivity : Activity() {
                             } else {
                                 addText(signalBox, "$displayLabel · +${String.format(Locale.US, "%.1f", edge)} п.п. к базовой частоте", 15, true, accent)
                             }
-                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
-                            addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
+                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}%", 11, false, Color.WHITE)
+                            if (signal.has("baselineProbability")) {
+                                addText(signalBox, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}% · ${signal.optInt("baselineMatches")} матчей до даты игры.", 10, false, muted)
+                            }
                         }
                     }
                     val mainMarkets = card(box)
