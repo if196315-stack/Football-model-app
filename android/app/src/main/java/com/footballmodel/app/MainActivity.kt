@@ -1007,7 +1007,7 @@ class MainActivity : Activity() {
         val name: String, val n: Int, val hits: Int, val brier: Double,
         val logLoss: Double, val bands: List<StatsBandRow>
     )
-    @Volatile private var statsMetricsCacheKey: Int? = null
+    @Volatile private var statsMetricsCacheKey: String? = null
     @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
     private val statsCalculationInProgress = AtomicBoolean(false)
 
@@ -1066,9 +1066,9 @@ class MainActivity : Activity() {
         return metrics
     }
 
-    private fun statsCacheKey(json: JSONObject): Int {
+    private fun statsCacheKey(json: JSONObject): String {
         // A cheap feed signature avoids serializing the entire match archive on the UI thread.
-        return 31 * json.optString("updatedAt").hashCode() +
+        return json.optString("updatedAt") + "|" +
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
@@ -1087,7 +1087,9 @@ class MainActivity : Activity() {
                         statsMetricsCache = calculated
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
-                        if (currentTab == "stats" && data?.let { statsCacheKey(it) } == statsKey) {
+                        if (currentTab == "stats") {
+                            // Rebuild even when this result became stale while calculating;
+                            // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
                             render()
                         }
