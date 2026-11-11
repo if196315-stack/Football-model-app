@@ -1315,111 +1315,169 @@ class MainActivity : Activity() {
     }
 
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "История", "Текущий баланс, правило ставки и история бумажных ставок.")
+        screenHeader("BET TRACKER", "История", "Открытые и завершённые бумажные ставки.")
         val bank = currentBankroll()
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
         addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
         addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
-        addText(bankrollCard, "Правило ставки: ${minimumStakeDescription()}", 12, true, accent)
+        addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
 
         val strategyCard = card()
         addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
-        addText(strategyCard, "Размер каждой ставки: ${minimumStakeDescription()}", 12, true, Color.WHITE)
-        var changed=false
-        for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
-            if (b.optString("marketKey") == "COUPON") {
-                val before = b.optString("status")
-                val beforeScores = b.optString("couponScores")
-                val beforeMatchStatus = b.optString("matchStatus")
-                settleCoupon(j, b)
-                if (b.optString("status") != before || b.optString("couponScores") != beforeScores ||
-                    b.optString("matchStatus") != beforeMatchStatus) changed = true
+        addText(strategyCard, "Размер каждой ставки: " + minimumStakeDescription(), 12, true, Color.WHITE)
+        var changed = false
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("marketKey") == "COUPON") {
+                val before = bet.optString("status")
+                val beforeScores = bet.optString("couponScores")
+                val beforeMatchStatus = bet.optString("matchStatus")
+                settleCoupon(j, bet)
+                if (bet.optString("status") != before || bet.optString("couponScores") != beforeScores ||
+                    bet.optString("matchStatus") != beforeMatchStatus) changed = true
                 continue
             }
-            val m=findMatch(j,b)
-            if(m!=null) {
-                val matchStatus = m.optString("status")
-                val score = if (!m.isNull("homeScore") && !m.isNull("awayScore")) "${m.optInt("homeScore")}:${m.optInt("awayScore")}" else ""
-                if (score.isNotEmpty() && b.optString("score") != score) { b.put("score", score); changed=true }
-                if (matchStatus.isNotEmpty() && b.optString("matchStatus") != matchStatus) { b.put("matchStatus", matchStatus); changed=true }
-                if(b.optString("status")=="PENDING") {
-                    val before = b.optString("status")
-                    settleBet(b,m)
-                    if(b.optString("status") != before) changed=true
+            val match = findMatch(j, bet)
+            if (match != null) {
+                val matchStatus = match.optString("status")
+                val score = if (!match.isNull("homeScore") && !match.isNull("awayScore"))
+                    match.optInt("homeScore").toString() + ":" + match.optInt("awayScore") else ""
+                if (score.isNotEmpty() && bet.optString("score") != score) { bet.put("score", score); changed = true }
+                if (matchStatus.isNotEmpty() && bet.optString("matchStatus") != matchStatus) {
+                    bet.put("matchStatus", matchStatus); changed = true
+                }
+                if (bet.optString("status") == "PENDING") {
+                    val before = bet.optString("status")
+                    settleBet(bet, match)
+                    if (bet.optString("status") != before) changed = true
                 }
             }
         }
-        if(changed) saveBets()
-        var stakeAll=0.0; var turnover=0.0; var profit=0.0; var payout=0.0
-        var possiblePayout=0.0; var possibleProfit=0.0
-        var wins=0; var losses=0; var pushes=0; var pending=0
-        for(i in 0 until bets.length()) { val b=bets.optJSONObject(i) ?: continue
-            val st=b.optDouble("stake"); val o=b.optDouble("odds"); stakeAll+=st
-            when(b.optString("status")) {
-                "WON"->{wins++;turnover+=st;profit+=st*(o-1);payout+=st*o}
-                "LOST"->{losses++;turnover+=st;profit-=st}
-                "PUSH"->{pushes++;turnover+=st;payout+=st}
-                else->{pending++;possiblePayout+=st*o;possibleProfit+=st*(o-1.0)}
+        if (changed) saveBets()
+
+        var stakeAll = 0.0
+        var turnover = 0.0
+        var profit = 0.0
+        var payout = 0.0
+        var possiblePayout = 0.0
+        var possibleProfit = 0.0
+        var wins = 0
+        var losses = 0
+        var pushes = 0
+        var pending = 0
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val stake = bet.optDouble("stake")
+            val odds = bet.optDouble("odds")
+            stakeAll += stake
+            when (bet.optString("status")) {
+                "WON" -> { wins++; turnover += stake; profit += stake * (odds - 1); payout += stake * odds }
+                "LOST" -> { losses++; turnover += stake; profit -= stake }
+                "PUSH" -> { pushes++; turnover += stake; payout += stake }
+                else -> { pending++; possiblePayout += stake * odds; possibleProfit += stake * (odds - 1.0) }
             }
         }
-        val sum=card()
-        addText(sum,"СТАТИСТИКА СТАВОК",10,true,accent)
-        addText(sum,"Всего: "+bets.length()+" · выигрыш: "+wins+" · проигрыш: "+losses+" · возврат: "+pushes+" · не рассчитаны: "+pending,12,true)
-        addText(sum,"Сумма ставок: "+fmt(stakeAll),13,true)
-        addText(sum,"Возможная выплата по ожидающим: "+fmt(possiblePayout)+" · чистый выигрыш: +"+fmt(possibleProfit),12,true,accent)
-        addText(sum,"Выплаты: "+fmt(payout)+" · чистый результат: "+(if(profit>=0)"+" else "")+fmt(profit),12,true,if(profit>=0)accent else Color.RED)
-        addText(sum,"ROI: "+(if(turnover>0)String.format(Locale.getDefault(),"%.1f%%",profit/turnover*100) else "—")+" · рассчитанный оборот: "+fmt(turnover),12,true)
-        addText(sum,"ОБЩИЙ ROI · все бумажные ставки",10,true,cyan)
-        addText(sum,"ROI = чистый результат / рассчитанный оборот. Возвраты и ожидающие ставки не входят.",10,false,muted)
-        if(bets.length()==0) { val e=card(); addText(e,"Записанных ставок пока нет.",12,false,muted); return }
-        for(i in bets.length()-1 downTo 0) { val b=bets.optJSONObject(i) ?: continue; val box=card()
-            val st=b.optString("status")
-            val status=when(st){"WON"->"ВЫИГРЫШ";"LOST"->"ПРОИГРЫШ";"PUSH"->"ВОЗВРАТ";else->"НЕ РАССЧИТАНА"}
-            val col=when(st){"WON"->accent;"LOST"->Color.RED;else->Color.YELLOW}
-            addText(box,b.optString("league")+" · "+date(b.optString("date")),10,false,muted)
-            addText(box, if (b.optString("marketKey") == "COUPON") "Экспресс · " + (b.optJSONArray("selections")?.length() ?: 0) + " исходов" else b.optString("home")+" — "+b.optString("away"),15,true)
-            addText(box,b.optString("market")+" · кэф "+fmt(b.optDouble("odds")),12,true,accent)
-            if (b.has("couponScores")) addText(box, b.optString("couponScores"), 10, false, muted)
-            if (b.optString("marketKey") == "COUPON") {
-                addText(box, "Сумма купона: " + fmt(b.optDouble("stake")), 11, false, muted)
-                val legs = b.optJSONArray("selections")
-                for (legIndex in 0 until (legs?.length() ?: 0)) {
-                    val leg = legs?.optJSONObject(legIndex) ?: continue
-                    addText(box, (legIndex + 1).toString() + ". " + leg.optString("home") + " — " + leg.optString("away") +
-                        " · " + leg.optString("market") + " · " + fmt(leg.optDouble("odds")), 10, false, muted)
+        val sum = card()
+        addText(sum, "СТАТИСТИКА СТАВОК", 10, true, accent)
+        addText(sum, "Всего: " + bets.length() + " · выигрыш: " + wins + " · проигрыш: " + losses + " · возврат: " + pushes + " · открытые: " + pending, 12, true)
+        addText(sum, "Сумма ставок: " + fmt(stakeAll), 13, true)
+        addText(sum, "Возможная выплата по открытым: " + fmt(possiblePayout) + " · чистый выигрыш: +" + fmt(possibleProfit), 12, true, accent)
+        addText(sum, "Выплаты: " + fmt(payout) + " · чистый результат: " + (if (profit >= 0) "+" else "") + fmt(profit), 12, true, if (profit >= 0) accent else Color.RED)
+        addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + " · рассчитанный оборот: " + fmt(turnover), 12, true)
+        addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
+        addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
+
+        if (bets.length() == 0) {
+            val empty = card()
+            addText(empty, "Записанных ставок пока нет.", 12, false, muted)
+            return
+        }
+
+        val openBets = mutableListOf<JSONObject>()
+        val completedBets = mutableListOf<JSONObject>()
+        for (i in bets.length() - 1 downTo 0) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("status") == "PENDING") openBets.add(bet) else completedBets.add(bet)
+        }
+
+        fun renderBetSection(title: String, items: List<JSONObject>, emptyText: String) {
+            val section = card()
+            addText(section, title + " · " + items.size, 12, true, if (title == "ОТКРЫТЫЕ СТАВКИ") accent else cyan)
+            if (items.isEmpty()) {
+                addText(section, emptyText, 11, false, muted)
+                return
+            }
+            items.forEach { bet ->
+                val box = card()
+                val state = bet.optString("status")
+                val status = when (state) {
+                    "WON" -> "ВЫИГРЫШ"
+                    "LOST" -> "ПРОИГРЫШ"
+                    "PUSH" -> "ВОЗВРАТ"
+                    else -> "ОЖИДАЕТ РАСЧЁТА"
                 }
-            } else {
-                addText(box,"Ставка: "+fmt(b.optDouble("stake"))+" · модель: "+String.format(Locale.getDefault(),"%.1f%%",b.optDouble("probability")*100),11,false,muted)
+                val color = when (state) {
+                    "WON" -> accent
+                    "LOST" -> Color.RED
+                    else -> Color.YELLOW
+                }
+                addText(box, bet.optString("league") + " · " + date(bet.optString("date")), 10, false, muted)
+                addText(box, if (bet.optString("marketKey") == "COUPON")
+                    "Экспресс · " + (bet.optJSONArray("selections")?.length() ?: 0) + " исходов"
+                    else bet.optString("home") + " — " + bet.optString("away"), 15, true)
+                addText(box, bet.optString("market") + " · кэф " + fmt(bet.optDouble("odds")), 12, true, accent)
+                if (bet.has("couponScores")) addText(box, bet.optString("couponScores"), 10, false, muted)
+                if (bet.optString("marketKey") == "COUPON") {
+                    addText(box, "Сумма купона: " + fmt(bet.optDouble("stake")), 11, false, muted)
+                    val legs = bet.optJSONArray("selections")
+                    for (legIndex in 0 until (legs?.length() ?: 0)) {
+                        val leg = legs?.optJSONObject(legIndex) ?: continue
+                        addText(box, (legIndex + 1).toString() + ". " + leg.optString("home") + " — " +
+                            leg.optString("away") + " · " + leg.optString("market") + " · " + fmt(leg.optDouble("odds")), 10, false, muted)
+                    }
+                } else {
+                    addText(box, "Ставка: " + fmt(bet.optDouble("stake")) + " · модель: " +
+                        String.format(Locale.getDefault(), "%.1f%%", bet.optDouble("probability") * 100), 11, false, muted)
+                }
+                val liveStatus = when (bet.optString("matchStatus")) {
+                    "IN_PLAY", "LIVE", "PAUSED" -> " · LIVE"
+                    "FINISHED" -> " · ФИНАЛ"
+                    "SCHEDULED", "TIMED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
+                    else -> ""
+                }
+                addText(box, status + liveStatus + (if (bet.has("score")) " · счёт " + bet.optString("score") else ""), 12, true, color)
+                val stake = bet.optDouble("stake")
+                val odds = bet.optDouble("odds")
+                if (state == "PENDING") {
+                    val possible = stake * odds
+                    addText(box, "Возможная выплата: " + fmt(possible) + " ₽ · чистый выигрыш: +" + fmt(possible - stake) + " ₽", 12, true, accent)
+                }
+                if (state == "WON") addText(box, "Чистая прибыль: +" + fmt(stake * (odds - 1)), 12, true, accent)
+                if (state == "LOST") addText(box, "Убыток: −" + fmt(stake), 12, true, color)
+                if (state == "PUSH") addText(box, "Возврат: " + fmt(stake), 12, true, accent)
+                val actions = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                }
+                if (state == "PENDING") compactHistoryButton(actions, "Кэф") { showEditBetOddsDialog(bet) }
+                compactHistoryButton(actions, "Удалить", destructive = true) {
+                    val id = bet.optString("id")
+                    val next = JSONArray()
+                    for (k in 0 until bets.length()) {
+                        val item = bets.optJSONObject(k) ?: continue
+                        if (item.optString("id") != id) next.put(item)
+                    }
+                    bets = next
+                    saveBets(preserveBackgroundAuto = false)
+                    render()
+                }
+                box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
             }
-            val liveStatus = when(b.optString("matchStatus")) {
-                "IN_PLAY", "LIVE", "PAUSED" -> " · LIVE"
-                "FINISHED" -> " · ФИНАЛ"
-                "SCHEDULED", "TIMED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
-                else -> ""
-            }
-            addText(box,status+liveStatus+(if(b.has("score"))" · счёт "+b.optString("score") else ""),12,true,col)
-            val stake = b.optDouble("stake")
-            val odds = b.optDouble("odds")
-            if (st == "PENDING") {
-                val possiblePayout = stake * odds
-                addText(box, "Возможная выплата: ${fmt(possiblePayout)} ₽ · чистый выигрыш: +${fmt(possiblePayout - stake)} ₽", 12, true, accent)
-            }
-            if(st=="WON") addText(box,"Чистая прибыль: +"+fmt(stake*(odds-1)),12,true,accent)
-            if(st=="LOST") addText(box,"Убыток: −"+fmt(stake),12,true,col)
-            if(st=="PUSH") addText(box,"Возврат: "+fmt(stake),12,true,accent)
-            val actions = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-            if (st == "PENDING") compactHistoryButton(actions, "Кэф") { showEditBetOddsDialog(b) }
-            compactHistoryButton(actions, "Удалить", destructive = true) {
-                val id=b.optString("id"); val next=JSONArray()
-                for(k in 0 until bets.length()) { val x=bets.optJSONObject(k) ?: continue; if(x.optString("id")!=id)next.put(x) }
-                bets=next;saveBets(preserveBackgroundAuto = false);render()
-            }
-            box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
+
+        renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Открытых ставок пока нет.")
+        renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
     }
 
     private fun renderHelp() {
