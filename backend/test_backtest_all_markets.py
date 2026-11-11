@@ -76,7 +76,7 @@ class AllMarketBacktestTests(unittest.TestCase):
         ]
         report = run(rows, "2025-01-02")
         self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 2})
-        self.assertEqual(report["markets"]["1X2"]["holdout"]["model"]["n"], 2)
+        self.assertEqual(report["markets"]["DC_1X"]["holdout"]["model"]["n"], 2)
 
 
     def test_vector_scaling_uses_training_rows_and_preserves_probability_simplex(self):
