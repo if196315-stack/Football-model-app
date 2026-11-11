@@ -1,4 +1,4 @@
-name: Seven-competition model audit
+name: Eight-competition model audit
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: seven-competition-model-audit
+  group: eight-competition-model-audit
   cancel-in-progress: false
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
         run: python -m unittest backend/test_backtest_all_markets.py -v
       - name: Export clean domestic paired-xG cohort
         run: python backend/export_pitchapi_backtest.py
-      - name: Run seven-competition chronological all-market audit
+      - name: Run eight-competition chronological all-market audit
         run: |
           python backend/backtest_all_markets.py \
             --domestic artifacts/pitchapi-clean-candidate.csv \
@@ -56,10 +56,11 @@ jobs:
       - name: Upload reproducible datasets and calibration report
         uses: actions/upload-artifact@v4
         with:
-          name: seven-competition-model-audit-${{ github.run_number }}
+          name: eight-competition-model-audit-${{ github.run_number }}
           path: |
             artifacts/pitchapi-clean-candidate.csv
             artifacts/pitchapi-clean-candidate-manifest.json
+            artifacts/uefa-xg-history.json
             artifacts/seven-competition-all-market-report.json
           if-no-files-found: error
           retention-days: 30
