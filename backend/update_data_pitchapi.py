@@ -19,7 +19,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from pitchapi_data_source import CACHE_PATH, model_history_rows, refresh_history
+from pitchapi_data_source import CACHE_PATH, model_history_rows, result_history_rows, refresh_history
 from update_odds import BASE_URL as ODDS_BASE_URL, LEAGUES as ODDS_LEAGUES, convert_event as convert_odds_event, similarity as odds_similarity
 from update_data import (
     COMPS, MAP, WINDOW, HALF_LIFE, SHRINKAGE, _similarity, key,
@@ -41,6 +41,9 @@ def comp_for_code(code: str) -> str:
 
 
 def build_model_frames(cache: dict):
+    # xG training rows and score-only baseline rows are separate cohorts.
+    # Requiring paired shot-level xG for empirical score frequencies silently
+    # discarded valid finished matches from the historical baseline.
     history = []
     results = []
     for row in model_history_rows(cache):
@@ -60,18 +63,39 @@ def build_model_frames(cache: dict):
                         "xg": home_xg, "xg_against": away_xg})
         history.append({**common, "team": row["away"], "side": "away",
                         "xg": away_xg, "xg_against": home_xg})
-        results.append({**common, "home_team": row["home"], "away_team": row["away"], "home_score": home_score, "away_score": away_score})
+        results.append({**common, "home_team": row["home"], "away_team": row["away"],
+                        "home_score": home_score, "away_score": away_score})
+
+    # Historical baseline/form use every valid finished score, even when
+    # PitchAPI has no usable shot feed for that match. This does not add xG.
+    for row in result_history_rows(cache):
+        if row.get("id") in EXCLUDED_MATCH_IDS:
+            continue
+        if (row.get("leagueCode"), row.get("season")) in EXCLUDED_SEASONS:
+            continue
+        try:
+            date = pd.to_datetime(row.get("date"), utc=True).tz_convert(None)
+            home_score, away_score = int(row["homeScore"]), int(row["awayScore"])
+        except (TypeError, ValueError, OverflowError):
+            continue
+        code = comp_for_code(row["leagueCode"])
+        results.append({
+            "comp": code, "date": date, "match_id": row["id"],
+            "home_team": row["home"], "away_team": row["away"],
+            "home_score": home_score, "away_score": away_score,
+        })
+
     s = pd.DataFrame(history, columns=["comp", "date", "match_id", "team", "side", "xg", "xg_against"])
     matches = pd.DataFrame(results, columns=["comp", "date", "match_id", "home_team", "away_team", "home_score", "away_score"])
     if s.empty:
         base = {(c, side): None for c in MAP for side in ("home", "away")}
-        return s, base, matches
+        return s, base, matches.sort_values("date") if not matches.empty else matches
     base = {}
     for code in MAP:
         for side in ("home", "away"):
             values = s.loc[(s.comp == code) & (s.side == side), "xg"]
             base[code, side] = float(values.mean()) if len(values) else None
-    return s.sort_values("date"), base, matches.sort_values("date")
+    return s.sort_values("date"), base, matches.sort_values("date") if not matches.empty else matches
 
 
 def fixture_identity(match: dict, competition: str) -> tuple | None:
