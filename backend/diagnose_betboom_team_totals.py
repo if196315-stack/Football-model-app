@@ -4,8 +4,7 @@ This is a manual diagnostic only. It never writes model data and never prints cr
 """
 import json
 import os
-import sys
-from pathlib import Path
+import re
 
 import requests
 
@@ -16,6 +15,16 @@ BASE_PARAMS = {
     "odds_stage": "all",
     "bookmaker_ids": "betboom",
 }
+
+# Deliberately classify by known market slugs only. Display names such as
+# "Both Teams to Score" contain the word "Teams" but are not team totals.
+TEAM_TOTAL_SLUG = re.compile(
+    r"^(?:(?:1st|2nd)_half_)?(?:total_team_[12]|team_total_(?:home|away)_goals)$"
+)
+
+
+def is_team_total_market_slug(slug):
+    return bool(TEAM_TOTAL_SLUG.fullmatch(str(slug).strip().lower()))
 
 
 def extract_match(payload):
@@ -47,14 +56,11 @@ def summarize(match):
         "teamTotalMarkets": [],
     }
     for slug, market in (markets or {}).items():
-        if not isinstance(market, dict):
+        if not isinstance(market, dict) or not is_team_total_market_slug(slug):
             continue
         name = market.get("name") or {}
         if isinstance(name, dict):
             name = name.get("en") or name.get("ru") or ""
-        label = (str(slug) + " " + str(name)).lower()
-        if not any(token in label for token in ("team", "итб", "тотал команды", "individual total")):
-            continue
         outcomes = {}
         for outcome, stake in (market.get("stakes") or {}).items():
             if not isinstance(stake, dict):
