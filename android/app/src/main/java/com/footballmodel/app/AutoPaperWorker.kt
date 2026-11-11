@@ -35,6 +35,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            // The periodic worker keeps AI-new-match alerts active even when the UI is closed.
+            AiMatchNotifications.observe(applicationContext, collectAiNotificationCandidates(domestic))
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
@@ -121,6 +123,58 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             for (j in dest.length() - 1 downTo 0) if (dest.optJSONObject(j)?.optString("code") == code) dest.remove(j)
             dest.put(comp)
         }
+    }
+
+    private fun collectAiNotificationCandidates(feed: JSONObject): List<Pair<String, String>> {
+        val matchesFound = mutableListOf<Pair<String, String>>()
+        val competitions = feed.optJSONArray("competitions") ?: return matchesFound
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.format(Date())
+        for (i in 0 until competitions.length()) {
+            val competition = competitions.optJSONObject(i) ?: continue
+            val code = competition.optString("code")
+            val matches = competition.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val match = matches.optJSONObject(j) ?: continue
+                if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val matchDay = match.optString("utcDate").take(10).ifBlank {
+                    match.optString("dateEvent").take(10).ifBlank {
+                        val timestamp = match.optLong("startTimestamp", 0L)
+                        if (timestamp > 0L) {
+                            val millis = if (timestamp < 10_000_000_000L) timestamp * 1000L else timestamp
+                            SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                                timeZone = TimeZone.getTimeZone("UTC")
+                            }.format(Date(millis))
+                        } else ""
+                    }
+                }
+                if (matchDay.isBlank() || matchDay < today) continue
+                val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                    ?: (if (code == "UCL" || code == "UEL") uefaSignal(match) else null)
+                    ?: continue
+                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                val price = priceFor(signal, match) ?: continue
+                if (price < 1.50) continue
+                val probability = signal.optDouble("modelProbability", Double.NaN)
+                val ev = probability * price - 1.0
+                val qualifies = if (signal.optBoolean("paperOnly")) {
+                    probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
+                } else {
+                    val impliedEdge = probability - 1.0 / price +
+                        signal.optDouble("formAdjustmentPp", 0.0) / 100.0
+                    probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
+                }
+                if (!qualifies) continue
+                val id = match.optString("id").ifBlank {
+                    listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
+                }
+                val title = "${match.optString("home")} — ${match.optString("away")}"
+                matchesFound.add(id to title)
+            }
+        }
+        return matchesFound
     }
 
     private fun process(feed: JSONObject, bets: JSONArray): Boolean {
