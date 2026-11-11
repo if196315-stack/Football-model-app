@@ -1565,7 +1565,7 @@ class MainActivity : Activity() {
         }
         val aiHistoryCard = card()
         addText(aiHistoryCard, "AI · АВТОИСТОРИЯ РЕКОМЕНДАЦИЙ", 10, true, cyan)
-        addText(aiHistoryCard, "Каждый сигнал, показанный в разделе AI с действующим коэффициентом BetBoom, фиксируется один раз и рассчитывается по финальному счёту. История локальная для этого устройства и накапливается с момента обновления приложения.", 9, false, muted)
+        addText(aiHistoryCard, "Каждый сигнал из раздела AI с котировкой BetBoom фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал; альтернативы считаются отдельно. История локальная для этого устройства.", 9, false, muted)
         val aiHistory = try {
             JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
         } catch (_: Exception) {
