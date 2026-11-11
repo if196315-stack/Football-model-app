@@ -836,9 +836,11 @@ class MainActivity : Activity() {
                     }
                     // Detect changes to the combined report-and-observations section.
                     val currentBets = betPrefs.getString("bets", "[]") ?: "[]"
+                    val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                    val startingBank = settingsPrefs.getString("initial_bankroll", "") ?: ""
                     if (snapshotsBody != null && resultsBody != null) {
                         SectionNotifications.observeAndNotify(this, SectionNotifications.fingerprint(
-                            currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody
+                            reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody
                         ))
                     }
                     // Keep existing paper-bet processing and settlement behavior unchanged.

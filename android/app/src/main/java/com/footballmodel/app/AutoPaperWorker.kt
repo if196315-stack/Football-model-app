@@ -64,9 +64,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val resultsBody = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/market-observation-results.jsonl")
             if (snapshotsBody != null && resultsBody != null) {
                 val currentBets = prefs.getString("bets", "[]") ?: "[]"
+                val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val startingBank = settings.getString("initial_bankroll", "") ?: ""
                 SectionNotifications.observeAndNotify(
                     applicationContext,
-                    SectionNotifications.fingerprint(currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody)
+                    SectionNotifications.fingerprint(reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody)
                 )
             }
             settings.edit()
