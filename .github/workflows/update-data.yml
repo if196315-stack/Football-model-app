@@ -7,6 +7,16 @@ on:
     paths:
       - "backend/update_data_pitchapi.py"
   workflow_dispatch:
+    inputs:
+      max_shot_requests:
+        description: "Maximum real shot-level xG backfill requests (manual runs only)"
+        required: true
+        default: "5000"
+        type: choice
+        options:
+          - "0"
+          - "250"
+          - "5000"
 
 # PitchAPI/xG refresh is manual or code-change driven to avoid unnecessary
 # repeated history pulls. Odds refresh runs independently on its own schedule.
@@ -41,7 +51,7 @@ jobs:
       - name: Fetch fixtures, results and shot-level xG from PitchAPI
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-          PITCHAPI_MAX_SHOT_REQUESTS: "5000"
+          PITCHAPI_MAX_SHOT_REQUESTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_shot_requests || '0' }}
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
       - name: Refresh bookmaker odds via API-Sport

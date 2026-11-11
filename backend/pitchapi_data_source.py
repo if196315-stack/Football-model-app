@@ -271,6 +271,18 @@ def refresh_history(api_key: str, session: Any = requests, cache_path: Path = CA
     return {"cache": cache, "summary": cache["lastRefreshSummary"], "errors": errors}
 
 
+def result_history_rows(cache: dict) -> list[dict]:
+    """Return finished regular-season score records, regardless of xG availability."""
+    rows = []
+    for row in cache.get("matches", {}).values():
+        if row.get("status") != "finished" or row.get("hasPlayoff") is True:
+            continue
+        if row.get("homeScore") is None or row.get("awayScore") is None:
+            continue
+        rows.append(row)
+    return sorted(rows, key=lambda row: (str(row.get("date") or ""), row["id"]))
+
+
 def model_history_rows(cache: dict) -> list[dict]:
     """Return only finished regular-season matches with paired non-null xG."""
     rows = []

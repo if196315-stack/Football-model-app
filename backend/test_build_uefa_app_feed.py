@@ -19,6 +19,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         ]
         odds = build_odds(rows, datetime(2026, 11, 10, 10, 0, 20, tzinfo=timezone.utc))
         self.assertIsNotNone(odds)
+        self.assertEqual(odds["bookmaker"], "MELBET")
         self.assertEqual(odds["best"]["teamTotals"][0]["price"], 1.9)
         self.assertEqual(odds["best"]["btts"], {})
         stale = build_odds([rows[0]], datetime(2026, 11, 10, 10, 10, 0, tzinfo=timezone.utc))

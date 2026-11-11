@@ -57,11 +57,31 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertEqual(len(history), 4)
         self.assertIsNone(history.date.dt.tz)
         self.assertIsNone(results.date.dt.tz)
-        self.assertEqual(len(results), 2)
+        self.assertEqual(len(results), 3)
+        self.assertIn("partial", set(results.match_id))
+        self.assertEqual(results.match_id.value_counts().max(), 1)
         self.assertEqual(set(history.team), {"Arsenal", "Chelsea", "Bayern München", "Mainz 05"})
         self.assertNotIn("germany_awarded", set(history.match_id))
         self.assertAlmostEqual(base["eng", "home"], 1.4)
         self.assertAlmostEqual(base["eng", "away"], 0.4)
+
+    def test_baseline_sample_includes_finished_results_without_paired_xg(self):
+        from update_data import historical_baselines
+        cache = {"matches": {
+            "paired": {"id": "paired", "leagueCode": "ENG", "season": "2024/25",
+                       "status": "finished", "date": "2025-01-01",
+                       "home": "A", "away": "B", "homeScore": 2, "awayScore": 1,
+                       "homeXg": 1.2, "awayXg": 0.5, "hasPlayoff": False},
+            "score_only": {"id": "score_only", "leagueCode": "ENG", "season": "2024/25",
+                           "status": "finished", "date": "2025-01-02",
+                           "home": "C", "away": "D", "homeScore": 0, "awayScore": 0,
+                           "homeXg": None, "awayXg": None, "hasPlayoff": False},
+        }}
+        _, _, results = build_model_frames(cache)
+        baseline = historical_baselines(results, "eng", "2025-02-01")
+        self.assertEqual(len(results), 2)
+        self.assertEqual(baseline["matches"], 2)
+        self.assertEqual(set(results.match_id), {"paired", "score_only"})
 
     def test_odds_event_matches_date_only_pitchapi_fixture(self):
         fixture = {"home": "Manchester City", "away": "Fulham", "utcDate": "2026-11-21"}
