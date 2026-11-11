@@ -1886,9 +1886,9 @@ class MainActivity : Activity() {
         }
         return candidates.sortedWith(
             compareBy<Triple<JSONObject, String, JSONObject>> { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
-                .thenByDescending {
-                    val signal = it.third.optJSONObject("primary")
-                    val odds = signal?.let { topSignalOdds(it, it@Triple.first) } ?: 0.0
+                .thenByDescending { item ->
+                    val signal = item.third.optJSONObject("primary")
+                    val odds = if (signal != null) topSignalOdds(signal, item.first) ?: 0.0 else 0.0
                     (signal?.optDouble("modelProbability") ?: 0.0) * odds - 1.0
                 }
         )
