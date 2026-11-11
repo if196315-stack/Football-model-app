@@ -22105,9 +22105,9 @@
           "odds": {
             "eventId": "16363661",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.003,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 120.593,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22115,7 +22115,7 @@
                 "title": "BETBOOM",
                 "doubleChance": {
                   "1x": 1.12,
-                  "x2": 2.6
+                  "x2": 2.55
                 },
                 "spreads": [],
                 "teamTotals": [],
@@ -22146,14 +22146,14 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.68
+                  "yes": 1.67
                 }
               }
             ],
             "best": {
               "doubleChance": {
                 "1x": 1.12,
-                "x2": 2.6
+                "x2": 2.55
               },
               "totals": [
                 {
@@ -22182,7 +22182,7 @@
                 }
               ],
               "btts": {
-                "yes": 1.68
+                "yes": 1.67
               }
             },
             "bestBookmakers": {
@@ -22306,9 +22306,9 @@
           "odds": {
             "eventId": "16363658",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.145,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 120.736,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22507,9 +22507,9 @@
           "odds": {
             "eventId": "16363655",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.293,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 120.885,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22708,9 +22708,9 @@
           "odds": {
             "eventId": "16363654",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.428,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.023,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22909,9 +22909,9 @@
           "odds": {
             "eventId": "16363657",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.559,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.155,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23110,9 +23110,9 @@
           "odds": {
             "eventId": "16363663",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.702,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.3,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23311,9 +23311,9 @@
           "odds": {
             "eventId": "16363662",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.83,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.428,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23512,9 +23512,9 @@
           "odds": {
             "eventId": "16363659",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 85.963,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.563,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23713,9 +23713,9 @@
           "odds": {
             "eventId": "16363660",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.087,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.687,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23914,9 +23914,9 @@
           "odds": {
             "eventId": "16363656",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.149,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.75,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24115,9 +24115,9 @@
           "odds": {
             "eventId": "16363673",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.22,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.821,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24316,9 +24316,9 @@
           "odds": {
             "eventId": "16363671",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.346,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 121.95,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24517,9 +24517,9 @@
           "odds": {
             "eventId": "16363672",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.473,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.079,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24718,9 +24718,9 @@
           "odds": {
             "eventId": "16363670",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.589,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.199,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24919,9 +24919,9 @@
           "odds": {
             "eventId": "16363668",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.703,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.315,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -25120,9 +25120,9 @@
           "odds": {
             "eventId": "16363666",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.838,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.454,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -25321,9 +25321,9 @@
           "odds": {
             "eventId": "16363675",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 86.963,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.582,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -25522,9 +25522,9 @@
           "odds": {
             "eventId": "16363667",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 87.087,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.709,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -25723,9 +25723,9 @@
           "odds": {
             "eventId": "16363669",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 87.207,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.832,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -25924,9 +25924,9 @@
           "odds": {
             "eventId": "16363664",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 87.325,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 122.954,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -69662,9 +69662,9 @@
           "odds": {
             "eventId": "16421112",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 112.195,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 147.91,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -69863,9 +69863,9 @@
           "odds": {
             "eventId": "16421111",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 112.349,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.068,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -70064,9 +70064,9 @@
           "odds": {
             "eventId": "16421119",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 112.485,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.207,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -70265,9 +70265,9 @@
           "odds": {
             "eventId": "16421125",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 112.609,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.332,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -70466,9 +70466,9 @@
           "odds": {
             "eventId": "16421116",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 112.714,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.44,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -70499,7 +70499,7 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.91
+                  "yes": 1.9
                 }
               }
             ],
@@ -70527,7 +70527,7 @@
                 }
               ],
               "btts": {
-                "yes": 1.91
+                "yes": 1.9
               }
             },
             "bestBookmakers": {
@@ -70643,9 +70643,9 @@
           "odds": {
             "eventId": "16421113",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 112.837,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.565,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -70820,9 +70820,9 @@
           "odds": {
             "eventId": "16421114",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 112.97,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.699,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -70997,9 +70997,9 @@
           "odds": {
             "eventId": "16421117",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.077,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.808,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -71198,9 +71198,9 @@
           "odds": {
             "eventId": "16421115",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.174,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.908,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -71399,9 +71399,9 @@
           "odds": {
             "eventId": "16421118",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.238,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 148.973,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -71600,9 +71600,9 @@
           "odds": {
             "eventId": "16421127",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.311,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.047,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -71801,9 +71801,9 @@
           "odds": {
             "eventId": "16421120",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.453,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.18,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -72002,9 +72002,9 @@
           "odds": {
             "eventId": "16421128",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.572,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.3,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -72203,9 +72203,9 @@
           "odds": {
             "eventId": "16421126",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.687,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.417,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -72404,9 +72404,9 @@
           "odds": {
             "eventId": "16421129",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.791,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.521,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -72581,9 +72581,9 @@
           "odds": {
             "eventId": "16462482",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.907,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.64,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -72782,9 +72782,9 @@
           "odds": {
             "eventId": "16421123",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.036,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.771,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -72959,9 +72959,9 @@
           "odds": {
             "eventId": "16421121",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.15,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.887,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -73160,9 +73160,9 @@
           "odds": {
             "eventId": "16462479",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.247,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 149.987,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -73361,9 +73361,9 @@
           "odds": {
             "eventId": "16421122",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.31,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.051,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -115372,9 +115372,9 @@
           "odds": {
             "eventId": "16285092",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 138.539,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 174.808,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -115573,9 +115573,9 @@
           "odds": {
             "eventId": "16285089",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 138.661,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 174.933,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -115774,9 +115774,9 @@
           "odds": {
             "eventId": "16285095",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 138.777,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.051,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -115975,9 +115975,9 @@
           "odds": {
             "eventId": "16285096",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 138.874,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.152,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -116176,9 +116176,9 @@
           "odds": {
             "eventId": "16285091",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 138.989,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.269,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -116377,9 +116377,9 @@
           "odds": {
             "eventId": "16285090",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.105,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.389,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -116578,9 +116578,9 @@
           "odds": {
             "eventId": "16285094",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.222,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.507,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -116779,9 +116779,9 @@
           "odds": {
             "eventId": "16285098",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.333,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.62,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -116956,9 +116956,9 @@
           "odds": {
             "eventId": "16285088",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.425,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.714,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -117133,9 +117133,9 @@
           "odds": {
             "eventId": "16285093",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.488,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.778,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -117334,9 +117334,9 @@
           "odds": {
             "eventId": "16285108",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.558,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.85,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -117535,9 +117535,9 @@
           "odds": {
             "eventId": "16285100",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.674,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 175.969,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -117712,9 +117712,9 @@
           "odds": {
             "eventId": "16285106",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.783,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.081,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -117913,9 +117913,9 @@
           "odds": {
             "eventId": "16285101",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.873,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.173,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -118114,9 +118114,9 @@
           "odds": {
             "eventId": "16285105",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 139.989,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.289,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -118315,9 +118315,9 @@
           "odds": {
             "eventId": "16285104",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 140.103,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.406,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -118516,9 +118516,9 @@
           "odds": {
             "eventId": "16285103",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 140.207,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.52,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -118693,9 +118693,9 @@
           "odds": {
             "eventId": "16285097",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 140.298,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.612,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -118894,9 +118894,9 @@
           "odds": {
             "eventId": "16285102",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 140.358,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.678,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -119095,9 +119095,9 @@
           "odds": {
             "eventId": "16285099",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:48.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 140.418,
+            "updatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:47.534000+00:00",
+            "bookmakerUpdateAgeSeconds": 176.744,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -157533,9 +157533,9 @@
           "odds": {
             "eventId": "16434097",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 164.934,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 202.41,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -157549,6 +157549,14 @@
                 "teamTotals": [],
                 "totals": [
                   {
+                    "point": 2.5,
+                    "side": "over",
+                    "price": 1.17,
+                    "market_slug": "total",
+                    "market_group": "total",
+                    "market_name": "Total"
+                  },
+                  {
                     "point": 3.5,
                     "side": "over",
                     "price": 1.48,
@@ -157558,7 +157566,7 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.84
+                  "yes": 1.83
                 }
               }
             ],
@@ -157569,6 +157577,14 @@
               },
               "totals": [
                 {
+                  "point": 2.5,
+                  "side": "over",
+                  "price": 1.17,
+                  "market_slug": "total",
+                  "market_group": "total",
+                  "market_name": "Total"
+                },
+                {
                   "point": 3.5,
                   "side": "over",
                   "price": 1.48,
@@ -157578,7 +157594,7 @@
                 }
               ],
               "btts": {
-                "yes": 1.84
+                "yes": 1.83
               }
             },
             "bestBookmakers": {
@@ -157587,6 +157603,14 @@
                 "x2": "BETBOOM"
               },
               "totals": [
+                {
+                  "point": 2.5,
+                  "side": "over",
+                  "market_slug": "total",
+                  "market_group": "total",
+                  "market_name": "Total",
+                  "bookmaker": "BETBOOM"
+                },
                 {
                   "point": 3.5,
                   "side": "over",
@@ -157686,9 +157710,9 @@
           "odds": {
             "eventId": "16434098",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 165.076,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 202.554,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -157863,9 +157887,9 @@
           "odds": {
             "eventId": "16434103",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 165.238,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 202.717,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -158064,9 +158088,9 @@
           "odds": {
             "eventId": "16434102",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 165.382,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 202.864,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -158241,16 +158265,16 @@
           "odds": {
             "eventId": "16434106",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 165.513,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 202.997,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "betboom",
                 "title": "BETBOOM",
                 "doubleChance": {
-                  "1x": 1.69,
+                  "1x": 1.68,
                   "x2": 1.32
                 },
                 "spreads": [],
@@ -158288,7 +158312,7 @@
             ],
             "best": {
               "doubleChance": {
-                "1x": 1.69,
+                "1x": 1.68,
                 "x2": 1.32
               },
               "totals": [
@@ -158442,9 +158466,9 @@
           "odds": {
             "eventId": "16434105",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 165.651,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.138,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -158619,9 +158643,9 @@
           "odds": {
             "eventId": "16434109",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 165.78,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.27,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -158820,9 +158844,9 @@
           "odds": {
             "eventId": "16434104",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 165.899,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.392,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -158997,9 +159021,9 @@
           "odds": {
             "eventId": "16434107",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.024,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.52,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -159198,9 +159222,9 @@
           "odds": {
             "eventId": "16434118",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.104,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.597,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -159375,9 +159399,9 @@
           "odds": {
             "eventId": "16434112",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.237,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.732,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -159528,9 +159552,9 @@
           "odds": {
             "eventId": "16434111",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.359,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.855,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -159729,9 +159753,9 @@
           "odds": {
             "eventId": "16434114",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.481,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 203.98,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -159930,9 +159954,9 @@
           "odds": {
             "eventId": "16434113",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.605,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 204.106,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -160131,9 +160155,9 @@
           "odds": {
             "eventId": "16434161",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.731,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 204.233,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -160308,9 +160332,9 @@
           "odds": {
             "eventId": "16434110",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.85,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 204.354,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -160485,9 +160509,9 @@
           "odds": {
             "eventId": "16434115",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 166.964,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 204.469,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -160662,9 +160686,9 @@
           "odds": {
             "eventId": "16434108",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 167.088,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 204.594,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -197280,9 +197304,9 @@
           "odds": {
             "eventId": "16311019",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 188.266,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 224.318,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -197481,9 +197505,9 @@
           "odds": {
             "eventId": "16311016",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 188.406,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 226.163,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -197658,9 +197682,9 @@
           "odds": {
             "eventId": "16311015",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 188.507,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 224.565,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -197859,9 +197883,9 @@
           "odds": {
             "eventId": "16311011",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 188.604,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 224.665,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -198060,9 +198084,9 @@
           "odds": {
             "eventId": "16311018",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 188.712,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 226.478,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -198261,9 +198285,9 @@
           "odds": {
             "eventId": "16311012",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 188.82,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 224.886,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -198462,9 +198486,9 @@
           "odds": {
             "eventId": "16311017",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 188.939,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 225.007,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -198503,7 +198527,7 @@
                   }
                 ],
                 "btts": {
-                  "yes": 1.9
+                  "yes": 1.89
                 }
               }
             ],
@@ -198539,7 +198563,7 @@
                 }
               ],
               "btts": {
-                "yes": 1.9
+                "yes": 1.89
               }
             },
             "bestBookmakers": {
@@ -198663,9 +198687,9 @@
           "odds": {
             "eventId": "16311013",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.058,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 225.129,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -198864,9 +198888,9 @@
           "odds": {
             "eventId": "16311014",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.158,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 225.231,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -199065,9 +199089,9 @@
           "odds": {
             "eventId": "16311022",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.23,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.006,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -199266,9 +199290,9 @@
           "odds": {
             "eventId": "16311020",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.338,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.117,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -199467,9 +199491,9 @@
           "odds": {
             "eventId": "16311024",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.434,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.215,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -199668,9 +199692,9 @@
           "odds": {
             "eventId": "16311026",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.527,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.31,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -199869,9 +199893,9 @@
           "odds": {
             "eventId": "16311023",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.626,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.409,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -200070,9 +200094,9 @@
           "odds": {
             "eventId": "16311027",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.727,
+            "updatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:50.503000+00:00",
+            "bookmakerUpdateAgeSeconds": 225.81,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -200271,9 +200295,9 @@
           "odds": {
             "eventId": "16311021",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.855,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.643,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -200472,9 +200496,9 @@
           "odds": {
             "eventId": "16311028",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 189.972,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.761,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -200673,9 +200697,9 @@
           "odds": {
             "eventId": "16311025",
             "bookmaker": "BETBOOM",
-            "updatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdatedAt": "2026-11-11T15:21:50.235000+00:00",
-            "bookmakerUpdateAgeSeconds": 190.071,
+            "updatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdatedAt": "2026-11-11T16:28:48.801000+00:00",
+            "bookmakerUpdateAgeSeconds": 227.862,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -299312,7 +299336,7 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-11T15:25:18.469688+00:00",
+  "oddsUpdatedAt": "2026-11-11T16:32:55.364814+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsErrors": [
