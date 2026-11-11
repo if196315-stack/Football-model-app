@@ -193,16 +193,35 @@ class MainActivity : Activity() {
                 return horizontalSwipeCaptured || super.onInterceptTouchEvent(event)
             }
 
+            private fun isHorizontalTabSwipe(event: MotionEvent): Boolean {
+                if (swipeOriginInLeagueFilters) return false
+                val dx = event.x - gestureDownX
+                val dy = event.y - gestureDownY
+                return kotlin.math.abs(dx) > dp(12) &&
+                    kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.15f
+            }
+
+            private fun finishTabSwipe(event: MotionEvent) {
+                val dx = event.x - gestureDownX
+                if (kotlin.math.abs(dx) > dp(48)) {
+                    selectAdjacentTab(if (dx < 0f) 1 else -1)
+                }
+                horizontalSwipeCaptured = false
+                swipeOriginInLeagueFilters = false
+            }
+
             override fun onTouchEvent(event: MotionEvent): Boolean {
+                // ScrollView can take a gesture for vertical scrolling before the
+                // user's movement becomes predominantly horizontal. Continue
+                // classifying the same gesture here, after interception as well.
+                if (!horizontalSwipeCaptured && event.actionMasked == MotionEvent.ACTION_MOVE &&
+                    isHorizontalTabSwipe(event)) {
+                    horizontalSwipeCaptured = true
+                }
                 if (horizontalSwipeCaptured) {
                     when (event.actionMasked) {
                         MotionEvent.ACTION_UP -> {
-                            val dx = event.x - gestureDownX
-                            if (kotlin.math.abs(dx) > dp(48)) {
-                                selectAdjacentTab(if (dx < 0f) 1 else -1)
-                            }
-                            horizontalSwipeCaptured = false
-                            swipeOriginInLeagueFilters = false
+                            finishTabSwipe(event)
                             return true
                         }
                         MotionEvent.ACTION_CANCEL -> {
@@ -1651,19 +1670,19 @@ class MainActivity : Activity() {
     private fun strongestDisplaySignal(prediction: JSONObject, match: JSONObject): JSONObject? {
         val strongest = prediction.optJSONObject("strongestSignal")
         if (strongest != null && strongestSignalDisplayLabel(strongest, match) != null) return strongest
-        val candidates = prediction.optJSONArray("signals") ?: return strongest
+        val candidates = prediction.optJSONArray("signals") ?: return null
         var best: JSONObject? = null
         var bestEdge = Double.NEGATIVE_INFINITY
         for (index in 0 until candidates.length()) {
             val candidate = candidates.optJSONObject(index) ?: continue
             if (strongestSignalDisplayLabel(candidate, match) == null) continue
             val edge = candidate.optDouble("selectionEdgePp", candidate.optDouble("edgePp", Double.NEGATIVE_INFINITY))
-            if (edge > bestEdge) {
+            if (edge.isFinite() && edge > bestEdge) {
                 best = candidate
                 bestEdge = edge
             }
         }
-        return best ?: strongest
+        return best
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
@@ -1677,9 +1696,9 @@ class MainActivity : Activity() {
         if (side.startsWith("ИТБ ")) {
             val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
             val teamName = side.substringAfter("·", "").trim()
-            val team = when (teamName) {
-                match.optString("home") -> "home"
-                match.optString("away") -> "away"
+            val team = when {
+                teamName.equals(match.optString("home").trim(), ignoreCase = true) -> "home"
+                teamName.equals(match.optString("away").trim(), ignoreCase = true) -> "away"
                 else -> return null
             }
             val rows = best.optJSONArray("teamTotals") ?: return null
@@ -2157,15 +2176,14 @@ class MainActivity : Activity() {
                 if (matchDay.isBlank() || matchDay < today) continue
                 val prediction = m.optJSONObject("prediction") ?: continue
                 val signal = strongestDisplaySignal(prediction, m) ?: continue
-                val edge = signal.optDouble("edgePp", 0.0)
-                if (signal.optBoolean("noPositiveSignal") || edge <= 0.0 ||
-                    strongestSignalDisplayLabel(signal, m) == null) continue
+                val edge = signal.optDouble("selectionEdgePp", signal.optDouble("edgePp", 0.0))
+                if (edge <= 0.0 || strongestSignalDisplayLabel(signal, m) == null) continue
                 // Require a real quote for the exact strongest eligible market, at decimal odds >= 1.50.
                 if (topSignalOdds(signal, m) == null) continue
                 items.add(Triple(m, league.optString("name"), signal))
             }
         }
-        val sorted = items.sortedByDescending { it.third.optDouble("edgePp") }
+        val sorted = items.sortedByDescending { it.third.optDouble("selectionEdgePp", it.third.optDouble("edgePp")) }
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · AI-СИГНАЛЫ", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
@@ -2182,7 +2200,7 @@ class MainActivity : Activity() {
             addText(box, "#${index + 1}  ·  ${leagueName.uppercase(Locale.getDefault())}  ·  ${date(m.optString("utcDate"))}", 10, true, accent)
             addText(box, "${m.optString("home")}  —  ${m.optString("away")}", 16, true, Color.WHITE)
             addText(box, signal.optString("side"), 14, true, gold)
-            addText(box, "+${String.format(Locale.US, "%.1f", signal.optDouble("edgePp"))} п.п. к исторической базе", 13, true, accent)
+            addText(box, "+${String.format(Locale.US, "%.1f", signal.optDouble("selectionEdgePp", signal.optDouble("edgePp")))} п.п. с учётом формы", 13, true, accent)
             val signalOdds = topSignalOdds(signal, m)
             addText(box, "Коэффициент на сигнал: ${String.format(Locale.US, "%.2f", signalOdds ?: 0.0)}", 14, true, gold)
             addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability") * 100)}% · база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}%", 11, false, muted)
@@ -2402,15 +2420,15 @@ class MainActivity : Activity() {
                     if (signal == null) {
                         addText(signalBox, if (leagueCode == "UCL" || leagueCode == "UEL") "Вероятности рассчитаны по историческим xG; проверенные тестовые сигналы и их результаты — ниже." else "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
                     } else {
-                        val edge = signal.optDouble("edgePp")
+                        val edge = signal.optDouble("selectionEdgePp", signal.optDouble("edgePp", 0.0))
                         val displayLabel = strongestSignalDisplayLabel(signal, m)
                         if (displayLabel == null) {
-                            addText(signalBox, "Среди отображаемых рынков нет подтверждённого сильнейшего сигнала.", 12, true, Color.rgb(242, 190, 104))
+                            addText(signalBox, "Среди разрешённых рынков нет корректного сигнала для отображения.", 12, true, Color.rgb(242, 190, 104))
                         } else {
-                            if (signal.optBoolean("noPositiveSignal")) {
-                                addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: $displayLabel · ${String.format(Locale.US, "%.1f", edge)} п.п.", 12, true, Color.rgb(242, 190, 104))
+                            if (edge <= 0.0) {
+                                addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: $displayLabel · ${String.format(Locale.US, "%.1f", edge)} п.п. с учётом формы", 12, true, Color.rgb(242, 190, 104))
                             } else {
-                                addText(signalBox, "$displayLabel · +${String.format(Locale.US, "%.1f", edge)} п.п. к базе", 15, true, accent)
+                                addText(signalBox, "$displayLabel · +${String.format(Locale.US, "%.1f", edge)} п.п. с учётом формы", 15, true, accent)
                             }
                             addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
                             addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
