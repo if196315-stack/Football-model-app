@@ -261,10 +261,8 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
     response = session.get(URL, params=params, headers={"Authorization": api_key}, timeout=60)
     response.raise_for_status()
     payload = response.json()
-    if isinstance(payload, list):
-        return payload
-    fixtures = list(payload.get("matches") or [])
-    total_pages = min(int(payload.get("totalPages") or 1), 100)
+    fixtures = list(payload) if isinstance(payload, list) else list(payload.get("matches") or [])
+    total_pages = min(int(payload.get("totalPages") or 1), 100) if isinstance(payload, dict) else 1
     for page in range(2, total_pages + 1):
         page_params = {**params, "page": page}
         page_response = session.get(URL, params=page_params,
