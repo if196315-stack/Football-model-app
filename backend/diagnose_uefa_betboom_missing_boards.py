@@ -71,7 +71,7 @@ def fetch_date_fixtures(session, api_key, date):
         "date_from": date, "date_to": date,
         "exclude_amateur": "true", "view": "odds",
         "with_bk_odds": "true", "odds_stage": "all",
-        "bookmaker_ids": "betboom", "page_size": 500,
+        "page_size": 500,
         "sort": "asc", "page": 1,
     }
     response = session.get(URL, params=params, headers={"Authorization": api_key}, timeout=60)
