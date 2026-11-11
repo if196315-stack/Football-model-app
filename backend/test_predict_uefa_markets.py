@@ -37,7 +37,7 @@ class UefaMarketPredictionTests(unittest.TestCase):
                          markets["handicap_zero"]["away"]["push"])
 
 
-    def test_generates_independent_predictions_for_uecl_and_unl(self):
+    def test_generates_uecl_prediction_and_ignores_archived_unl(self):
         history_rows = []
         fixtures = {}
         for league in ("UECL", "UNL"):
@@ -64,8 +64,8 @@ class UefaMarketPredictionTests(unittest.TestCase):
             {"matches": history_rows}, {"matches": fixtures},
             predicted_at="2026-11-09T12:00:00Z",
         )
-        self.assertEqual(set(predictions), {"UECL-future", "UNL-future"})
-        for league in ("UECL", "UNL"):
+        self.assertEqual(set(predictions), {"UECL-future"})
+        for league in ("UECL",):
             prediction = predictions[f"{league}-future"]
             self.assertEqual(prediction["league_code"], league)
             self.assertEqual(prediction["history_max_date"], "2026-10-04")

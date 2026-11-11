@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture timestamped BetBoom odds for UEFA Champions League and Europa League.
+"""Capture timestamped BetBoom odds for UEFA Champions League, Europa League and Conference League.
 
 The archive stores only the strategy's supported markets and exact line values.
 It records both capture time and the bookmaker board's source-side prematch update
@@ -81,7 +81,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
     model_predictions_by_league = Counter()
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
-        if league not in ("UCL", "UEL", "UECL", "UNL"):
+        if league not in ("UCL", "UEL", "UECL"):
             continue
         if str(match.get("status") or "").casefold() not in ("not_started", "scheduled", "timed"):
             continue

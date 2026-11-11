@@ -75,7 +75,7 @@ class UefaFixtureHistoryTests(unittest.TestCase):
             self.assertEqual(len([1 for url, _ in session.calls if "/matches" in url]), 6)
 
 
-    def test_nations_league_is_ingested_when_pitchapi_catalogue_has_it(self):
+    def test_nations_league_is_ignored_even_if_pitchapi_catalogue_has_it(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             session = FakeSession(include_unl=True)
@@ -84,20 +84,21 @@ class UefaFixtureHistoryTests(unittest.TestCase):
                 report_path=root / "report.json", pause_seconds=0,
             )
             cache = load_cache(root / "cache.json")
-            self.assertEqual(set(cache["competitions"]), {"UCL", "UEL", "UECL", "UNL"})
+            self.assertEqual(set(cache["competitions"]), {"UCL", "UEL", "UECL"})
             unl_rows = [row for row in cache["matches"].values()
                         if row["leagueCode"] == "UNL"]
-            self.assertEqual(len(unl_rows), 2)
-            self.assertTrue(all(row["provider"] == "PitchAPI" for row in unl_rows))
+            self.assertEqual(unl_rows, [])
+            self.assertNotIn("unl-id", [url.split("/leagues/")[1].split("/")[0]
+                                         for url, _ in session.calls if "/matches" in url])
             self.assertEqual(result["report"]["optionalCompetitionsMissing"], [])
 
-    def test_missing_optional_nations_league_does_not_break_existing_refresh(self):
+    def test_unlisted_nations_league_is_not_part_of_active_refresh_scope(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = refresh_uefa_fixtures(
                 "test-key", session=FakeSession(), cache_path=Path(tmp) / "cache.json",
                 report_path=Path(tmp) / "report.json", pause_seconds=0,
             )
-            self.assertEqual(result["report"]["optionalCompetitionsMissing"], ["UNL"])
+            self.assertEqual(result["report"]["optionalCompetitionsMissing"], [])
             self.assertEqual(set(result["cache"]["competitions"]), {"UCL", "UEL", "UECL"})
 
 
