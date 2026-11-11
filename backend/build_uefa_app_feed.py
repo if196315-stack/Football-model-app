@@ -25,7 +25,6 @@ LEAGUES = {
     "UCL": "Лига чемпионов УЕФА",
     "UEL": "Лига Европы УЕФА",
     "UECL": "Лига конференций УЕФА",
-    "UNL": "Лига наций УЕФА",
 }
 MAX_QUOTE_AGE_SECONDS = 300
 
@@ -191,7 +190,7 @@ def build_feed(
         model = predictions.get(str(fixture_id))
         # Show ordinary upcoming fixtures with a model and every fixture carrying
         # a historical paper entry, including after its final score is known.
-        if is_upcoming and model is None and not fixture_papers and league_code not in ("UECL", "UNL"):
+        if is_upcoming and model is None and not fixture_papers and league_code != "UECL":
             continue
         if not is_upcoming and not fixture_papers:
             continue
