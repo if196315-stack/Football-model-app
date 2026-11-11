@@ -17,7 +17,7 @@ on:
         default: false
         type: boolean
       diagnose_missing_boards:
-        description: "Read-only PitchAPI/API-Sport matching audit of up to 15 UEFA fixtures (max 30 API calls)"
+        description: "Read-only full upcoming UECL calendar coverage audit against API-Sport (up to 180 days)"
         required: false
         default: false
         type: boolean
@@ -72,6 +72,11 @@ jobs:
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/diagnose_uefa_betboom_missing_boards.py
+      - name: Audit full upcoming UECL API-Sport coverage (read-only)
+        if: github.event_name == 'workflow_dispatch' && inputs.diagnose_missing_boards
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/diagnose_uecl_api_sport_coverage.py
       - name: Update UEFA xG history for newly finished matches
         if: hashFiles('artifacts/uefa-xg-history.json') != ''
         continue-on-error: true
