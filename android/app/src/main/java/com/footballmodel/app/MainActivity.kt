@@ -63,6 +63,7 @@ class MainActivity : Activity() {
     private var data: JSONObject? = null
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
+    private val aiSignalPrefs by lazy { getSharedPreferences("ai_signal_history", MODE_PRIVATE) }
     private val settingsPrefs by lazy { getSharedPreferences("bank_settings", MODE_PRIVATE) }
     private val feedCache by lazy { getSharedPreferences("feed_cache_v1", MODE_PRIVATE) }
     private val loadInProgress = AtomicBoolean(false)
@@ -934,7 +935,9 @@ class MainActivity : Activity() {
                     }
                 }
                 // Build the AI candidate snapshot off the main thread before checking notifications.
-                val aiCandidates = collectAiCandidates(json).map { item ->
+                val aiMatchCandidates = collectAiCandidates(json)
+                updateAiSignalArchive(json, aiMatchCandidates)
+                val aiCandidates = aiMatchCandidates.map { item ->
                     val match = item.first
                     val matchId = match.optString("id").ifBlank {
                         listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
@@ -2184,6 +2187,110 @@ class MainActivity : Activity() {
                     (signal?.optDouble("modelProbability") ?: 0.0) * odds - 1.0
                 }
         )
+    }
+
+    private fun aiSignalOutcome(side: String, match: JSONObject): Boolean? {
+        if (match.isNull("homeScore") || match.isNull("awayScore")) return null
+        val homeScore = match.optInt("homeScore")
+        val awayScore = match.optInt("awayScore")
+        return when {
+            side.equals("1X", ignoreCase = true) -> homeScore >= awayScore
+            side.equals("X2", ignoreCase = true) -> awayScore >= homeScore
+            side.equals("ОЗ ДА", ignoreCase = true) -> homeScore > 0 && awayScore > 0
+            side.startsWith("ТБ ", ignoreCase = true) -> {
+                val line = side.substringAfter("ТБ ").trim().toDoubleOrNull() ?: return null
+                homeScore + awayScore > line
+            }
+            side.startsWith("ИТБ ", ignoreCase = true) -> {
+                val line = side.substringAfter("ИТБ ").substringBefore("·").trim().toDoubleOrNull() ?: return null
+                val team = side.substringAfter("·", "").trim()
+                val teamScore = when {
+                    team.equals(match.optString("home"), ignoreCase = true) -> homeScore
+                    team.equals(match.optString("away"), ignoreCase = true) -> awayScore
+                    else -> return null
+                }
+                teamScore > line
+            }
+            else -> null
+        }
+    }
+
+    private fun updateAiSignalArchive(
+        json: JSONObject,
+        candidates: List<Triple<JSONObject, String, JSONObject>>
+    ) {
+        val archive = try {
+            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
+        } catch (_: Exception) {
+            JSONArray()
+        }
+        val known = mutableSetOf<String>()
+        for (i in 0 until archive.length()) {
+            archive.optJSONObject(i)?.let { known.add(it.optString("signalKey")) }
+        }
+        val now = System.currentTimeMillis()
+        candidates.forEach { (match, leagueName, bundle) ->
+            val matchId = match.optString("id").ifBlank {
+                listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
+            }
+            val kickoff = kickoffTimestamp(match) ?: return@forEach
+            if (kickoff <= now) return@forEach
+            val signals = mutableListOf<JSONObject>()
+            bundle.optJSONObject("primary")?.let { signals.add(it) }
+            val alternatives = bundle.optJSONArray("alternatives")
+            if (alternatives != null) for (i in 0 until alternatives.length()) {
+                alternatives.optJSONObject(i)?.let { signals.add(it) }
+            }
+            signals.forEach { signal ->
+                val side = signal.optString("side").trim()
+                val price = topSignalOdds(signal, match) ?: return@forEach
+                val signalKey = "$matchId|$side"
+                if (signalKey in known) return@forEach
+                val leagueCode = json.optJSONArray("competitions")?.let { competitions ->
+                    (0 until competitions.length()).firstNotNullOfOrNull { index ->
+                        val competition = competitions.optJSONObject(index) ?: return@firstNotNullOfOrNull null
+                        val matches = competition.optJSONArray("matches") ?: return@firstNotNullOfOrNull null
+                        val found = (0 until matches.length()).any { matches.optJSONObject(it)?.optString("id") == matchId }
+                        if (found) competition.optString("code") else null
+                    }
+                }.orEmpty()
+                archive.put(JSONObject()
+                    .put("signalKey", signalKey)
+                    .put("matchId", matchId)
+                    .put("leagueCode", leagueCode)
+                    .put("league", leagueName)
+                    .put("home", match.optString("home"))
+                    .put("away", match.optString("away"))
+                    .put("kickoff", match.optString("utcDate"))
+                    .put("side", side)
+                    .put("market", signal.optString("market"))
+                    .put("price", price)
+                    .put("modelProbability", signal.optDouble("modelProbability", Double.NaN))
+                    .put("edgePp", signal.optDouble("selectionEdgePp", signal.optDouble("edgePp", 0.0)))
+                    .put("capturedAt", now)
+                    .put("status", "PENDING"))
+                known.add(signalKey)
+            }
+        }
+
+        for (i in 0 until archive.length()) {
+            val row = archive.optJSONObject(i) ?: continue
+            if (row.optString("status") != "PENDING") continue
+            val match = findMatch(json, JSONObject().put("matchId", row.optString("matchId"))) ?: continue
+            when (match.optString("status")) {
+                "FINISHED" -> {
+                    val won = aiSignalOutcome(row.optString("side"), match) ?: continue
+                    val price = row.optDouble("price", 1.0)
+                    row.put("status", if (won) "WON" else "LOST")
+                        .put("homeScore", match.optInt("homeScore"))
+                        .put("awayScore", match.optInt("awayScore"))
+                        .put("profitUnits", if (won) price - 1.0 else -1.0)
+                        .put("settledAt", now)
+                }
+                "POSTPONED", "CANCELED", "CANCELLED" -> row.put("status", "VOID").put("settledAt", now)
+            }
+        }
+        aiSignalPrefs.edit().putString("signals", archive.toString()).apply()
     }
 
     private fun renderBettingDesk(json: JSONObject) {
