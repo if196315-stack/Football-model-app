@@ -2336,8 +2336,8 @@ class MainActivity : Activity() {
         addText(matchesContainer, "ЛИНИЯ", 9, true, cyan)
         addText(matchesContainer, "Матчи с действующими коэффициентами BetBoom и прогнозом модели", 16, true, Color.WHITE)
         addText(matchesContainer, "API-SPORT · BETBOOM · PITCHAPI xG", 9, true, muted)
-        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL")
-        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL")
+        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
+        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL")
         // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
@@ -2398,8 +2398,9 @@ class MainActivity : Activity() {
                     }
                 }
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
-                // The visible line contains all upcoming matches that pass both
-                // independent gates. Raw feeds remain untouched for paper-bet settlement.
+                // Apply the same visibility rule to every competition, including UECL:
+                // show only upcoming fixtures with a complete model prediction and
+                // an active BetBoom prematch line. Keep raw feeds intact for settlement.
                 if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
                     hasCompleteModelPrediction(m) && hasActiveBetBoomPrematchLine(m)) {
                     upcoming.add(m)
