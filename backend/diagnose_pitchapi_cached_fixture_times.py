@@ -1,13 +1,23 @@
 """Read-only extraction of PitchAPI date/timeUtc from the restored Actions cache.
 
-No API requests are made. The target list is shared with the existing 39-fixture
-API-Sport timestamp audit.
+No API requests or third-party Python packages are required.
 """
+import ast
 import json
 from pathlib import Path
 
-from diagnose_api_sport_fixture_timestamps import TARGETS
-from pitchapi_data_source import CACHE_PATH
+ROOT=Path(__file__).resolve().parents[1]
+CACHE_PATH=ROOT/"backend"/"cache"/"pitchapi_history.json"
+
+def load_targets():
+    source=ROOT/"backend"/"diagnose_api_sport_fixture_timestamps.py"
+    tree=ast.parse(source.read_text(encoding="utf-8"))
+    for node in tree.body:
+        if isinstance(node,ast.Assign) and any(
+            isinstance(target,ast.Name) and target.id=="TARGETS" for target in node.targets
+        ):
+            return ast.literal_eval(node.value)
+    raise RuntimeError("TARGETS not found in timestamp audit source")
 
 def main():
     if not CACHE_PATH.exists():
@@ -17,7 +27,7 @@ def main():
     cache=json.loads(CACHE_PATH.read_text(encoding="utf-8"))
     matches=cache.get("matches",{})
     output=[]
-    for comp,pitch_date,home,away,tournament_id,home_id,away_id in TARGETS:
+    for comp,pitch_date,home,away,tournament_id,home_id,away_id in load_targets():
         candidates=[
             row for row in matches.values()
             if row.get("leagueCode")=={"SA":"ITA","BL1":"GER"}[comp]
@@ -33,15 +43,14 @@ def main():
             } for row in candidates]
         })
     summary={
-        "targets":len(TARGETS),
+        "targets":len(output),
         "targetsWithOneCacheRow":sum(x["candidateCount"]==1 for x in output),
         "targetsWithNoCacheRow":sum(x["candidateCount"]==0 for x in output),
         "targetsWithMultipleCacheRows":sum(x["candidateCount"]>1 for x in output),
         "cacheUpdatedAt":cache.get("updatedAt"),
         "cacheLastRefresh":cache.get("lastRefresh"),
         "cacheProvider":cache.get("provider"),
-        "apiRequests":0,
-        "readOnly":True
+        "apiRequests":0,"readOnly":True
     }
     print("PITCHAPI_RAW_TIME_ROWS="+json.dumps(output,ensure_ascii=False))
     print("PITCHAPI_RAW_TIME_SUMMARY="+json.dumps(summary,ensure_ascii=False))
