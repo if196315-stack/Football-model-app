@@ -100,6 +100,19 @@ class UefaFixtureHistoryTests(unittest.TestCase):
             self.assertEqual(result["report"]["optionalCompetitionsMissing"], ["UNL"])
             self.assertEqual(set(result["cache"]["competitions"]), {"UCL", "UEL", "UECL"})
 
+
+    def test_normalizes_documented_pitchapi_time_utc_field(self):
+        from refresh_pitchapi_uefa_fixtures import normalize_match
+        row = normalize_match({
+            "id": "m_ABC123", "time_utc": "2026-11-12T19:45:00Z",
+            "status": "finished", "score_home": 2, "score_away": 1,
+            "home_team": {"id": "t_HOME12", "name": "Home"},
+            "away_team": {"id": "t_AWAY12", "name": "Away"},
+        }, "UNL", {"id": "unl-id", "name": "Nations League"}, "2026/2027")
+        self.assertEqual(row["date"], "2026-11-12T19:45:00Z")
+        self.assertEqual(row["leagueCode"], "UNL")
+        self.assertEqual(row["homeScore"], 2)
+
     def test_season_requests_are_status_all(self):
         with tempfile.TemporaryDirectory() as tmp:
             session = FakeSession()
