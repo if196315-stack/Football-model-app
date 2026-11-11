@@ -45,6 +45,7 @@ Android-клиент IQ Match и конвейер футбольных данн�
 - `artifacts/odds-snapshots.jsonl` — временные снимки национальных BetBoom-котировок.
 - `artifacts/uefa-betboom-odds-snapshots.jsonl` — снимки еврокубковых BetBoom-котировок.
 - `artifacts/market-observation-results.jsonl` и UEFA paper-архивы — результаты наблюдений и paper-сигналов.
+- Архивы наблюдений собираются и рассчитываются GitHub Actions на стороне backend; Android-клиент их не загружает и не показывает. Историю можно отдельно анализировать по архивным JSONL-файлам.
 - `backend/diagnose_api_sport.py` — read-only диагностика доступности API-Sport, квоты и BetBoom-рынков.
 - `backend/backtest_pitchapi.py` — воспроизводимый хронологический backtest национального xG-контура.
 - `backend/backtest_all_markets.py` — offline walk-forward оценка 15 независимых рынков для всех семи соревнований, сравнение с expanding-frequency baseline и paired bootstrap CI для калибровки; DNB labels помечены как дублирующие 1X2.
