@@ -54,7 +54,7 @@ def main():
     # Sample evenly by competition, then fill to the hard cap.
     chosen = []
     for league in ("UCL", "UEL", "UECL"):
-        chosen.extend(row for row in candidates if row[1].get("leagueCode") == league)[:5]
+        chosen.extend([row for row in candidates if row[1].get("leagueCode") == league][:5])
     seen = set()
     chosen = [row for row in chosen if not (row[2] in seen or seen.add(row[2]))][:LIMIT]
     session = requests.Session()
