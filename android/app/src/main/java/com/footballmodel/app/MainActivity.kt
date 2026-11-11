@@ -146,6 +146,17 @@ class MainActivity : Activity() {
             private var swipeOriginInLeagueFilters = false
             private var horizontalSwipeCaptured = false
 
+            // Some clickable descendants request that parents never intercept.
+            // Keep that request for the league scroller only; elsewhere the outer
+            // pager must retain horizontal gestures for tab navigation.
+            override fun requestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
+                if (swipeOriginInLeagueFilters) {
+                    super.requestDisallowInterceptTouchEvent(disallowIntercept)
+                } else {
+                    super.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+
             override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
@@ -1627,8 +1638,10 @@ class MainActivity : Activity() {
             val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)").find(side)?.groupValues?.get(1)?.toDoubleOrNull()
                 ?: return null
             val team = side.substringAfter("·", "").trim()
+            val home = match.optString("home").trim()
+            val away = match.optString("away").trim()
             if (point in listOf(0.5, 1.5, 2.5, 3.5) &&
-                (team == match.optString("home") || team == match.optString("away"))) return side
+                (team.equals(home, ignoreCase = true) || team.equals(away, ignoreCase = true))) return side
         }
         return null
     }
