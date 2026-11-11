@@ -250,6 +250,23 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertLess(baseline["bttsYes"], 1.0)
         self.assertGreater(baseline["over15"], 0.5)
 
+    def test_league_with_zero_history_uses_pooled_other_league_prior(self):
+        from update_data import historical_baselines
+
+        rows = []
+        for i in range(40):
+            rows.append({"comp": "esp", "date": pd.Timestamp("2026-01-01") + pd.Timedelta(days=i),
+                         "home_score": 2, "away_score": 1})
+        matches = pd.DataFrame(rows)
+        baseline = historical_baselines(matches, "eng", "2026-06-01")
+
+        self.assertIsNotNone(baseline)
+        self.assertEqual(baseline["matches"], 0)
+        self.assertEqual(baseline["baselinePriorMatches"], 40)
+        self.assertEqual(baseline["baselinePriorStrength"], 20.0)
+        self.assertGreater(baseline["bttsYes"], 0.5)
+        self.assertLess(baseline["bttsYes"], 1.0)
+
     def test_zero_handicap_markets_are_not_calculated_or_signalled(self):
         probabilities = markets(1.4, 0.9)
         self.assertNotIn("dnbHome", probabilities)
