@@ -2232,11 +2232,14 @@ class MainActivity : Activity() {
                 .put("quoteUpdatedAt", match.optJSONObject("odds")?.optString("updatedAt", ""))
                 .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
             bets.put(bet)
-            Thread {
+            Thread(name = "save-manual-ai-bet") {
                 saveBets()
                 runOnUiThread {
                     Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
-                    render()
+                    // Do not rebuild the active screen here: a full render can block
+                    // scrolling and taps after the confirmation dialog has closed.
+                    // saveBets() invalidates the History caches; History renders fresh
+                    // when the user opens that tab.
                 }
             }.start()
         }
