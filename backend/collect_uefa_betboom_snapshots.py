@@ -81,7 +81,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
     model_predictions_by_league = Counter()
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
-        if league not in ("UCL", "UEL", "UECL", "UNL"):
+        if league not in ("UCL", "UEL", "UECL"):
             continue
         if str(match.get("status") or "").casefold() not in ("not_started", "scheduled", "timed"):
             continue
