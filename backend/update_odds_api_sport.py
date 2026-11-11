@@ -451,7 +451,7 @@ def main():
     end_date = max(relevant_dates, default=today)
     base_params={"exclude_amateur":"true","view":"odds","with_bk_odds":"true",
                  "odds_stage":"all","bookmaker_ids":",".join(BOOKS),
-                 "page_size":500,"sort":"asc"}
+                 "page_size":500,"sort":"asc","tz":"Etc/UTC"}
     session=requests.Session();session.headers.update({"Authorization":key})
     fixtures=[]
     for date_from, date_to in iter_date_windows(today, end_date, max_days=31):
