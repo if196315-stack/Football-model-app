@@ -51,10 +51,11 @@ def kickoff(m):
         return d.replace(tzinfo=timezone.utc) if d.tzinfo is None else d.astimezone(timezone.utc)
     except (ValueError,TypeError): return None
 
-def is_in_date_window(match, start_date, end_date):
-    """Return True only for fixtures whose kickoff date is inside the requested odds horizon."""
+def is_in_date_window(match, start_date, end_date=None):
+    """Return True for fixtures on/after start_date and before an optional end_date."""
     value = kickoff(match)
-    return value is not None and start_date <= value.date() <= end_date
+    return (value is not None and start_date <= value.date()
+            and (end_date is None or value.date() <= end_date))
 
 
 def team_names(team):
@@ -313,7 +314,6 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
     counts = Counter()
     examples = {}
     window_start = window_start or datetime.now(timezone.utc).date()
-    window_end = window_end or (window_start + timedelta(days=30))
     window_fixtures = 0
     window_active_team_markets = 0
     window_active_fulltime_team_markets = 0
@@ -326,7 +326,7 @@ def betboom_market_diagnostics(fixtures, window_start=None, window_end=None):
             fixture_date = datetime.fromtimestamp(float(stamp) / 1000, tz=timezone.utc).date()
         except (TypeError, ValueError, OSError, OverflowError):
             fixture_date = None
-        in_window = fixture_date is not None and window_start <= fixture_date <= window_end
+        in_window = fixture_date is not None and fixture_date >= window_start and (window_end is None or fixture_date <= window_end)
         if in_window:
             window_fixtures += 1
         board = (fixture.get("oddsBk") or {}).get("betboom") or {}
@@ -413,10 +413,10 @@ def main():
     if not key:raise RuntimeError("API_SPORT_KEY missing from GitHub Secrets")
     data=json.loads(DATA.read_text(encoding="utf-8"))
     today=datetime.now(timezone.utc).date()
-    window_end = today + timedelta(days=30)
-    params={"date_from":today.isoformat(),"date_to":window_end.isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
+    # No artificial upper date bound: request every upcoming fixture available to API-Sport.
+    params={"date_from":today.isoformat(),"exclude_amateur":"true","view":"odds","with_bk_odds":"true","odds_stage":"all","bookmaker_ids":",".join(BOOKS),"page_size":500,"sort":"asc"}
     session=requests.Session();session.headers.update({"Authorization":key})
-    # API pages are capped at 500 fixtures; walk every page in the 14-day window.
+    # API pages are capped at 500 fixtures; walk all reported pages (up to the safety cap).
     params["page"]=1
     resp=session.get(URL,params=params,timeout=60);resp.raise_for_status()
     payload=resp.json()
@@ -440,7 +440,7 @@ def main():
     for comp in data.get("competitions",[]):
         for match in comp.get("matches",[]):
             if match.get("status") not in ("SCHEDULED","TIMED","IN_PLAY","PAUSED"):continue
-            if not is_in_date_window(match, today, window_end):continue
+            if not is_in_date_window(match, today):continue
             eligible+=1
             comp_code = str(comp.get("code") or comp.get("name") or "unknown")
             comp_stats = coverage_by_competition.setdefault(
@@ -492,7 +492,7 @@ def main():
                                  "away": (source.get("awayTeam") or {}).get("name")},
                     "team_totals": team_total_quotes[:8],
                 })
-    market_diagnostics = betboom_market_diagnostics(fixtures, today, window_end)
+    market_diagnostics = betboom_market_diagnostics(fixtures, today)
     data["oddsProvider"]="API-Sport / BetBoom"
     data["oddsBookmaker"]="betboom"
     data["oddsUpdatedAt"]=datetime.now(timezone.utc).isoformat()
