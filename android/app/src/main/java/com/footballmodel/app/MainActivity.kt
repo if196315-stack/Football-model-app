@@ -1988,6 +1988,10 @@ class MainActivity : Activity() {
             for (j in 0 until matches.length()) {
                 val match = matches.optJSONObject(j) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                // AI must never consume a price from an arbitrary/stale bookmaker feed.
+                // Require an explicitly identified BetBoom prematch quote before
+                // evaluating any candidate market for this fixture.
+                if (!hasActiveBetBoomPrematchLine(match)) continue
                 val matchDay = match.optString("utcDate").take(10).ifBlank {
                     match.optString("dateEvent").take(10).ifBlank {
                         kickoffTimestamp(match)?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
