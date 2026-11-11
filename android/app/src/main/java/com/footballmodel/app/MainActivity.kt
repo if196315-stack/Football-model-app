@@ -1217,6 +1217,11 @@ class MainActivity : Activity() {
         val highWater = maxOf(storedHigh ?: currentBankForRisk, currentBankForRisk)
         if (storedHigh == null || highWater > storedHigh) settingsPrefs.edit().putString("paper_high_watermark", highWater.toString()).apply()
         val drawdown = if (highWater > 0.0) (highWater - currentBankForRisk) / highWater else 0.0
+        if (settingsPrefs.getInt("paper_risk_policy_version", 0) < 2) {
+            val migration = settingsPrefs.edit().putInt("paper_risk_policy_version", 2)
+            if (drawdown < 0.20) migration.putBoolean("paper_auto_stopped", false)
+            migration.apply()
+        }
         if (drawdown >= 0.20) settingsPrefs.edit().putBoolean("paper_auto_stopped", true).apply()
         val autoStopped = settingsPrefs.getBoolean("paper_auto_stopped", false)
         val drawdownPaused = drawdown >= 0.10
