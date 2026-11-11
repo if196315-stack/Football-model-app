@@ -33,10 +33,24 @@ class BetBoomTeamTotalDiagnosticTests(unittest.TestCase):
         result = summarize(match)
         self.assertTrue(result["hasBkOddsBetboom"])
         self.assertEqual(len(result["teamTotalMarkets"]), 1)
+        self.assertEqual(len(result["teamLikeMarkets"]), 1)
+        self.assertEqual(result["unrecognizedTeamLikeMarkets"], [])
         self.assertEqual(
             result["teamTotalMarkets"][0]["stakes"]["over"][0],
             {"line": 1.5, "factor": 1.91, "suspended": False},
         )
+
+    def test_reports_unknown_team_like_market_names(self):
+        result = summarize({"oddsBk": {"betboom": {"markets": {
+            "goals_by_side": {
+                "name": {"en": "Individual team goals"},
+                "status": "open", "stage": "prematch",
+                "stakes": {"over": {"lines": [{"argument": 0.5, "factor": 1.7}]}},
+            }
+        }}}})
+        self.assertEqual(result["teamTotalMarkets"], [])
+        self.assertEqual(len(result["teamLikeMarkets"]), 1)
+        self.assertEqual(result["unrecognizedTeamLikeMarkets"][0]["slug"], "goals_by_side")
 
     def test_btts_is_not_classified_as_a_team_total(self):
         self.assertFalse(is_team_total_market_slug("btts"))
