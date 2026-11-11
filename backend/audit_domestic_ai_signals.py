@@ -6,7 +6,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 LEAGUES = {"ENG":("PL","Англия · Премьер-лига"),"ESP":("PD","Испания · Ла Лига"),"ITA":("SA","Италия · Серия A"),"GER":("BL1","Германия · Бундеслига"),"FRA":("FL1","Франция · Лига 1")}
-MIN_ODDS, MIN_PROB, MIN_EV, MIN_IMPLIED = 1.50, 0.60, 0.05, 0.05
+MIN_ODDS, MIN_PROB, MIN_EV, MIN_IMPLIED = 1.50, 0.57, 0.03, 0.03
+MIN_SELECTION_EDGE = 3.0
+MIN_PAPER_EDGE = 3.0
 
 def num(v, default=float("nan")):
     try:
@@ -74,20 +76,20 @@ def check(sig,m):
     side=s(sig.get("side"))
     if sig.get("noPositiveSignal") is True: return None,"no_positive_signal"
     edge=num(sig.get("selectionEdgePp"),num(sig.get("edgePp")))
-    if not math.isfinite(edge) or edge<=0: return None,"non_positive_selection_edge"
+    if not math.isfinite(edge) or edge<MIN_SELECTION_EDGE: return None,"selection_edge_below_3pp"
     if side.upper()=="ОЗ НЕТ": return None,"excluded_btts_no"
     odds=odds_for(sig,m)
     if odds is None: return None,"no_matching_betboom_price"
     p=num(sig.get("modelProbability"))
     if not math.isfinite(p): return None,"missing_probability"
     ev=p*odds-1
-    if p<MIN_PROB: return None,"probability_below_60pct"
-    if ev<MIN_EV: return None,"ev_below_5pct"
+    if p<MIN_PROB: return None,"probability_below_57pct"
+    if ev<MIN_EV: return None,"ev_below_3pct"
     if sig.get("paperOnly") is True:
-        if num(sig.get("edgePp"),0)<5: return None,"paper_edge_below_5pp"
+        if num(sig.get("edgePp"),0)<MIN_PAPER_EDGE: return None,"paper_edge_below_3pp"
     else:
         implied=p-1/odds+num(sig.get("formAdjustmentPp"),0)/100
-        if implied<MIN_IMPLIED: return None,"implied_edge_below_5pp"
+        if implied<MIN_IMPLIED: return None,"implied_edge_below_3pp"
     return {"side":side,"odds":round(odds,3),"probability":round(p,4),"selection_edge_pp":round(edge,3),"ev_pct":round(ev*100,2),"paper_only":sig.get("paperOnly") is True},None
 
 def match_day(m):
@@ -102,7 +104,7 @@ def match_day(m):
 
 def build(data):
     today=datetime.now(timezone.utc).date()
-    out={"generated_at_utc":datetime.now(timezone.utc).isoformat(),"as_of_utc_date":today.isoformat(),"thresholds":{"min_odds":MIN_ODDS,"min_probability":MIN_PROB,"min_ev_pct":MIN_EV*100,"min_selection_edge_pp":"> 0","min_implied_edge_pct_non_paper":MIN_IMPLIED*100,"min_raw_edge_pp_paper_only":5},"leagues":{}}
+    out={"generated_at_utc":datetime.now(timezone.utc).isoformat(),"as_of_utc_date":today.isoformat(),"thresholds":{"min_odds":MIN_ODDS,"min_probability":MIN_PROB,"min_ev_pct":MIN_EV*100,"min_selection_edge_pp":MIN_SELECTION_EDGE,"min_implied_edge_pct_non_paper":MIN_IMPLIED*100,"min_raw_edge_pp_paper_only":MIN_PAPER_EDGE},"leagues":{}}
     comps=data.get("competitions",[])
     for code,(feed_code,name) in LEAGUES.items():
         comp=next((x for x in comps if isinstance(x,dict) and s(x.get("code")).upper()==feed_code),{})
@@ -135,7 +137,7 @@ def build(data):
     return out
 
 def markdown(r):
-    L=["# Отчёт: сильные AI-сигналы в пяти национальных лигах","",f"- Дата среза UTC: **{r['as_of_utc_date']}**",f"- Время формирования: {r['generated_at_utc']}","- Источник: текущий docs/data.json из main; только предстоящие SCHEDULED/TIMED матчи.","- Матч считается прошедшим отбор, если хотя бы один сигнал проходит все Android-фильтры.","","## Порог AI","","- Активная линия BetBoom (API-Sport) и точное совпадение рынка/исхода; коэффициент ≥ 1.50.","- Вероятность ≥ 60%; EV ≥ 5%; selection edge > 0 п.п.","- Для обычного сигнала implied edge ≥ 5 п.п.; для paperOnly raw edge ≥ 5 п.п.","- ОЗ НЕТ исключён; чужие/синтетические цены не используются.","","## Итог по лигам","","| Лига | Будущих матчей | С прогнозом | С BetBoom | С сигналами-кандидатами | Прошли AI | Сигналов прошло |","|---|---:|---:|---:|---:|---:|---:|"]
+    L=["# Отчёт: сильные AI-сигналы в пяти национальных лигах","",f"- Дата среза UTC: **{r['as_of_utc_date']}**",f"- Время формирования: {r['generated_at_utc']}","- Источник: текущий docs/data.json из main; только предстоящие SCHEDULED/TIMED матчи.","- Матч считается прошедшим отбор, если хотя бы один сигнал проходит все Android-фильтры.","","## Порог AI","","- Активная линия BetBoom (API-Sport) и точное совпадение рынка/исхода; коэффициент ≥ 1.50.","- Умеренно мягкий профиль: вероятность ≥ 57%; EV ≥ 3%; selection edge ≥ 3 п.п.","- Для обычного сигнала implied edge ≥ 3 п.п.; для paperOnly raw edge ≥ 3 п.п.","- ОЗ НЕТ исключён; чужие/синтетические цены не используются.","","## Итог по лигам","","| Лига | Будущих матчей | С прогнозом | С BetBoom | С сигналами-кандидатами | Прошли AI | Сигналов прошло |","|---|---:|---:|---:|---:|---:|---:|"]
     for code,v in r["leagues"].items():
         c=v["counts"]; L.append(f"| {code} | {c.get('scheduled_future',0)} | {c.get('with_prediction',0)} | {c.get('with_active_betboom_line',0)} | {c.get('with_candidate_signal',0)} | **{c.get('qualifying_matches',0)}** | {c.get('qualifying_signals',0)} |")
     t=r["totals"]; L.append(f"| **Всего** | **{t.get('scheduled_future',0)}** | **{t.get('with_prediction',0)}** | **{t.get('with_active_betboom_line',0)}** | **{t.get('with_candidate_signal',0)}** | **{t.get('qualifying_matches',0)}** | **{t.get('qualifying_signals',0)}** |")
