@@ -1,4 +1,4 @@
-"""Incremental, fixture-only history cache for UEFA Champions League, Europa League and Conference League.
+"""Incremental fixture history cache for UEFA club competitions and Nations League.
 
 This job is deliberately isolated from the production model and docs/data.json.
 It does not request shot/xG endpoints or bookmaker odds.
@@ -26,7 +26,11 @@ TARGETS = {
     "UCL": "champions league",
     "UEL": "europa league",
     "UECL": "conference league",
+    "UNL": "nations league",
 }
+# Nations League is optional: its absence from a provider catalogue must never
+# interrupt the three established UEFA club-competition refreshes.
+REQUIRED_TARGETS = {"UCL", "UEL", "UECL"}
 
 
 def fetch(session: Any, path: str, api_key: str, params: dict | None = None) -> Any:
@@ -95,7 +99,7 @@ def discover_competitions(session: Any, api_key: str) -> dict[str, dict]:
         if code in found:
             raise RuntimeError(f"Multiple PitchAPI catalogue entries found for {code}")
         found[code] = league
-    missing = sorted(set(TARGETS) - set(found))
+    missing = sorted(REQUIRED_TARGETS - set(found))
     if missing:
         raise RuntimeError("PitchAPI UEFA competitions missing: " + ", ".join(missing))
     return found
@@ -133,7 +137,7 @@ def normalize_match(raw: dict, code: str, league: dict, season: str) -> dict | N
         "id": str(match_id), "provider": "PitchAPI",
         "leagueCode": code, "leagueId": league.get("id"),
         "leagueName": league.get("name"), "season": season,
-        "date": raw.get("date"),
+        "date": raw.get("date") or raw.get("time_utc"),
         "status": str(raw.get("status") or "unknown").casefold(),
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
@@ -218,11 +222,12 @@ def refresh_uefa_fixtures(
     report = {
         "generatedAt": cache["updatedAt"],
         "provider": "PitchAPI",
-        "scope": "UEFA Champions League, Europa League and Conference League fixtures/results only; no xG or odds calls",
+        "scope": "UEFA club competitions and optional Nations League fixtures/results only; no xG or odds calls",
         "upcomingSeasonOnly": upcoming_only,
         "listedMatchesThisRun": listed_total,
         "cachedMatches": len(stored),
         "errors": errors,
+        "optionalCompetitionsMissing": sorted(set(TARGETS) - set(leagues)),
         "competitions": results,
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)

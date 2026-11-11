@@ -25,7 +25,7 @@ def update_history(cache: dict, history: dict, fetch_shots,
     attempted = added_or_updated = skipped_recent_unpaired = 0
     errors = []
     for fixture in (cache.get("matches") or {}).values():
-        if (fixture.get("leagueCode") not in ("UCL", "UEL", "UECL")
+        if (fixture.get("leagueCode") not in ("UCL", "UEL", "UECL", "UNL")
                 or fixture.get("provider") not in (None, "PitchAPI")
                 or fixture.get("status") != "finished"):
             continue
