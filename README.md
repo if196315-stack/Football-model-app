@@ -20,6 +20,9 @@ Android-клиент IQ Match и конвейер футбольных данн�
 Отдельный еврокубковый контур:
 - UCL — UEFA Champions League.
 - UEL — UEFA Europa League.
+- UECL — UEFA Conference League.
+
+UECL входит в активную модель, сбор коэффициентов, paper-контур и Android feed. UEFA Nations League (UNL) исключена из активной обработки; ранее собранные данные сохраняются только как архив и не участвуют в прогнозах, odds и feed.
 
 Национальные соревнования публикуются в `docs/data.json`; еврокубки — в `docs/uefa-data.json`. Для семи соревнований ведутся отдельные отчёты по историческому качеству прогнозов и покрытию данных в `docs/strategy/`.
 
