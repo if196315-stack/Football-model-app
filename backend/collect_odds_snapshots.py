@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Append BetBoom-only, timestamped domestic market snapshots from docs/data.json.
+"""Append MelBet-only, timestamped domestic market snapshots from docs/data.json.
 
 This collector runs after update_odds_api_sport.py. It intentionally ignores
-legacy multi-bookmaker snapshots and stores the BetBoom source-board timestamp
+legacy multi-bookmaker snapshots and stores the MelBet source-board timestamp
 so stale quotes can be excluded during later evaluation.
 """
 from __future__ import annotations
@@ -14,8 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-BOOKMAKER = "BETBOOM"
-PARSER_VERSION = "betboom-fulltime-v2"
+BOOKMAKER = "MELBET"
+PARSER_VERSION = "melbet-fulltime-v2"
 LEAGUE_CODES = {"PL": "ENG", "PD": "ESP", "SA": "ITA", "BL1": "GER", "FL1": "FRA"}
 MATCH_TOTAL_LINES = {1.5, 2.5, 3.5}
 TEAM_TOTAL_LINES = {0.5, 1.5, 2.5, 3.5}
@@ -79,7 +79,7 @@ def snapshot_rows(data: dict, captured_at: str | None = None):
                 continue
             boards = odds.get("bookmakers") or []
             board = next((item for item in boards
-                          if str(item.get("key") or "").lower() == "betboom"
+                          if str(item.get("key") or "").lower() == "melbet"
                           or str(item.get("title") or "").upper() == BOOKMAKER), None)
             # Preserve provider market identity; never reconstruct complements
             # from a flattened best-price object.
