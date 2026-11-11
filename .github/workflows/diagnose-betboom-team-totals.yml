@@ -1,10 +1,17 @@
 name: Diagnose BetBoom team-total odds
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/diagnose_betboom_team_totals.py"
+      - "backend/test_diagnose_betboom_team_totals.py"
+      - ".github/workflows/diagnose-betboom-team-totals.yml"
   workflow_dispatch:
     inputs:
       fixture_ids:
-        description: "Comma-separated API-Sport match IDs (max 5); defaults to Man City-Fulham"
+        description: "Comma-separated API-Sport match IDs (max 5); defaults to five domestic fixtures"
         required: false
         type: string
 
