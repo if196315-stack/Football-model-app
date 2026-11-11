@@ -3,7 +3,7 @@ import unittest
 from collect_odds_snapshots import snapshot_rows
 
 
-class BetBoomOddsArchiveTests(unittest.TestCase):
+class MelBetOddsArchiveTests(unittest.TestCase):
     def sample(self):
         return {
             "competitions": [{
@@ -14,14 +14,14 @@ class BetBoomOddsArchiveTests(unittest.TestCase):
                     "home": "Arsenal",
                     "away": "Chelsea",
                     "odds": {
-                        "bookmaker": "BETBOOM",
+                        "bookmaker": "MELBET",
                         "updatedAt": "2026-11-10T10:00:00+00:00",
                         "bookmakerUpdatedAt": "2026-11-10T09:59:50+00:00",
                         "bookmakerUpdateAgeSeconds": 10,
                         "freshnessStatus": "fresh",
                         "bookmakers": [{
-                            "key": "betboom",
-                            "title": "BETBOOM",
+                            "key": "melbet",
+                            "title": "MELBET",
                             "doubleChance": {"1x": 1.30, "x2": 1.65, "12": 1.25},
                             "spreads": [
                                 {"team": "home", "point": 0.0, "price": 1.90,
@@ -55,13 +55,13 @@ class BetBoomOddsArchiveTests(unittest.TestCase):
             }],
         }
 
-    def test_archives_only_betboom_supported_market_quotes_with_source_timestamps(self):
+    def test_archives_only_melbet_supported_market_quotes_with_source_timestamps(self):
         rows = list(snapshot_rows(self.sample(), "2026-11-10T10:00:00Z"))
         self.assertEqual(len(rows), 11)
-        self.assertEqual({row["bookmaker"] for row in rows}, {"BETBOOM"})
+        self.assertEqual({row["bookmaker"] for row in rows}, {"MELBET"})
         self.assertEqual({row["league_code"] for row in rows}, {"ENG"})
         self.assertEqual({row["schema_version"] for row in rows}, {2})
-        self.assertEqual({row["market_parser_version"] for row in rows}, {"betboom-fulltime-v2"})
+        self.assertEqual({row["market_parser_version"] for row in rows}, {"melbet-fulltime-v2"})
         self.assertEqual({row["bookmaker_updated_at"] for row in rows},
                          {"2026-11-10T09:59:50+00:00"})
         self.assertTrue(all(row["freshness_status"] == "fresh" for row in rows))
@@ -73,9 +73,9 @@ class BetBoomOddsArchiveTests(unittest.TestCase):
         self.assertEqual(under["provider_market_group"], "total goals")
         self.assertEqual(sum(row["market"] == "handicap" for row in rows), 2)
 
-    def test_rejects_legacy_non_betboom_odds(self):
+    def test_rejects_legacy_non_melbet_odds(self):
         data = self.sample()
-        data["competitions"][0]["matches"][0]["odds"]["bookmaker"] = "MELBET"
+        data["competitions"][0]["matches"][0]["odds"]["bookmaker"] = "BETBOOM"
         self.assertEqual(list(snapshot_rows(data, "2026-11-10T10:00:00Z")), [])
 
     def test_preserves_stale_source_status_instead_of_relabelling_it_fresh(self):

@@ -3,10 +3,10 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from collect_uefa_betboom_snapshots import (fetch_provider_fixtures, merge_duplicate_fixture_rows, snapshot_rows)
+from collect_uefa_melbet_snapshots import (fetch_provider_fixtures, merge_duplicate_fixture_rows, snapshot_rows)
 
 
-class UefaBetBoomSnapshotTests(unittest.TestCase):
+class UefaMelBetSnapshotTests(unittest.TestCase):
     def test_archives_only_selected_markets_for_ucl_and_uel(self):
         def fixture(match_id, league):
             return {
@@ -20,7 +20,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
             "startTimestamp": 1795287600000,
             "homeTeam": {"name": "Arsenal"},
             "awayTeam": {"name": "Chelsea"},
-            "oddsBk": {"betboom": {
+            "oddsBk": {"melbet": {
                 "updatedAt": 1794311880000,
                 "updatedAtByStage": {"prematch": 1794311880000},
                 "isBettingActiveByStage": {"prematch": True},
@@ -59,7 +59,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertEqual({row["league_code"] for row in rows}, {"UCL", "UEL"})
         self.assertEqual({row["market"] for row in rows},
                          {"double_chance", "match_total_over", "team_total_over", "btts"})
-        self.assertTrue(all(row["bookmaker"] == "BETBOOM" for row in rows))
+        self.assertTrue(all(row["bookmaker"] == "MELBET" for row in rows))
         self.assertTrue(all(row["model_probability"] is None for row in rows))
         self.assertTrue(all(row["captured_at"] == "2026-11-10T12:00:00+00:00" for row in rows))
         self.assertTrue(all(row["freshness_status"] == "fresh" for row in rows))
@@ -72,7 +72,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertEqual(diagnostics["eligible_uefa_upcoming_fixtures_in_cache"], 2)
         self.assertEqual(diagnostics["api_sport_provider_fixtures"], 1)
         self.assertEqual(diagnostics["matched_pitchapi_fixtures"], 2)
-        self.assertEqual(diagnostics["matches_with_betboom_board"], 2)
+        self.assertEqual(diagnostics["matches_with_melbet_board"], 2)
         self.assertEqual(diagnostics["matches_with_active_prematch_board"], 2)
         self.assertEqual(diagnostics["matches_with_selected_markets"], 2)
 
@@ -82,7 +82,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
             "startTimestamp": 1795287600000,
             "homeTeam": {"name": "Arsenal"},
             "awayTeam": {"name": "Chelsea"},
-            "oddsBk": {"betboom": {
+            "oddsBk": {"melbet": {
                 "updatedAt": 1794311880000,
                 "updatedAtByStage": {"prematch": 1794311880000},
                 "isBettingActiveByStage": {"prematch": True},
@@ -128,7 +128,7 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertTrue(rows)
         self.assertTrue(all(row["model_probability_status"] == "available" for row in rows))
         self.assertTrue(all(row["model_version"] == "uefa-xg-poisson-v1" for row in rows))
-        self.assertTrue(all(row["market_parser_version"] == "betboom-fulltime-v2" for row in rows))
+        self.assertTrue(all(row["market_parser_version"] == "melbet-fulltime-v2" for row in rows))
         dc = next(row for row in rows if row["market"] == "double_chance" and row["outcome"] == "1x")
         self.assertEqual(dc["model_probability"], 0.65)
         over = next(row for row in rows if row["market"] == "match_total_over" and row["point"] == 2.5)
@@ -190,12 +190,12 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
         self.assertEqual(snapshot_rows(cache, [], "2026-11-10T12:00:00Z"), [])
 
 
-    def test_duplicate_fixture_keeps_richer_betboom_board(self):
+    def test_duplicate_fixture_keeps_richer_melbet_board(self):
         richer = {
             "id": 9010,
             "homeTeam": {"name": "Arsenal"},
             "awayTeam": {"name": "Chelsea"},
-            "oddsBk": {"betboom": {
+            "oddsBk": {"melbet": {
                 "markets": {
                     "double_chance": {
                         "status": "open", "stage": "prematch",
@@ -215,35 +215,35 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
             "id": 9010,
             "homeTeam": {"name": "Arsenal"},
             "awayTeam": {"name": "Chelsea"},
-            "oddsBk": {"betboom": {"markets": {}}},
+            "oddsBk": {"melbet": {"markets": {}}},
         }
         merged = merge_duplicate_fixture_rows(richer, poorer_duplicate)
         self.assertEqual(
-            set(merged["oddsBk"]["betboom"]["markets"]),
+            set(merged["oddsBk"]["melbet"]["markets"]),
             {"double_chance", "total_goals"},
         )
         self.assertEqual(
-            merged["oddsBk"]["betboom"]["markets"]["total_goals"]["stakes"]["over"]["lines"][1]["factor"],
+            merged["oddsBk"]["melbet"]["markets"]["total_goals"]["stakes"]["over"]["lines"][1]["factor"],
             1.8,
         )
 
     def test_duplicate_fixture_uses_richer_incoming_board(self):
         older = {
             "id": 9011,
-            "oddsBk": {"betboom": {"markets": {
+            "oddsBk": {"melbet": {"markets": {
                 "btts": {"stakes": {"yes": {"factor": 1.7}}},
             }}},
         }
         newer = {
             "id": 9011,
-            "oddsBk": {"betboom": {"markets": {
+            "oddsBk": {"melbet": {"markets": {
                 "btts": {"stakes": {"yes": {"factor": 1.8}}},
                 "total_goals": {"stakes": {"over": {"factor": 1.4}}},
             }}},
         }
         merged = merge_duplicate_fixture_rows(older, newer)
-        self.assertEqual(set(merged["oddsBk"]["betboom"]["markets"]), {"btts", "total_goals"})
-        self.assertEqual(merged["oddsBk"]["betboom"]["markets"]["btts"]["stakes"]["yes"]["factor"], 1.8)
+        self.assertEqual(set(merged["oddsBk"]["melbet"]["markets"]), {"btts", "total_goals"})
+        self.assertEqual(merged["oddsBk"]["melbet"]["markets"]["btts"]["stakes"]["yes"]["factor"], 1.8)
 
 
 if __name__ == "__main__":

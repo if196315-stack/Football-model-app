@@ -93,15 +93,15 @@ def inspect_exact_match(session, api_key, candidate, provider_match):
     match = extract(response.json())
     flags = match.get("hasBkOdds") or {}
     books = match.get("oddsBk") or {}
-    board = books.get("betboom") if isinstance(books, dict) else None
+    board = books.get("melbet") if isinstance(books, dict) else None
     markets = (board.get("markets") or {}) if isinstance(board, dict) else {}
     return {
         **candidate,
         "provider_event_id": provider_id,
         "api_home": (match.get("homeTeam") or {}).get("name"),
         "api_away": (match.get("awayTeam") or {}).get("name"),
-        "has_betboom_flag": flags.get("betboom") if isinstance(flags, dict) else None,
-        "betboom_board_present": isinstance(board, dict),
+        "has_melbet_flag": flags.get("melbet") if isinstance(flags, dict) else None,
+        "melbet_board_present": isinstance(board, dict),
         "market_count": len(markets),
         "market_slugs": sorted(markets)[:30],
         "available_bookmakers": sorted(books) if isinstance(books, dict) else [],
@@ -146,8 +146,8 @@ def run_diagnostic(cache, feed, api_key, session=None):
         "candidate_missing_board_fixtures": len(candidates),
         "sampled": len(results),
         "provider_matches_found": sum(bool(row.get("provider_match_found")) for row in results),
-        "with_betboom_board": sum(bool(row.get("betboom_board_present")) for row in results),
-        "without_betboom_board": sum(row.get("provider_match_found") and not row.get("betboom_board_present") for row in results),
+        "with_melbet_board": sum(bool(row.get("melbet_board_present")) for row in results),
+        "without_melbet_board": sum(row.get("provider_match_found") and not row.get("melbet_board_present") for row in results),
         "results": results,
     }
 

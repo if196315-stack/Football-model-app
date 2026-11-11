@@ -135,9 +135,9 @@ def append_results(rows, output_path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--snapshots", default="artifacts/odds-snapshots.jsonl")
+    parser.add_argument("--snapshots", default="artifacts/melbet-odds-snapshots.jsonl")
     parser.add_argument("--data", default="docs/data.json")
-    parser.add_argument("--output", default="artifacts/market-observation-results.jsonl")
+    parser.add_argument("--output", default="artifacts/melbet-market-observation-results.jsonl")
     args = parser.parse_args()
     snapshots = read_jsonl(args.snapshots)
     data = json.loads(Path(args.data).read_text(encoding="utf-8"))

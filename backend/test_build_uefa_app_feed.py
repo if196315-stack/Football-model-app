@@ -5,16 +5,16 @@ from build_uefa_app_feed import build_feed, build_odds
 
 
 class BuildUefaAppFeedTests(unittest.TestCase):
-    def test_build_odds_uses_only_fresh_full_time_betboom_rows(self):
+    def test_build_odds_uses_only_fresh_full_time_melbet_rows(self):
         rows = [
             {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T10:00:00+00:00", "freshness_status": "fresh",
-             "bookmaker_update_age_seconds": 20, "market_parser_version": "betboom-fulltime-v2",
+             "bookmaker_update_age_seconds": 20, "market_parser_version": "melbet-fulltime-v2",
              "market": "team_total_over", "team": "home", "point": 1.5, "side": "over", "price": 1.9},
             {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:45:00+00:00", "freshness_status": "stale",
-             "bookmaker_update_age_seconds": 900, "market_parser_version": "betboom-fulltime-v2",
+             "bookmaker_update_age_seconds": 900, "market_parser_version": "melbet-fulltime-v2",
              "market": "btts", "outcome": "yes", "price": 1.8},
             {"captured_at": "2026-11-10T09:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:00:00+00:00", "freshness_status": "fresh",
-             "bookmaker_update_age_seconds": 10, "market_parser_version": "betboom-fulltime-v2",
+             "bookmaker_update_age_seconds": 10, "market_parser_version": "melbet-fulltime-v2",
              "market": "btts", "outcome": "yes", "price": 2.0},
         ]
         odds = build_odds(rows, datetime(2026, 11, 10, 10, 0, 20, tzinfo=timezone.utc))
@@ -53,7 +53,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
 
 
 
-    def test_uecl_calendar_keeps_all_fixtures_when_betboom_covers_only_subset(self):
+    def test_uecl_calendar_keeps_all_fixtures_when_melbet_covers_only_subset(self):
         now = datetime.now(timezone.utc)
         captured_at = now.isoformat()
         fixtures = {
@@ -79,7 +79,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         odds_rows = [{
             "fixture_id": "uecl-1", "league_code": "UECL",
             "captured_at": captured_at, "bookmaker_updated_at": captured_at,
-            "freshness_status": "fresh", "market_parser_version": "betboom-fulltime-v2",
+            "freshness_status": "fresh", "market_parser_version": "melbet-fulltime-v2",
             "market": "btts", "outcome": "yes", "price": 1.9,
         }]
 

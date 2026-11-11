@@ -1,4 +1,4 @@
-"""Compare API-Sport bulk-by-ID and per-match BetBoom odds for a few fixtures.
+"""Compare API-Sport bulk-by-ID and per-match MelBet odds for a few fixtures.
 
 This is a manual diagnostic only. It never writes model data and never prints credentials.
 """
@@ -13,7 +13,7 @@ DEFAULT_IDS = (16363661,)  # Manchester City - Fulham, API-Sport fixture ID
 BASE_PARAMS = {
     "with_bk_odds": "true",
     "odds_stage": "all",
-    "bookmaker_ids": "betboom",
+    "bookmaker_ids": "melbet",
 }
 
 # Deliberately classify by known market slugs only. Display names such as
@@ -44,14 +44,14 @@ def summarize(match):
     if not isinstance(match, dict):
         match = {}
     flags = match.get("hasBkOdds") or {}
-    board = (match.get("oddsBk") or {}).get("betboom")
+    board = (match.get("oddsBk") or {}).get("melbet")
     markets = board.get("markets") if isinstance(board, dict) else {}
     result = {
         "id": match.get("id"),
         "home": (match.get("homeTeam") or {}).get("name"),
         "away": (match.get("awayTeam") or {}).get("name"),
         "startTimestamp": match.get("startTimestamp"),
-        "hasBkOddsBetboom": flags.get("betboom") if isinstance(flags, dict) else None,
+        "hasBkOddsBetboom": flags.get("melbet") if isinstance(flags, dict) else None,
         "hasBetboomBoard": isinstance(board, dict),
         "teamTotalMarkets": [],
     }

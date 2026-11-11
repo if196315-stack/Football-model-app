@@ -12,13 +12,13 @@ class OddsSnapshotTests(unittest.TestCase):
             "id": "fixture-1", "utcDate": "2026-11-20T19:00:00Z",
             "home": "Arsenal", "away": "Chelsea",
             "odds": {
-                "bookmaker": "BETBOOM",
+                "bookmaker": "MELBET",
                 "updatedAt": "2026-11-10T10:00:00+00:00",
                 "bookmakerUpdatedAt": "2026-11-10T09:59:50+00:00",
                 "bookmakerUpdateAgeSeconds": 10,
                 "freshnessStatus": "fresh",
                 "bookmakers": [{
-                    "key": "betboom", "title": "BETBOOM",
+                    "key": "melbet", "title": "MELBET",
                     "doubleChance": {"1x": 1.31, "x2": 1.88, "12": 1.29},
                     "spreads": [
                         {"team": "home", "point": 0, "price": 2.1,
@@ -43,7 +43,7 @@ class OddsSnapshotTests(unittest.TestCase):
             }
         }]}]}
 
-    def test_only_supported_betboom_markets_are_snapshotted(self):
+    def test_only_supported_melbet_markets_are_snapshotted(self):
         rows = list(snapshot_rows(self.sample(), "2026-11-09T12:00:00+00:00"))
         self.assertEqual(len(rows), 11)
         self.assertEqual({row["market"] for row in rows},
@@ -54,7 +54,7 @@ class OddsSnapshotTests(unittest.TestCase):
         self.assertEqual(len(spread_rows), 2)
         self.assertTrue(all(abs(row["point"]) < 0.001 for row in spread_rows))
         self.assertTrue(all(row["captured_at"] == "2026-11-09T12:00:00+00:00" for row in rows))
-        self.assertTrue(all(row["bookmaker"] == "BETBOOM" for row in rows))
+        self.assertTrue(all(row["bookmaker"] == "MELBET" for row in rows))
 
     def test_append_preserves_prior_history(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -70,7 +70,7 @@ class OddsSnapshotTests(unittest.TestCase):
             self.assertNotEqual(json.loads(lines[0])["captured_at"],
                                 json.loads(lines[-1])["captured_at"])
 
-    def test_legacy_non_betboom_quotes_are_not_archived(self):
+    def test_legacy_non_melbet_quotes_are_not_archived(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "data.json"
             archive = Path(tmp) / "history.jsonl"

@@ -3,21 +3,21 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from diagnose_betboom_team_totals import extract_match, is_team_total_market_slug, summarize
+from diagnose_melbet_team_totals import extract_match, is_team_total_market_slug, summarize
 
 
-class BetBoomTeamTotalDiagnosticTests(unittest.TestCase):
+class MelBetTeamTotalDiagnosticTests(unittest.TestCase):
     def test_extracts_match_from_detail_envelope(self):
         match = {"id": 7}
         self.assertIs(extract_match({"match": match}), match)
 
-    def test_summarizes_betboom_team_total_markets_and_flags(self):
+    def test_summarizes_melbet_team_total_markets_and_flags(self):
         match = {
             "id": 16363661,
             "homeTeam": {"name": "Manchester City"},
             "awayTeam": {"name": "Fulham"},
-            "hasBkOdds": {"betboom": True},
-            "oddsBk": {"betboom": {"markets": {
+            "hasBkOdds": {"melbet": True},
+            "oddsBk": {"melbet": {"markets": {
                 "total_team_1": {
                     "status": "open", "stage": "prematch",
                     "stakes": {"over": {"lines": [
@@ -40,7 +40,7 @@ class BetBoomTeamTotalDiagnosticTests(unittest.TestCase):
 
     def test_btts_is_not_classified_as_a_team_total(self):
         self.assertFalse(is_team_total_market_slug("btts"))
-        result = summarize({"oddsBk": {"betboom": {"markets": {
+        result = summarize({"oddsBk": {"melbet": {"markets": {
             "btts": {
                 "name": {"en": "Both Teams to Score"},
                 "status": "open", "stage": "prematch",
@@ -62,7 +62,7 @@ class BetBoomTeamTotalDiagnosticTests(unittest.TestCase):
                 self.assertFalse(is_team_total_market_slug(slug))
 
     def test_reports_missing_board_without_crashing(self):
-        result = summarize({"id": 99, "hasBkOdds": {"betboom": False}})
+        result = summarize({"id": 99, "hasBkOdds": {"melbet": False}})
         self.assertFalse(result["hasBetboomBoard"])
         self.assertEqual(result["teamTotalMarkets"], [])
 

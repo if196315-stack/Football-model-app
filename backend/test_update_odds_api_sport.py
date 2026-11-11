@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_odds_api_sport import parse_odds, match_fixture, sim, betboom_market_diagnostics, is_in_date_window, iter_date_windows
+from update_odds_api_sport import BOOKS, parse_odds, match_fixture, sim, melbet_market_diagnostics, is_in_date_window, iter_date_windows
 
 
 class ApiSportOddsTests(unittest.TestCase):
@@ -33,7 +33,7 @@ class ApiSportOddsTests(unittest.TestCase):
 
     def test_includes_source_board_freshness_not_local_capture_time(self):
         import time
-        source = {"id": 90, "oddsBk": {"betboom": {
+        source = {"id": 90, "oddsBk": {"melbet": {
             "updatedAtByStage": {"prematch": int(time.time() * 1000)},
             "markets": {"both_teams_to_score": {"status": "open", "stage": "prematch",
                 "stakes": {"yes": {"factor": 1.8}, "no": {"factor": 2.0}}}}
@@ -43,9 +43,9 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertLessEqual(quote["bookmakerUpdateAgeSeconds"], 300)
         self.assertIsNotNone(quote["bookmakerUpdatedAt"])
 
-    def test_parses_btts_match_totals_and_both_team_total_sides_from_betboom_only(self):
+    def test_parses_btts_match_totals_and_both_team_total_sides_from_melbet_only(self):
         source = {"id": 88, "oddsBk": {
-            "betboom": {"markets": {
+            "melbet": {"markets": {
                 "both_teams_to_score": {"status": "open", "stage": "prematch", "stakes": {
                     "yes": {"factor": 1.82}, "no": {"factor": 1.96}
                 }},
@@ -73,11 +73,11 @@ class ApiSportOddsTests(unittest.TestCase):
                          {(2.5, "over")})
         self.assertEqual({(x["team"], x["point"], x["side"]) for x in best["teamTotals"]},
                          {("home", 1.5, "over"), ("away", 0.5, "over")})
-        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
-        self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "BETBOOM")
+        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["melbet"])
+        self.assertEqual(quote["bestBookmakers"]["btts"]["yes"], "MELBET")
 
     def test_parses_itb_when_provider_uses_line_in_outcome_name(self):
-        source = {"id": 102, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 102, "oddsBk": {"melbet": {"markets": {
             "team_total_home_goals": {"status": "open", "stage": "prematch", "stakes": {
                 "Over 1.5": {"lines": [{"argument": 1.5, "factor": 1.87}]},
                 "Under 1.5": {"lines": [{"argument": 1.5, "factor": 1.94}]}
@@ -96,7 +96,7 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertFalse(any(x["side"] == "under" for x in best["teamTotals"]))
 
     def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
-        source = {"id": 101, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 101, "oddsBk": {"melbet": {"markets": {
             "total_goals": {"status": "open", "stage": "prematch", "stakes": {
                 "over": {"lines": [
                     {"argument": 1.5, "factor": 1.7},
@@ -127,7 +127,7 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual({x["point"] for x in best["teamTotals"]}, {0.5, 1.5, 2.5, 3.5})
 
     def test_excludes_first_half_totals_and_preserves_market_group(self):
-        source = {"id": 301, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 301, "oddsBk": {"melbet": {"markets": {
             "first_half_total_goals": {"name": {"en": "First Half Total Goals"},
                                        "status": "open", "stage": "prematch", "stakes": {
                 "over": {"lines": [{"argument": 1.5, "factor": 1.15}]},
@@ -147,7 +147,7 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual({x["market_slug"] for x in best["totals"]}, {"total_goals"})
 
     def test_parses_double_chance_and_only_zero_handicap(self):
-        source = {"id": 7, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 7, "oddsBk": {"melbet": {"markets": {
             "double_chance": {"status": "open", "stage": "prematch", "stakes": {
                 "1x": {"factor": 1.3}, "x2": {"factor": 2.7}
             }},
@@ -159,17 +159,17 @@ class ApiSportOddsTests(unittest.TestCase):
                 "handicap_2": {"lines": [{"argument": 0, "factor": 1.95}]}
             }}
         }}}}
-        source["oddsBk"]["pari"] = copy.deepcopy(source["oddsBk"]["betboom"])
+        source["oddsBk"]["pari"] = copy.deepcopy(source["oddsBk"]["melbet"])
         source["oddsBk"]["pari"]["markets"]["double_chance"]["stakes"]["1x"]["factor"] = 9.99
         quote = parse_odds(source)
         self.assertEqual(quote["best"]["doubleChance"], {"1x": 1.3, "x2": 2.7})
         self.assertNotIn("spreads", quote["best"])
-        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["betboom"])
-        self.assertEqual(quote["bestBookmakers"]["doubleChance"]["1x"], "BETBOOM")
+        self.assertEqual([book["key"] for book in quote["bookmakers"]], ["melbet"])
+        self.assertEqual(quote["bestBookmakers"]["doubleChance"]["1x"], "MELBET")
 
 
     def test_ignores_live_markets_and_keeps_prematch_quotes(self):
-        source = {"id": 99, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 99, "oddsBk": {"melbet": {"markets": {
             "total_live": {"status": "open", "stage": "live", "stakes": {
                 "over": {"lines": [{"argument": 2.5, "factor": 8.5}]},
                 "under": {"lines": [{"argument": 2.5, "factor": 1.05}]}
@@ -231,7 +231,7 @@ class ApiSportOddsTests(unittest.TestCase):
 
 
     def test_team_total_diagnostics_identify_unclassified_team_markets(self):
-        source = {"id": 501, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 501, "oddsBk": {"melbet": {"markets": {
             "total_team_1": {"status": "open", "stage": "prematch", "stakes": {
                 "over": {"lines": [{"argument": 1.5, "factor": 1.8}]}
             }},
@@ -240,7 +240,7 @@ class ApiSportOddsTests(unittest.TestCase):
                     "Over 1.5": {"lines": [{"argument": 1.5, "factor": 1.9}]}
                 }},
         }}}}
-        report = betboom_market_diagnostics([source])
+        report = melbet_market_diagnostics([source])
         self.assertEqual(report["team_total_markets_classified"], 2)
         self.assertEqual(report["team_like_markets_not_classified"], 0)
         self.assertEqual(report["parsed_team_total_quotes"], 2)
@@ -248,7 +248,7 @@ class ApiSportOddsTests(unittest.TestCase):
 
 
     def test_parses_home_and_away_team_goals_market_slugs(self):
-        source = {"id": 503, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 503, "oddsBk": {"melbet": {"markets": {
             "team_goals_home": {"name": {"en": "Home Team Goals"},
                 "status": "open", "stage": "prematch", "stakes": {
                     "Over 1.5": {"lines": [{"argument": 1.5, "factor": 1.91}]},
@@ -266,7 +266,7 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertTrue(all(x["side"] == "over" for x in quotes))
 
     def test_team_total_diagnostics_count_raw_but_closed_and_half_time_separately(self):
-        source = {"id": 502, "oddsBk": {"betboom": {"markets": {
+        source = {"id": 502, "oddsBk": {"melbet": {"markets": {
             "total_team_1": {"status": "closed", "stage": "prematch", "stakes": {
                 "over": {"lines": [{"argument": 1.5, "factor": 1.8}]}
             }},
@@ -274,11 +274,23 @@ class ApiSportOddsTests(unittest.TestCase):
                 "over": {"lines": [{"argument": 0.5, "factor": 1.9}]}
             }},
         }}}}
-        report = betboom_market_diagnostics([source])
+        report = melbet_market_diagnostics([source])
         self.assertEqual(report["team_total_markets_classified"], 2)
         self.assertEqual(report["team_total_markets_open_prematch"], 1)
         self.assertEqual(report["team_total_markets_fulltime"], 1)
         self.assertEqual(report["team_total_markets_active_fulltime"], 0)
+
+
+    def test_melbet_is_the_only_configured_bookmaker_and_no_betboom_fallback(self):
+        self.assertEqual(BOOKS, ("melbet",))
+        source = {"id": 777, "oddsBk": {"betboom": {"markets": {
+            "both_teams_to_score": {"status": "open", "stage": "prematch",
+                                    "stakes": {"yes": {"factor": 1.8}}}
+        }}}}
+        quote = parse_odds(source)
+        self.assertEqual(quote["bookmaker"], "MELBET")
+        self.assertEqual(quote["best"], {})
+        self.assertEqual(quote["bookmakers"], [])
 
 
 if __name__ == "__main__":

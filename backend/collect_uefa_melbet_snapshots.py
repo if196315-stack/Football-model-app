@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture timestamped BetBoom odds for UEFA Champions League, Europa League and Conference League.
+"""Capture timestamped MelBet odds for UEFA Champions League, Europa League and Conference League.
 
 The archive stores only the strategy's supported markets and exact line values.
 It records both capture time and the bookmaker board's source-side prematch update
@@ -23,11 +23,11 @@ from predict_uefa_markets import predict_upcoming
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
-ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
+ARCHIVE = ROOT / "artifacts" / "uefa-melbet-odds-snapshots.jsonl"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
 LOOKAHEAD_DAYS = 30
-MARKET_PARSER_VERSION = "betboom-fulltime-v2"
+MARKET_PARSER_VERSION = "melbet-fulltime-v2"
 
 
 def valid_price(value: Any) -> bool:
@@ -77,7 +77,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
     captured_at = captured_at or datetime.now(timezone.utc).isoformat()
     rows = []
     predictions = predictions or {}
-    eligible_fixtures = matched_fixtures = betboom_boards = active_prematch_boards = fixtures_with_selected_markets = matches_with_model_prediction = 0
+    eligible_fixtures = matched_fixtures = melbet_boards = active_prematch_boards = fixtures_with_selected_markets = matches_with_model_prediction = 0
     model_predictions_by_league = Counter()
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
@@ -108,9 +108,9 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             matches_with_model_prediction += 1
             model_predictions_by_league[league] += 1
         model_markets = (prediction or {}).get("markets") or {}
-        bookmaker_board = (source.get("oddsBk") or {}).get("betboom") or {}
+        bookmaker_board = (source.get("oddsBk") or {}).get("melbet") or {}
         if bookmaker_board:
-            betboom_boards += 1
+            melbet_boards += 1
         active_by_stage = bookmaker_board.get("isBettingActiveByStage") or {}
         if active_by_stage.get("prematch") is False:
             continue
@@ -140,7 +140,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "bookmaker_update_age_seconds": round(board_age_seconds, 3) if board_age_seconds is not None else None,
             "freshness_status": freshness_status,
             "source": "API-Sport",
-            "bookmaker": "BETBOOM",
+            "bookmaker": "MELBET",
             "market_parser_version": MARKET_PARSER_VERSION,
             "league_code": league,
             "season": match.get("season"),
@@ -231,7 +231,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "eligible_uefa_upcoming_fixtures_in_cache": eligible_fixtures,
             "api_sport_provider_fixtures": len(provider_fixtures),
             "matched_pitchapi_fixtures": matched_fixtures,
-            "matches_with_betboom_board": betboom_boards,
+            "matches_with_melbet_board": melbet_boards,
             "matches_with_active_prematch_board": active_prematch_boards,
             "matches_with_selected_markets": fixtures_with_selected_markets,
             "matches_with_model_prediction": matches_with_model_prediction,
@@ -253,7 +253,7 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
         "view": "odds",
         "with_bk_odds": "true",
         "odds_stage": "all",
-        "bookmaker_ids": "betboom",
+        "bookmaker_ids": "melbet",
         "page_size": 500,
         "sort": "asc",
         "page": 1,
@@ -336,7 +336,7 @@ def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
 
     Generic date queries and tournament-specific windows overlap. A later duplicate
     can contain fewer odds fields, so a plain last-write-wins de-duplication can erase
-    a previously returned BetBoom board.
+    a previously returned MelBet board.
     """
     merged = {**existing, **incoming}
     books = {}

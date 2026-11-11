@@ -1783,9 +1783,8 @@ class MainActivity : Activity() {
         return null
     }
 
-    // Choose the strongest permitted signal that has an exact, usable BetBoom quote.
-    // The backend's strongestSignal may not have a matching price in the currently loaded line,
-    // so it must not prevent fallback to another candidate from prediction.signals.
+    // Choose the strongest model forecast with an exact MelBet quote in this match.
+    // This is descriptive match-line ranking, not the stricter AI betting filter.
     private fun strongestDisplaySignal(prediction: JSONObject, match: JSONObject): JSONObject? {
         val candidates = mutableListOf<JSONObject>()
         prediction.optJSONObject("strongestSignal")?.let { candidates.add(it) }
@@ -1803,28 +1802,57 @@ class MainActivity : Activity() {
             }
         }
 
-        // UECL stores validated historical candidates in paperSignals rather than prediction.signals.
-        // Reuse the same BetBoom-validated fallback as the AI desk.
+        // UEFA feeds publish the complete model probabilities but do not have the
+        // domestic empirical-baseline signal objects. Build equivalent per-market
+        // candidates from those probabilities so the match card still ranks all
+        // supported markets instead of depending on paperSignals.
+        val rawMarkets = listOf(
+            "1x" to "1X",
+            "x2" to "X2",
+            "bttsYes" to "ОЗ ДА",
+            "over15" to "ТБ 1.5",
+            "over25" to "ТБ 2.5",
+            "over35" to "ТБ 3.5",
+            "homeOver05" to "ИТБ 0.5 · ${match.optString("home")}",
+            "homeOver15" to "ИТБ 1.5 · ${match.optString("home")}",
+            "homeOver25" to "ИТБ 2.5 · ${match.optString("home")}",
+            "homeOver35" to "ИТБ 3.5 · ${match.optString("home")}",
+            "awayOver05" to "ИТБ 0.5 · ${match.optString("away")}",
+            "awayOver15" to "ИТБ 1.5 · ${match.optString("away")}",
+            "awayOver25" to "ИТБ 2.5 · ${match.optString("away")}",
+            "awayOver35" to "ИТБ 3.5 · ${match.optString("away")}"
+        )
+        rawMarkets.forEach { (field, side) ->
+            val probability = prediction.optDouble(field, Double.NaN)
+            if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
+            val exists = candidates.any {
+                it.optString("side").trim().replace(Regex("\\s+"), " ")
+                    .equals(side.trim().replace(Regex("\\s+"), " "), ignoreCase = true)
+            }
+            if (!exists) {
+                candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
+            }
+        }
+
+        // Legacy UEFA paper-only entries are retained only when no full model
+        // probability candidate could be built.
         if (candidates.isEmpty() && match.optJSONArray("paperSignals") != null) {
             uefaPaperSignal(match)?.let { candidates.add(it) }
         }
 
         return candidates.asSequence()
             .filter { strongestSignalDisplayLabel(it, match) != null }
-            .filter { topSignalOdds(it, match) != null }
-            .filter {
-                val edge = it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NaN))
-                edge.isFinite()
-            }
+            .filter { topSignalOdds(it, match, minOdds = 1.01) != null }
             .maxByOrNull {
-                it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NEGATIVE_INFINITY))
+                val edge = it.optDouble("selectionEdgePp", it.optDouble("edgePp", Double.NaN))
+                if (edge.isFinite()) edge else it.optDouble("modelProbability", Double.NEGATIVE_INFINITY) * 100.0
             }
     }
 
-    private fun topSignalOdds(signal: JSONObject, match: JSONObject): Double? {
+    private fun topSignalOdds(signal: JSONObject, match: JSONObject, minOdds: Double = 1.50): Double? {
         val side = signal.optString("side").trim()
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
-        fun acceptable(value: Double) = value.isFinite() && value >= 1.50
+        fun acceptable(value: Double) = value.isFinite() && value >= minOdds
         if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true)) {
             val dc = best.optJSONObject("doubleChance") ?: return null
             return dc.optDouble(if (side.equals("1X", ignoreCase = true)) "1x" else "x2", Double.NaN).takeIf { acceptable(it) }
@@ -2724,9 +2752,9 @@ class MainActivity : Activity() {
                     val signal = strongestDisplaySignal(pred, m)
                     val signalBox = card(box)
                     signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(32, 55, 66), Color.rgb(17, 34, 52))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(67, 137, 119)) }
-                    addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, gold)
+                    addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold)
                     if (signal == null) {
-                        addText(signalBox, if (leagueCode == "UCL" || leagueCode == "UEL" || leagueCode == "UECL") "Вероятности рассчитаны по историческим xG; проверенные тестовые сигналы и их результаты — ниже." else "Недостаточно исторических матчей для надёжной базовой частоты.", 11, false, muted)
+                        addText(signalBox, "Нет доступной котировки MelBet ни для одного из разрешённых рынков этого матча.", 11, false, muted)
                     } else {
                         val edge = signal.optDouble("selectionEdgePp", signal.optDouble("edgePp", 0.0))
                         val displayLabel = strongestSignalDisplayLabel(signal, m)
@@ -2734,12 +2762,14 @@ class MainActivity : Activity() {
                             addText(signalBox, "Среди разрешённых рынков нет корректного сигнала для отображения.", 12, true, Color.rgb(242, 190, 104))
                         } else {
                             if (edge <= 0.0) {
-                                addText(signalBox, "Положительного отклонения нет. Ближе всего к базе: $displayLabel · ${String.format(Locale.US, "%.1f", edge)} п.п. с учётом формы", 12, true, Color.rgb(242, 190, 104))
+                                addText(signalBox, "$displayLabel · ${String.format(Locale.US, "%+.1f", edge)} п.п. к базовой частоте", 14, true, Color.rgb(242, 190, 104))
                             } else {
-                                addText(signalBox, "$displayLabel · +${String.format(Locale.US, "%.1f", edge)} п.п. с учётом формы", 15, true, accent)
+                                addText(signalBox, "$displayLabel · +${String.format(Locale.US, "%.1f", edge)} п.п. к базовой частоте", 15, true, accent)
                             }
-                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}% · историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}%", 11, false, Color.WHITE)
-                            addText(signalBox, "${signal.optInt("baselineMatches")} прошлых матчей лиги; база рассчитана до даты игры.", 10, false, muted)
+                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", signal.optDouble("modelProbability")*100)}%", 11, false, Color.WHITE)
+                            if (signal.has("baselineProbability")) {
+                                addText(signalBox, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability")*100)}% · ${signal.optInt("baselineMatches")} матчей до даты игры.", 10, false, muted)
+                            }
                         }
                     }
                     val mainMarkets = card(box)
