@@ -25,17 +25,25 @@ internal object AiMatchNotifications {
         val previous = prefs.getStringSet(SEEN_IDS_KEY, null)
         val seen = previous?.toMutableSet() ?: mutableSetOf()
         val newlyAdded = candidates.filter { it.first.isNotBlank() && it.first !in seen }
-        candidates.forEach { (id, _) -> if (id.isNotBlank()) seen.add(id) }
 
         // Initial synchronization establishes a baseline without notifying about the whole feed.
-        prefs.edit().putStringSet(SEEN_IDS_KEY, seen).apply()
-        if (previous == null || newlyAdded.isEmpty()) return
-        show(context, newlyAdded.map { it.second })
+        if (previous == null) {
+            candidates.forEach { (id, _) -> if (id.isNotBlank()) seen.add(id) }
+            prefs.edit().putStringSet(SEEN_IDS_KEY, seen).apply()
+            return
+        }
+        if (newlyAdded.isEmpty()) return
+        // If Android notification permission is missing, leave these IDs unseen and retry
+        // on the next feed refresh instead of silently losing the first alert.
+        if (show(context, newlyAdded.map { it.second })) {
+            candidates.forEach { (id, _) -> if (id.isNotBlank()) seen.add(id) }
+            prefs.edit().putStringSet(SEEN_IDS_KEY, seen).apply()
+        }
     }
 
-    private fun show(context: Context, newMatches: List<String>) {
+    private fun show(context: Context, newMatches: List<String>): Boolean {
         if (Build.VERSION.SDK_INT >= 33 &&
-            context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+            context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return false
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager.getNotificationChannel(CHANNEL_ID) == null) {
@@ -73,5 +81,6 @@ internal object AiMatchNotifications {
             .setPriority(Notification.PRIORITY_DEFAULT)
             .build()
         manager.notify(NOTIFICATION_ID, notification)
+        return true
     }
 }
