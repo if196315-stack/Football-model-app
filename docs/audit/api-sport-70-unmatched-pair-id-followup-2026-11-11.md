@@ -117,3 +117,22 @@ The 31 same-date cases are **not** evidence that kickoff times agree. The pair-I
 | PitchAPI fixture | Weak fuzzy candidate | Why excluded |
 |---|---|---|
 | Schalke 04 – 1. FC Köln (2027-03-02) | FC Schalke 04 – 1. FC Union Berlin (2027-02-06), API-Sport fixture 16434198 | Away-team similarity was only 0.603; it is not Köln. The correct Köln team ID 2671 is found in fixture 16434232 on 2027-03-03. |
+
+
+## Follow-up review of low-similarity pair candidates
+
+A re-read of the original `PAIR_TEAM_ID_CHECKS` workflow log found that the pair search used a permissive candidate floor of `0.60`, not the production matcher's thresholds. This is important when interpreting the 70/70 result.
+
+- The Slavia Prague targets resolve in the downloaded Champions League rows to API-Sport team `SK Slavia Praha`, team ID `2216`, tournament ID `7`, at name similarity `0.626`. The earlier alias-review wording that no senior Slavia candidate was observed was incorrect. The candidate is now documented, but remains **unapproved** for the alias registry pending manual identity review.
+- Salzburg resolves to `Red Bull Salzburg`, team ID `2046`, at similarity `0.601` in Europa League rows. This is also a low-similarity candidate and should not be treated as production-approved solely from this diagnostic.
+- Sparta Prague resolves to `AC Sparta Praha`, team ID `2218`, at similarity `0.626` in Europa League rows. This is distinct from the Slavia candidate.
+- One Schalke 04–1. FC Köln target had a weak extra away-side candidate, Union Berlin (similarity `0.603`). The exact Köln team candidate (ID `2671`) and correct ordered pair are also present; the Union Berlin row is a false positive and must be excluded.
+- The Chelsea–Aston Villa target has two API-Sport rows with the same ordered team IDs and same date (fixture IDs `16363726` and `17371079`). This is a duplicate-candidate case; pair existence alone does not tell the production matcher which row to select.
+
+The pair-ID follow-up therefore establishes candidate ordered-pair presence in the downloaded rows, but not a production-safe alias or fixture selection for every target. It must not be used to lower global name thresholds or bypass duplicate handling.
+
+## Timestamp limitation remains
+
+The saved pair-ID output contains calendar dates, not raw kickoff timestamps with offsets. The logs and artifacts from this run do not provide a recoverable raw fixture payload, and the workflow produced no artifact. Consequently, the repeated one-day Serie A/Bundesliga offsets cannot be attributed to UTC conversion, timezone handling, or provider schedule revisions from the existing evidence.
+
+No further API-Sport calls were made during this follow-up review. To establish the cause, a later explicitly budgeted diagnostic would need to retain the raw provider kickoff fields and timezone/offset metadata for the 39 shifted pairs, alongside the corresponding PitchAPI source values. Until then, treat the dates as unresolved provider-calendar discrepancies and do not alter production matching.
