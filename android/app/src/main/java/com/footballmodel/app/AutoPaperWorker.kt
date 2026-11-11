@@ -151,10 +151,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 }
                 val kickoffDate = dayFormat.format(Date(kickoff))
                 val today = dayFormat.format(Date(now))
-                val endDate = java.util.Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                    add(java.util.Calendar.DAY_OF_YEAR, 30)
-                }.let { dayFormat.format(it.time) }
-                if (kickoffDate < today || kickoffDate > endDate) continue
+                if (kickoffDate < today) continue
 
                 val odds = match.optJSONObject("odds") ?: continue
                 if (!odds.optString("source").contains("BetBoom", true)) continue
