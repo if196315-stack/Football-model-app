@@ -298,9 +298,66 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
             cursor = window_end + timedelta(days=1)
     unique = {}
     for row in fixtures:
-        if row.get("id") is not None:
-            unique[str(row["id"])] = row
+        if row.get("id") is None:
+            continue
+        fixture_id = str(row["id"])
+        if fixture_id in unique:
+            unique[fixture_id] = merge_duplicate_fixture_rows(unique[fixture_id], row)
+        else:
+            unique[fixture_id] = row
     return list(unique.values())
+
+
+def _board_quote_count(board: Any) -> int:
+    """Count usable quote lines on a bookmaker board, ignoring suspended prices."""
+    if not isinstance(board, dict):
+        return 0
+    count = 0
+    for market in (board.get("markets") or {}).values():
+        if not isinstance(market, dict):
+            continue
+        for stake in (market.get("stakes") or {}).values():
+            if not isinstance(stake, dict) or stake.get("suspended"):
+                continue
+            lines = stake.get("lines") or []
+            if lines:
+                count += sum(
+                    1 for line in lines
+                    if isinstance(line, dict) and not line.get("suspended")
+                    and valid_price(line.get("factor"))
+                )
+            elif valid_price(stake.get("factor")):
+                count += 1
+    return count
+
+
+def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
+    """Keep the richest bookmaker board when API-Sport returns a fixture more than once.
+
+    Generic date queries and tournament-specific windows overlap. A later duplicate
+    can contain fewer odds fields, so a plain last-write-wins de-duplication can erase
+    a previously returned BetBoom board.
+    """
+    merged = {**existing, **incoming}
+    books = {}
+    old_books = existing.get("oddsBk") or {}
+    new_books = incoming.get("oddsBk") or {}
+    for bookmaker in set(old_books) | set(new_books):
+        old_board = old_books.get(bookmaker)
+        new_board = new_books.get(bookmaker)
+        if isinstance(old_board, dict) and isinstance(new_board, dict):
+            old_count = _board_quote_count(old_board)
+            new_count = _board_quote_count(new_board)
+            books[bookmaker] = new_board if new_count >= old_count else old_board
+        elif isinstance(new_board, dict):
+            books[bookmaker] = new_board
+        elif isinstance(old_board, dict):
+            books[bookmaker] = old_board
+    if books:
+        merged["oddsBk"] = books
+    else:
+        merged.pop("oddsBk", None)
+    return merged
 
 
 def append_rows(rows: list[dict], output_path: str | Path = ARCHIVE,

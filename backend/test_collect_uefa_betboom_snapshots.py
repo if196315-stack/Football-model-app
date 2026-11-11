@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from collect_uefa_betboom_snapshots import fetch_provider_fixtures, snapshot_rows
+from collect_uefa_betboom_snapshots import (fetch_provider_fixtures, merge_duplicate_fixture_rows, snapshot_rows)
 
 
 class UefaBetBoomSnapshotTests(unittest.TestCase):
@@ -188,6 +188,62 @@ class UefaBetBoomSnapshotTests(unittest.TestCase):
             "date": "2026-11-21", "home": "Arsenal", "away": "Chelsea",
         }}}
         self.assertEqual(snapshot_rows(cache, [], "2026-11-10T12:00:00Z"), [])
+
+
+    def test_duplicate_fixture_keeps_richer_betboom_board(self):
+        richer = {
+            "id": 9010,
+            "homeTeam": {"name": "Arsenal"},
+            "awayTeam": {"name": "Chelsea"},
+            "oddsBk": {"betboom": {
+                "markets": {
+                    "double_chance": {
+                        "status": "open", "stage": "prematch",
+                        "stakes": {"1x": {"factor": 1.25}, "x2": {"factor": 3.2}},
+                    },
+                    "total_goals": {
+                        "status": "open", "stage": "prematch",
+                        "stakes": {"over": {"lines": [
+                            {"argument": 1.5, "factor": 1.12},
+                            {"argument": 2.5, "factor": 1.8},
+                        ]}},
+                    },
+                },
+            }},
+        }
+        poorer_duplicate = {
+            "id": 9010,
+            "homeTeam": {"name": "Arsenal"},
+            "awayTeam": {"name": "Chelsea"},
+            "oddsBk": {"betboom": {"markets": {}}},
+        }
+        merged = merge_duplicate_fixture_rows(richer, poorer_duplicate)
+        self.assertEqual(
+            set(merged["oddsBk"]["betboom"]["markets"]),
+            {"double_chance", "total_goals"},
+        )
+        self.assertEqual(
+            merged["oddsBk"]["betboom"]["markets"]["total_goals"]["stakes"]["over"]["lines"][1]["factor"],
+            1.8,
+        )
+
+    def test_duplicate_fixture_uses_richer_incoming_board(self):
+        older = {
+            "id": 9011,
+            "oddsBk": {"betboom": {"markets": {
+                "btts": {"stakes": {"yes": {"factor": 1.7}}},
+            }}},
+        }
+        newer = {
+            "id": 9011,
+            "oddsBk": {"betboom": {"markets": {
+                "btts": {"stakes": {"yes": {"factor": 1.8}}},
+                "total_goals": {"stakes": {"over": {"factor": 1.4}}},
+            }}},
+        }
+        merged = merge_duplicate_fixture_rows(older, newer)
+        self.assertEqual(set(merged["oddsBk"]["betboom"]["markets"]), {"btts", "total_goals"})
+        self.assertEqual(merged["oddsBk"]["betboom"]["markets"]["btts"]["stakes"]["yes"]["factor"], 1.8)
 
 
 if __name__ == "__main__":
