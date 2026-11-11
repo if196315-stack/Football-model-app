@@ -21,7 +21,12 @@ ODDS_ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
 PAPER_BETS = ROOT / "artifacts" / "uefa-paper-bets.jsonl"
 SETTLEMENTS = ROOT / "artifacts" / "uefa-paper-settlements.jsonl"
 OUTPUT = ROOT / "docs" / "uefa-data.json"
-LEAGUES = {"UCL": "Лига чемпионов УЕФА", "UEL": "Лига Европы УЕФА"}
+LEAGUES = {
+    "UCL": "Лига чемпионов УЕФА",
+    "UEL": "Лига Европы УЕФА",
+    "UECL": "Лига конференций УЕФА",
+    "UNL": "Лига наций УЕФА",
+}
 MAX_QUOTE_AGE_SECONDS = 300
 
 
@@ -175,7 +180,7 @@ def build_feed(
         }
         paper_by_fixture[str(bet.get("fixture_id"))].append(item)
 
-    grouped: dict[str, list[dict]] = {"UCL": [], "UEL": []}
+    grouped: dict[str, list[dict]] = {code: [] for code in LEAGUES}
     for fixture_id, fixture in (fixture_cache.get("matches") or {}).items():
         league_code = str(fixture.get("leagueCode") or "").upper()
         if league_code not in LEAGUES:
@@ -186,7 +191,7 @@ def build_feed(
         model = predictions.get(str(fixture_id))
         # Show ordinary upcoming fixtures with a model and every fixture carrying
         # a historical paper entry, including after its final score is known.
-        if is_upcoming and model is None and not fixture_papers:
+        if is_upcoming and model is None and not fixture_papers and league_code not in ("UECL", "UNL"):
             continue
         if not is_upcoming and not fixture_papers:
             continue
@@ -219,7 +224,7 @@ def build_feed(
     return {
         "schemaVersion": 1,
         "updatedAt": updated_at or datetime.now(timezone.utc).isoformat(),
-        "source": "PitchAPI xG + API-Sport / BetBoom",
+        "source": "PitchAPI fixtures/xG + API-Sport fixtures/BetBoom",
         "paperOnly": True,
         "competitions": competitions,
     }
