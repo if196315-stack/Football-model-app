@@ -20,6 +20,7 @@ internal object AutoPaperExecutionLock
 class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
     private val prefs = context.getSharedPreferences("bet_history", Context.MODE_PRIVATE)
     private val settings = context.getSharedPreferences("bank_settings", Context.MODE_PRIVATE)
+    private val feedCache = context.getSharedPreferences("feed_cache_v1", Context.MODE_PRIVATE)
 
     companion object {
         private const val TAG = "IQMatchAutoPaper"
@@ -35,6 +36,12 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            // Persist the combined feed so MainActivity can restore background updates on launch.
+            val mergedPayload = domestic.toString()
+            check(feedCache.edit()
+                .putString("merged_json", mergedPayload)
+                .putLong("last_successful_check_ms", System.currentTimeMillis())
+                .commit()) { "Unable to persist refreshed match feed" }
             // The periodic worker keeps AI-new-match alerts active even when the UI is closed.
             AiMatchNotifications.observe(applicationContext, collectAiNotificationCandidates(domestic))
             var changed = false
