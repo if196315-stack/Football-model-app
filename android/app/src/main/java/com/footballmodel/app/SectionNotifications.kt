@@ -40,7 +40,7 @@ internal object SectionNotifications {
 
     fun markRead(context: Context) {
         context.getSharedPreferences("bank_settings", Context.MODE_PRIVATE).edit()
-            .putBoolean(UNREAD_KEY, false).apply()
+            .putBoolean(UNREAD_KEY, false).apply()\n        NotificationCenter.markAllRead(context)
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.cancel(NOTIFICATION_ID)
     }
