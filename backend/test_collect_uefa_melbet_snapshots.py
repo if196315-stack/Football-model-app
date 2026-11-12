@@ -128,7 +128,7 @@ class UefaMelBetSnapshotTests(unittest.TestCase):
         self.assertTrue(rows)
         self.assertTrue(all(row["model_probability_status"] == "available" for row in rows))
         self.assertTrue(all(row["model_version"] == "uefa-xg-poisson-v1" for row in rows))
-        self.assertTrue(all(row["market_parser_version"] == "melbet-fulltime-v2" for row in rows))
+        self.assertTrue(all(row["market_parser_version"] == "melbet-fulltime-v3" for row in rows))
         dc = next(row for row in rows if row["market"] == "double_chance" and row["outcome"] == "1x")
         self.assertEqual(dc["model_probability"], 0.65)
         over = next(row for row in rows if row["market"] == "match_total_over" and row["point"] == 2.5)
