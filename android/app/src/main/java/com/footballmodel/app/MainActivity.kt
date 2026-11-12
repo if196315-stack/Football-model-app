@@ -1808,16 +1808,54 @@ class MainActivity : Activity() {
     }
 
     private fun renderHelp() {
-        screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки банка и управления ставками.")
-        val profile = card()
-        addText(profile, "IQ MATCH", 18, true, Color.WHITE)
-        addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${if (hasInitialBankroll()) fmt(currentBankroll()) + " ₽" else "не задан"}", 12, true, accent)
-        addText(profile, "Минимальная сумма ставки: ${if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "не задана"}", 12, true, Color.WHITE)
-        addText(profile, "Правило: 1% от текущего баланса; пользовательский минимум можно задать отдельно.", 11, false, muted)
-        actionButton(profile, "Изменить минимальную сумму ставки") { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.") }
-        addText(profile, "Стартовый банк: ${if (hasInitialBankroll()) fmt(initialBankroll()) + " ₽" else "не задан"}", 12, false, muted)
-        actionButton(profile, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.") }
+        screenHeader("IQ MATCH · PROFILE", "Профиль", "Банк, параметры ставок и состояние локальной истории.")
 
+        val overview = card()
+        addText(overview, "ОБЗОР ПРОФИЛЯ", 10, true, accent)
+        addText(overview, "Текущий банк", 11, false, muted)
+        addText(overview, if (hasInitialBankroll()) "${fmt(currentBankroll())} ₽" else "Не задан", 24, true, Color.WHITE)
+        addText(overview, "Стартовый банк: ${if (hasInitialBankroll()) fmt(initialBankroll()) + " ₽" else "не задан"}", 12, true, Color.WHITE)
+        addText(overview, "Целевой банк: ${fmt(targetBankroll())} ₽", 12, true, Color.WHITE)
+        addText(overview, "Записей ставок: ${bets.length()}", 12, false, muted)
+
+        val history = card()
+        addText(history, "ИСТОРИЯ СТАВОК", 10, true, accent)
+        var pending = 0
+        var won = 0
+        var lost = 0
+        var pushed = 0
+        for (i in 0 until bets.length()) {
+            when (bets.optJSONObject(i)?.optString("status")) {
+                "PENDING" -> pending++
+                "WON" -> won++
+                "LOST" -> lost++
+                "PUSH" -> pushed++
+            }
+        }
+        addText(history, "Ожидают расчёта: $pending", 13, true, Color.WHITE)
+        addText(history, "Выигрыши: $won · проигрыши: $lost · возвраты: $pushed", 12, false, muted)
+        addText(history, "История хранится локально на этом устройстве.", 10, false, muted)
+
+        val settings = card()
+        addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
+        addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
+        addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
+        addText(settings, minimumStakeDescription(), 11, false, muted)
+        actionButton(settings, "Изменить минимальную сумму ставки") {
+            showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.")
+        }
+        actionButton(settings, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") {
+            showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
+        }
+        actionButton(settings, "Изменить целевой банк") {
+            showBankSettingDialog("target_bankroll", "Целевой банк", targetBankroll(), "Укажи целевой размер банка в рублях.")
+        }
+
+        val info = card()
+        addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
+        addText(info, "IQ MATCH · SMART FOOTBALL INTELLIGENCE", 13, true, Color.WHITE)
+        addText(info, "Матчи и коэффициенты: API-Sport / MelBet. Модельные вероятности и xG: PitchAPI.", 11, false, muted)
+        addText(info, "Показатели в профиле отражают локальные записи и настройки приложения.", 10, false, muted)
     }
 
     // Only show a strongest signal when its market is actually listed in the match card.
