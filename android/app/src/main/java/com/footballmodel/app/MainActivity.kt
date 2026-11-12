@@ -1808,33 +1808,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderHelp() {
-        screenHeader("IQ MATCH · PROFILE", "Профиль", "Банк, параметры ставок и состояние локальной истории.")
-
-        val overview = card()
-        addText(overview, "ОБЗОР ПРОФИЛЯ", 10, true, accent)
-        addText(overview, "Текущий банк", 11, false, muted)
-        addText(overview, if (hasInitialBankroll()) "${fmt(currentBankroll())} ₽" else "Не задан", 24, true, Color.WHITE)
-        addText(overview, "Стартовый банк: ${if (hasInitialBankroll()) fmt(initialBankroll()) + " ₽" else "не задан"}", 12, true, Color.WHITE)
-        addText(overview, "Целевой банк: ${fmt(targetBankroll())} ₽", 12, true, Color.WHITE)
-        addText(overview, "Записей ставок: ${bets.length()}", 12, false, muted)
-
-        val history = card()
-        addText(history, "ИСТОРИЯ СТАВОК", 10, true, accent)
-        var pending = 0
-        var won = 0
-        var lost = 0
-        var pushed = 0
-        for (i in 0 until bets.length()) {
-            when (bets.optJSONObject(i)?.optString("status")) {
-                "PENDING" -> pending++
-                "WON" -> won++
-                "LOST" -> lost++
-                "PUSH" -> pushed++
-            }
-        }
-        addText(history, "Ожидают расчёта: $pending", 13, true, Color.WHITE)
-        addText(history, "Выигрыши: $won · проигрыши: $lost · возвраты: $pushed", 12, false, muted)
-        addText(history, "История хранится локально на этом устройстве.", 10, false, muted)
+        screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки приложения и параметров ставок.")
 
         val settings = card()
         addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
@@ -1855,7 +1829,6 @@ class MainActivity : Activity() {
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
         addText(info, "IQ MATCH · SMART FOOTBALL INTELLIGENCE", 13, true, Color.WHITE)
         addText(info, "Матчи и коэффициенты: API-Sport / MelBet. Модельные вероятности и xG: PitchAPI.", 11, false, muted)
-        addText(info, "Показатели в профиле отражают локальные записи и настройки приложения.", 10, false, muted)
     }
 
     // Only show a strongest signal when its market is actually listed in the match card.
