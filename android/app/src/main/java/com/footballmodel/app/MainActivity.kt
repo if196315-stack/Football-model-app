@@ -12,6 +12,8 @@ import android.os.Looper
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.LinearGradient
+import android.graphics.Shader
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -20,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.MotionEvent
 import android.widget.*
+import android.widget.FrameLayout
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -57,6 +60,7 @@ class MainActivity : Activity() {
     private lateinit var notificationsButton: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
+    private lateinit var leagueScrollFade: View
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
@@ -324,16 +328,36 @@ class MainActivity : Activity() {
         leagueScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_NEVER
-            // Оставляем справа часть следующего фильтра видимой как подсказку
-            // о горизонтальной прокрутке. Контент при этом можно пролистать полностью.
+            // Часть следующего фильтра остаётся видимой, чтобы обозначить свайп.
             clipToPadding = true
             setPadding(0, 0, 0, 0)
             addView(leagueBar)
+            setOnScrollChangeListener { _, _, _, _, _ -> updateLeagueScrollFade() }
         }
-        // Keep a narrow viewport so the next league chip remains visibly peeking in.
-        // Use the full available width; the next chip remains partially visible
-        // at the right edge as a hint that the league row scrolls horizontally.
-        root.addView(leagueScroll, LinearLayout.LayoutParams(-1, -2).apply {
+        val leagueScrollFrame = FrameLayout(this)
+        leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
+        leagueScrollFade = View(this).apply {
+            isClickable = false
+            isFocusable = false
+            // Градиент рисуется поверх правого края, касания проходят к скроллеру.
+        }
+        leagueScrollFade.background = object : android.graphics.drawable.Drawable() {
+            private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+            override fun draw(canvas: Canvas) {
+                val bounds = bounds
+                paint.shader = LinearGradient(
+                    bounds.left.toFloat(), 0f, bounds.right.toFloat(), 0f,
+                    intArrayOf(bg, Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+                )
+                canvas.drawRect(bounds, paint)
+                paint.shader = null
+            }
+            override fun setAlpha(alpha: Int) { paint.alpha = alpha }
+            override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) { paint.colorFilter = colorFilter }
+            override fun getOpacity(): Int = android.graphics.PixelFormat.TRANSLUCENT
+        }
+        leagueScrollFrame.addView(leagueScrollFade, FrameLayout.LayoutParams(dp(30), -1, Gravity.END))
+        root.addView(leagueScrollFrame, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(2)
             bottomMargin = dp(2)
         })
@@ -1027,8 +1051,16 @@ class MainActivity : Activity() {
         if (nextIndex != index) selectTab(primaryTabs[nextIndex])
     }
 
+    private fun updateLeagueScrollFade() {
+        if (!::leagueScroll.isInitialized || !::leagueScrollFade.isInitialized) return
+        val canScrollFurther = leagueScroll.scrollX < leagueScroll.getChildAt(0).let {
+            (it.width - leagueScroll.width).coerceAtLeast(0)
+        }
+        leagueScrollFade.visibility = if (canScrollFurther) View.VISIBLE else View.GONE
+    }
+
     private fun renderTabs() {
-        val items = listOf("matches" to "Линия", "desk" to "AI", "history" to "История", "stats" to "Stats", "help" to "Профиль")
+        val items = listOf("matches" to "Линия", "desk" to "ТОП", "history" to "Ставки", "stats" to "STATS", "help" to "Профиль")
         // Создаём кнопки меню один раз: при переключении меняем только оформление,
         // не пересоздавая сами View и обработчики нажатий.
         if (tabBar.childCount != items.size) {
@@ -1143,8 +1175,52 @@ class MainActivity : Activity() {
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
+    private fun renderAiBetStats() {
+        val aiBets = mutableListOf<JSONObject>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("source") in listOf("AI_AUTO", "AI_MANUAL")) aiBets.add(bet)
+        }
+        var wins = 0
+        var losses = 0
+        var pushes = 0
+        var pending = 0
+        var turnover = 0.0
+        var profit = 0.0
+        var pendingPayout = 0.0
+        var autoCount = 0
+        var manualCount = 0
+        aiBets.forEach { bet ->
+            val stake = bet.optDouble("stake", 0.0)
+            val odds = bet.optDouble("odds", 0.0)
+            when (bet.optString("source")) {
+                "AI_AUTO" -> autoCount++
+                "AI_MANUAL" -> manualCount++
+            }
+            when (bet.optString("status")) {
+                "WON" -> { wins++; turnover += stake; profit += stake * (odds - 1.0) }
+                "LOST" -> { losses++; turnover += stake; profit -= stake }
+                "PUSH" -> { pushes++; turnover += stake }
+                else -> { pending++; pendingPayout += stake * odds }
+            }
+        }
+        val settled = wins + losses + pushes
+        val roi = if (turnover > 0.0) String.format(Locale.US, "%+.1f%%", profit / turnover * 100.0) else "—"
+        val summary = card()
+        addText(summary, "AI СТАВКИ", 11, true, accent)
+        addText(summary, "Всего: ${aiBets.size} · авто: $autoCount · вручную: $manualCount", 13, true, Color.WHITE)
+        addText(summary, "W $wins · L $losses · возврат $pushes · ожидают $pending", 12, true, cyan)
+        addText(summary, "Оборот: ${fmt(turnover)} ₽ · результат: " +
+            (if (profit >= 0.0) "+" else "") + fmt(profit) + " ₽", 12, true,
+            if (profit >= 0.0) accent else Color.RED)
+        addText(summary, "ROI: $roi · по рассчитанным ставкам ($settled)", 10, false, muted)
+        if (pending > 0) addText(summary, "Потенциальная выплата по открытым: ${fmt(pendingPayout)} ₽", 10, false, muted)
+        if (aiBets.isEmpty()) addText(summary, "AI-ставки появятся здесь после автоматической или ручной фиксации.", 10, false, muted)
+    }
+
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "Статистика стратегии", "Точность рынков действующей стратегии. Уровни уверенности сохранены без изменений.")
+        screenHeader("PERFORMANCE CENTER", "STATS", "Статистика AI-ставок и общая сводка по рабочим рынкам.")
+        renderAiBetStats()
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
@@ -1170,6 +1246,9 @@ class MainActivity : Activity() {
             return
         }
         val metrics = statsMetricsCache
+        val overallHeading = card()
+        addText(overallHeading, "ОБЩАЯ СВОДКА", 11, true, cyan)
+        addText(overallHeading, "Точность прогнозов по всем 9 рабочим рынкам. Уровни уверенности и расчёты сохранены без изменений.", 10, false, muted)
         if (metrics.isEmpty()) {
             val empty = card()
             addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
@@ -1485,8 +1564,22 @@ class MainActivity : Activity() {
             }.show()
     }
 
+    private fun displayLeagueName(raw: String): String {
+        return when (raw.trim().uppercase(Locale.ROOT)) {
+            "ENG", "PL", "EPL", "PREMIER LEAGUE", "ENGLAND · PREMIER LEAGUE", "АНГЛИЯ · ПРЕМЬЕР-ЛИГА" -> "АПЛ"
+            "ESP", "PD", "LL", "LA LIGA", "SPAIN · LA LIGA", "ИСПАНИЯ · ЛА ЛИГА" -> "Ла Лига"
+            "ITA", "SA", "SERIE A", "ITALY · SERIE A", "ИТАЛИЯ · СЕРИЯ A" -> "Серия А"
+            "GER", "BL1", "BUNDESLIGA", "GERMANY · BUNDESLIGA", "ГЕРМАНИЯ · БУНДЕСЛИГА" -> "Бундеслига"
+            "FRA", "FL1", "LIGUE 1", "FRANCE · LIGUE 1", "ФРАНЦИЯ · ЛИГА 1" -> "Лига 1"
+            "UCL", "UEFA CHAMPIONS LEAGUE", "ЛИГА ЧЕМПИОНОВ УЕФА" -> "ЛЧ"
+            "UEL", "UEFA EUROPA LEAGUE", "ЛИГА ЕВРОПЫ УЕФА" -> "ЛЕ"
+            "UECL", "UEFA CONFERENCE LEAGUE", "ЛИГА КОНФЕРЕНЦИЙ УЕФА" -> "ЛК"
+            else -> raw.ifBlank { "Турнир не указан" }
+        }
+    }
+
     private fun renderBetHistory(j: JSONObject) {
-        screenHeader("BET TRACKER", "История", "Открытые и завершённые бумажные ставки.")
+        screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
         val bank = currentBankroll()
         val bankrollCard = card()
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
@@ -1567,7 +1660,7 @@ class MainActivity : Activity() {
         ).forEach { betsByLeague[it] = mutableListOf() }
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            val league = bet.optString("league").ifBlank { "Турнир не указан" }
+            val league = displayLeagueName(bet.optString("league"))
             betsByLeague.getOrPut(league) { mutableListOf() }.add(bet)
         }
         betsByLeague.toSortedMap().forEach { (league, rows) ->
@@ -1619,7 +1712,7 @@ class MainActivity : Activity() {
                     "LOST" -> Color.RED
                     else -> Color.YELLOW
                 }
-                addText(box, bet.optString("league") + " · " + date(bet.optString("date")), 10, false, muted)
+                addText(box, displayLeagueName(bet.optString("league")) + " · " + date(bet.optString("date")), 10, false, muted)
                 addText(box, if (bet.optString("marketKey") == "COUPON")
                     "Экспресс · " + (bet.optJSONArray("selections")?.length() ?: 0) + " исходов"
                     else bet.optString("home") + " — " + bet.optString("away"), 15, true)
@@ -2363,7 +2456,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "AI-аналитика и сигналы", "AI проверяет только сильнейший сигнал каждого матча из раздела Линия: цена MelBet, вероятность, edge и EV.")
+        screenHeader("AI · MATCH INTELLIGENCE", "ТОП", "AI-подборки: сильнейшие сигналы матчей из раздела Линия с проверкой цены MelBet, вероятности, edge и EV.")
         val sorted = collectAiCandidates(json)
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
@@ -2591,7 +2684,7 @@ class MainActivity : Activity() {
         addText(matchesContainer, "Матчи с действующими коэффициентами MelBet и прогнозом модели", 16, true, Color.WHITE)
         addText(matchesContainer, "API-SPORT · MELBET · PITCHAPI xG", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
-        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL")
+        val names = listOf("Все", "АПЛ", "Ла Лига", "Серия А", "Бундеслига", "Лига 1", "ЛЧ", "ЛЕ", "ЛК")
         // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
@@ -2622,6 +2715,7 @@ class MainActivity : Activity() {
             lp.setMargins(0, 8, 7, 12)
             leagueBar.addView(b, lp)
         }
+        leagueScroll.post { updateLeagueScrollFade() }
 
         if (leagues == null || leagues.length() == 0) {
             val empty = card()
