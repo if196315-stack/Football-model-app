@@ -2757,6 +2757,7 @@ class MainActivity : Activity() {
         }
         if (currentTab == "notifications") {
             leagueBar.visibility = View.GONE
+            renderNotificationCenter(json)
             renderDailyInsights(json)
             return
         }
