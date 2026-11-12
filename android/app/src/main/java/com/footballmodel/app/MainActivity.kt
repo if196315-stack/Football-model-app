@@ -1802,6 +1802,19 @@ class MainActivity : Activity() {
         addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
         addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
 
+        val settings = card()
+        addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
+        addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
+        addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
+        addText(settings, minimumStakeDescription(), 11, false, muted)
+        actionButton(settings, "Изменить минимальную сумму ставки") {
+            showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.")
+        }
+        actionButton(settings, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") {
+            showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
+        }
+
+
         val glossary = card()
         addText(glossary, "СЛОВАРЬ ПОКАЗАТЕЛЕЙ", 10, true, cyan)
         addText(glossary, "Вероятность модели", 13, true, Color.WHITE)
@@ -1821,18 +1834,6 @@ class MainActivity : Activity() {
         addText(glossary, "Порог отбора AI", 13, true, Color.WHITE)
         addText(glossary, "Для попадания сигнала в ТОП нужны одновременно: вероятность от 60%, EV от +5%, EDGE от +5 п.п. и коэффициент MelBet от 1.50. Также действуют ограничения по допустимым рынкам.", 11, false, muted)
         addText(glossary, "Важно: вероятность, EV, EDGE, xG и Kelly — расчётные оценки. Они помогают сравнивать варианты, но не гарантируют выигрыш.", 11, true, gold)
-
-        val settings = card()
-        addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
-        addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
-        addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
-        addText(settings, minimumStakeDescription(), 11, false, muted)
-        actionButton(settings, "Изменить минимальную сумму ставки") {
-            showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.")
-        }
-        actionButton(settings, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") {
-            showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
-        }
 
         val info = card()
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
