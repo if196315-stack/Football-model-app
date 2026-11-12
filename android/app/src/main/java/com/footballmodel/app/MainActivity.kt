@@ -311,8 +311,8 @@ class MainActivity : Activity() {
                 currentTab = "notifications"
                 tabViewCache.clear()
                 renderedKey = null
-                if (data != null) render()
-                loadData()
+                // Render cached data immediately; periodic refresh continues independently.
+                if (data != null) render() else loadData()
             }
         }
         notificationBellContainer.addView(
