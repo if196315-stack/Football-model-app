@@ -41,6 +41,7 @@ internal object SectionNotifications {
     fun markRead(context: Context) {
         context.getSharedPreferences("bank_settings", Context.MODE_PRIVATE).edit()
             .putBoolean(UNREAD_KEY, false).apply()
+        NotificationCenter.markAllRead(context)
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.cancel(NOTIFICATION_ID)
     }
@@ -60,6 +61,9 @@ internal object SectionNotifications {
             return
         }
         editor.putBoolean(UNREAD_KEY, true).apply()
+        NotificationCenter.add(context, "report:" + fingerprint, "report",
+            "Обновились отчёт и наблюдения",
+            "Появились новые данные по коэффициентам, рынку или истории ставок.")
         show(context)
     }
 
