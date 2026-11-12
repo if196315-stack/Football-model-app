@@ -2407,16 +2407,11 @@ class MainActivity : Activity() {
                     }
                     val updateRecordedState: (JSONObject) -> Unit = { recordedSignal ->
                         statusViews[recordedSignal]?.apply {
-                            text = "✓ Добавлено вручную"
+                            text = "Ожидает расчёт"
                             setTextColor(accent)
                         }
-                        val stillMissing = available.filterNot { isAiBetRecorded(m, it) }
-                        if (stillMissing.isEmpty()) {
-                            recordButton.text = "✓ Все сигналы записаны"
-                            recordButton.isEnabled = false
-                        } else {
-                            recordButton.text = if (stillMissing.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории"
-                        }
+                        // Once a signal is manually recorded, remove the action control from this match card.
+                        (recordButton.parent as? ViewGroup)?.removeView(recordButton)
                     }
                     if (remaining.size == 1) {
                         val signal = remaining.first()
@@ -2461,7 +2456,7 @@ class MainActivity : Activity() {
             addText(box, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}% · ${signal.optInt("baselineMatches")} матчей", 10, false, muted)
         }
         val recorded = isAiBetRecorded(match, signal)
-        return label(if (recorded) "✓ Добавлено вручную" else "○ Не добавлено", 10, true, if (recorded) accent else muted).also { box.addView(it) }
+        return label(if (recorded) "Ожидает расчёт" else "○ Не добавлено", 10, true, if (recorded) accent else muted).also { box.addView(it) }
     }
 
     private fun renderDay(json: JSONObject) {
