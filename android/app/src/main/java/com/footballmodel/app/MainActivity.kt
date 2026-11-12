@@ -339,18 +339,7 @@ class MainActivity : Activity() {
         leagueScrollFade = View(this).apply {
             isClickable = false
             isFocusable = false
-            setWillNotDraw(false)
-            background = null
-            setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-            setOnTouchListener { _, _ -> false }
-            // Мягкая маска справа: исчезает, когда достигнут конец списка.
-            setBackgroundColor(Color.TRANSPARENT)
-            setPadding(0, 0, 0, 0)
-            // Рисуем градиент поверх области следующего таба, не перехватывая свайпы.
-            setTag("league-scroll-fade")
-            this@MainActivity.let { activity ->
-                setOnClickListener { }
-            }
+            // Градиент рисуется поверх правого края, касания проходят к скроллеру.
         }
         leagueScrollFade.background = object : android.graphics.drawable.Drawable() {
             private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
