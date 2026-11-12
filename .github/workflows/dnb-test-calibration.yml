@@ -1,0 +1,106 @@
+name: DNB test-mode calibration and live market audit
+
+on:
+  push:
+    branches:
+      - test/restore-melbet-handicap-zero
+    paths:
+      - "backend/backtest_all_markets.py"
+      - "backend/test_backtest_all_markets.py"
+      - "backend/audit_dnb_live_feed.py"
+      - "backend/test_audit_dnb_live_feed.py"
+      - "backend/predict_uefa_markets.py"
+      - "backend/refresh_pitchapi_uefa_fixtures.py"
+      - ".github/workflows/dnb-test-calibration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: dnb-test-calibration
+  cancel-in-progress: false
+
+jobs:
+  historical-calibration:
+    if: github.ref == 'refs/heads/test/restore-melbet-handicap-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/restore-melbet-handicap-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install reproducible backtest dependencies
+        run: python -m pip install numpy pandas requests
+      - name: Download frozen seven-competition historical cohort
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/dnb-historical-input
+          gh run download 42914090260 --repo if196315-stack/Football-model-app \
+            --name seven-competition-model-audit-8 --dir /tmp/dnb-historical-input
+          test -s /tmp/dnb-historical-input/pitchapi-clean-candidate.csv
+          cp /tmp/dnb-historical-input/pitchapi-clean-candidate.csv artifacts/pitchapi-clean-candidate.csv
+      - name: Run DNB and market calibration tests
+        run: |
+          python -m unittest backend.test_backtest_all_markets backend.test_handicap_zero backend.test_audit_dnb_live_feed -v
+      - name: Run chronological seven-competition DNB calibration
+        run: |
+          python backend/backtest_all_markets.py \
+            --domestic artifacts/pitchapi-clean-candidate.csv \
+            --uefa artifacts/uefa-xg-history.json \
+            --output artifacts/seven-competition-dnb-calibration-report.json \
+            --holdout-from 2026-07-01
+      - name: Upload frozen cohort and DNB calibration report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnb-historical-calibration
+          path: |
+            artifacts/pitchapi-clean-candidate.csv
+            artifacts/seven-competition-dnb-calibration-report.json
+          if-no-files-found: error
+          retention-days: 30
+
+  live-market-audit:
+    if: github.ref == 'refs/heads/test/restore-melbet-handicap-zero'
+    needs: historical-calibration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/restore-melbet-handicap-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install read-only audit dependencies
+        run: python -m pip install requests numpy pandas
+      - name: Download experimental DNB calibrator
+        uses: actions/download-artifact@v4
+        with:
+          name: dnb-historical-calibration
+          path: artifacts
+      - name: Refresh UEFA fixture cache for exact event matching
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: python backend/refresh_pitchapi_uefa_fixtures.py --upcoming-only
+      - name: Read-only MelBet DNB odds, no-vig and model comparison
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: |
+          python backend/audit_dnb_live_feed.py \
+            --fixture-cache backend/cache/pitchapi_uefa_fixtures.json \
+            --xg-history artifacts/uefa-xg-history.json \
+            --calibration-report artifacts/seven-competition-dnb-calibration-report.json \
+            --output artifacts/dnb-live-feed-audit.json
+      - name: Upload read-only live market audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnb-live-market-audit
+          path: artifacts/dnb-live-feed-audit.json
+          if-no-files-found: error
+          retention-days: 14
