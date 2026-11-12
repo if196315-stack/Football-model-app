@@ -1573,13 +1573,6 @@ class MainActivity : Activity() {
 
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
-        val bank = currentBankroll()
-        val bankrollCard = card()
-        addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
-        addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
-        addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
-        addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
-
         val strategyCard = card()
         addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
         addText(strategyCard, "Размер каждой ставки: " + minimumStakeDescription(), 12, true, Color.WHITE)
@@ -1739,6 +1732,13 @@ class MainActivity : Activity() {
     private fun renderHelp() {
         screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки приложения и параметров ставок.")
 
+        val bank = currentBankroll()
+        val bankrollCard = card()
+        addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
+        addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
+        addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
+        addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
+
         val settings = card()
         addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
@@ -1749,9 +1749,6 @@ class MainActivity : Activity() {
         }
         actionButton(settings, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") {
             showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
-        }
-        actionButton(settings, "Изменить целевой банк") {
-            showBankSettingDialog("target_bankroll", "Целевой банк", targetBankroll(), "Укажи целевой размер банка в рублях.")
         }
 
         val info = card()
@@ -2016,9 +2013,6 @@ class MainActivity : Activity() {
 
     private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", null)
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
-
-    private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
 
     private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", null)
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
