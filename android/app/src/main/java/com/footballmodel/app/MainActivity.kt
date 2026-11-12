@@ -1,6 +1,8 @@
 package com.footballmodel.app
 
 import android.app.Activity
+import android.animation.ValueAnimator
+import android.view.animation.DecelerateInterpolator
 import android.app.AlertDialog
 import android.text.InputType
 import android.text.SpannableString
@@ -58,6 +60,10 @@ class MainActivity : Activity() {
     private lateinit var headerBalanceView: TextView
     private lateinit var headerAiRoiView: TextView
     private lateinit var notificationsButton: TextView
+    private lateinit var notificationsDot: FrameLayout
+    private lateinit var notificationsDotHalo: View
+    private lateinit var notificationsDotCore: View
+    private var notificationPulseAnimator: ValueAnimator? = null
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
@@ -92,13 +98,31 @@ class MainActivity : Activity() {
     private fun refreshNotificationBell() {
         if (!::notificationsButton.isInitialized) return
         val unread = settingsPrefs.getBoolean(SectionNotifications.UNREAD_KEY, false)
-        notificationsButton.text = if (unread) SpannableString("🔔 •").apply {
-            setSpan(ForegroundColorSpan(Color.rgb(255, 82, 96)), length - 1, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        } else SpannableString("🔔")
         notificationsButton.background = GradientDrawable().apply {
             setColor(surface)
             cornerRadius = dp(13).toFloat()
-            setStroke(dp(if (unread) 2 else 1), if (unread) Color.rgb(255, 82, 96) else Color.rgb(39, 61, 82))
+            setStroke(dp(1), Color.rgb(39, 61, 82))
+        }
+        notificationsDot.visibility = if (unread) View.VISIBLE else View.GONE
+        if (unread && notificationPulseAnimator?.isStarted != true) {
+            notificationPulseAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 1100L
+                repeatCount = ValueAnimator.INFINITE
+                interpolator = DecelerateInterpolator()
+                addUpdateListener { animator ->
+                    val progress = animator.animatedValue as Float
+                    notificationsDotHalo.scaleX = 0.85f + progress * 0.9f
+                    notificationsDotHalo.scaleY = 0.85f + progress * 0.9f
+                    notificationsDotHalo.alpha = 0.55f * (1f - progress)
+                }
+                start()
+            }
+        } else if (!unread) {
+            notificationPulseAnimator?.cancel()
+            notificationPulseAnimator = null
+            notificationsDotHalo.scaleX = 1f
+            notificationsDotHalo.scaleY = 1f
+            notificationsDotHalo.alpha = 0f
         }
         notificationsButton.contentDescription = if (unread) "Новое в разделе «Отчёт и наблюдения»" else "Отчёт и наблюдения"
     }
@@ -271,6 +295,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
         }
+        val notificationBellContainer = FrameLayout(this)
         notificationsButton = TextView(this).apply {
             text = "🔔"
             textSize = 22f
@@ -290,7 +315,45 @@ class MainActivity : Activity() {
                 loadData()
             }
         }
-        headerRight.addView(notificationsButton, LinearLayout.LayoutParams(dp(42), dp(38)).apply { bottomMargin = dp(3) })
+        notificationBellContainer.addView(
+            notificationsButton,
+            FrameLayout.LayoutParams(-1, -1)
+        )
+        notificationsDot = FrameLayout(this).apply {
+            visibility = View.GONE
+            isClickable = false
+            isFocusable = false
+        }
+        notificationsDotHalo = View(this).apply {
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.rgb(255, 82, 96))
+            }
+            alpha = 0f
+        }
+        notificationsDotCore = View(this).apply {
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.rgb(255, 72, 88))
+                setStroke(dp(1), Color.rgb(255, 190, 195))
+            }
+        }
+        notificationsDot.addView(
+            notificationsDotHalo,
+            FrameLayout.LayoutParams(dp(12), dp(12), Gravity.CENTER)
+        )
+        notificationsDot.addView(
+            notificationsDotCore,
+            FrameLayout.LayoutParams(dp(8), dp(8), Gravity.CENTER)
+        )
+        notificationBellContainer.addView(
+            notificationsDot,
+            FrameLayout.LayoutParams(dp(14), dp(14), Gravity.TOP or Gravity.END).apply {
+                topMargin = dp(1)
+                rightMargin = dp(3)
+            }
+        )
+        headerRight.addView(notificationBellContainer, LinearLayout.LayoutParams(dp(42), dp(38)).apply { bottomMargin = dp(3) })
         refreshNotificationBell()
         headerBalanceView = label("-- ₽", 12, true, Color.WHITE).apply { gravity = Gravity.END; maxLines = 1 }
         headerRight.addView(headerBalanceView)
