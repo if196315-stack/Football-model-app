@@ -501,6 +501,27 @@ def main():
             if values
         }
 
+    dnb_conditional_skill = {}
+    dnb_conditional_skill_by_competition = {}
+    for market in ("DNB_HOME_CONDITIONAL", "DNB_AWAY_CONDITIONAL"):
+        metrics = report["markets"][market]
+        holdout = metrics.get("holdout")
+        if holdout:
+            dnb_conditional_skill[market] = {
+                "n": holdout["model"]["n"],
+                "brier_skill": holdout["brier_skill"],
+                "log_loss_skill": holdout["log_loss_skill"],
+            }
+        dnb_conditional_skill_by_competition[market] = {
+            league: {
+                "n": values["model"]["n"],
+                "brier_skill": values["brier_skill"],
+                "log_loss_skill": values["log_loss_skill"],
+            }
+            for league, values in metrics.get("holdout_by_competition", {}).items()
+            if values
+        }
+
     print(json.dumps({
         "input_matches": report["input_matches"],
         "input_matches_by_competition": report["input_matches_by_competition"],
@@ -515,6 +536,8 @@ def main():
         "holdout_skill_by_competition": holdout_skill_by_competition,
         "calibration_global": calibration_global,
         "calibration_by_competition": calibration_by_competition,
+        "dnb_conditional_skill_vs_expanding_frequency": dnb_conditional_skill,
+        "dnb_conditional_skill_by_competition": dnb_conditional_skill_by_competition,
     }, ensure_ascii=False))
 
 
