@@ -5,11 +5,66 @@ import argparse
 import json
 import math
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from collect_uefa_melbet_snapshots import fetch_provider_fixtures
-from update_odds_api_sport import is_supported_full_time_market, market_kind, parse_odds
+import requests
+
+from collect_uefa_melbet_snapshots import merge_duplicate_fixture_rows
+from update_odds_api_sport import URL, is_supported_full_time_market, market_kind, parse_odds
+
+
+def fetch_uefa_provider_fixtures(api_key: str, session=requests,
+                                  today=None, lookahead_days: int = 30) -> list[dict]:
+    """Fetch only UEFA tournament odds for the next 30 days, avoiding a broad all-sports scan."""
+    if not api_key:
+        raise RuntimeError("API_SPORT_KEY is not configured")
+    start = today or datetime.now(timezone.utc).date()
+    final_date = start + timedelta(days=lookahead_days)
+    fixtures = []
+    for tournament_id in (7, 679, 17015):  # UCL, UEL, UECL
+        cursor = start
+        while cursor <= final_date:
+            window_end = min(cursor + timedelta(days=30), final_date)
+            params = {
+                "date_from": cursor.isoformat(),
+                "date_to": window_end.isoformat(),
+                "exclude_amateur": "true",
+                "view": "odds",
+                "with_bk_odds": "true",
+                "odds_stage": "all",
+                "bookmaker_ids": "melbet",
+                "page_size": 500,
+                "sort": "asc",
+                "page": 1,
+                "tournament_id": str(tournament_id),
+            }
+            response = session.get(URL, params=params,
+                                   headers={"Authorization": api_key}, timeout=60)
+            response.raise_for_status()
+            payload = response.json()
+            fixtures.extend(list(payload) if isinstance(payload, list)
+                            else list(payload.get("matches") or []))
+            total_pages = min(int(payload.get("totalPages") or 1), 100) if isinstance(payload, dict) else 1
+            for page in range(2, total_pages + 1):
+                page_params = {**params, "page": page}
+                page_response = session.get(
+                    URL, params=page_params,
+                    headers={"Authorization": api_key}, timeout=60,
+                )
+                page_response.raise_for_status()
+                page_payload = page_response.json()
+                fixtures.extend(list(page_payload) if isinstance(page_payload, list)
+                                else list(page_payload.get("matches") or []))
+            cursor = window_end + timedelta(days=1)
+    unique = {}
+    for row in fixtures:
+        if row.get("id") is None:
+            continue
+        key = str(row["id"])
+        unique[key] = (merge_duplicate_fixture_rows(unique[key], row)
+                       if key in unique else row)
+    return list(unique.values())
 
 
 def _calibrated_conditional_probability(probability: float, params: dict | None) -> float | None:
@@ -198,7 +253,7 @@ def main() -> int:
     api_key = os.environ.get("API_SPORT_KEY", "").strip()
     if not api_key:
         raise RuntimeError("API_SPORT_KEY is not configured")
-    fixtures = fetch_provider_fixtures(api_key)
+    fixtures = fetch_uefa_provider_fixtures(api_key)
     model_predictions = {}
     cache_path = Path(args.fixture_cache)
     history_path = Path(args.xg_history)
