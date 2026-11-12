@@ -252,7 +252,7 @@ def parse_odds(m):
                         except (TypeError, ValueError):
                             continue
                         # Exact lines supported by the model; discard quarter-lines and unrelated markets.
-                        allowed_points = {0.5, 1.5, 2.5, 3.5} if kind == "tt" else {1.5, 2.5, 3.5}
+                        allowed_points = {0.5, 1.5} if kind == "tt" else {1.5, 2.5}
                         if not any(abs(point - allowed) < 0.001 for allowed in allowed_points):
                             continue
                         if kind=="tt":
