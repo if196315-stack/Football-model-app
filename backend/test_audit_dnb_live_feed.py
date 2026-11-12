@@ -49,6 +49,32 @@ class DnbLiveFeedAuditTests(unittest.TestCase):
         self.assertEqual(report["counts"]["complete_home_away_pairs"], 0)
         self.assertEqual(report["counts"]["incomplete_pairs"], 1)
 
+
+    def test_calculates_dnb_no_vig_and_experimental_calibrated_edge(self):
+        fixture = self.fixture({
+            "handicap": {"name": {"en": "Asian Handicap"},
+                         "status": "open", "stage": "prematch", "stakes": {
+                "handicap_1": {"lines": [{"argument": 0, "factor": 1.91}]},
+                "handicap_2": {"lines": [{"argument": 0, "factor": 1.95}]},
+            }},
+        })
+        predictions = {"77": {"markets": {"handicap_zero": {
+            "home": {"win": 0.45, "push": 0.25, "lose": 0.30},
+            "away": {"win": 0.30, "push": 0.25, "lose": 0.45},
+        }}}}
+        calibrator = {"available": True, "classes": ["W", "L"],
+                      "temperature": 1.0, "bias": {"W": 0.0, "L": 0.0}}
+        report = build_report([fixture], model_predictions=predictions,
+                              dnb_calibrator=calibrator)
+        pair = report["events_with_handicap_data"][0]["dnb_market_analysis"][0]
+        self.assertAlmostEqual(pair["overround"], 1/1.91 + 1/1.95)
+        self.assertAlmostEqual(pair["no_vig_home_probability"] +
+                               pair["no_vig_away_probability"], 1.0)
+        self.assertAlmostEqual(pair["raw_model_home_win_given_decisive"], 0.60)
+        self.assertAlmostEqual(pair["calibrated_home_win_given_decisive_experimental"], 0.60)
+        self.assertAlmostEqual(pair["home_model_ev_pct_raw"], 10.95)
+        self.assertGreater(pair["home_model_edge_vs_no_vig_pp_experimental"], 0.0)
+
     def test_excludes_live_and_first_half_handicap_markets(self):
         report = build_report([self.fixture({
             "first_half_handicap": {"name": {"en": "First Half Handicap"},
