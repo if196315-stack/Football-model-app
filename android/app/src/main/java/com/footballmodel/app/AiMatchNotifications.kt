@@ -36,7 +36,7 @@ internal object AiMatchNotifications {
         if (newlyAdded.isEmpty()) return
         // If Android notification permission is missing, leave these IDs unseen and retry
         // on the next feed refresh instead of silently losing the first alert.
-        if (show(context, newlyAdded.map { it.second })) {
+        newlyAdded.forEach { (id, title) ->\n            NotificationCenter.add(context, "ai_match:$id", "ai_match", "Новый AI-матч", title, "desk", id)\n        }\n        if (show(context, newlyAdded.map { it.second })) {
             candidates.forEach { (id, _) -> if (id.isNotBlank()) seen.add(id) }
             prefs.edit().putStringSet(SEEN_IDS_KEY, seen).apply()
         }
