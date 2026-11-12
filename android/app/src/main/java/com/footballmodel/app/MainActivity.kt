@@ -2061,7 +2061,7 @@ class MainActivity : Activity() {
         var settledCount = 0
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("source") != "AI_AUTO") continue
+            if (bet.optString("source") != "AI_MANUAL") continue
             val stake = bet.optDouble("stake", 0.0)
             val odds = bet.optDouble("odds", 0.0)
             when (bet.optString("status")) {
