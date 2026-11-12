@@ -229,17 +229,21 @@ def parse_odds(m):
                             best["btts"][side]=price; books_best["btts"][side]=bk.upper()
                         row["btts"][side]=price
                     elif kind=="spread":
-                        # Handicap markets are not part of the model's approved market set.
-                        continue
+                        # Only full-time Asian handicap 0 (DNB) is archived.
+                        # A draw is a push; downstream settlement must retain that outcome.
                         side="home" if key in ("handicap_1","w1","home","1") or slug.endswith("_1") else ("away" if key in ("handicap_2","w2","away","2") or slug.endswith("_2") else None)
-                        if side is None or arg is None or abs(float(arg))>.001:continue
+                        try:
+                            point = float(arg)
+                        except (TypeError, ValueError):
+                            continue
+                        if side is None or abs(point) > .001:continue
                         q={"team":side,"point":0.0,"price":price,
                            "market_slug":slug,"market_group":market_key,"market_name":market_name}
-                        old=next((x for x in best["spreads"] if x["team"]==side),None)
+                        old=next((x for x in best["spreads"] if x["team"]==side and x["market_group"]==market_key),None)
                         if old is None or price>old["price"]:
                             if old:best["spreads"].remove(old)
                             best["spreads"].append(q)
-                            books_best["spreads"]=[x for x in books_best["spreads"] if x["team"]!=side]+[{"team":side,"point":0.0,"bookmaker":bk.upper()}]
+                            books_best["spreads"]=[x for x in books_best["spreads"] if not (x["team"]==side and x.get("market_group")==market_key)]+[{"team":side,"point":0.0,"market_group":market_key,"bookmaker":bk.upper()}]
                         row["spreads"].append(q)
                     elif kind in ("tt","total"):
                         # API-Sport may encode the selection as "over", "over_1_5",
