@@ -27,7 +27,7 @@ ARCHIVE = ROOT / "artifacts" / "uefa-melbet-odds-snapshots.jsonl"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
 LOOKAHEAD_DAYS = 30
-MARKET_PARSER_VERSION = "melbet-fulltime-v2"
+MARKET_PARSER_VERSION = "melbet-fulltime-v3"
 
 
 def valid_price(value: Any) -> bool:
