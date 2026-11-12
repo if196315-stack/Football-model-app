@@ -97,7 +97,7 @@ class MainActivity : Activity() {
 
     private fun refreshNotificationBell() {
         if (!::notificationsButton.isInitialized) return
-        val unread = settingsPrefs.getBoolean(SectionNotifications.UNREAD_KEY, false)
+        val unread = NotificationCenter.hasUnread(this) || settingsPrefs.getBoolean(SectionNotifications.UNREAD_KEY, false)
         notificationsButton.background = GradientDrawable().apply {
             setColor(surface)
             cornerRadius = dp(13).toFloat()
@@ -124,7 +124,7 @@ class MainActivity : Activity() {
             notificationsDotHalo.scaleY = 1f
             notificationsDotHalo.alpha = 0f
         }
-        notificationsButton.contentDescription = if (unread) "Новое в разделе «Отчёт и наблюдения»" else "Отчёт и наблюдения"
+        notificationsButton.contentDescription = if (unread) "Новые уведомления" else "Уведомления"
     }
     private fun scheduleAutoPaperWorker() {
         val constraints = Constraints.Builder()
@@ -302,7 +302,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
             background = rounded(surface, 13)
-            contentDescription = "Отчёт и наблюдения"
+            contentDescription = "Уведомления"
             isClickable = true
             isFocusable = true
             setOnClickListener {
@@ -2176,6 +2176,78 @@ class MainActivity : Activity() {
         val (roi, count) = aiPaperRoiPercent()
         headerAiRoiView.text = if (roi == null) "AI ROI —" else String.format(Locale.US, "AI ROI %+.1f%% · %d", roi, count)
         headerAiRoiView.setTextColor(if (roi == null) muted else if (roi >= 0.0) accent else gold)
+    }
+
+    private fun renderNotificationCenter(json: JSONObject) {
+        screenHeader("IQ MATCH · ACTIVITY", "Центр уведомлений", "Важные события AI, расчёты ставок и обновления данных.")
+        val allEvents = NotificationCenter.events(this)
+        val unread = NotificationCenter.unreadCount(this)
+        val summary = card()
+        addText(summary, "СОБЫТИЯ · ${allEvents.length()}", 10, true, cyan)
+        addText(summary, if (unread > 0) "Непрочитанных: $unread" else "Все события прочитаны", 14, true, Color.WHITE)
+        val markAll = TextView(this).apply {
+            text = "Отметить все прочитанными"
+            textSize = 11f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(accent)
+            setPadding(0, dp(8), 0, dp(2))
+            isClickable = true
+            setOnClickListener {
+                NotificationCenter.markAllRead(this@MainActivity)
+                settingsPrefs.edit().putBoolean(SectionNotifications.UNREAD_KEY, false).apply()
+                refreshNotificationBell()
+                tabViewCache.clear()
+                renderedKey = null
+                render()
+            }
+        }
+        summary.addView(markAll)
+        matchesContainer.addView(summary)
+
+        if (allEvents.length() == 0) {
+            val empty = card()
+            addText(empty, "Пока нет событий", 15, true, Color.WHITE)
+            addText(empty, "Здесь появятся новые AI-матчи, расчёты ставок и важные изменения.", 12, false, muted)
+            matchesContainer.addView(empty)
+            return
+        }
+
+        for (i in 0 until allEvents.length()) {
+            val event = allEvents.optJSONObject(i) ?: continue
+            val type = event.optString("type")
+            val title = event.optString("title")
+            val message = event.optString("message")
+            val isRead = event.optBoolean("read", false)
+            val created = event.optLong("createdAt")
+            val time = if (created > 0L) SimpleDateFormat("dd.MM · HH:mm", Locale.getDefault()).format(Date(created)) else ""
+            val item = card()
+            item.background = GradientDrawable().apply {
+                setColor(if (isRead) panel else Color.rgb(22, 43, 62))
+                cornerRadius = dp(14).toFloat()
+                setStroke(dp(1), if (isRead) Color.rgb(35, 55, 76) else Color.rgb(47, 111, 119))
+            }
+            val typeLabel = when (type) {
+                "ai_match" -> "AI-МАТЧ"
+                "bet_settlement" -> "РАСЧЁТ СТАВКИ"
+                "report" -> "ОТЧЁТ И НАБЛЮДЕНИЯ"
+                "odds_change" -> "КОЭФФИЦИЕНТЫ"
+                else -> "СОБЫТИЕ"
+            }
+            addText(item, (if (isRead) "○  " else "●  ") + typeLabel + if (time.isNotBlank()) " · $time" else "", 9, true, if (isRead) muted else accent)
+            addText(item, title, 14, true, Color.WHITE)
+            addText(item, message, 12, false, muted)
+            item.isClickable = true
+            item.setOnClickListener {
+                val destination = event.optString("targetTab", "notifications")
+                if (destination != "notifications" && destination in listOf("desk", "history", "matches", "stats")) {
+                    currentTab = destination
+                    tabViewCache.clear()
+                    renderedKey = null
+                    render()
+                }
+            }
+            matchesContainer.addView(item)
+        }
     }
 
     private fun renderDailyInsights(json: JSONObject) {
