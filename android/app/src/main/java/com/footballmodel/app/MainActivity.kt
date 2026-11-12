@@ -1344,7 +1344,7 @@ class MainActivity : Activity() {
         tabViewCache.remove("desk|ALL")
         tabViewCache.remove("stats|ALL")
     }
-    private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit) {
+    private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit): Button {
         val b = Button(this).apply {
             text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = dp(48)
             setPadding(dp(16), dp(8), dp(16), dp(8)); setTextColor(Color.rgb(5, 24, 31))
@@ -1352,6 +1352,7 @@ class MainActivity : Activity() {
             elevation = dp(2).toFloat(); setOnClickListener { action() }
         }
         parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
+        return b
     }
 
     private fun compactHistoryButton(parent: LinearLayout, title: String, destructive: Boolean = false, action: () -> Unit) {
@@ -2152,7 +2153,7 @@ class MainActivity : Activity() {
         addText(recommendations, "2. Не менять пороги вероятности, edge, EV и риск-менеджмент автоматически. Любые изменения — только после отдельной проверки и согласования.", 12, false, muted)
     }
 
-    private fun confirmManualAiSignalBet(match: JSONObject, league: String, signal: JSONObject, odds: Double) {
+    private fun confirmManualAiSignalBet(match: JSONObject, league: String, signal: JSONObject, odds: Double, onRecorded: (() -> Unit)? = null) {
         val marketKey = marketKeyForAutoSignal(signal, match)
         if (marketKey.isNullOrBlank()) {
             Toast.makeText(this, "Не удалось определить рынок сигнала", Toast.LENGTH_SHORT).show()
@@ -2203,6 +2204,7 @@ class MainActivity : Activity() {
                 saveBets()
                 runOnUiThread {
                     Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
+                    onRecorded?.invoke()
                     // Do not rebuild the active screen here: a full render can block
                     // scrolling and taps after the confirmation dialog has closed.
                     // saveBets() invalidates the History caches; History renders fresh
@@ -2432,22 +2434,39 @@ class MainActivity : Activity() {
             if (notRecorded.isEmpty()) {
                 addText(box, "✓ Все прошедшие сигналы уже записаны в историю", 12, true, accent)
             } else {
-                actionButton(box, if (notRecorded.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории") {
-                    if (notRecorded.size == 1) {
-                        val signal = notRecorded.first()
+                lateinit var recordButton: Button
+                recordButton = actionButton(box, if (notRecorded.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории") {
+                    val remaining = available.filterNot { isAiBetRecorded(m, it) }
+                    if (remaining.isEmpty()) {
+                        recordButton.text = "✓ Уже в истории"
+                        recordButton.isEnabled = false
+                        return@actionButton
+                    }
+                    val updateRecordedState: (JSONObject) -> Unit = { recordedSignal ->
+                        val stillMissing = available.filterNot { isAiBetRecorded(m, it) }
+                        if (stillMissing.isEmpty()) {
+                            recordButton.text = "✓ Уже в истории"
+                            recordButton.isEnabled = false
+                        } else {
+                            recordButton.text = if (stillMissing.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории"
+                            addText(box, "✓ ${recordedSignal.optString("side")} — уже в истории", 10, true, accent)
+                        }
+                    }
+                    if (remaining.size == 1) {
+                        val signal = remaining.first()
                         val odds = topSignalOdds(signal, m) ?: return@actionButton
-                        confirmManualAiSignalBet(m, league, signal, odds)
+                        confirmManualAiSignalBet(m, league, signal, odds) { updateRecordedState(signal) }
                     } else {
-                        val labels = notRecorded.map { signal ->
+                        val labels = remaining.map { signal ->
                             val odds = topSignalOdds(signal, m) ?: 0.0
                             "${signal.optString("side")} · ${fmt(odds)} · EV ${String.format(Locale.US, "%+.1f", (signal.optDouble("modelProbability") * odds - 1.0) * 100)}%"
                         }.toTypedArray()
                         AlertDialog.Builder(this)
                             .setTitle("Выбери рынок для бумажной ставки")
                             .setItems(labels) { _, which ->
-                                val signal = notRecorded[which]
+                                val signal = remaining[which]
                                 val odds = topSignalOdds(signal, m) ?: return@setItems
-                                confirmManualAiSignalBet(m, league, signal, odds)
+                                confirmManualAiSignalBet(m, league, signal, odds) { updateRecordedState(signal) }
                             }
                             .setNegativeButton("Отмена", null)
                             .show()
