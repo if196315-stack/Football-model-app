@@ -1573,13 +1573,6 @@ class MainActivity : Activity() {
 
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
-        val bank = currentBankroll()
-        val bankrollCard = card()
-        addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
-        addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
-        addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
-        addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
-
         val strategyCard = card()
         addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
         addText(strategyCard, "Размер каждой ставки: " + minimumStakeDescription(), 12, true, Color.WHITE)
@@ -1738,6 +1731,13 @@ class MainActivity : Activity() {
 
     private fun renderHelp() {
         screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки приложения и параметров ставок.")
+
+        val bank = currentBankroll()
+        val bankrollCard = card()
+        addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
+        addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
+        addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
+        addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
 
         val settings = card()
         addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
