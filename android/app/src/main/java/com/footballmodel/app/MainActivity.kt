@@ -1616,8 +1616,13 @@ class MainActivity : Activity() {
             if (bet.optString("status") == "PENDING") openBets.add(bet) else completedBets.add(bet)
         }
 
+        val historySectionContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        val historyTabViews = linkedMapOf<String, TextView>()
+
         fun renderBetSection(title: String, items: List<JSONObject>, emptyText: String) {
-            val section = card()
+            val section = card(historySectionContainer)
             addText(section, title + " · " + items.size, 12, true, if (title == "ОТКРЫТЫЕ СТАВКИ") accent else cyan)
             if (items.isEmpty()) {
                 addText(section, emptyText, 11, false, muted)
@@ -1695,6 +1700,15 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
+        fun updateHistoryTabStyle() {
+            historyTabViews.forEach { (key, tab) ->
+                val selected = selectedHistoryTab == key
+                tab.setTextColor(if (selected) bg else muted)
+                tab.background = if (selected)
+                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
+                else rounded(surface, 28)
+            }
+        }
         listOf("OPEN" to "Открытые ставки", "COMPLETED" to "Завершённые").forEach { (key, title) ->
             val tab = TextView(this).apply {
                 text = title
@@ -1703,28 +1717,26 @@ class MainActivity : Activity() {
                 letterSpacing = 0.02f
                 gravity = Gravity.CENTER
                 setPadding(dp(16), dp(12), dp(16), dp(12))
-                setTextColor(if (selectedHistoryTab == key) bg else muted)
-                background = if (selectedHistoryTab == key)
-                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
-                else rounded(surface, 28)
                 setOnClickListener {
                     if (selectedHistoryTab == key) return@setOnClickListener
-                    // Keep the outer page at the same vertical position when
-                    // switching between Open and Completed history subtabs.
-                    val previousScrollY = mainScrollView.scrollY
                     selectedHistoryTab = key
-                    matchesContainer.animate().cancel()
-                    render()
-                    mainScrollView.post {
-                        mainScrollView.scrollTo(0, previousScrollY)
-                        matchesContainer.alpha = 1f
-                        matchesContainer.translationX = 0f
+                    updateHistoryTabStyle()
+                    // Replace only the bet list. Keep the history header, balance,
+                    // statistics, tabs and outer ScrollView attached and untouched.
+                    historySectionContainer.removeAllViews()
+                    if (selectedHistoryTab == "OPEN") {
+                        renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Открытых ставок пока нет.")
+                    } else {
+                        renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
                     }
                 }
             }
+            historyTabViews[key] = tab
             historyTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
         }
+        updateHistoryTabStyle()
         matchesContainer.addView(historyTabs)
+        matchesContainer.addView(historySectionContainer, LinearLayout.LayoutParams(-1, -2))
         if (selectedHistoryTab == "OPEN") {
             renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Открытых ставок пока нет.")
         } else {
