@@ -1750,9 +1750,6 @@ class MainActivity : Activity() {
         actionButton(settings, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") {
             showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
         }
-        actionButton(settings, "Изменить целевой банк") {
-            showBankSettingDialog("target_bankroll", "Целевой банк", targetBankroll(), "Укажи целевой размер банка в рублях.")
-        }
 
         val info = card()
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
@@ -2016,9 +2013,6 @@ class MainActivity : Activity() {
 
     private fun initialBankroll(): Double = settingsPrefs.getString("initial_bankroll", null)
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
-
-    private fun targetBankroll(): Double = settingsPrefs.getString("target_bankroll", "100000")
-        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 100000.0
 
     private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", null)
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
