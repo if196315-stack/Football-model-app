@@ -1147,13 +1147,8 @@ class MainActivity : Activity() {
         collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h, a -> h + a >= 3 })
         collect("bttsYes", "ОЗ — да", { h, a -> h >= 1 && a >= 1 })
         collect("over15", "ТБ 1.5", { h, a -> h + a >= 2 })
-        collect("over35", "ТБ 3.5", { h, a -> h + a >= 4 })
         collect("homeOver05", "ИТБ 0.5 · хозяева", { h, _ -> h >= 1 })
         collect("awayOver05", "ИТБ 0.5 · гости", { _, a -> a >= 1 })
-        collect("homeOver25", "ИТБ 2.5 · хозяева", { h, _ -> h >= 3 })
-        collect("awayOver25", "ИТБ 2.5 · гости", { _, a -> a >= 3 })
-        collect("homeOver35", "ИТБ 3.5 · хозяева", { h, _ -> h >= 4 })
-        collect("awayOver35", "ИТБ 3.5 · гости", { _, a -> a >= 4 })
         return metrics
     }
 
@@ -1767,14 +1762,14 @@ class MainActivity : Activity() {
             side.contains("UNDER", ignoreCase = true) || side.equals("Не X2", ignoreCase = true)) return null
         if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true) ||
             side.equals("ОЗ ДА", ignoreCase = true)) return side
-        if (listOf("ТБ 1.5", "ТБ 2.5", "ТБ 3.5").any { side.equals(it, ignoreCase = true) }) return side
+        if (listOf("ТБ 1.5", "ТБ 2.5").any { side.equals(it, ignoreCase = true) }) return side
         if (side.startsWith("ИТБ ", ignoreCase = true)) {
             val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE)
                 .find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
             val team = side.substringAfter("·", "").trim().replace(Regex("\\s+"), " ")
             val home = match.optString("home").trim().replace(Regex("\\s+"), " ")
             val away = match.optString("away").trim().replace(Regex("\\s+"), " ")
-            if (point in listOf(0.5, 1.5, 2.5, 3.5) &&
+            if (point in listOf(0.5, 1.5) &&
                 (team.equals(home, ignoreCase = true) || team.equals(away, ignoreCase = true))) return side
         }
         return null
@@ -1809,15 +1804,10 @@ class MainActivity : Activity() {
             "bttsYes" to "ОЗ ДА",
             "over15" to "ТБ 1.5",
             "over25" to "ТБ 2.5",
-            "over35" to "ТБ 3.5",
             "homeOver05" to "ИТБ 0.5 · ${match.optString("home")}",
             "homeOver15" to "ИТБ 1.5 · ${match.optString("home")}",
-            "homeOver25" to "ИТБ 2.5 · ${match.optString("home")}",
-            "homeOver35" to "ИТБ 3.5 · ${match.optString("home")}",
             "awayOver05" to "ИТБ 0.5 · ${match.optString("away")}",
-            "awayOver15" to "ИТБ 1.5 · ${match.optString("away")}",
-            "awayOver25" to "ИТБ 2.5 · ${match.optString("away")}",
-            "awayOver35" to "ИТБ 3.5 · ${match.optString("away")}"
+            "awayOver15" to "ИТБ 1.5 · ${match.optString("away")}"
         )
         rawMarkets.forEach { (field, side) ->
             val probability = prediction.optDouble(field, Double.NaN)
@@ -1952,19 +1942,20 @@ class MainActivity : Activity() {
             listOf("1x", "x2").any { validPrice(doubleChance.optDouble(it, Double.NaN)) }) return true
 
         val btts = best.optJSONObject("btts")
-        if (btts != null &&
-            listOf("yes", "no").any { validPrice(btts.optDouble(it, Double.NaN)) }) return true
+        if (btts != null && validPrice(btts.optDouble("yes", Double.NaN))) return true
 
-        fun hasOverQuote(field: String): Boolean {
+        fun hasOverQuote(field: String, allowedPoints: Set<Double>): Boolean {
             val rows = best.optJSONArray(field) ?: return false
             for (i in 0 until rows.length()) {
                 val row = rows.optJSONObject(i) ?: continue
+                val point = row.optDouble("point", Double.NaN)
                 if (row.optString("side").equals("over", ignoreCase = true) &&
+                    allowedPoints.any { kotlin.math.abs(point - it) < 0.001 } &&
                     validPrice(row.optDouble("price", Double.NaN))) return true
             }
             return false
         }
-        return hasOverQuote("totals") || hasOverQuote("teamTotals")
+        return hasOverQuote("totals", setOf(1.5, 2.5)) || hasOverQuote("teamTotals", setOf(0.5, 1.5))
     }
 
     private fun uefaPaperSignal(match: JSONObject): JSONObject? {
@@ -2844,13 +2835,13 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "ОБЕ КОМАНДЫ ЗАБЬЮТ", 9, true, muted)
                     marketRow("ОЗ ДА", pct(pred, "bttsYes"), quote("bttsYes"))
                     addText(mainMarkets, "ТОТАЛ МАТЧА", 9, true, muted)
-                    for ((line, key) in listOf(1.5 to "over15", 2.5 to "over25", 3.5 to "over35")) {
+                    for ((line, key) in listOf(1.5 to "over15", 2.5 to "over25")) {
                         marketRow("ТБ ${fmt(line)}", pct(pred, key), totalQuote(line, "over"))
                     }
                     addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 9, true, muted)
                     for ((teamKey, teamName, sideKey) in listOf(Triple("home", m.optString("home"), "home"), Triple("away", m.optString("away"), "away"))) {
                         addText(mainMarkets, teamName, 11, true, accent)
-                        for ((line, suffix) in listOf(0.5 to "05", 1.5 to "15", 2.5 to "25", 3.5 to "35")) {
+                        for ((line, suffix) in listOf(0.5 to "05", 1.5 to "15")) {
                             val probKey = "${teamKey}Over${suffix}"
                             marketRow("ИТБ ${fmt(line)}", pct(pred, probKey), totalQuote(line, "over", sideKey))
                         }

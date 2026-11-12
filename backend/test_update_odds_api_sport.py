@@ -95,7 +95,7 @@ class ApiSportOddsTests(unittest.TestCase):
                             for x in best["teamTotals"]))
         self.assertFalse(any(x["side"] == "under" for x in best["teamTotals"]))
 
-    def test_keeps_only_model_goal_lines_for_totals_and_team_totals(self):
+    def test_keeps_only_the_nine_approved_goal_market_lines(self):
         source = {"id": 101, "oddsBk": {"melbet": {"markets": {
             "total_goals": {"status": "open", "stage": "prematch", "stakes": {
                 "over": {"lines": [
@@ -122,9 +122,9 @@ class ApiSportOddsTests(unittest.TestCase):
             }}
         }}}}
         best = parse_odds(source)["best"]
-        self.assertEqual({x["point"] for x in best["totals"]}, {1.5, 2.5, 3.5})
+        self.assertEqual({x["point"] for x in best["totals"]}, {1.5, 2.5})
         self.assertEqual({x["side"] for x in best["totals"]}, {"over"})
-        self.assertEqual({x["point"] for x in best["teamTotals"]}, {0.5, 1.5, 2.5, 3.5})
+        self.assertEqual({x["point"] for x in best["teamTotals"]}, {0.5, 1.5})
 
     def test_excludes_first_half_totals_and_preserves_market_group(self):
         source = {"id": 301, "oddsBk": {"melbet": {"markets": {
