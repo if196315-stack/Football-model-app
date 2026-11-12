@@ -1517,6 +1517,20 @@ class MainActivity : Activity() {
             }.show()
     }
 
+    private fun displayLeagueName(raw: String): String {
+        return when (raw.trim().uppercase(Locale.ROOT)) {
+            "ENG", "PL", "EPL", "PREMIER LEAGUE", "ENGLAND · PREMIER LEAGUE", "АНГЛИЯ · ПРЕМЬЕР-ЛИГА" -> "АПЛ"
+            "ESP", "PD", "LL", "LA LIGA", "SPAIN · LA LIGA", "ИСПАНИЯ · ЛА ЛИГА" -> "Ла Лига"
+            "ITA", "SA", "SERIE A", "ITALY · SERIE A", "ИТАЛИЯ · СЕРИЯ A" -> "Серия А"
+            "GER", "BL1", "BUNDESLIGA", "GERMANY · BUNDESLIGA", "ГЕРМАНИЯ · БУНДЕСЛИГА" -> "Бундеслига"
+            "FRA", "FL1", "LIGUE 1", "FRANCE · LIGUE 1", "ФРАНЦИЯ · ЛИГА 1" -> "Лига 1"
+            "UCL", "UEFA CHAMPIONS LEAGUE", "ЛИГА ЧЕМПИОНОВ УЕФА" -> "ЛЧ"
+            "UEL", "UEFA EUROPA LEAGUE", "ЛИГА ЕВРОПЫ УЕФА" -> "ЛЕ"
+            "UECL", "UEFA CONFERENCE LEAGUE", "ЛИГА КОНФЕРЕНЦИЙ УЕФА" -> "ЛК"
+            else -> raw.ifBlank { "Турнир не указан" }
+        }
+    }
+
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "История", "Открытые и завершённые бумажные ставки.")
         val bank = currentBankroll()
@@ -1599,7 +1613,7 @@ class MainActivity : Activity() {
         ).forEach { betsByLeague[it] = mutableListOf() }
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            val league = bet.optString("league").ifBlank { "Турнир не указан" }
+            val league = displayLeagueName(bet.optString("league"))
             betsByLeague.getOrPut(league) { mutableListOf() }.add(bet)
         }
         betsByLeague.toSortedMap().forEach { (league, rows) ->
@@ -1651,7 +1665,7 @@ class MainActivity : Activity() {
                     "LOST" -> Color.RED
                     else -> Color.YELLOW
                 }
-                addText(box, bet.optString("league") + " · " + date(bet.optString("date")), 10, false, muted)
+                addText(box, displayLeagueName(bet.optString("league")) + " · " + date(bet.optString("date")), 10, false, muted)
                 addText(box, if (bet.optString("marketKey") == "COUPON")
                     "Экспресс · " + (bet.optJSONArray("selections")?.length() ?: 0) + " исходов"
                     else bet.optString("home") + " — " + bet.optString("away"), 15, true)
