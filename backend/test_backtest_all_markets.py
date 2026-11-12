@@ -1,12 +1,33 @@
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run, score)
+from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run, score, uefa_rows)
 
 
 class AllMarketBacktestTests(unittest.TestCase):
+
+    def test_uefa_input_excludes_uecl_from_seven_competition_cohort(self):
+        row = {
+            "pairedXg": True, "id": "u1", "homeScore": 1, "awayScore": 0,
+            "homeXg": 1.2, "awayXg": 0.4, "date": "2025-01-01",
+            "leagueCode": "UCL", "home": "A", "away": "B", "season": "2024/25",
+        }
+        payload = {"matches": [
+            row,
+            {**row, "id": "u2", "leagueCode": "UEL"},
+            {**row, "id": "u3", "leagueCode": "UECL"},
+        ]}
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / "history.json"
+            source.write_text(json.dumps(payload), encoding="utf-8")
+            result = uefa_rows(source)
+        self.assertEqual({item["league"] for item in result}, {"UCL", "UEL"})
+        self.assertEqual({item["id"] for item in result}, {"u1", "u2"})
+
     def test_market_probabilities_are_valid(self):
         probabilities = market_probs(1.35, 0.95)
         self.assertAlmostEqual(sum(probabilities["1X2"].values()), 1.0, places=8)
