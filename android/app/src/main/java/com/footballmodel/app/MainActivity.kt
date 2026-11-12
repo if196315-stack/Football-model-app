@@ -2450,8 +2450,10 @@ class MainActivity : Activity() {
         val betsCountCard = card()
         addText(betsCountCard, "НАЙДЕНО МАТЧЕЙ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "Зафиксировано: $recordedMatches", 13, true, accent)
-        addText(betsCountCard, "Открыто: $openMatches", 13, true, cyan)
+        val recordedCountView = label("Зафиксировано: $recordedMatches", 13, true, accent)
+        betsCountCard.addView(recordedCountView)
+        val openCountView = label("Открыто: $openMatches", 13, true, cyan)
+        betsCountCard.addView(openCountView)
         addText(betsCountCard, "Открытые — новые матчи, по которым ещё не записан ни один сигнал. В AI попадает только сильнейший сигнал раздела Линия по критерию Kelly; если он не проходит строгие фильтры, альтернативный рынок вместо него не подставляется.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
@@ -2497,6 +2499,21 @@ class MainActivity : Activity() {
                         }
                         // Once a signal is manually recorded, remove the action control from this match card.
                         (recordButton.parent as? ViewGroup)?.removeView(recordButton)
+                        // The confirmation callback runs only after saveBets() has persisted the bet.
+                        // Refresh the TOP counters immediately without rebuilding the whole screen.
+                        val updatedRecorded = sorted.count { candidate ->
+                            val candidateMatch = candidate.first
+                            val candidateBundle = candidate.third
+                            val candidateSignals = mutableListOf<JSONObject>()
+                            candidateBundle.optJSONObject("primary")?.let { candidateSignals.add(it) }
+                            val candidateAlternatives = candidateBundle.optJSONArray("alternatives") ?: JSONArray()
+                            for (signalIndex in 0 until candidateAlternatives.length()) {
+                                candidateAlternatives.optJSONObject(signalIndex)?.let { candidateSignals.add(it) }
+                            }
+                            candidateSignals.any { isAiBetRecorded(candidateMatch, it) }
+                        }
+                        recordedCountView.text = "Зафиксировано: $updatedRecorded"
+                        openCountView.text = "Открыто: ${(sorted.size - updatedRecorded).coerceAtLeast(0)}"
                     }
                     if (remaining.size == 1) {
                         val signal = remaining.first()
