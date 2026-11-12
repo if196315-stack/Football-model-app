@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,8 +12,28 @@ from collect_uefa_melbet_snapshots import fetch_provider_fixtures
 from update_odds_api_sport import is_supported_full_time_market, market_kind, parse_odds
 
 
-def build_report(fixtures: list[dict], captured_at: str | None = None) -> dict:
+def _calibrated_conditional_probability(probability: float, params: dict | None) -> float | None:
+    if not params or not params.get("available"):
+        return None
+    classes = params.get("classes") or []
+    if set(classes) != {"W", "L"}:
+        return None
+    temperature = float(params["temperature"])
+    logits = {
+        "W": math.log(max(1e-8, min(1.0, float(probability)))) / temperature + float(params["bias"]["W"]),
+        "L": math.log(max(1e-8, min(1.0, 1.0 - float(probability)))) / temperature + float(params["bias"]["L"]),
+    }
+    peak = max(logits.values())
+    win = math.exp(max(-60.0, logits["W"] - peak))
+    lose = math.exp(max(-60.0, logits["L"] - peak))
+    return win / (win + lose)
+
+
+def build_report(fixtures: list[dict], captured_at: str | None = None,
+                 model_predictions: dict | None = None,
+                 dnb_calibrator: dict | None = None) -> dict:
     captured_at = captured_at or datetime.now(timezone.utc).isoformat()
+    model_predictions = model_predictions or {}
     events = []
     counts = {
         "provider_fixtures": len(fixtures),
@@ -69,8 +90,57 @@ def build_report(fixtures: list[dict], captured_at: str | None = None) -> dict:
             kickoff = None
             if isinstance(stamp, (int, float)):
                 kickoff = datetime.fromtimestamp(stamp / 1000, tz=timezone.utc).isoformat()
+            event_id = str(fixture.get("id") or "")
+            prediction = model_predictions.get(event_id) or {}
+            handicap_model = (prediction.get("markets") or {}).get("handicap_zero") or {}
+            paired_analysis = []
+            for group in paired_groups:
+                sides = grouped[group]
+                home_quote, away_quote = sides["home"], sides["away"]
+                home_odds, away_odds = float(home_quote["price"]), float(away_quote["price"])
+                home_implied, away_implied = 1.0 / home_odds, 1.0 / away_odds
+                overround = home_implied + away_implied
+                home_fair = home_implied / overround if overround > 0 else None
+                away_fair = away_implied / overround if overround > 0 else None
+                home_prob = handicap_model.get("home") or {}
+                away_prob = handicap_model.get("away") or {}
+                home_decisive = float(home_prob.get("win", 0.0)) + float(home_prob.get("lose", 0.0))
+                away_decisive = float(away_prob.get("win", 0.0)) + float(away_prob.get("lose", 0.0))
+                raw_home_cond = float(home_prob["win"]) / home_decisive if home_decisive > 0 else None
+                raw_away_cond = float(away_prob["win"]) / away_decisive if away_decisive > 0 else None
+                cal_home_cond = (_calibrated_conditional_probability(raw_home_cond, dnb_calibrator)
+                                 if raw_home_cond is not None else None)
+                cal_away_cond = (1.0 - cal_home_cond if cal_home_cond is not None else None)
+                paired_analysis.append({
+                    "market_group": group,
+                    "home_odds": home_odds,
+                    "away_odds": away_odds,
+                    "overround": overround,
+                    "no_vig_home_probability": home_fair,
+                    "no_vig_away_probability": away_fair,
+                    "raw_model_home_win_given_decisive": raw_home_cond,
+                    "raw_model_away_win_given_decisive": raw_away_cond,
+                    "calibrated_home_win_given_decisive_experimental": cal_home_cond,
+                    "calibrated_away_win_given_decisive_experimental": cal_away_cond,
+                    "home_model_ev_pct_raw": (
+                        (float(home_prob["win"]) * (home_odds - 1.0) - float(home_prob["lose"])) * 100.0
+                        if home_prob and "win" in home_prob and "lose" in home_prob else None
+                    ),
+                    "away_model_ev_pct_raw": (
+                        (float(away_prob["win"]) * (away_odds - 1.0) - float(away_prob["lose"])) * 100.0
+                        if away_prob and "win" in away_prob and "lose" in away_prob else None
+                    ),
+                    "home_model_edge_vs_no_vig_pp_experimental": (
+                        (cal_home_cond - home_fair) * 100.0
+                        if cal_home_cond is not None and home_fair is not None else None
+                    ),
+                    "away_model_edge_vs_no_vig_pp_experimental": (
+                        (cal_away_cond - away_fair) * 100.0
+                        if cal_away_cond is not None and away_fair is not None else None
+                    ),
+                })
             events.append({
-                "event_id": str(fixture.get("id") or ""),
+                "event_id": event_id,
                 "home": (fixture.get("homeTeam") or {}).get("name"),
                 "away": (fixture.get("awayTeam") or {}).get("name"),
                 "kickoff_utc": kickoff,
@@ -80,6 +150,8 @@ def build_report(fixtures: list[dict], captured_at: str | None = None) -> dict:
                 "parsed_zero_handicap_quotes": quotes,
                 "paired_market_groups": paired_groups,
                 "incomplete_market_groups": incomplete_groups,
+                "dnb_market_analysis": paired_analysis,
+                "model_prediction_available": bool(handicap_model),
             })
     return {
         "captured_at": captured_at,
@@ -94,12 +166,42 @@ def build_report(fixtures: list[dict], captured_at: str | None = None) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", default="dnb-live-feed-audit.json")
+    parser.add_argument("--fixture-cache", default="backend/cache/pitchapi_uefa_fixtures.json")
+    parser.add_argument("--xg-history", default="artifacts/uefa-xg-history.json")
+    parser.add_argument("--calibration-report", default="artifacts/seven-competition-all-market-report.json")
     args = parser.parse_args()
     api_key = os.environ.get("API_SPORT_KEY", "").strip()
     if not api_key:
         raise RuntimeError("API_SPORT_KEY is not configured")
     fixtures = fetch_provider_fixtures(api_key)
-    report = build_report(fixtures)
+    model_predictions = {}
+    cache_path = Path(args.fixture_cache)
+    history_path = Path(args.xg_history)
+    if cache_path.exists() and history_path.exists():
+        from predict_uefa_markets import predict_upcoming
+        cache = json.loads(cache_path.read_text(encoding="utf-8"))
+        history = json.loads(history_path.read_text(encoding="utf-8"))
+        by_fixture = predict_upcoming(history, cache)
+        for fixture_id, match in (cache.get("matches") or {}).items():
+            provider_id = match.get("providerEventId")
+            if provider_id is not None and str(fixture_id) in by_fixture:
+                model_predictions[str(provider_id)] = by_fixture[str(fixture_id)]
+    dnb_calibrator = None
+    calibration_path = Path(args.calibration_report)
+    if calibration_path.exists():
+        calibration = json.loads(calibration_path.read_text(encoding="utf-8"))
+        dnb_calibrator = (((calibration.get("markets") or {}).get("DNB_HOME_CONDITIONAL") or {})
+                          .get("calibration_global") or {}).get("calibrator")
+    report = build_report(fixtures, model_predictions=model_predictions,
+                          dnb_calibrator=dnb_calibrator)
+    report["model_prediction_source"] = (
+        "strict-date walk-forward UEFA xG/Poisson model; raw model probabilities are not claimed calibrated"
+        if model_predictions else "not available; no matching fixture cache and xG history"
+    )
+    report["calibration_source"] = (
+        "pre-holdout DNB decisive-only vector scaling; experimental only, not production-approved"
+        if dnb_calibrator and dnb_calibrator.get("available") else "not available"
+    )
     Path(args.output).write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
