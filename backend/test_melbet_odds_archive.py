@@ -61,7 +61,7 @@ class MelBetOddsArchiveTests(unittest.TestCase):
         self.assertEqual({row["bookmaker"] for row in rows}, {"MELBET"})
         self.assertEqual({row["league_code"] for row in rows}, {"ENG"})
         self.assertEqual({row["schema_version"] for row in rows}, {2})
-        self.assertEqual({row["market_parser_version"] for row in rows}, {"melbet-fulltime-v2"})
+        self.assertEqual({row["market_parser_version"] for row in rows}, {"melbet-fulltime-v3"})
         self.assertEqual({row["bookmaker_updated_at"] for row in rows},
                          {"2026-11-10T09:59:50+00:00"})
         self.assertTrue(all(row["freshness_status"] == "fresh" for row in rows))
