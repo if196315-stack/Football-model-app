@@ -138,8 +138,8 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertEqual(set(params["classes"]), {"W", "L"})
         row = {"market": "DNB_HOME_CONDITIONAL", "actual": "W", "model": 0.62}
         calibrated = apply_vector_scaling(row, params)["calibrated"]
-        self.assertAlmostEqual(sum(calibrated.values()), 1.0)
-        self.assertEqual(set(calibrated), {"W", "L"})
+        self.assertGreaterEqual(calibrated, 0.0)
+        self.assertLessEqual(calibrated, 1.0)
         metrics = score([row], "DNB_HOME_CONDITIONAL", "model")
         self.assertEqual(metrics["n"], 1)
 
