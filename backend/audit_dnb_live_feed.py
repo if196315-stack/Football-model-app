@@ -163,6 +163,31 @@ def build_report(fixtures: list[dict], captured_at: str | None = None,
     }
 
 
+def map_model_predictions(cache: dict, provider_fixtures: list[dict],
+                            predictions: dict) -> dict:
+    """Join PitchAPI predictions to API-Sport event IDs using the collector's exact match rules."""
+    from update_odds_api_sport import match_fixture
+
+    mapped = {}
+    for fixture_id, match in (cache.get("matches") or {}).items():
+        prediction = predictions.get(str(fixture_id))
+        if not prediction:
+            continue
+        provider_id = match.get("providerEventId")
+        source = next((row for row in provider_fixtures
+                       if provider_id is not None and str(row.get("id")) == str(provider_id)), None)
+        if source is None:
+            target = {
+                "utcDate": match.get("date"),
+                "home": match.get("home"),
+                "away": match.get("away"),
+            }
+            source = match_fixture(target, provider_fixtures)
+        if source and source.get("id") is not None:
+            mapped[str(source["id"])] = prediction
+    return mapped
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", default="dnb-live-feed-audit.json")
@@ -177,15 +202,13 @@ def main() -> int:
     model_predictions = {}
     cache_path = Path(args.fixture_cache)
     history_path = Path(args.xg_history)
-    if cache_path.exists() and history_path.exists():
+    cache_history_loaded = cache_path.exists() and history_path.exists()
+    if cache_history_loaded:
         from predict_uefa_markets import predict_upcoming
         cache = json.loads(cache_path.read_text(encoding="utf-8"))
         history = json.loads(history_path.read_text(encoding="utf-8"))
         by_fixture = predict_upcoming(history, cache)
-        for fixture_id, match in (cache.get("matches") or {}).items():
-            provider_id = match.get("providerEventId")
-            if provider_id is not None and str(fixture_id) in by_fixture:
-                model_predictions[str(provider_id)] = by_fixture[str(fixture_id)]
+        model_predictions = map_model_predictions(cache, fixtures, by_fixture)
     dnb_calibrator = None
     calibration_path = Path(args.calibration_report)
     if calibration_path.exists():
