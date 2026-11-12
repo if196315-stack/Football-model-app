@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run)
+from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run, score)
 
 
 class AllMarketBacktestTests(unittest.TestCase):
@@ -110,6 +110,38 @@ class AllMarketBacktestTests(unittest.TestCase):
         ci_again = paired_bootstrap_brier_delta(holdout, params, "BTTS", replicates=250)
         self.assertEqual(ci, ci_again)
         self.assertTrue(ci["conditional_on_fitted_calibrator"])
+
+
+    def test_dnb_conditional_probabilities_exclude_draw_and_use_win_loss_labels(self):
+        probs = market_probs(1.35, 0.95)
+        self.assertAlmostEqual(probs["DNB_HOME_CONDITIONAL"] + probs["DNB_AWAY_CONDITIONAL"], 1.0)
+        draw = market_outcomes(1, 1)
+        self.assertIsNone(draw["DNB_HOME_CONDITIONAL"])
+        self.assertIsNone(draw["DNB_AWAY_CONDITIONAL"])
+        home_win = market_outcomes(2, 1)
+        away_win = market_outcomes(1, 2)
+        self.assertEqual(home_win["DNB_HOME_CONDITIONAL"], "W")
+        self.assertEqual(home_win["DNB_AWAY_CONDITIONAL"], "L")
+        self.assertEqual(away_win["DNB_HOME_CONDITIONAL"], "L")
+        self.assertEqual(away_win["DNB_AWAY_CONDITIONAL"], "W")
+
+    def test_dnb_conditional_calibrator_is_binary_and_scores_only_decisive_matches(self):
+        train = []
+        for i in range(160):
+            train.append({
+                "market": "DNB_HOME_CONDITIONAL",
+                "actual": "W" if i % 2 == 0 else "L",
+                "model": 0.62,
+            })
+        params = fit_vector_scaling(train, "DNB_HOME_CONDITIONAL")
+        self.assertTrue(params["available"])
+        self.assertEqual(set(params["classes"]), {"W", "L"})
+        row = {"market": "DNB_HOME_CONDITIONAL", "actual": "W", "model": 0.62}
+        calibrated = apply_vector_scaling(row, params)["calibrated"]
+        self.assertAlmostEqual(sum(calibrated.values()), 1.0)
+        self.assertEqual(set(calibrated), {"W", "L"})
+        metrics = score([row], "DNB_HOME_CONDITIONAL", "model")
+        self.assertEqual(metrics["n"], 1)
 
     def test_vector_scaling_refuses_small_training_sample(self):
         params = fit_vector_scaling([
