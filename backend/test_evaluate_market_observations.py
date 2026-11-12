@@ -48,5 +48,16 @@ class MarketObservationTests(unittest.TestCase):
         self.assertEqual(market_result({"market": "handicap", "team": "home", "point": 0}, 2, 2), "PUSH")
 
 
+    def test_dnb_settlement_is_win_loss_or_push_for_both_teams(self):
+        home = {"market": "handicap", "team": "home", "point": 0}
+        away = {"market": "handicap", "team": "away", "point": 0}
+        self.assertEqual(market_result(home, 2, 1), "WIN")
+        self.assertEqual(market_result(home, 1, 2), "LOSS")
+        self.assertEqual(market_result(home, 1, 1), "PUSH")
+        self.assertEqual(market_result(away, 1, 2), "WIN")
+        self.assertEqual(market_result(away, 2, 1), "LOSS")
+        self.assertEqual(market_result(away, 1, 1), "PUSH")
+
+
 if __name__ == "__main__":
     unittest.main()
