@@ -1567,44 +1567,6 @@ class MainActivity : Activity() {
                 else -> { pending++; possiblePayout += stake * odds; possibleProfit += stake * (odds - 1.0) }
             }
         }
-        val aiHistoryCard = card()
-        addText(aiHistoryCard, "AI · АВТОИСТОРИЯ РЕКОМЕНДАЦИЙ", 10, true, cyan)
-        addText(aiHistoryCard, "Каждый прошедший AI сильнейший сигнал с котировкой MelBet фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал. История локальная для этого устройства.", 9, false, muted)
-        val aiHistory = try {
-            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
-        } catch (_: Exception) {
-            JSONArray()
-        }
-        val aiLeagueNames = linkedMapOf(
-            "PL" to "Англия · Премьер-лига",
-            "PD" to "Испания · Ла Лига",
-            "SA" to "Италия · Серия A",
-            "BL1" to "Германия · Бундеслига",
-            "FL1" to "Франция · Лига 1",
-            "UCL" to "Лига чемпионов УЕФА",
-            "UEL" to "Лига Европы УЕФА",
-            "UECL" to "Лига конференций УЕФА",
-        )
-        val aiRowsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
-        aiLeagueNames.forEach { (code, _) -> aiRowsByLeague[code] = mutableListOf() }
-        for (i in 0 until aiHistory.length()) {
-            val row = aiHistory.optJSONObject(i) ?: continue
-            val code = row.optString("leagueCode")
-            aiRowsByLeague.getOrPut(code.ifBlank { row.optString("league") }) { mutableListOf() }.add(row)
-        }
-        aiRowsByLeague.forEach { (code, rows) ->
-            val wins = rows.count { it.optString("status") == "WON" }
-            val losses = rows.count { it.optString("status") == "LOST" }
-            val pendingSignals = rows.count { it.optString("status") == "PENDING" }
-            val settledSignals = wins + losses
-            val profitUnits = rows.filter { it.optString("status") in listOf("WON", "LOST") }
-                .sumOf { it.optDouble("profitUnits", 0.0) }
-            val roi = if (settledSignals > 0) String.format(Locale.US, "%.1f%%", profitUnits / settledSignals * 100.0) else "—"
-            val name = aiLeagueNames[code] ?: code
-            addText(aiHistoryCard, "$name · сигналов ${rows.size} · W $wins / L $losses / ждут $pendingSignals · ROI $roi", 10, false, muted)
-        }
-        if (aiHistory.length() == 0) addText(aiHistoryCard, "Пока нет сохранённых AI-рекомендаций. Новые сигналы будут фиксироваться автоматически.", 10, false, muted)
-
         val sum = card()
         addText(sum, "СТАТИСТИКА СОХРАНЁННЫХ СТАВОК", 10, true, accent)
         addText(sum, "Всего: " + bets.length() + " · выигрыш: " + wins + " · проигрыш: " + losses + " · возврат: " + pushes + " · открытые: " + pending, 12, true)
@@ -1615,7 +1577,7 @@ class MainActivity : Activity() {
         addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
         addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
         addText(sum, "ПОЛЬЗОВАТЕЛЬСКИЕ СТАВКИ · ПО ТУРНИРАМ", 10, true, cyan)
-        addText(sum, "Только ставки, которые пользователь сохранил отдельно; автоматическая история AI-рекомендаций показана выше.", 9, false, muted)
+        addText(sum, "Только ставки, которые пользователь сохранил отдельно. Автоматическая история AI-рекомендаций в этом разделе не отображается.", 9, false, muted)
         val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
         listOf(
             "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
