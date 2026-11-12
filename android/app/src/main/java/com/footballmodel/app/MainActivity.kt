@@ -60,7 +60,6 @@ class MainActivity : Activity() {
     private lateinit var notificationsButton: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
-    private lateinit var leagueScrollFade: View
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
@@ -332,31 +331,9 @@ class MainActivity : Activity() {
             clipToPadding = true
             setPadding(0, 0, 0, 0)
             addView(leagueBar)
-            setOnScrollChangeListener { _, _, _, _, _ -> updateLeagueScrollFade() }
         }
         val leagueScrollFrame = FrameLayout(this)
         leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
-        leagueScrollFade = View(this).apply {
-            isClickable = false
-            isFocusable = false
-            // Градиент рисуется поверх правого края, касания проходят к скроллеру.
-        }
-        leagueScrollFade.background = object : android.graphics.drawable.Drawable() {
-            private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-            override fun draw(canvas: Canvas) {
-                val bounds = bounds
-                paint.shader = LinearGradient(
-                    bounds.left.toFloat(), 0f, bounds.right.toFloat(), 0f,
-                    intArrayOf(bg, Color.TRANSPARENT), null, Shader.TileMode.CLAMP
-                )
-                canvas.drawRect(bounds, paint)
-                paint.shader = null
-            }
-            override fun setAlpha(alpha: Int) { paint.alpha = alpha }
-            override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) { paint.colorFilter = colorFilter }
-            override fun getOpacity(): Int = android.graphics.PixelFormat.TRANSLUCENT
-        }
-        leagueScrollFrame.addView(leagueScrollFade, FrameLayout.LayoutParams(dp(30), -1, Gravity.END))
         root.addView(leagueScrollFrame, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(2)
             bottomMargin = dp(2)
@@ -1049,14 +1026,6 @@ class MainActivity : Activity() {
         if (index < 0) return
         val nextIndex = (index + direction).coerceIn(0, primaryTabs.lastIndex)
         if (nextIndex != index) selectTab(primaryTabs[nextIndex])
-    }
-
-    private fun updateLeagueScrollFade() {
-        if (!::leagueScroll.isInitialized || !::leagueScrollFade.isInitialized) return
-        val canScrollFurther = leagueScroll.scrollX < leagueScroll.getChildAt(0).let {
-            (it.width - leagueScroll.width).coerceAtLeast(0)
-        }
-        leagueScrollFade.visibility = if (canScrollFurther) View.VISIBLE else View.GONE
     }
 
     private fun renderTabs() {
@@ -2715,7 +2684,6 @@ class MainActivity : Activity() {
             lp.setMargins(0, 8, 7, 12)
             leagueBar.addView(b, lp)
         }
-        leagueScroll.post { updateLeagueScrollFade() }
 
         if (leagues == null || leagues.length() == 0) {
             val empty = card()
