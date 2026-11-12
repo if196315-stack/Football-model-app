@@ -27,7 +27,7 @@ class HandicapZeroMathTests(unittest.TestCase):
         edge_fail = analyze_handicap_zero(0.40, 0.20, 0.40, 2.0)
         self.assertFalse(edge_fail["passes_probability_edge"])
         self.assertFalse(edge_fail["passes_ev"])
-        ev_fail = analyze_handicap_zero(0.48, 0.04, 0.48, 2.0)
+        ev_fail = analyze_handicap_zero(0.12, 0.80, 0.08, 2.0)
         self.assertTrue(ev_fail["passes_probability_edge"])
         self.assertFalse(ev_fail["passes_ev"])
 
