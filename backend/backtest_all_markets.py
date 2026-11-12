@@ -36,6 +36,11 @@ def uefa_rows(path):
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     out = []
     for row in payload.get("matches", []):
+        # This reproducible audit is intentionally seven-competition only.
+        # UECL is not part of the validated historical cohort and must not be
+        # silently mixed into the UCL/UEL archive.
+        if row.get("leagueCode") not in {"UCL", "UEL"}:
+            continue
         if row.get("pairedXg") is not True:
             continue
         required = ("id", "homeScore", "awayScore", "homeXg", "awayXg",
