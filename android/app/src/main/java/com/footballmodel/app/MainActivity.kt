@@ -1230,7 +1230,7 @@ class MainActivity : Activity() {
 
         val strategyMarkets = card()
         addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
-        addText(strategyMarkets, "Только MelBet через API-Sport. Рабочие рынки: Double Chance 1X/X2, Match Total OVER, Team Total OVER и BTTS YES — только при точной загруженной цене и прохождении фильтров AI. BTTS NO, UNDER, 12, 1X2 без подтверждённой цены и форы отображаются только как наблюдаемые рынки и не создают paper-ставки.", 11, false, Color.WHITE)
+        addText(strategyMarkets, "Стратегия использует только 9 рынков с точной ценой MelBet через API-Sport: Match Total OVER 1.5 и OVER 2.5; Double Chance 1X и X2; BTTS YES; Home Team Total OVER 0.5 и OVER 1.5; Away Team Total OVER 0.5 и OVER 1.5. Другие рынки, включая UNDER, BTTS NO, 12, 1X2 и форы, не являются рабочими рынками стратегии и не допускаются к ставкам.", 11, false, Color.WHITE)
         addText(strategyMarkets, "Нельзя подставлять коэффициенты другого букмекера, угадывать отсутствующую цену или сравнивать разные линии.", 10, false, muted)
 
         val strategyTesting = card()
@@ -1729,7 +1729,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderHelp() {
-        screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки банка и состояние фоновых обновлений.")
+        screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки банка и приложения.")
         val profile = card()
         addText(profile, "IQ MATCH", 18, true, Color.WHITE)
         addText(profile, "Локальных записей ставок: ${bets.length()} · текущий банк: ${if (hasInitialBankroll()) fmt(currentBankroll()) + " ₽" else "не задан"}", 12, true, accent)
@@ -1739,18 +1739,7 @@ class MainActivity : Activity() {
         addText(profile, "Стартовый банк: ${if (hasInitialBankroll()) fmt(initialBankroll()) + " ₽" else "не задан"}", 12, false, muted)
         actionButton(profile, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") { showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.") }
 
-        val workerCard = card()
-        val workerRunAt = settingsPrefs.getLong("paper_worker_last_run_ms", 0L)
-        val workerStatus = settingsPrefs.getString("paper_worker_last_status", "NOT_RUN") ?: "NOT_RUN"
-        val workerMessage = settingsPrefs.getString("paper_worker_last_message", "Ожидается первая фоновая проверка") ?: "Ожидается первая фоновая проверка"
-        val workerTime = if (workerRunAt > 0L) SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date(workerRunAt)) else "ещё не запускался"
-        addText(workerCard, "ФОНОВОЕ ОБНОВЛЕНИЕ", 10, true, cyan)
-        workerStatusTextView = label(if (workerStatus == "SUCCESS") "Последняя проверка: $workerTime" else if (workerStatus == "ERROR") "Ошибка · $workerTime" else "Ожидание первого запуска", 12, true, if (workerStatus == "ERROR") Color.RED else Color.WHITE)
-        workerMessageTextView = label(workerMessage, 11, false, muted)
-        workerCountTextView = label("Бумажных ставок: ${settingsPrefs.getInt("paper_worker_total_bets", 0)} · ожидают: ${settingsPrefs.getInt("paper_worker_pending_auto", 0)} · период проверки: от 15 минут", 10, false, muted)
-        workerCard.addView(workerStatusTextView)
-        workerCard.addView(workerMessageTextView)
-        workerCard.addView(workerCountTextView)
+
     }
 
     // Only show a strongest signal when its market is actually listed in the match card.
