@@ -2,6 +2,12 @@ name: Backend odds tests
 
 on:
   workflow_dispatch:
+    inputs:
+      run_live_dnb_feed_audit:
+        description: "Read-only MelBet DNB feed audit (test branch only; uses API_SPORT_KEY)"
+        required: false
+        default: false
+        type: boolean
   pull_request:
     paths:
       - "backend/**"
@@ -32,3 +38,29 @@ jobs:
         run: python -m unittest backend.test_audit_domestic_ai_signals -v
       - name: Run odds market regression tests
         run: python -m unittest backend/test_update_odds.py backend/test_odds_snapshots.py backend/test_handicap_zero.py backend/test_audit_dnb_live_feed.py backend/test_update_odds_api_sport.py backend/test_diagnose_melbet_team_totals.py backend/test_diagnose_api_sport.py backend/test_backtest_pitchapi.py backend/test_backtest_all_markets.py backend/test_update_data_pitchapi.py backend/test_refresh_pitchapi_uefa_fixtures.py backend/test_diagnose_pitchapi_uefa_xg.py backend/test_collect_uefa_melbet_snapshots.py backend/test_import_uefa_xg_artifact.py backend/test_update_uefa_xg_history.py backend/test_predict_uefa_markets.py backend/test_evaluate_uefa_paper_signals.py backend/test_settle_uefa_paper_bets.py backend/test_build_uefa_app_feed.py backend/test_refresh_api_sport_unl_fixtures.py backend/test_probe_pitchapi_unl_date_index.py backend/test_diagnose_uefa_melbet_missing_boards.py backend/test_diagnose_uecl_api_sport_coverage.py backend/test_melbet_odds_archive.py backend/test_evaluate_market_observations.py backend/test_melbet_odds_archive.py -v
+
+  live-dnb-feed-audit:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_live_dnb_feed_audit && github.ref == 'refs/heads/test/restore-melbet-handicap-zero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/restore-melbet-handicap-zero
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install requests
+      - name: Read-only MelBet DNB feed audit
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/audit_dnb_live_feed.py --output dnb-live-feed-audit.json
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnb-live-feed-audit
+          path: dnb-live-feed-audit.json
+          if-no-files-found: error
+          retention-days: 7
+
