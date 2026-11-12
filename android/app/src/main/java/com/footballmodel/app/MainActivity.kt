@@ -2238,7 +2238,7 @@ class MainActivity : Activity() {
                 .put("quoteUpdatedAt", match.optJSONObject("odds")?.optString("updatedAt", ""))
                 .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
             bets.put(bet)
-            Thread(name = "save-manual-ai-bet") {
+            Thread(Runnable {
                 saveBets()
                 runOnUiThread {
                     Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
@@ -2247,7 +2247,7 @@ class MainActivity : Activity() {
                     // saveBets() invalidates the History caches; History renders fresh
                     // when the user opens that tab.
                 }
-            }.start()
+            }, "save-manual-ai-bet").start()
         }
     }
 
