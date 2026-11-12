@@ -81,6 +81,8 @@ class MainActivity : Activity() {
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
     private var renderedKey: String? = null
+    // Keep the user's vertical position independently for each tab/filter screen.
+    private val tabScrollPositions = mutableMapOf<String, Int>()
     private val liveRefreshHandler = Handler(Looper.getMainLooper())
     private val liveRefreshTask = object : Runnable {
         override fun run() {
@@ -952,21 +954,31 @@ class MainActivity : Activity() {
         currentTab = tab
         val generation = ++tabRenderGeneration
 
-        // Update navigation immediately; defer screen construction until the next
-        // frame, then ease the new content in instead of showing it abruptly.
+        // Update navigation immediately. A previously rendered tab is attached
+        // synchronously from the view cache; only first-time screens need a frame
+        // to construct their content.
         renderTabs()
         matchesContainer.animate().cancel()
-        matchesContainer.visibility = View.INVISIBLE
         leagueScroll.animate().cancel()
         leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
-        matchesContainer.postOnAnimation {
-            if (generation != tabRenderGeneration || currentTab != tab) {
-                if (generation == tabRenderGeneration) matchesContainer.visibility = View.VISIBLE
-                return@postOnAnimation
-            }
+        val targetKey = tab + "|" + when (tab) {
+            "matches" -> selectedLeague
+            "history" -> selectedHistoryTab
+            else -> "ALL"
+        }
+        if (tabViewCache.containsKey(targetKey) && data != null) {
             render()
+            matchesContainer.visibility = View.VISIBLE
             animateTabEntry(matchesContainer, direction)
             if (tab == "matches") animateTabEntry(leagueScroll, direction)
+        } else {
+            matchesContainer.visibility = View.INVISIBLE
+            matchesContainer.postOnAnimation {
+                if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
+                render()
+                animateTabEntry(matchesContainer, direction)
+                if (tab == "matches") animateTabEntry(leagueScroll, direction)
+            }
         }
 
         // Navigation uses the latest in-memory feed. Network refresh stays on its
@@ -2621,6 +2633,7 @@ class MainActivity : Activity() {
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
+            tabScrollPositions[renderedKey!!] = mainScrollView.scrollY
             val oldContent = mutableListOf<View>()
             while (matchesContainer.childCount > 0) {
                 val child = matchesContainer.getChildAt(0)
@@ -2652,9 +2665,21 @@ class MainActivity : Activity() {
             cached.second.forEach { leagueBar.addView(it) }
             leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
             renderedKey = targetKey
+            mainScrollView.post {
+                if (renderedKey == targetKey) {
+                    mainScrollView.scrollTo(0, tabScrollPositions[targetKey] ?: 0)
+                }
+            }
             return
         }
         renderedKey = targetKey
+        // Restore after the new children have been attached and measured. The
+        // callback is guarded so a rapid second tap cannot scroll the next tab.
+        mainScrollView.post {
+            if (renderedKey == targetKey) {
+                mainScrollView.scrollTo(0, tabScrollPositions[targetKey] ?: 0)
+            }
+        }
 
         if (currentTab == "day") {
             leagueBar.visibility = View.GONE
