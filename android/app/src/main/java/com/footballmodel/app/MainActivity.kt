@@ -1650,9 +1650,16 @@ class MainActivity : Activity() {
                         val item = bets.optJSONObject(k) ?: continue
                         if (item.optString("id") != id) next.put(item)
                     }
+                    // Keep the visible position stable when a bet is removed.
+                    val previousScrollY = mainScrollView.scrollY
                     bets = next
                     saveBets(preserveBackgroundAuto = false)
+                    // The cached history view contains the deleted row; force a fresh render.
+                    tabViewCache.remove("history|" + selectedHistoryTab)
                     render()
+                    mainScrollView.post {
+                        mainScrollView.scrollTo(0, previousScrollY)
+                    }
                 }
                 box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
             }
