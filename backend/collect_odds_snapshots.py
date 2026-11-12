@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 BOOKMAKER = "MELBET"
-PARSER_VERSION = "melbet-fulltime-v2"
+PARSER_VERSION = "melbet-fulltime-v3"
 LEAGUE_CODES = {"PL": "ENG", "PD": "ESP", "SA": "ITA", "BL1": "GER", "FL1": "FRA"}
 MATCH_TOTAL_LINES = {1.5, 2.5, 3.5}
 TEAM_TOTAL_LINES = {0.5, 1.5, 2.5, 3.5}
