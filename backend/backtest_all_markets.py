@@ -97,6 +97,13 @@ def market_probs(home_lambda, away_lambda):
     return result
 
 
+def binary_probability_dict(market, probability):
+    value = float(probability)
+    if market in ("DNB_HOME_CONDITIONAL", "DNB_AWAY_CONDITIONAL"):
+        return {"W": value, "L": 1.0 - value}
+    return {"0": 1.0 - value, "1": value}
+
+
 def score(rows, market, source):
     classes = market_classes(market)
     if not rows:
@@ -108,7 +115,7 @@ def score(rows, market, source):
         actual = str(row["actual"])
         if not market_is_multiclass(market) and not isinstance(probabilities, dict):
             probability_yes = float(probabilities)
-            probabilities = {"0": 1.0 - probability_yes, "1": probability_yes}
+            probabilities = binary_probability_dict(market, probability_yes)
         brier += sum((float(probabilities[label]) - (1.0 if label == actual else 0.0)) ** 2
                      for label in classes)
         log_loss -= math.log(max(1e-15, float(probabilities[actual])))
@@ -152,7 +159,7 @@ def fit_vector_scaling(train_rows, market, min_n=100):
     matrix, labels = [], []
     for row in train_rows:
         raw = row["model"]
-        probs = raw if isinstance(raw, dict) else {"0": 1.0 - float(raw), "1": float(raw)}
+        probs = raw if isinstance(raw, dict) else binary_probability_dict(market, raw)
         matrix.append([math.log(max(1e-8, min(1.0, float(probs[label]))))
                        for label in classes])
         labels.append(classes.index(str(row["actual"])))
@@ -183,7 +190,7 @@ def fit_vector_scaling(train_rows, market, min_n=100):
 def apply_vector_scaling(row, params):
     raw = row["model"]
     classes = params["classes"]
-    probs = raw if isinstance(raw, dict) else {"0": 1.0 - float(raw), "1": float(raw)}
+    probs = raw if isinstance(raw, dict) else binary_probability_dict(row["market"], raw)
     temperature = params["temperature"]
     logits = [math.log(max(1e-8, min(1.0, float(probs[label])))) / temperature
               + params["bias"][label] for label in classes]
@@ -220,8 +227,8 @@ def paired_bootstrap_brier_delta(rows, params, market, replicates=1000, seed=202
         raw = row["model"]
         calibrated = apply_vector_scaling(row, params)["calibrated"]
         if not market_is_multiclass(market):
-            raw = {"0": 1.0 - float(raw), "1": float(raw)}
-            calibrated = {"0": 1.0 - float(calibrated), "1": float(calibrated)}
+            raw = binary_probability_dict(market, raw)
+            calibrated = binary_probability_dict(market, calibrated)
         actual = str(row["actual"])
         raw_loss = sum((float(raw[label]) - (1.0 if actual == label else 0.0)) ** 2
                        for label in classes)
