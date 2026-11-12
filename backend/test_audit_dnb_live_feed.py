@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from audit_dnb_live_feed import build_report
+from audit_dnb_live_feed import build_report, map_model_predictions
 
 
 class DnbLiveFeedAuditTests(unittest.TestCase):
@@ -49,6 +49,23 @@ class DnbLiveFeedAuditTests(unittest.TestCase):
         self.assertEqual(report["counts"]["complete_home_away_pairs"], 0)
         self.assertEqual(report["counts"]["incomplete_pairs"], 1)
 
+
+
+    def test_maps_predictions_to_provider_ids_with_collector_fixture_match_rules(self):
+        cache = {"matches": {
+            "pitchapi-1": {"id": "pitchapi-1", "date": "2026-11-20T20:00:00Z",
+                           "home": "Arsenal", "away": "Chelsea", "leagueCode": "UCL"},
+        }}
+        provider = [{
+            "id": 777, "startTimestamp": 1795204800000,
+            "homeTeam": {"name": "Arsenal"}, "awayTeam": {"name": "Chelsea"},
+        }]
+        prediction = {"markets": {"handicap_zero": {
+            "home": {"win": 0.45, "push": 0.25, "lose": 0.30},
+            "away": {"win": 0.30, "push": 0.25, "lose": 0.45},
+        }}}
+        mapped = map_model_predictions(cache, provider, {"pitchapi-1": prediction})
+        self.assertEqual(mapped, {"777": prediction})
 
     def test_calculates_dnb_no_vig_and_experimental_calibrated_edge(self):
         fixture = self.fixture({
