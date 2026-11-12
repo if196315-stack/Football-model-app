@@ -1,4 +1,5 @@
 import sys
+import time
 import unittest
 from pathlib import Path
 
@@ -14,7 +15,7 @@ class DnbLiveFeedAuditTests(unittest.TestCase):
             "homeTeam": {"name": "Arsenal"},
             "awayTeam": {"name": "Chelsea"},
             "oddsBk": {"melbet": {
-                "updatedAtByStage": {"prematch": 1795287500000},
+                "updatedAtByStage": {"prematch": int(time.time() * 1000)},
                 "markets": markets,
             }},
         }
