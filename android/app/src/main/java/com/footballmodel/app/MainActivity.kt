@@ -2392,10 +2392,22 @@ class MainActivity : Activity() {
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "ТОП", "AI-подборки: сильнейшие сигналы матчей из раздела Линия с проверкой цены MelBet, вероятности, edge и EV.")
         val sorted = collectAiCandidates(json)
+        val recordedMatches = sorted.count { candidate ->
+            val match = candidate.first
+            val bundle = candidate.third
+            val signals = mutableListOf<JSONObject>()
+            bundle.optJSONObject("primary")?.let { signals.add(it) }
+            val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
+            for (i in 0 until alternatives.length()) alternatives.optJSONObject(i)?.let { signals.add(it) }
+            signals.any { isAiBetRecorded(match, it) }
+        }
+        val openMatches = sorted.size - recordedMatches
         val betsCountCard = card()
-        addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
+        addText(betsCountCard, "НАЙДЕНО МАТЧЕЙ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "В AI попадает только сильнейший сигнал раздела Линия по критерию Kelly. Если он не проходит строгие фильтры, альтернативный рынок вместо него не подставляется.", 11, false, muted)
+        addText(betsCountCard, "Зафиксировано: $recordedMatches", 13, true, accent)
+        addText(betsCountCard, "Открыто: $openMatches", 13, true, cyan)
+        addText(betsCountCard, "Открытые — новые матчи, по которым ещё не записан ни один сигнал. В AI попадает только сильнейший сигнал раздела Линия по критерию Kelly; если он не проходит строгие фильтры, альтернативный рынок вместо него не подставляется.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
