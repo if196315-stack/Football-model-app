@@ -1175,52 +1175,76 @@ class MainActivity : Activity() {
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
-    private fun renderAiBetStats() {
-        val aiBets = mutableListOf<JSONObject>()
-        for (i in 0 until bets.length()) {
-            val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("source") in listOf("AI_AUTO", "AI_MANUAL")) aiBets.add(bet)
-        }
+    private fun renderSavedBetStats() {
+        var stakeAll = 0.0
+        var turnover = 0.0
+        var profit = 0.0
+        var payout = 0.0
+        var possiblePayout = 0.0
+        var possibleProfit = 0.0
         var wins = 0
         var losses = 0
         var pushes = 0
         var pending = 0
-        var turnover = 0.0
-        var profit = 0.0
-        var pendingPayout = 0.0
-        var autoCount = 0
-        var manualCount = 0
-        aiBets.forEach { bet ->
-            val stake = bet.optDouble("stake", 0.0)
-            val odds = bet.optDouble("odds", 0.0)
-            when (bet.optString("source")) {
-                "AI_AUTO" -> autoCount++
-                "AI_MANUAL" -> manualCount++
-            }
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val stake = bet.optDouble("stake")
+            val odds = bet.optDouble("odds")
+            stakeAll += stake
             when (bet.optString("status")) {
-                "WON" -> { wins++; turnover += stake; profit += stake * (odds - 1.0) }
+                "WON" -> { wins++; turnover += stake; profit += stake * (odds - 1); payout += stake * odds }
                 "LOST" -> { losses++; turnover += stake; profit -= stake }
-                "PUSH" -> { pushes++; turnover += stake }
-                else -> { pending++; pendingPayout += stake * odds }
+                "PUSH" -> { pushes++; turnover += stake; payout += stake }
+                else -> { pending++; possiblePayout += stake * odds; possibleProfit += stake * (odds - 1.0) }
             }
         }
-        val settled = wins + losses + pushes
-        val roi = if (turnover > 0.0) String.format(Locale.US, "%+.1f%%", profit / turnover * 100.0) else "—"
-        val summary = card()
-        addText(summary, "AI СТАВКИ", 11, true, accent)
-        addText(summary, "Всего: ${aiBets.size} · авто: $autoCount · вручную: $manualCount", 13, true, Color.WHITE)
-        addText(summary, "W $wins · L $losses · возврат $pushes · ожидают $pending", 12, true, cyan)
-        addText(summary, "Оборот: ${fmt(turnover)} ₽ · результат: " +
-            (if (profit >= 0.0) "+" else "") + fmt(profit) + " ₽", 12, true,
-            if (profit >= 0.0) accent else Color.RED)
-        addText(summary, "ROI: $roi · по рассчитанным ставкам ($settled)", 10, false, muted)
-        if (pending > 0) addText(summary, "Потенциальная выплата по открытым: ${fmt(pendingPayout)} ₽", 10, false, muted)
-        if (aiBets.isEmpty()) addText(summary, "AI-ставки появятся здесь после автоматической или ручной фиксации.", 10, false, muted)
+        val sum = card().apply {
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+        }
+        addText(sum, "СТАТИСТИКА СОХРАНЁННЫХ СТАВОК", 10, true, accent)
+        addText(sum, "Всего ${bets.length()}  ·  W $wins  ·  L $losses  ·  возврат $pushes  ·  открытые $pending", 10, true)
+        addText(sum, "Ставки: ${fmt(stakeAll)}  ·  оборот: ${fmt(turnover)}", 10, false, muted)
+        addText(sum, "Открытые: выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, true, accent)
+        addText(sum, "Выплаты: ${fmt(payout)}  ·  результат: " + (if (profit >= 0) "+" else "") + fmt(profit), 10, true, if (profit >= 0) accent else Color.RED)
+        addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + "  ·  рассчитан по закрытым ставкам", 10, true)
+        addText(sum, "ПО ТУРНИРАМ", 9, true, cyan)
+        val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
+        listOf(
+            "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
+            "Германия · Бундеслига", "Франция · Лига 1",
+            "Лига чемпионов УЕФА", "Лига Европы УЕФА", "Лига конференций УЕФА",
+        ).forEach { betsByLeague[it] = mutableListOf() }
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val league = displayLeagueName(bet.optString("league"))
+            betsByLeague.getOrPut(league) { mutableListOf() }.add(bet)
+        }
+        betsByLeague.toSortedMap().forEach { (league, rows) ->
+            var leagueWins = 0
+            var leagueLosses = 0
+            var leaguePushes = 0
+            var leagueTurnover = 0.0
+            var leagueProfit = 0.0
+            rows.forEach { bet ->
+                val stake = bet.optDouble("stake")
+                val odds = bet.optDouble("odds")
+                when (bet.optString("status")) {
+                    "WON" -> { leagueWins++; leagueTurnover += stake; leagueProfit += stake * (odds - 1.0) }
+                    "LOST" -> { leagueLosses++; leagueTurnover += stake; leagueProfit -= stake }
+                    "PUSH" -> { leaguePushes++; leagueTurnover += stake }
+                }
+            }
+            val settledCount = leagueWins + leagueLosses + leaguePushes
+            val roi = if (leagueTurnover > 0.0) String.format(Locale.US, "%.1f%%", leagueProfit / leagueTurnover * 100.0) else "—"
+            addText(sum, "$league · ${rows.size} ставок · W $leagueWins / L $leagueLosses / возврат $leaguePushes · ROI $roi", 10, false, muted)
+            if (settledCount == 0) addText(sum, "Пока нет рассчитанных ставок", 9, false, muted)
+        }
+
     }
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "STATS", "Статистика AI-ставок и общая сводка по рабочим рынкам.")
-        renderAiBetStats()
+        screenHeader("PERFORMANCE CENTER", "STATS", "Статистика сохранённых ставок и точность прогнозов модели.")
+        renderSavedBetStats()
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
@@ -1619,70 +1643,6 @@ class MainActivity : Activity() {
             }
         }
         if (changed) saveBets()
-
-        var stakeAll = 0.0
-        var turnover = 0.0
-        var profit = 0.0
-        var payout = 0.0
-        var possiblePayout = 0.0
-        var possibleProfit = 0.0
-        var wins = 0
-        var losses = 0
-        var pushes = 0
-        var pending = 0
-        for (i in 0 until bets.length()) {
-            val bet = bets.optJSONObject(i) ?: continue
-            val stake = bet.optDouble("stake")
-            val odds = bet.optDouble("odds")
-            stakeAll += stake
-            when (bet.optString("status")) {
-                "WON" -> { wins++; turnover += stake; profit += stake * (odds - 1); payout += stake * odds }
-                "LOST" -> { losses++; turnover += stake; profit -= stake }
-                "PUSH" -> { pushes++; turnover += stake; payout += stake }
-                else -> { pending++; possiblePayout += stake * odds; possibleProfit += stake * (odds - 1.0) }
-            }
-        }
-        val sum = card().apply {
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-        }
-        addText(sum, "СТАТИСТИКА СОХРАНЁННЫХ СТАВОК", 10, true, accent)
-        addText(sum, "Всего ${bets.length()}  ·  W $wins  ·  L $losses  ·  возврат $pushes  ·  открытые $pending", 10, true)
-        addText(sum, "Ставки: ${fmt(stakeAll)}  ·  оборот: ${fmt(turnover)}", 10, false, muted)
-        addText(sum, "Открытые: выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, true, accent)
-        addText(sum, "Выплаты: ${fmt(payout)}  ·  результат: " + (if (profit >= 0) "+" else "") + fmt(profit), 10, true, if (profit >= 0) accent else Color.RED)
-        addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + "  ·  рассчитан по закрытым ставкам", 10, true)
-        addText(sum, "ПО ТУРНИРАМ", 9, true, cyan)
-        val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
-        listOf(
-            "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
-            "Германия · Бундеслига", "Франция · Лига 1",
-            "Лига чемпионов УЕФА", "Лига Европы УЕФА", "Лига конференций УЕФА",
-        ).forEach { betsByLeague[it] = mutableListOf() }
-        for (i in 0 until bets.length()) {
-            val bet = bets.optJSONObject(i) ?: continue
-            val league = displayLeagueName(bet.optString("league"))
-            betsByLeague.getOrPut(league) { mutableListOf() }.add(bet)
-        }
-        betsByLeague.toSortedMap().forEach { (league, rows) ->
-            var leagueWins = 0
-            var leagueLosses = 0
-            var leaguePushes = 0
-            var leagueTurnover = 0.0
-            var leagueProfit = 0.0
-            rows.forEach { bet ->
-                val stake = bet.optDouble("stake")
-                val odds = bet.optDouble("odds")
-                when (bet.optString("status")) {
-                    "WON" -> { leagueWins++; leagueTurnover += stake; leagueProfit += stake * (odds - 1.0) }
-                    "LOST" -> { leagueLosses++; leagueTurnover += stake; leagueProfit -= stake }
-                    "PUSH" -> { leaguePushes++; leagueTurnover += stake }
-                }
-            }
-            val settledCount = leagueWins + leagueLosses + leaguePushes
-            val roi = if (leagueTurnover > 0.0) String.format(Locale.US, "%.1f%%", leagueProfit / leagueTurnover * 100.0) else "—"
-            addText(sum, "$league · ${rows.size} ставок · W $leagueWins / L $leagueLosses / возврат $leaguePushes · ROI $roi", 10, false, muted)
-            if (settledCount == 0) addText(sum, "Пока нет рассчитанных ставок", 9, false, muted)
-        }
 
         val openBets = mutableListOf<JSONObject>()
         val completedBets = mutableListOf<JSONObject>()
