@@ -227,8 +227,6 @@ class MainActivity : Activity() {
         }
         mainScrollView.addView(root)
         setContentView(mainScrollView)
-        SectionNotifications.ensureChannel(this)
-        SectionNotifications.requestPermissionIfNeeded(this)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -896,7 +894,6 @@ class MainActivity : Activity() {
                     val title = "${match.optString("home")} — ${match.optString("away")}"
                     matchId to title
                 }
-                AiMatchNotifications.observe(applicationContext, aiCandidates)
                 val payload = json.toString()
                 feedCache.edit()
                     .putString("merged_json", payload)
@@ -911,13 +908,6 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     }
-                    // Keep report notifications independent from the backend-only observation archive.
-                    val currentBets = betPrefs.getString("bets", "[]") ?: "[]"
-                    val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                    val startingBank = settingsPrefs.getString("initial_bankroll", "") ?: ""
-                    SectionNotifications.observeAndNotify(this, SectionNotifications.fingerprint(
-                        reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets
-                    ))
                     // Keep existing paper-bet processing and settlement behavior unchanged.
                     processAutoPaperBets(json)
                     if (!changed) {

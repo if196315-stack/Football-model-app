@@ -42,8 +42,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 .putString("merged_json", mergedPayload)
                 .putLong("last_successful_check_ms", System.currentTimeMillis())
                 .commit()) { "Unable to persist refreshed match feed" }
-            // The periodic worker keeps AI-new-match alerts active even when the UI is closed.
-            AiMatchNotifications.observe(applicationContext, collectAiNotificationCandidates(domestic))
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
@@ -75,10 +73,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                                 "LOST" -> -stake
                                 else -> 0.0
                             }
-                            NotificationCenter.add(applicationContext, "settlement:$key:$newStatus", "bet_settlement",
-                                "Ставка рассчитана: $outcome",
-                                "$matchName · счёт ${settled.optString("score")} · ${String.format(Locale.US, "%+.2f", amount)}",
-                                "history", key)
                         }
                     }
                 }
@@ -96,19 +90,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     val bet = bets.optJSONObject(i) ?: continue
                     if (bet.optString("source") == "AI_AUTO" && bet.optString("status") == "PENDING") pendingAuto++
                 }
-            }
-            // Monitor the same combined section in the background while the app is closed.
-            // The first successful check establishes a baseline; archived old rows do not notify.
-            val snapshotsBody = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/odds-snapshots.jsonl")
-            val resultsBody = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/artifacts/market-observation-results.jsonl")
-            if (snapshotsBody != null && resultsBody != null) {
-                val currentBets = prefs.getString("bets", "[]") ?: "[]"
-                val reportDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                val startingBank = settings.getString("initial_bankroll", "") ?: ""
-                SectionNotifications.observeAndNotify(
-                    applicationContext,
-                    SectionNotifications.fingerprint(reportDay + "|BANK|" + startingBank + "|BETS|" + currentBets + "|SNAPSHOTS|" + snapshotsBody + "|RESULTS|" + resultsBody)
-                )
             }
             settings.edit()
                 .putLong("paper_worker_last_run_ms", System.currentTimeMillis())
