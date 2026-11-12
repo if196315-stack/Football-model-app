@@ -60,6 +60,7 @@ class MainActivity : Activity() {
     private var currentTab = "matches"
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
+    private lateinit var mainScrollView: ScrollView
     private var data: JSONObject? = null
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
@@ -142,7 +143,7 @@ class MainActivity : Activity() {
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
-        val scroll = object : ScrollView(this) {
+        mainScrollView = object : ScrollView(this) {
             private var gestureDownX = 0f
             private var gestureDownY = 0f
             private var swipeOriginInLeagueFilters = false
@@ -250,8 +251,8 @@ class MainActivity : Activity() {
             setPadding(dp(16), dp(22), dp(16), dp(28))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
-        scroll.addView(root)
-        setContentView(scroll)
+        mainScrollView.addView(root)
+        setContentView(mainScrollView)
         SectionNotifications.ensureChannel(this)
         SectionNotifications.requestPermissionIfNeeded(this)
 
@@ -1566,55 +1567,16 @@ class MainActivity : Activity() {
                 else -> { pending++; possiblePayout += stake * odds; possibleProfit += stake * (odds - 1.0) }
             }
         }
-        val aiHistoryCard = card()
-        addText(aiHistoryCard, "AI · АВТОИСТОРИЯ РЕКОМЕНДАЦИЙ", 10, true, cyan)
-        addText(aiHistoryCard, "Каждый прошедший AI сильнейший сигнал с котировкой MelBet фиксируется по первой показанной цене и рассчитывается по финальному счёту. ROI рассчитан при 1 условной единице на сигнал. История локальная для этого устройства.", 9, false, muted)
-        val aiHistory = try {
-            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
-        } catch (_: Exception) {
-            JSONArray()
+        val sum = card().apply {
+            setPadding(dp(12), dp(10), dp(12), dp(10))
         }
-        val aiLeagueNames = linkedMapOf(
-            "PL" to "Англия · Премьер-лига",
-            "PD" to "Испания · Ла Лига",
-            "SA" to "Италия · Серия A",
-            "BL1" to "Германия · Бундеслига",
-            "FL1" to "Франция · Лига 1",
-            "UCL" to "Лига чемпионов УЕФА",
-            "UEL" to "Лига Европы УЕФА",
-            "UECL" to "Лига конференций УЕФА",
-        )
-        val aiRowsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
-        aiLeagueNames.forEach { (code, _) -> aiRowsByLeague[code] = mutableListOf() }
-        for (i in 0 until aiHistory.length()) {
-            val row = aiHistory.optJSONObject(i) ?: continue
-            val code = row.optString("leagueCode")
-            aiRowsByLeague.getOrPut(code.ifBlank { row.optString("league") }) { mutableListOf() }.add(row)
-        }
-        aiRowsByLeague.forEach { (code, rows) ->
-            val wins = rows.count { it.optString("status") == "WON" }
-            val losses = rows.count { it.optString("status") == "LOST" }
-            val pendingSignals = rows.count { it.optString("status") == "PENDING" }
-            val settledSignals = wins + losses
-            val profitUnits = rows.filter { it.optString("status") in listOf("WON", "LOST") }
-                .sumOf { it.optDouble("profitUnits", 0.0) }
-            val roi = if (settledSignals > 0) String.format(Locale.US, "%.1f%%", profitUnits / settledSignals * 100.0) else "—"
-            val name = aiLeagueNames[code] ?: code
-            addText(aiHistoryCard, "$name · сигналов ${rows.size} · W $wins / L $losses / ждут $pendingSignals · ROI $roi", 10, false, muted)
-        }
-        if (aiHistory.length() == 0) addText(aiHistoryCard, "Пока нет сохранённых AI-рекомендаций. Новые сигналы будут фиксироваться автоматически.", 10, false, muted)
-
-        val sum = card()
         addText(sum, "СТАТИСТИКА СОХРАНЁННЫХ СТАВОК", 10, true, accent)
-        addText(sum, "Всего: " + bets.length() + " · выигрыш: " + wins + " · проигрыш: " + losses + " · возврат: " + pushes + " · открытые: " + pending, 12, true)
-        addText(sum, "Сумма ставок: " + fmt(stakeAll), 13, true)
-        addText(sum, "Возможная выплата по открытым: " + fmt(possiblePayout) + " · чистый выигрыш: +" + fmt(possibleProfit), 12, true, accent)
-        addText(sum, "Выплаты: " + fmt(payout) + " · чистый результат: " + (if (profit >= 0) "+" else "") + fmt(profit), 12, true, if (profit >= 0) accent else Color.RED)
-        addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + " · рассчитанный оборот: " + fmt(turnover), 12, true)
-        addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
-        addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
-        addText(sum, "ПОЛЬЗОВАТЕЛЬСКИЕ СТАВКИ · ПО ТУРНИРАМ", 10, true, cyan)
-        addText(sum, "Только ставки, которые пользователь сохранил отдельно; автоматическая история AI-рекомендаций показана выше.", 9, false, muted)
+        addText(sum, "Всего ${bets.length()}  ·  W $wins  ·  L $losses  ·  возврат $pushes  ·  открытые $pending", 10, true)
+        addText(sum, "Ставки: ${fmt(stakeAll)}  ·  оборот: ${fmt(turnover)}", 10, false, muted)
+        addText(sum, "Открытые: выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, true, accent)
+        addText(sum, "Выплаты: ${fmt(payout)}  ·  результат: " + (if (profit >= 0) "+" else "") + fmt(profit), 10, true, if (profit >= 0) accent else Color.RED)
+        addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + "  ·  рассчитан по закрытым ставкам", 10, true)
+        addText(sum, "ПО ТУРНИРАМ", 9, true, cyan)
         val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
         listOf(
             "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
@@ -1747,11 +1709,16 @@ class MainActivity : Activity() {
                 else rounded(surface, 28)
                 setOnClickListener {
                     if (selectedHistoryTab == key) return@setOnClickListener
-                    val direction = if (key == "COMPLETED") 1 else -1
+                    // Keep the outer page at the same vertical position when
+                    // switching between Open and Completed history subtabs.
+                    val previousScrollY = mainScrollView.scrollY
                     selectedHistoryTab = key
+                    matchesContainer.animate().cancel()
                     render()
-                    matchesContainer.postOnAnimation {
-                        if (currentTab == "history" && selectedHistoryTab == key) animateTabEntry(matchesContainer, direction)
+                    mainScrollView.post {
+                        mainScrollView.scrollTo(0, previousScrollY)
+                        matchesContainer.alpha = 1f
+                        matchesContainer.translationX = 0f
                     }
                 }
             }
@@ -2232,13 +2199,16 @@ class MainActivity : Activity() {
                 .put("quoteUpdatedAt", match.optJSONObject("odds")?.optString("updatedAt", ""))
                 .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
             bets.put(bet)
-            Thread {
+            Thread(Runnable {
                 saveBets()
                 runOnUiThread {
                     Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
-                    render()
+                    // Do not rebuild the active screen here: a full render can block
+                    // scrolling and taps after the confirmation dialog has closed.
+                    // saveBets() invalidates the History caches; History renders fresh
+                    // when the user opens that tab.
                 }
-            }.start()
+            }, "save-manual-ai-bet").start()
         }
     }
 
