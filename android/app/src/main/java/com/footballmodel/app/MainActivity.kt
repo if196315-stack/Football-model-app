@@ -2410,37 +2410,39 @@ class MainActivity : Activity() {
             addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
             addText(box, kickoffLabel(m), 10, false, muted)
             addText(box, "САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, cyan)
-            addAiSignalDetails(box, primary, m, true)
+            val statusViews = linkedMapOf<JSONObject, TextView>()
+            statusViews[primary] = addAiSignalDetails(box, primary, m, true)
             if (alternatives.length() > 0) {
                 addText(box, "АЛЬТЕРНАТИВЫ · ТОЖЕ ПРОШЛИ ФИЛЬТРЫ", 10, true, cyan)
                 for (k in 0 until alternatives.length()) {
                     val alt = alternatives.optJSONObject(k) ?: continue
-                    addAiSignalDetails(box, alt, m, false)
+                    statusViews[alt] = addAiSignalDetails(box, alt, m, false)
                 }
             }
             val available = mutableListOf<JSONObject>()
             available.add(primary)
             for (k in 0 until alternatives.length()) alternatives.optJSONObject(k)?.let { available.add(it) }
             val notRecorded = available.filterNot { isAiBetRecorded(m, it) }
-            if (notRecorded.isEmpty()) {
-                addText(box, "✓ Все прошедшие сигналы уже записаны в историю", 12, true, accent)
-            } else {
+            if (notRecorded.isNotEmpty()) {
                 lateinit var recordButton: Button
                 recordButton = actionButton(box, if (notRecorded.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории") {
                     val remaining = available.filterNot { isAiBetRecorded(m, it) }
                     if (remaining.isEmpty()) {
-                        recordButton.text = "✓ Уже в истории"
+                        recordButton.text = "✓ Все сигналы записаны"
                         recordButton.isEnabled = false
                         return@actionButton
                     }
                     val updateRecordedState: (JSONObject) -> Unit = { recordedSignal ->
+                        statusViews[recordedSignal]?.apply {
+                            text = "✓ Добавлено вручную"
+                            setTextColor(accent)
+                        }
                         val stillMissing = available.filterNot { isAiBetRecorded(m, it) }
                         if (stillMissing.isEmpty()) {
-                            recordButton.text = "✓ Уже в истории"
+                            recordButton.text = "✓ Все сигналы записаны"
                             recordButton.isEnabled = false
                         } else {
                             recordButton.text = if (stillMissing.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории"
-                            addText(box, "✓ ${recordedSignal.optString("side")} — уже в истории", 10, true, accent)
                         }
                     }
                     if (remaining.size == 1) {
@@ -2470,20 +2472,23 @@ class MainActivity : Activity() {
         addText(footer, "Один сильнейший сигнал на матч из раздела Линия: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Если лидер не проходит фильтры, матч исключается; другие рынки не подменяют его.", 11, false, muted)
     }
 
-    private fun addAiSignalDetails(box: LinearLayout, signal: JSONObject, match: JSONObject, primary: Boolean) {
-        val odds = topSignalOdds(signal, match) ?: return
+    private fun addAiSignalDetails(box: LinearLayout, signal: JSONObject, match: JSONObject, primary: Boolean): TextView {
+        val odds = topSignalOdds(signal, match)
         val probability = signal.optDouble("modelProbability", 0.0)
-        val ev = probability * odds - 1.0
-        val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
+        val ev = if (odds != null) probability * odds - 1.0 else Double.NaN
+        val edge = if (odds != null) {
+            if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
             else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
-        addText(box, "${if (primary) "★ " else "• "}${signal.optString("side")} · MelBet ${fmt(odds)}", 14, true, if (primary) gold else Color.WHITE)
-        addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", probability * 100)}% · Edge: ${String.format(Locale.US, "%+.1f", edge)} п.п. · EV: ${String.format(Locale.US, "%+.1f", ev * 100)}%", 11, false, muted)
+        } else Double.NaN
+        addText(box, "${if (primary) "★ " else "• "}${signal.optString("side")} · MelBet ${odds?.let { fmt(it) } ?: "—"}", 14, true, if (primary) gold else Color.WHITE)
+        addText(box, "Вероятность модели: ${String.format(Locale.US, "%.1f", probability * 100)}% · Edge: ${if (edge.isFinite()) String.format(Locale.US, "%+.1f", edge) else "—"} п.п. · EV: ${if (ev.isFinite()) String.format(Locale.US, "%+.1f", ev * 100) else "—"}%", 11, false, muted)
         if (signal.optBoolean("paperOnly")) {
             addText(box, "Серверный UEFA paper-сигнал", 10, false, muted)
         } else {
             addText(box, "Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}% · ${signal.optInt("baselineMatches")} матчей", 10, false, muted)
         }
-        if (isAiBetRecorded(match, signal)) addText(box, "✓ Уже в истории", 10, true, accent)
+        val recorded = isAiBetRecorded(match, signal)
+        return label(if (recorded) "✓ Добавлено вручную" else "○ Не добавлено", 10, true, if (recorded) accent else muted).also { box.addView(it) }
     }
 
     private fun renderDay(json: JSONObject) {
