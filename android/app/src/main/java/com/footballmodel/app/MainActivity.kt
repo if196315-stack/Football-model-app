@@ -997,7 +997,6 @@ class MainActivity : Activity() {
     }
 
     private var tabRenderGeneration = 0
-
     private fun animateTabEntry(view: View, direction: Int) {
         view.animate().cancel()
         view.alpha = 0f
@@ -1179,7 +1178,7 @@ class MainActivity : Activity() {
         val aiBets = mutableListOf<JSONObject>()
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("source") in listOf("AI_AUTO", "AI_MANUAL")) aiBets.add(bet)
+            if (bet.optString("source") == "AI_MANUAL") aiBets.add(bet)
         }
         var wins = 0
         var losses = 0
@@ -1188,15 +1187,9 @@ class MainActivity : Activity() {
         var turnover = 0.0
         var profit = 0.0
         var pendingPayout = 0.0
-        var autoCount = 0
-        var manualCount = 0
         aiBets.forEach { bet ->
             val stake = bet.optDouble("stake", 0.0)
             val odds = bet.optDouble("odds", 0.0)
-            when (bet.optString("source")) {
-                "AI_AUTO" -> autoCount++
-                "AI_MANUAL" -> manualCount++
-            }
             when (bet.optString("status")) {
                 "WON" -> { wins++; turnover += stake; profit += stake * (odds - 1.0) }
                 "LOST" -> { losses++; turnover += stake; profit -= stake }
@@ -1208,14 +1201,14 @@ class MainActivity : Activity() {
         val roi = if (turnover > 0.0) String.format(Locale.US, "%+.1f%%", profit / turnover * 100.0) else "—"
         val summary = card()
         addText(summary, "AI СТАВКИ", 11, true, accent)
-        addText(summary, "Всего: ${aiBets.size} · авто: $autoCount · вручную: $manualCount", 13, true, Color.WHITE)
+        addText(summary, "Всего ручных ставок: ${aiBets.size}", 13, true, Color.WHITE)
         addText(summary, "W $wins · L $losses · возврат $pushes · ожидают $pending", 12, true, cyan)
         addText(summary, "Оборот: ${fmt(turnover)} ₽ · результат: " +
             (if (profit >= 0.0) "+" else "") + fmt(profit) + " ₽", 12, true,
             if (profit >= 0.0) accent else Color.RED)
         addText(summary, "ROI: $roi · по рассчитанным ставкам ($settled)", 10, false, muted)
         if (pending > 0) addText(summary, "Потенциальная выплата по открытым: ${fmt(pendingPayout)} ₽", 10, false, muted)
-        if (aiBets.isEmpty()) addText(summary, "AI-ставки появятся здесь после автоматической или ручной фиксации.", 10, false, muted)
+        if (aiBets.isEmpty()) addText(summary, "Ручные AI-ставки появятся здесь после фиксации.", 10, false, muted)
     }
 
     private fun renderStats(json: JSONObject) {
@@ -1997,8 +1990,7 @@ class MainActivity : Activity() {
     }
 
     private fun hasActiveMelBetPrematchLine(match: JSONObject): Boolean {
-        val odds = match.optJSONObject("odds") ?: return false
-        val bookmaker = odds.optString("bookmaker")
+        val odds = match.optJSONObject("odds") ?: return false        val bookmaker = odds.optString("bookmaker")
         val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true) else odds.optString("source").contains("MelBet", ignoreCase = true)
         if (!isMelBet) return false
 
