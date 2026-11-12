@@ -199,7 +199,12 @@ def apply_vector_scaling(row, params):
     total = sum(exp_z)
     calibrated = {label: exp_z[i] / total for i, label in enumerate(classes)}
     result = dict(row)
-    result["calibrated"] = calibrated if market_is_multiclass(row["market"]) else calibrated["1"]
+    if market_is_multiclass(row["market"]):
+        result["calibrated"] = calibrated
+    elif row["market"] in ("DNB_HOME_CONDITIONAL", "DNB_AWAY_CONDITIONAL"):
+        result["calibrated"] = calibrated["W"]
+    else:
+        result["calibrated"] = calibrated["1"]
     return result
 
 
