@@ -61,6 +61,8 @@ def market_outcomes(home_goals, away_goals):
         "BTTS": int(home_goals > 0 and away_goals > 0),
         "DNB_HOME": "W" if home_goals > away_goals else "L" if home_goals < away_goals else "P",
         "DNB_AWAY": "W" if away_goals > home_goals else "L" if away_goals < home_goals else "P",
+        "DNB_HOME_CONDITIONAL": ("W" if home_goals > away_goals else "L") if home_goals != away_goals else None,
+        "DNB_AWAY_CONDITIONAL": ("W" if away_goals > home_goals else "L") if home_goals != away_goals else None,
     }
     for line in MATCH_LINES:
         result[f"TOTAL_OVER_{line}"] = int(total > line)
@@ -84,6 +86,8 @@ def market_probs(home_lambda, away_lambda):
         "BTTS": (1 - home_pmf[0]) * (1 - away_pmf[0]),
         "DNB_HOME": {"W": p_home, "P": p_draw, "L": p_away},
         "DNB_AWAY": {"W": p_away, "P": p_draw, "L": p_home},
+        "DNB_HOME_CONDITIONAL": p_home / max(1e-15, p_home + p_away),
+        "DNB_AWAY_CONDITIONAL": p_away / max(1e-15, p_home + p_away),
     }
     for line in MATCH_LINES:
         result[f"TOTAL_OVER_{line}"] = sum(p for (h, a), p in joint.items() if h + a > line)
@@ -94,8 +98,7 @@ def market_probs(home_lambda, away_lambda):
 
 
 def score(rows, market, source):
-    classes = ("1", "X", "2") if market == "1X2" else (
-        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    classes = market_classes(market)
     if not rows:
         return None
     brier = log_loss = correct = 0.0
@@ -142,8 +145,7 @@ def compare(model, baseline):
 
 def fit_vector_scaling(train_rows, market, min_n=100):
     """Fit regularized vector scaling on prior walk-forward predictions only."""
-    classes = ("1", "X", "2") if market == "1X2" else (
-        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    classes = market_classes(market)
     if len(train_rows) < min_n:
         return {"available": False, "reason": "insufficient_training_rows",
                 "train_n": len(train_rows), "classes": list(classes)}
@@ -194,8 +196,18 @@ def apply_vector_scaling(row, params):
     return result
 
 
+def market_classes(market):
+    if market == "1X2":
+        return ("1", "X", "2")
+    if market in ("DNB_HOME", "DNB_AWAY"):
+        return ("W", "P", "L")
+    if market in ("DNB_HOME_CONDITIONAL", "DNB_AWAY_CONDITIONAL"):
+        return ("W", "L")
+    return ("0", "1")
+
+
 def market_is_multiclass(market):
-    return market == "1X2" or market.startswith("DNB")
+    return market == "1X2" or market in ("DNB_HOME", "DNB_AWAY")
 
 
 def paired_bootstrap_brier_delta(rows, params, market, replicates=1000, seed=20261111):
@@ -208,7 +220,7 @@ def paired_bootstrap_brier_delta(rows, params, market, replicates=1000, seed=202
     for row in rows:
         raw = row["model"]
         calibrated = apply_vector_scaling(row, params)["calibrated"]
-        if market != "1X2" and not market.startswith("DNB"):
+        if not market_is_multiclass(market):
             raw = {"0": 1.0 - float(raw), "1": float(raw)}
             calibrated = {"0": 1.0 - float(calibrated), "1": float(calibrated)}
         actual = str(row["actual"])
@@ -261,7 +273,8 @@ def run(rows, holdout):
     markets = ["1X2", "DC_1X", "DC_X2", "BTTS",
                *(f"TOTAL_OVER_{line}" for line in MATCH_LINES),
                *(f"{side}_OVER_{line}" for side in ("HOME", "AWAY") for line in TEAM_LINES),
-               "DNB_HOME", "DNB_AWAY"]
+               "DNB_HOME", "DNB_AWAY",
+               "DNB_HOME_CONDITIONAL", "DNB_AWAY_CONDITIONAL"]
     for date in sorted(by_date):
         today = by_date[date]
         base = {}
@@ -284,8 +297,9 @@ def run(rows, holdout):
             model_probabilities = market_probs(home_lambda, away_lambda)
             actual = market_outcomes(match["hg"], match["ag"])
             for market in markets:
-                classes = ("1", "X", "2") if market == "1X2" else (
-                    ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+                if actual[market] is None:
+                    continue
+                classes = market_classes(market)
                 prior = counts[league][market]
                 baseline_probabilities = {
                     label: (prior[label] + 1) / (sum(prior.values()) + len(classes))
@@ -303,7 +317,8 @@ def run(rows, holdout):
             league = match["league"]
             actual = market_outcomes(match["hg"], match["ag"])
             for market in markets:
-                counts[league][market][str(actual[market])] += 1
+                if actual[market] is not None:
+                    counts[league][market][str(actual[market])] += 1
             histories[(league, match["home"])].append(
                 {"side": "home", "xg": match["hx"], "xga": match["ax"]})
             histories[(league, match["away"])].append(
@@ -329,6 +344,8 @@ def run(rows, holdout):
         "market_relationships": {
             "DNB_HOME": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
             "DNB_AWAY": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
+            "DNB_HOME_CONDITIONAL": "Binary home win/loss calibration on decisive matches only; draws excluded from both fit and score.",
+            "DNB_AWAY_CONDITIONAL": "Binary away win/loss calibration on decisive matches only; draws excluded from both fit and score.",
         },
         "baseline_definition": "Expanding historical frequency within each competition, Laplace +1 smoothing; only results before the fixture date are used.",
         "model_definition": f"Independent Poisson using prior paired-xG team history; window={WINDOW}, half_life={HALF_LIFE}, shrinkage={SHRINKAGE}; same-calendar-day leakage prevented.",
@@ -336,7 +353,8 @@ def run(rows, holdout):
             "No historical odds are present: edge, EV, bookmaker comparison and ROI are not measured.",
             "This research backtest is not a claim that the Android production candidate engine uses identical probabilities.",
             "BTTS NO is the complement of BTTS YES and is not reported as a separate row.",
-            "DNB metrics include push as a third outcome class."
+            "DNB W/P/L metrics include push as a third outcome class; conditional DNB metrics exclude draws and score only win/loss on decisive matches.",
+            "DNB conditional calibration is a diagnostic of win probability given no draw; it is not an independent market or evidence of betting ROI."
         ],
     }
     for market in markets:
@@ -418,7 +436,7 @@ def main():
         }
         # DNB_HOME/AWAY reuse the same W/P/L partition as 1X2; exclude them
         # from competition-level aggregate improvement counts to avoid double weight.
-        if market in ("DNB_HOME", "DNB_AWAY"):
+        if market in ("DNB_HOME", "DNB_AWAY", "DNB_HOME_CONDITIONAL", "DNB_AWAY_CONDITIONAL"):
             continue
         for league, league_cal in metrics["calibration_by_competition"].items():
             target = calibration_by_competition.setdefault(league, {"markets_tested": 0, "markets_brier_improved": 0,
@@ -448,7 +466,7 @@ def main():
     holdout_skill = {}
     holdout_skill_by_competition = {}
     for market, metrics in report["markets"].items():
-        if market in ("DNB_HOME", "DNB_AWAY"):
+        if market in ("DNB_HOME", "DNB_AWAY", "DNB_HOME_CONDITIONAL", "DNB_AWAY_CONDITIONAL"):
             continue
         holdout = metrics.get("holdout")
         if holdout:
