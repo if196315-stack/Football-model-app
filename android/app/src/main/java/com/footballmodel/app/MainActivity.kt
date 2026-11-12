@@ -59,11 +59,6 @@ class MainActivity : Activity() {
     private lateinit var statusView: TextView
     private lateinit var headerBalanceView: TextView
     private lateinit var headerAiRoiView: TextView
-    private lateinit var notificationsButton: TextView
-    private lateinit var notificationsDot: FrameLayout
-    private lateinit var notificationsDotHalo: View
-    private lateinit var notificationsDotCore: View
-    private var notificationPulseAnimator: ValueAnimator? = null
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var tabBar: LinearLayout
@@ -89,43 +84,11 @@ class MainActivity : Activity() {
     private val liveRefreshHandler = Handler(Looper.getMainLooper())
     private val liveRefreshTask = object : Runnable {
         override fun run() {
-            refreshNotificationBell()
             if (!loadInProgress.get()) loadData()
             liveRefreshHandler.postDelayed(this, 60 * 1000L)
         }
     }
 
-    private fun refreshNotificationBell() {
-        if (!::notificationsButton.isInitialized) return
-        val unread = NotificationCenter.hasUnread(this) || settingsPrefs.getBoolean(SectionNotifications.UNREAD_KEY, false)
-        notificationsButton.background = GradientDrawable().apply {
-            setColor(surface)
-            cornerRadius = dp(13).toFloat()
-            setStroke(dp(1), Color.rgb(39, 61, 82))
-        }
-        notificationsDot.visibility = if (unread) View.VISIBLE else View.GONE
-        if (unread && notificationPulseAnimator?.isStarted != true) {
-            notificationPulseAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = 1100L
-                repeatCount = ValueAnimator.INFINITE
-                interpolator = DecelerateInterpolator()
-                addUpdateListener { animator ->
-                    val progress = animator.animatedValue as Float
-                    notificationsDotHalo.scaleX = 0.85f + progress * 0.9f
-                    notificationsDotHalo.scaleY = 0.85f + progress * 0.9f
-                    notificationsDotHalo.alpha = 0.55f * (1f - progress)
-                }
-                start()
-            }
-        } else if (!unread) {
-            notificationPulseAnimator?.cancel()
-            notificationPulseAnimator = null
-            notificationsDotHalo.scaleX = 1f
-            notificationsDotHalo.scaleY = 1f
-            notificationsDotHalo.alpha = 0f
-        }
-        notificationsButton.contentDescription = if (unread) "Новые уведомления" else "Уведомления"
-    }
     private fun scheduleAutoPaperWorker() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -150,8 +113,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        currentTab = intent.getStringExtra("open_tab") ?: "matches"
-        if (currentTab == "notifications") SectionNotifications.markRead(this)
+        currentTab = intent.getStringExtra("open_tab")?.takeUnless { it == "notifications" } ?: "matches"
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
@@ -295,66 +257,6 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
         }
-        val notificationBellContainer = FrameLayout(this)
-        notificationsButton = TextView(this).apply {
-            text = "🔔"
-            textSize = 22f
-            gravity = Gravity.CENTER
-            setTextColor(Color.WHITE)
-            background = rounded(surface, 13)
-            contentDescription = "Уведомления"
-            isClickable = true
-            isFocusable = true
-            setOnClickListener {
-                SectionNotifications.markRead(this@MainActivity)
-                refreshNotificationBell()
-                currentTab = "notifications"
-                tabViewCache.clear()
-                renderedKey = null
-                // Render cached data immediately; periodic refresh continues independently.
-                if (data != null) render() else loadData()
-            }
-        }
-        notificationBellContainer.addView(
-            notificationsButton,
-            FrameLayout.LayoutParams(-1, -1)
-        )
-        notificationsDot = FrameLayout(this).apply {
-            visibility = View.GONE
-            isClickable = false
-            isFocusable = false
-        }
-        notificationsDotHalo = View(this).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.rgb(255, 82, 96))
-            }
-            alpha = 0f
-        }
-        notificationsDotCore = View(this).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.rgb(255, 72, 88))
-                setStroke(dp(1), Color.rgb(255, 190, 195))
-            }
-        }
-        notificationsDot.addView(
-            notificationsDotHalo,
-            FrameLayout.LayoutParams(dp(12), dp(12), Gravity.CENTER)
-        )
-        notificationsDot.addView(
-            notificationsDotCore,
-            FrameLayout.LayoutParams(dp(8), dp(8), Gravity.CENTER)
-        )
-        notificationBellContainer.addView(
-            notificationsDot,
-            FrameLayout.LayoutParams(dp(14), dp(14), Gravity.TOP or Gravity.END).apply {
-                topMargin = dp(1)
-                rightMargin = dp(3)
-            }
-        )
-        headerRight.addView(notificationBellContainer, LinearLayout.LayoutParams(dp(42), dp(38)).apply { bottomMargin = dp(3) })
-        refreshNotificationBell()
         headerBalanceView = label("-- ₽", 12, true, Color.WHITE).apply { gravity = Gravity.END; maxLines = 1 }
         headerRight.addView(headerBalanceView)
         headerAiRoiView = label("AI ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
@@ -439,9 +341,8 @@ class MainActivity : Activity() {
         setIntent(intent)
         val requestedTab = intent.getStringExtra("open_tab")
         if (requestedTab == "notifications") {
-            currentTab = "notifications"
+            currentTab = "matches"
             SectionNotifications.markRead(this)
-            refreshNotificationBell()
             tabViewCache.clear()
             renderedKey = null
             if (data != null) render() else loadData()
@@ -455,7 +356,6 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        refreshNotificationBell()
         val latestBets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         if (latestBets.toString() != bets.toString()) {
             bets = latestBets
@@ -2196,7 +2096,6 @@ class MainActivity : Activity() {
             setOnClickListener {
                 NotificationCenter.markAllRead(this@MainActivity)
                 settingsPrefs.edit().putBoolean(SectionNotifications.UNREAD_KEY, false).apply()
-                refreshNotificationBell()
                 tabViewCache.clear()
                 renderedKey = null
                 render()
