@@ -1567,17 +1567,16 @@ class MainActivity : Activity() {
                 else -> { pending++; possiblePayout += stake * odds; possibleProfit += stake * (odds - 1.0) }
             }
         }
-        val sum = card()
+        val sum = card().apply {
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+        }
         addText(sum, "СТАТИСТИКА СОХРАНЁННЫХ СТАВОК", 10, true, accent)
-        addText(sum, "Всего: " + bets.length() + " · выигрыш: " + wins + " · проигрыш: " + losses + " · возврат: " + pushes + " · открытые: " + pending, 12, true)
-        addText(sum, "Сумма ставок: " + fmt(stakeAll), 13, true)
-        addText(sum, "Возможная выплата по открытым: " + fmt(possiblePayout) + " · чистый выигрыш: +" + fmt(possibleProfit), 12, true, accent)
-        addText(sum, "Выплаты: " + fmt(payout) + " · чистый результат: " + (if (profit >= 0) "+" else "") + fmt(profit), 12, true, if (profit >= 0) accent else Color.RED)
-        addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + " · рассчитанный оборот: " + fmt(turnover), 12, true)
-        addText(sum, "ОБЩИЙ ROI · все бумажные ставки", 10, true, cyan)
-        addText(sum, "ROI = чистый результат / рассчитанный оборот. Возвраты и открытые ставки не входят.", 10, false, muted)
-        addText(sum, "ПОЛЬЗОВАТЕЛЬСКИЕ СТАВКИ · ПО ТУРНИРАМ", 10, true, cyan)
-        addText(sum, "Только ставки, которые пользователь сохранил отдельно. Автоматическая история AI-рекомендаций в этом разделе не отображается.", 9, false, muted)
+        addText(sum, "Всего ${bets.length()}  ·  W $wins  ·  L $losses  ·  возврат $pushes  ·  открытые $pending", 10, true)
+        addText(sum, "Ставки: ${fmt(stakeAll)}  ·  оборот: ${fmt(turnover)}", 10, false, muted)
+        addText(sum, "Открытые: выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, true, accent)
+        addText(sum, "Выплаты: ${fmt(payout)}  ·  результат: " + (if (profit >= 0) "+" else "") + fmt(profit), 10, true, if (profit >= 0) accent else Color.RED)
+        addText(sum, "ROI: " + (if (turnover > 0) String.format(Locale.getDefault(), "%.1f%%", profit / turnover * 100) else "—") + "  ·  рассчитан по закрытым ставкам", 10, true)
+        addText(sum, "ПО ТУРНИРАМ", 9, true, cyan)
         val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
         listOf(
             "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
