@@ -2665,6 +2665,11 @@ class MainActivity : Activity() {
             cached.second.forEach { leagueBar.addView(it) }
             leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
             renderedKey = targetKey
+            mainScrollView.post {
+                if (renderedKey == targetKey) {
+                    mainScrollView.scrollTo(0, tabScrollPositions[targetKey] ?: 0)
+                }
+            }
             return
         }
         renderedKey = targetKey
