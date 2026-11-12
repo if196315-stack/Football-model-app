@@ -2623,7 +2623,7 @@ class MainActivity : Activity() {
         addText(matchesContainer, "Матчи с действующими коэффициентами MelBet и прогнозом модели", 16, true, Color.WHITE)
         addText(matchesContainer, "API-SPORT · MELBET · PITCHAPI xG", 9, true, muted)
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
-        val names = listOf("Все", "ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL")
+        val names = listOf("Все", "АПЛ", "Ла Лига", "Серия А", "Бундеслига", "Лига 1", "ЛЧ", "ЛЕ", "ЛК")
         // League filters already live in the persistent horizontal scroller above the content.
         codes.forEachIndexed { index, code ->
             val b = TextView(this).apply {
