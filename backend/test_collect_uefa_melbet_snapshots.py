@@ -246,5 +246,52 @@ class UefaMelBetSnapshotTests(unittest.TestCase):
         self.assertEqual(merged["oddsBk"]["melbet"]["markets"]["btts"]["stakes"]["yes"]["factor"], 1.8)
 
 
+    def test_archives_dnb_with_win_push_loss_probabilities(self):
+        source = {
+            "id": 9001,
+            "startTimestamp": 1795287600000,
+            "homeTeam": {"name": "Arsenal"},
+            "awayTeam": {"name": "Chelsea"},
+            "oddsBk": {"melbet": {
+                "updatedAt": 1794311880000,
+                "updatedAtByStage": {"prematch": 1794311880000},
+                "isBettingActiveByStage": {"prematch": True},
+                "markets": {
+                    "handicap": {"status": "open", "stage": "prematch", "stakes": {
+                        "handicap_1": {"lines": [{"argument": 0, "factor": 1.91}]},
+                        "handicap_2": {"lines": [{"argument": 0, "factor": 1.95}]},
+                    }},
+                },
+            }},
+        }
+        cache = {"matches": {
+            "ucl-1": {"id": "ucl-1", "leagueCode": "UCL", "season": "2026/2027",
+                      "date": "2026-11-21T19:00:00Z", "status": "not_started",
+                      "home": "Arsenal", "away": "Chelsea"},
+        }}
+        predictions = {"ucl-1": {
+            "model_version": "uefa-xg-poisson-v1",
+            "predicted_at": "2026-11-10T12:00:00+00:00",
+            "history_max_date": "2026-11-05",
+            "markets": {"handicap_zero": {
+                "home": {"win": 0.45, "push": 0.25, "lose": 0.30},
+                "away": {"win": 0.30, "push": 0.25, "lose": 0.45},
+            }},
+        }}
+        rows = snapshot_rows(cache, [source], "2026-11-10T12:00:00+00:00",
+                             predictions=predictions)
+        self.assertEqual(len(rows), 2)
+        home = next(row for row in rows if row["team"] == "home")
+        away = next(row for row in rows if row["team"] == "away")
+        self.assertEqual((home["price"], home["model_probability"],
+                          home["model_push_probability"], home["model_loss_probability"]),
+                         (1.91, 0.45, 0.25, 0.30))
+        self.assertEqual((away["price"], away["model_probability"],
+                          away["model_push_probability"], away["model_loss_probability"]),
+                         (1.95, 0.30, 0.25, 0.45))
+        self.assertTrue(all(row["market"] == "handicap" and row["candidate_market"]
+                            and not row["reference_only"] for row in rows))
+
+
 if __name__ == "__main__":
     unittest.main()
