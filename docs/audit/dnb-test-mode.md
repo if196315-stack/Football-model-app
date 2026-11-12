@@ -38,6 +38,29 @@ The full-Kelly fraction conditional on a decisive result is:
 
 The isolated math helper applies the configured default gates of +5 percentage points on conditional probability edge and +5% unconditional EV. This is a test calculation only, not an instruction to stake.
 
+## Separate conditional-probability calibration
+
+The chronological all-market research backtest now reports two DNB views:
+
+1. **W/P/L calibration:** the full three-class outcome vector. It is the same match-outcome partition as 1X2, so it is retained for settlement diagnostics but is not counted as independent evidence.
+2. **Decisive-only calibration:** a binary W/L model fitted only on matches where the result was not a draw. Draws are excluded from both the training and holdout scoring for this conditional diagnostic. The target is (P(\text{win} \mid \text{no draw})).
+
+The decisive-only calibrator is trained on pre-holdout walk-forward predictions only, then evaluated on the later chronological holdout. It reports Brier, Log Loss and paired match-level bootstrap confidence intervals. Per-competition results are diagnostic; small samples are not automatically promoted.
+
+For live matched DNB prices, the read-only audit calculates:
+
+- raw bookmaker implied probabilities (1/K_H) and (1/K_A);
+- two-way overround (1/K_H + 1/K_A);
+- no-vig conditional probabilities by normalizing those two implied probabilities;
+- raw model DNB EV (p_W(K-1)-p_L);
+- experimental calibrated conditional edge against no-vig.
+
+The live edge comparison is marked experimental. It is not a production filter and does not prove profitability. When experimental calibrated conditional probability is combined with the model's raw push probability to estimate EV, the report must identify that mixed convention explicitly.
+
+## Data limitations
+
+The historical paired-xG dataset contains match results and xG, not a complete historical MelBet DNB odds archive. Therefore historical DNB price edge, CLV, EV and ROI cannot be backtested from that cohort. Those require timestamped two-sided MelBet prices, verified final scores, consistent settlement, and enough completed observations. Until the archive accumulates that evidence, only probability calibration and read-only live price comparisons are possible.
+
 ## What this does not authorize
 
 - It does not make DNB a production Model №1 recommendation.
