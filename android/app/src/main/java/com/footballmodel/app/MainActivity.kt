@@ -1739,6 +1739,26 @@ class MainActivity : Activity() {
         addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
         addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
 
+        val glossary = card()
+        addText(glossary, "СЛОВАРЬ ПОКАЗАТЕЛЕЙ", 10, true, cyan)
+        addText(glossary, "Вероятность модели", 13, true, Color.WHITE)
+        addText(glossary, "Оценка модели, что выбранный исход наступит. Например, 65% означает оценочную вероятность 65 из 100 аналогичных случаев, а не гарантию конкретного результата.", 11, false, muted)
+        addText(glossary, "Коэффициент", 13, true, Color.WHITE)
+        addText(glossary, "Коэффициент MelBet показывает выплату вместе с возвращаемой суммой ставки. Чем выше коэффициент, тем ниже заложенная букмекером вероятность исхода.", 11, false, muted)
+        addText(glossary, "Вероятность по коэффициенту", 13, true, Color.WHITE)
+        addText(glossary, "Обратная величина коэффициента: 1 / коэффициент. Например, при 2.00 это 50% до учёта маржи букмекера.", 11, false, muted)
+        addText(glossary, "EV — ожидаемая доходность", 13, true, Color.WHITE)
+        addText(glossary, "Формула модели: вероятность × коэффициент − 1. EV +5% означает математическое ожидание прибыли 5 копеек на каждый рубль ставки на большой дистанции; это не прогноз прибыли в одном матче.", 11, false, muted)
+        addText(glossary, "EDGE — преимущество модели", 13, true, Color.WHITE)
+        addText(glossary, "Разница между вероятностью модели и вероятностью, заложенной в коэффициенте, в процентных пунктах. Например, 65% против 55% — EDGE около +10 п.п. В AI дополнительно учитывается корректировка формы там, где она предусмотрена.", 11, false, muted)
+        addText(glossary, "Kelly — критерий размера/ранжирования", 13, true, Color.WHITE)
+        addText(glossary, "Доля полного банка по формуле Келли: EV / (коэффициент − 1). В нашей Линии и ТОП этот показатель используется для ранжирования сигналов. Это доля полного Kelly, а не указание автоматически ставить весь рассчитанный процент банка.", 11, false, muted)
+        addText(glossary, "xG — ожидаемые голы", 13, true, Color.WHITE)
+        addText(glossary, "Оценка качества созданных голевых моментов и ожидаемого количества голов. Это модельная метрика, а не фактический счёт.", 11, false, muted)
+        addText(glossary, "Порог отбора AI", 13, true, Color.WHITE)
+        addText(glossary, "Для попадания сигнала в ТОП нужны одновременно: вероятность от 60%, EV от +5%, EDGE от +5 п.п. и коэффициент MelBet от 1.50. Также действуют ограничения по допустимым рынкам.", 11, false, muted)
+        addText(glossary, "Важно: вероятность, EV, EDGE, xG и Kelly — расчётные оценки. Они помогают сравнивать варианты, но не гарантируют выигрыш.", 11, true, gold)
+
         val settings = card()
         addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
@@ -2392,10 +2412,22 @@ class MainActivity : Activity() {
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("AI · MATCH INTELLIGENCE", "ТОП", "AI-подборки: сильнейшие сигналы матчей из раздела Линия с проверкой цены MelBet, вероятности, edge и EV.")
         val sorted = collectAiCandidates(json)
+        val recordedMatches = sorted.count { candidate ->
+            val match = candidate.first
+            val bundle = candidate.third
+            val signals = mutableListOf<JSONObject>()
+            bundle.optJSONObject("primary")?.let { signals.add(it) }
+            val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
+            for (i in 0 until alternatives.length()) alternatives.optJSONObject(i)?.let { signals.add(it) }
+            signals.any { isAiBetRecorded(match, it) }
+        }
+        val openMatches = sorted.size - recordedMatches
         val betsCountCard = card()
-        addText(betsCountCard, "НАЙДЕНО AI-МАТЧЕЙ", 10, true, cyan)
+        addText(betsCountCard, "НАЙДЕНО МАТЧЕЙ", 10, true, cyan)
         addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        addText(betsCountCard, "В AI попадает только сильнейший сигнал раздела Линия по критерию Kelly. Если он не проходит строгие фильтры, альтернативный рынок вместо него не подставляется.", 11, false, muted)
+        addText(betsCountCard, "Зафиксировано: $recordedMatches", 13, true, accent)
+        addText(betsCountCard, "Открыто: $openMatches", 13, true, cyan)
+        addText(betsCountCard, "Открытые — новые матчи, по которым ещё не записан ни один сигнал. В AI попадает только сильнейший сигнал раздела Линия по критерию Kelly; если он не проходит строгие фильтры, альтернативный рынок вместо него не подставляется.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
