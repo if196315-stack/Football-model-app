@@ -106,7 +106,7 @@ def score(rows, market, source):
     for row in rows:
         probabilities = row[source]
         actual = str(row["actual"])
-        if market != "1X2" and not market.startswith("DNB") and not isinstance(probabilities, dict):
+        if not market_is_multiclass(market) and not isinstance(probabilities, dict):
             probability_yes = float(probabilities)
             probabilities = {"0": 1.0 - probability_yes, "1": probability_yes}
         brier += sum((float(probabilities[label]) - (1.0 if label == actual else 0.0)) ** 2
@@ -214,8 +214,7 @@ def paired_bootstrap_brier_delta(rows, params, market, replicates=1000, seed=202
     """Paired match-level bootstrap CI for raw-minus-calibrated Brier improvement."""
     if not rows or not params.get("available"):
         return None
-    classes = ("1", "X", "2") if market == "1X2" else (
-        ("W", "P", "L") if market.startswith("DNB") else ("0", "1"))
+    classes = market_classes(market)
     deltas = []
     for row in rows:
         raw = row["model"]
