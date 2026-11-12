@@ -51,7 +51,37 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             synchronized(AutoPaperExecutionLock) {
                 val bets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
                 val existingIds = (0 until bets.length()).mapNotNull { bets.optJSONObject(it)?.optString("id") }.toSet()
+                val previousStatuses = mutableMapOf<String, String>()
+                for (i in 0 until bets.length()) {
+                    val before = bets.optJSONObject(i) ?: continue
+                    val key = before.optString("id").ifBlank { before.optString("matchId") }
+                    previousStatuses[key] = before.optString("status")
+                }
                 changed = process(domestic, bets)
+                if (changed) {
+                    for (i in 0 until bets.length()) {
+                        val settled = bets.optJSONObject(i) ?: continue
+                        val key = settled.optString("id").ifBlank { settled.optString("matchId") }
+                        val oldStatus = previousStatuses[key]
+                        val newStatus = settled.optString("status")
+                        if (oldStatus == "PENDING" && newStatus in listOf("WON", "LOST", "PUSH")) {
+                            val matchName = settled.optString("matchName").ifBlank {
+                                settled.optString("home") + " — " + settled.optString("away")
+                            }.trim(' ', '—')
+                            val outcome = when (newStatus) { "WON" -> "WIN"; "LOST" -> "LOSS"; else -> "ВОЗВРАТ" }
+                            val stake = settled.optDouble("stake", 0.0)
+                            val amount = when (newStatus) {
+                                "WON" -> stake * (settled.optDouble("odds", 0.0) - 1.0)
+                                "LOST" -> -stake
+                                else -> 0.0
+                            }
+                            NotificationCenter.add(applicationContext, "settlement:$key:$newStatus", "bet_settlement",
+                                "Ставка рассчитана: $outcome",
+                                "$matchName · счёт ${settled.optString("score")} · ${String.format(Locale.US, "%+.2f", amount)}",
+                                "history", key)
+                        }
+                    }
+                }
                 val saved = !changed || prefs.edit().putString("bets", bets.toString()).commit()
                 if (saved) {
                     for (i in 0 until bets.length()) {
