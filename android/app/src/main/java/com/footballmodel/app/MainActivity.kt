@@ -2574,7 +2574,17 @@ class MainActivity : Activity() {
                         recordButton.text = "✓ Ставка зафиксирована"
                         recordButton.isEnabled = false
                         openSignalsCount = (openSignalsCount - 1).coerceAtLeast(0)
-                        fixedCount += 1
+                        // saveBets() may reconcile background results or statuses.
+                        // Derive the badge from the persisted in-memory bet list instead
+                        // of blindly incrementing it: a just-recorded bet may already
+                        // have moved out of PENDING by the time this callback runs.
+                        fixedCount = (0 until bets.length()).count { index ->
+                            val bet = bets.optJSONObject(index)
+                            bet != null &&
+                                bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") &&
+                                bet.optString("marketKey") != "COUPON" &&
+                                bet.optString("status") == "PENDING"
+                        }
                         openTabView.text = "Открытые ставки · $openSignalsCount"
                         fixedTabView.text = "Зафиксированные · $fixedCount"
                         openIntroCountView.text = "НОВЫЕ СИГНАЛЫ · $openSignalsCount"
