@@ -2464,7 +2464,7 @@ class MainActivity : Activity() {
         screenHeader("AI · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных AI-ставок.")
         val sorted = collectAiCandidates(json)
         val recordedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
-            .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" }
+            .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" && it.optString("status") == "PENDING" }
             .asReversed()
         val openCandidates = sorted.mapNotNull { item ->
             val match = item.first
@@ -2585,10 +2585,10 @@ class MainActivity : Activity() {
         } else {
             val intro = card()
             addText(intro, "ЗАФИКСИРОВАННЫЕ AI-СТАВКИ · $fixedCount", 10, true, cyan)
-            addText(intro, "Все ставки, добавленные из TOP, включая ожидающие расчёта и уже рассчитанные.", 11, false, muted)
+            addText(intro, "Здесь только зафиксированные ставки, которые ещё ожидают расчёта. Выигранные, проигранные и возвращённые ставки скрыты.", 11, false, muted)
             if (recordedBets.isEmpty()) {
                 val empty = card()
-                addText(empty, "Зафиксированных AI-ставок пока нет.", 14, true, gold)
+                addText(empty, "Ставок, ожидающих расчёта, пока нет.", 14, true, gold)
                 addText(empty, "После нажатия «Выбрать и зафиксировать» ставка появится здесь.", 11, false, muted)
             }
             recordedBets.forEachIndexed { index, bet ->
