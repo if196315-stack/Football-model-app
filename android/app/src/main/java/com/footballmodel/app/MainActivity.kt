@@ -2521,10 +2521,11 @@ class MainActivity : Activity() {
             val intro = card()
             openIntroCountView = addText(intro, "НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
             addText(intro, "Здесь только сигналы, которые ещё не зафиксированы. Выбери подходящий исход и добавь его в историю ставок.", 11, false, muted)
-            val emptyOpenCard = if (openCandidates.isEmpty()) card().also { empty ->
-                addText(empty, "Новых сильных сигналов пока нет.", 14, true, gold)
-                addText(empty, "Когда появятся матчи, прошедшие фильтры TOP, они будут показаны здесь.", 11, false, muted)
-            } else null
+            val emptyOpenCard = card().apply {
+                addText(this, "Новых сильных сигналов пока нет.", 14, true, gold)
+                addText(this, "Когда появятся матчи, прошедшие фильтры TOP, они будут показаны здесь.", 11, false, muted)
+                if (openCandidates.isNotEmpty()) visibility = View.GONE
+            }
             openCandidates.forEachIndexed { index, entry ->
                 val (item, notRecorded, available) = entry
                 val (match, league, bundle) = item
