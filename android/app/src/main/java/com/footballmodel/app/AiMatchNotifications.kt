@@ -16,6 +16,7 @@ import android.os.Build
 internal object AiMatchNotifications {
     private const val PREFS = "ai_match_notifications"
     private const val SEEN_IDS_KEY = "seen_candidate_match_ids"
+    private const val PERMISSION_REQUESTED_KEY = "notification_permission_requested"
     private const val CHANNEL_ID = "iq_top_new_signal"
     private const val CHANNEL_NAME = "Новые сигналы в ТОП"
     private const val NOTIFICATION_ID = 7304
@@ -50,6 +51,9 @@ internal object AiMatchNotifications {
     fun requestPermissionIfNeeded(activity: android.app.Activity) {
         if (Build.VERSION.SDK_INT < 33) return
         if (activity.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) return
+        val prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(PERMISSION_REQUESTED_KEY, false)) return
+        prefs.edit().putBoolean(PERMISSION_REQUESTED_KEY, true).apply()
         activity.requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7304)
     }
 
