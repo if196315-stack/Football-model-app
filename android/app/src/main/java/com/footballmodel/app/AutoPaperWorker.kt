@@ -168,6 +168,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             for (j in 0 until matches.length()) {
                 val match = matches.optJSONObject(j) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val odds = match.optJSONObject("odds") ?: continue
+                val bookmaker = odds.optString("bookmaker")
+                val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
+                    else odds.optString("source").contains("MelBet", ignoreCase = true)
+                if (!isMelBet) continue
                 val matchDay = match.optString("utcDate").take(10).ifBlank {
                     match.optString("dateEvent").take(10).ifBlank {
                         val timestamp = match.optLong("startTimestamp", 0L)
