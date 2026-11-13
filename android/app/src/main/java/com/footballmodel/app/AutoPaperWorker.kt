@@ -179,7 +179,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     }
                 }
                 if (matchDay.isBlank() || matchDay < today) continue
-                val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
+                val prediction = match.optJSONObject("prediction") ?: continue
+                val signal = strongestTopSignal(prediction, match)
                     ?: (if (code == "UCL" || code == "UEL") uefaSignal(match) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
@@ -212,6 +213,46 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             }
         }
         return matchesFound
+    }
+
+    // Mirrors the TOP card primary-signal selection for background notifications.
+    private fun strongestTopSignal(prediction: JSONObject, match: JSONObject): JSONObject? {
+        val candidates = mutableListOf<JSONObject>()
+        prediction.optJSONObject("strongestSignal")?.let { candidates.add(it) }
+        val signals = prediction.optJSONArray("signals")
+        if (signals != null) {
+            for (index in 0 until signals.length()) {
+                val candidate = signals.optJSONObject(index) ?: continue
+                val key = candidate.optString("side").trim().lowercase(Locale.ROOT)
+                if (candidates.none { it.optString("side").trim().lowercase(Locale.ROOT) == key }) candidates.add(candidate)
+            }
+        }
+        val rawMarkets = listOf(
+            "1x" to "1X", "x2" to "X2", "bttsYes" to "ОЗ ДА",
+            "over15" to "ТБ 1.5", "over25" to "ТБ 2.5",
+            "homeOver05" to ("ИТБ 0.5 · " + match.optString("home")),
+            "homeOver15" to ("ИТБ 1.5 · " + match.optString("home")),
+            "awayOver05" to ("ИТБ 0.5 · " + match.optString("away")),
+            "awayOver15" to ("ИТБ 1.5 · " + match.optString("away"))
+        )
+        rawMarkets.forEach { (field, side) ->
+            val probability = prediction.optDouble(field, Double.NaN)
+            if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
+            if (candidates.none { it.optString("side").trim().equals(side.trim(), ignoreCase = true) }) {
+                candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
+            }
+        }
+        val available = candidates.mapNotNull { candidate ->
+            if (marketKey(candidate.optString("side"), match) == null) return@mapNotNull null
+            val probability = candidate.optDouble("modelProbability", Double.NaN)
+            val odds = priceFor(candidate, match)
+            if (!probability.isFinite() || probability !in 0.0..1.0 || odds == null) return@mapNotNull null
+            val expectedValue = probability * odds - 1.0
+            Triple(candidate, expectedValue, expectedValue / (odds - 1.0))
+        }
+        val positiveValue = available.filter { it.second > 0.0 }
+        return if (positiveValue.isNotEmpty()) positiveValue.maxByOrNull { it.third }?.first
+        else available.maxByOrNull { it.first.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }?.first
     }
 
     private fun process(feed: JSONObject, bets: JSONArray): Boolean {
