@@ -1372,7 +1372,10 @@ class MainActivity : Activity() {
         tabViewCache.remove("history|ALL")
         tabViewCache.remove("history|OPEN")
         tabViewCache.remove("history|COMPLETED")
+        // Bet status changes affect both TOP subtabs; never reuse a stale count or list.
         tabViewCache.remove("desk|ALL")
+        tabViewCache.remove("desk|OPEN")
+        tabViewCache.remove("desk|FIXED")
         tabViewCache.remove("stats|ALL")
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit): Button {
