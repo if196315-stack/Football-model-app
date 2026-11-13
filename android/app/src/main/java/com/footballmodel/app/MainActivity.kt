@@ -2476,8 +2476,11 @@ class MainActivity : Activity() {
             val notRecorded = available.filterNot { isAiBetRecorded(match, it) }
             if (notRecorded.isEmpty()) null else Triple(item, notRecorded, available)
         }
-        val openSignalsCount = openCandidates.sumOf { it.second.size }
-        val fixedCount = recordedBets.size
+        var openSignalsCount = openCandidates.sumOf { it.second.size }
+        var fixedCount = recordedBets.size
+        lateinit var openTabView: TextView
+        lateinit var fixedTabView: TextView
+        lateinit var openIntroCountView: TextView
 
         val topTabs = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -2496,6 +2499,7 @@ class MainActivity : Activity() {
                 background = if (selectedTopTab == key)
                     GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
                 else rounded(surface, 28)
+                if (key == "OPEN") openTabView = this else fixedTabView = this
                 setOnClickListener {
                     if (selectedTopTab == key) return@setOnClickListener
                     val previousScrollY = mainScrollView.scrollY
@@ -2515,13 +2519,12 @@ class MainActivity : Activity() {
 
         if (selectedTopTab == "OPEN") {
             val intro = card()
-            addText(intro, "НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
+            openIntroCountView = addText(intro, "НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
             addText(intro, "Здесь только сигналы, которые ещё не зафиксированы. Выбери подходящий исход и добавь его в историю ставок.", 11, false, muted)
-            if (openCandidates.isEmpty()) {
-                val empty = card()
+            val emptyOpenCard = if (openCandidates.isEmpty()) card().also { empty ->
                 addText(empty, "Новых сильных сигналов пока нет.", 14, true, gold)
                 addText(empty, "Когда появятся матчи, прошедшие фильтры TOP, они будут показаны здесь.", 11, false, muted)
-            }
+            } else null
             openCandidates.forEachIndexed { index, entry ->
                 val (item, notRecorded, available) = entry
                 val (match, league, bundle) = item
@@ -2555,11 +2558,20 @@ class MainActivity : Activity() {
                             text = "Ожидает расчёт"
                             setTextColor(accent)
                         }
-                        // Keep the current screen interactive: do not synchronously rebuild
-                        // the entire activity after a successful save. Refresh cached TOP
-                        // lists only when the user leaves and opens them again.
+                        // Update the visible TOP lists and counters in place; avoid a full
+                        // Activity render so the screen stays responsive after saving.
                         recordButton.text = "✓ Ставка зафиксирована"
                         recordButton.isEnabled = false
+                        openSignalsCount = (openSignalsCount - 1).coerceAtLeast(0)
+                        fixedCount += 1
+                        openTabView.text = "Открытые ставки · $openSignalsCount"
+                        fixedTabView.text = "Зафиксированные · $fixedCount"
+                        openIntroCountView.text = "НОВЫЕ СИГНАЛЫ · $openSignalsCount"
+                        val stillOpenInMatch = statusViews.keys.count { it !== signal && !isAiBetRecorded(match, it) }
+                        if (stillOpenInMatch == 0) box.visibility = View.GONE
+                        if (openSignalsCount == 0) {
+                            emptyOpenCard?.visibility = View.VISIBLE
+                        }
                         tabViewCache.remove("desk|OPEN")
                         tabViewCache.remove("desk|FIXED")
                     }
