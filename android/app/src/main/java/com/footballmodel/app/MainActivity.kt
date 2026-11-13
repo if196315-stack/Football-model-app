@@ -349,6 +349,7 @@ class MainActivity : Activity() {
             if (data != null) render() else loadData()
         } else if (requestedTab == "desk") {
             currentTab = "desk"
+            selectedTopTab = "OPEN"
             tabViewCache.clear()
             renderedKey = null
             if (data != null) render() else loadData()
