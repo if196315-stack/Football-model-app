@@ -2555,11 +2555,13 @@ class MainActivity : Activity() {
                             text = "Ожидает расчёт"
                             setTextColor(accent)
                         }
-                        val previousScrollY = mainScrollView.scrollY
+                        // Keep the current screen interactive: do not synchronously rebuild
+                        // the entire activity after a successful save. Refresh cached TOP
+                        // lists only when the user leaves and opens them again.
+                        recordButton.text = "✓ Ставка зафиксирована"
+                        recordButton.isEnabled = false
                         tabViewCache.remove("desk|OPEN")
                         tabViewCache.remove("desk|FIXED")
-                        render()
-                        mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
                     }
                     if (remaining.size == 1) {
                         val signal = remaining.first()
