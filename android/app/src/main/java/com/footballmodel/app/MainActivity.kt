@@ -889,20 +889,25 @@ class MainActivity : Activity() {
                 // Build the AI candidate snapshot off the main thread before checking notifications.
                 val aiMatchCandidates = collectAiCandidates(json)
                 updateAiSignalArchive(json, aiMatchCandidates)
-                val aiCandidates = aiMatchCandidates.map { item ->
-                    val match = item.first
-                    val matchId = match.optString("id").ifBlank {
-                        listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
-                    }
-                    val title = "${match.optString("home")} — ${match.optString("away")}"
-                    matchId to title
-                }
                 val payload = json.toString()
                 feedCache.edit()
                     .putString("merged_json", payload)
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
+                    val openTopNotificationCandidates = aiMatchCandidates.filterNot { item ->
+                        val signal = item.third.optJSONObject("primary") ?: return@filterNot false
+                        isAiBetRecorded(item.first, signal)
+                    }.map { item ->
+                        val match = item.first
+                        val matchId = match.optString("id").ifBlank {
+                            listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
+                        }
+                        matchId to "${match.optString("home")} — ${match.optString("away")}"
+                    }
+                    if (AiMatchNotifications.observe(this, openTopNotificationCandidates)) {
+                        AiMatchNotifications.requestPermissionIfNeeded(this)
+                    }
                     val changed = payload != lastPayload
                     if (changed) {
                         data = json
