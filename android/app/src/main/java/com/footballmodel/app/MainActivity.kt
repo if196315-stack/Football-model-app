@@ -77,6 +77,7 @@ class MainActivity : Activity() {
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
     private var selectedHistoryTab = "OPEN"
+    private var selectedTopTab = "OPEN"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
@@ -964,6 +965,7 @@ class MainActivity : Activity() {
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
+            "desk" -> selectedTopTab
             else -> "ALL"
         }
         if (tabViewCache.containsKey(targetKey) && data != null) {
@@ -2459,111 +2461,175 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "ТОП", "AI-подборки: сильнейшие сигналы матчей из раздела Линия с проверкой цены MelBet, вероятности, edge и EV.")
+        screenHeader("AI · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных AI-ставок.")
         val sorted = collectAiCandidates(json)
-        val recordedMatches = sorted.count { candidate ->
-            val match = candidate.first
-            val bundle = candidate.third
-            val signals = mutableListOf<JSONObject>()
-            bundle.optJSONObject("primary")?.let { signals.add(it) }
+        val recordedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
+            .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" }
+            .asReversed()
+        val openCandidates = sorted.mapNotNull { item ->
+            val match = item.first
+            val bundle = item.third
+            val available = mutableListOf<JSONObject>()
+            bundle.optJSONObject("primary")?.let { available.add(it) }
             val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
-            for (i in 0 until alternatives.length()) alternatives.optJSONObject(i)?.let { signals.add(it) }
-            signals.any { isAiBetRecorded(match, it) }
+            for (i in 0 until alternatives.length()) alternatives.optJSONObject(i)?.let { available.add(it) }
+            val notRecorded = available.filterNot { isAiBetRecorded(match, it) }
+            if (notRecorded.isEmpty()) null else Triple(item, notRecorded, available)
         }
-        val openMatches = sorted.size - recordedMatches
-        val betsCountCard = card()
-        addText(betsCountCard, "НАЙДЕНО МАТЧЕЙ", 10, true, cyan)
-        addText(betsCountCard, sorted.size.toString(), 26, true, Color.WHITE)
-        val recordedCountView = label("Зафиксировано: $recordedMatches", 13, true, accent)
-        betsCountCard.addView(recordedCountView)
-        val openCountView = label("Открыто: $openMatches", 13, true, cyan)
-        betsCountCard.addView(openCountView)
-        addText(betsCountCard, "Открытые — новые матчи, по которым ещё не записан ни один сигнал. В AI попадает только сильнейший сигнал раздела Линия по критерию Kelly; если он не проходит строгие фильтры, альтернативный рынок вместо него не подставляется.", 11, false, muted)
-        if (sorted.isEmpty()) {
-            val empty = card()
-            addText(empty, "Нет подтверждённых рекомендаций.", 15, true, gold)
-            addText(empty, "Нужны положительный сигнал, доступная прематч-котировка MelBet от 1.50 и выполнение порогов стратегии.", 11, false, muted)
-            return
+        val openSignalsCount = openCandidates.sumOf { it.second.size }
+        val fixedCount = recordedBets.size
+
+        val topTabs = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
-        sorted.forEachIndexed { index, item ->
-            val (m, league, bundle) = item
-            val primary = bundle.optJSONObject("primary") ?: return@forEachIndexed
-            val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
-            val box = card()
-            addText(box, "МАТЧ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
-            addText(box, "${m.optString("home")} — ${m.optString("away")}", 16, true)
-            addText(box, kickoffLabel(m), 10, false, muted)
-            addText(box, "САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, cyan)
-            val statusViews = linkedMapOf<JSONObject, TextView>()
-            statusViews[primary] = addAiSignalDetails(box, primary, m, true)
-            if (alternatives.length() > 0) {
-                addText(box, "АЛЬТЕРНАТИВЫ · ТОЖЕ ПРОШЛИ ФИЛЬТРЫ", 10, true, cyan)
-                for (k in 0 until alternatives.length()) {
-                    val alt = alternatives.optJSONObject(k) ?: continue
-                    statusViews[alt] = addAiSignalDetails(box, alt, m, false)
+        listOf("OPEN" to "Открытые ставки", "FIXED" to "Зафиксированные").forEach { (key, title) ->
+            val count = if (key == "OPEN") openSignalsCount else fixedCount
+            val tab = TextView(this).apply {
+                text = "$title · $count"
+                textSize = 10f
+                typeface = Typeface.DEFAULT_BOLD
+                letterSpacing = 0.02f
+                gravity = Gravity.CENTER
+                setPadding(dp(16), dp(12), dp(16), dp(12))
+                setTextColor(if (selectedTopTab == key) bg else muted)
+                background = if (selectedTopTab == key)
+                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
+                else rounded(surface, 28)
+                setOnClickListener {
+                    if (selectedTopTab == key) return@setOnClickListener
+                    val previousScrollY = mainScrollView.scrollY
+                    selectedTopTab = key
+                    matchesContainer.animate().cancel()
+                    render()
+                    mainScrollView.post {
+                        mainScrollView.scrollTo(0, previousScrollY)
+                        matchesContainer.alpha = 1f
+                        matchesContainer.translationX = 0f
+                    }
                 }
             }
-            val available = mutableListOf<JSONObject>()
-            available.add(primary)
-            for (k in 0 until alternatives.length()) alternatives.optJSONObject(k)?.let { available.add(it) }
-            val notRecorded = available.filterNot { isAiBetRecorded(m, it) }
-            if (notRecorded.isNotEmpty()) {
+            topTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
+        }
+        matchesContainer.addView(topTabs)
+
+        if (selectedTopTab == "OPEN") {
+            val intro = card()
+            addText(intro, "НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
+            addText(intro, "Здесь только сигналы, которые ещё не зафиксированы. Выбери подходящий исход и добавь его в историю ставок.", 11, false, muted)
+            if (openCandidates.isEmpty()) {
+                val empty = card()
+                addText(empty, "Новых сильных сигналов пока нет.", 14, true, gold)
+                addText(empty, "Когда появятся матчи, прошедшие фильтры TOP, они будут показаны здесь.", 11, false, muted)
+            }
+            openCandidates.forEachIndexed { index, entry ->
+                val (item, notRecorded, available) = entry
+                val (match, league, bundle) = item
+                val primary = bundle.optJSONObject("primary") ?: return@forEachIndexed
+                val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
+                val box = card()
+                addText(box, "МАТЧ #${index + 1} · ${league.uppercase(Locale.getDefault())}", 10, true, accent)
+                addText(box, "${match.optString("home")} — ${match.optString("away")}", 16, true)
+                addText(box, kickoffLabel(match), 10, false, muted)
+                addText(box, "САМЫЙ СИЛЬНЫЙ СИГНАЛ", 10, true, cyan)
+                val statusViews = linkedMapOf<JSONObject, TextView>()
+                if (!isAiBetRecorded(match, primary)) statusViews[primary] = addAiSignalDetails(box, primary, match, true)
+                if (alternatives.length() > 0) {
+                    val unrecordedAlternatives = (0 until alternatives.length()).mapNotNull { alternatives.optJSONObject(it) }
+                        .filterNot { isAiBetRecorded(match, it) }
+                    if (unrecordedAlternatives.isNotEmpty()) {
+                        addText(box, "АЛЬТЕРНАТИВЫ · ПРОШЛИ ФИЛЬТРЫ", 10, true, cyan)
+                        unrecordedAlternatives.forEach { alt -> statusViews[alt] = addAiSignalDetails(box, alt, match, false) }
+                    }
+                }
                 lateinit var recordButton: Button
                 recordButton = actionButton(box, if (notRecorded.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории") {
-                    val remaining = available.filterNot { isAiBetRecorded(m, it) }
+                    val remaining = available.filterNot { isAiBetRecorded(match, it) }
                     if (remaining.isEmpty()) {
                         recordButton.text = "✓ Все сигналы записаны"
                         recordButton.isEnabled = false
                         return@actionButton
                     }
-                    val updateRecordedState: (JSONObject) -> Unit = { recordedSignal ->
-                        statusViews[recordedSignal]?.apply {
+                    val onRecorded: (JSONObject) -> Unit = { signal ->
+                        statusViews[signal]?.apply {
                             text = "Ожидает расчёт"
                             setTextColor(accent)
                         }
-                        // Once a signal is manually recorded, remove the action control from this match card.
-                        (recordButton.parent as? ViewGroup)?.removeView(recordButton)
-                        // The confirmation callback runs only after saveBets() has persisted the bet.
-                        // Refresh the TOP counters immediately without rebuilding the whole screen.
-                        val updatedRecorded = sorted.count { candidate ->
-                            val candidateMatch = candidate.first
-                            val candidateBundle = candidate.third
-                            val candidateSignals = mutableListOf<JSONObject>()
-                            candidateBundle.optJSONObject("primary")?.let { candidateSignals.add(it) }
-                            val candidateAlternatives = candidateBundle.optJSONArray("alternatives") ?: JSONArray()
-                            for (signalIndex in 0 until candidateAlternatives.length()) {
-                                candidateAlternatives.optJSONObject(signalIndex)?.let { candidateSignals.add(it) }
-                            }
-                            candidateSignals.any { isAiBetRecorded(candidateMatch, it) }
-                        }
-                        recordedCountView.text = "Зафиксировано: $updatedRecorded"
-                        openCountView.text = "Открыто: ${(sorted.size - updatedRecorded).coerceAtLeast(0)}"
+                        val previousScrollY = mainScrollView.scrollY
+                        tabViewCache.remove("desk|OPEN")
+                        tabViewCache.remove("desk|FIXED")
+                        render()
+                        mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
                     }
                     if (remaining.size == 1) {
                         val signal = remaining.first()
-                        val odds = topSignalOdds(signal, m) ?: return@actionButton
-                        confirmManualAiSignalBet(m, league, signal, odds) { updateRecordedState(signal) }
+                        val odds = topSignalOdds(signal, match) ?: return@actionButton
+                        confirmManualAiSignalBet(match, league, signal, odds) { onRecorded(signal) }
                     } else {
                         val labels = remaining.map { signal ->
-                            val odds = topSignalOdds(signal, m) ?: 0.0
+                            val odds = topSignalOdds(signal, match) ?: 0.0
                             "${signal.optString("side")} · ${fmt(odds)} · EV ${String.format(Locale.US, "%+.1f", (signal.optDouble("modelProbability") * odds - 1.0) * 100)}%"
                         }.toTypedArray()
                         AlertDialog.Builder(this)
                             .setTitle("Выбери рынок для бумажной ставки")
                             .setItems(labels) { _, which ->
                                 val signal = remaining[which]
-                                val odds = topSignalOdds(signal, m) ?: return@setItems
-                                confirmManualAiSignalBet(m, league, signal, odds) { updateRecordedState(signal) }
+                                val odds = topSignalOdds(signal, match) ?: return@setItems
+                                confirmManualAiSignalBet(match, league, signal, odds) { onRecorded(signal) }
                             }
                             .setNegativeButton("Отмена", null)
                             .show()
                     }
                 }
             }
+        } else {
+            val intro = card()
+            addText(intro, "ЗАФИКСИРОВАННЫЕ AI-СТАВКИ · $fixedCount", 10, true, cyan)
+            addText(intro, "Все ставки, добавленные из TOP, включая ожидающие расчёта и уже рассчитанные.", 11, false, muted)
+            if (recordedBets.isEmpty()) {
+                val empty = card()
+                addText(empty, "Зафиксированных AI-ставок пока нет.", 14, true, gold)
+                addText(empty, "После нажатия «Выбрать и зафиксировать» ставка появится здесь.", 11, false, muted)
+            }
+            recordedBets.forEachIndexed { index, bet ->
+                val box = card()
+                val state = bet.optString("status")
+                val status = when (state) {
+                    "WON" -> "ВЫИГРЫШ"
+                    "LOST" -> "ПРОИГРЫШ"
+                    "PUSH" -> "ВОЗВРАТ"
+                    else -> "ОЖИДАЕТ РАСЧЁТА"
+                }
+                val statusColor = when (state) {
+                    "WON" -> accent
+                    "LOST" -> Color.RED
+                    "PUSH" -> gold
+                    else -> cyan
+                }
+                addText(box, "СТАВКА #${index + 1} · ${displayLeagueName(bet.optString("league"))} · ${date(bet.optString("date"))}", 10, true, accent)
+                addText(box, "${bet.optString("home")} — ${bet.optString("away")}", 16, true)
+                addText(box, bet.optString("market") + " · кэф " + fmt(bet.optDouble("odds")), 13, true, gold)
+                addText(box, "Ставка: ${fmt(bet.optDouble("stake"))} · модель: ${String.format(Locale.US, "%.1f%%", bet.optDouble("probability") * 100)}", 11, false, muted)
+                val liveStatus = when (bet.optString("matchStatus")) {
+                    "IN_PLAY", "LIVE", "PAUSED" -> " · LIVE"
+                    "FINISHED" -> " · ФИНАЛ"
+                    "SCHEDULED", "TIMED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
+                    else -> ""
+                }
+                addText(box, status + liveStatus + (if (bet.has("score")) " · счёт " + bet.optString("score") else ""), 12, true, statusColor)
+                val stake = bet.optDouble("stake")
+                val odds = bet.optDouble("odds")
+                when (state) {
+                    "PENDING" -> addText(box, "Возможная выплата: ${fmt(stake * odds)} ₽ · чистый выигрыш: +${fmt(stake * (odds - 1))} ₽", 12, true, accent)
+                    "WON" -> addText(box, "Чистая прибыль: +${fmt(stake * (odds - 1))} ₽", 12, true, accent)
+                    "LOST" -> addText(box, "Убыток: −${fmt(stake)} ₽", 12, true, Color.RED)
+                    "PUSH" -> addText(box, "Возврат: ${fmt(stake)} ₽", 12, true, accent)
+                }
+            }
         }
         val footer = card()
         addText(footer, "ПРАВИЛА AI", 10, true, accent)
-        addText(footer, "Один сильнейший сигнал на матч из раздела Линия: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Если лидер не проходит фильтры, матч исключается; другие рынки не подменяют его.", 11, false, muted)
+        addText(footer, "В TOP попадают сильнейшие сигналы из раздела Линия: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Фиксация в TOP сохраняет бумажную ставку в истории.", 11, false, muted)
     }
 
     private fun addAiSignalDetails(box: LinearLayout, signal: JSONObject, match: JSONObject, primary: Boolean): TextView {
@@ -2641,7 +2707,7 @@ class MainActivity : Activity() {
     private fun render() {
         val json = data ?: return
         refreshHeaderFinancials()
-        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; else -> "ALL" }
+        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab; else -> "ALL" }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
