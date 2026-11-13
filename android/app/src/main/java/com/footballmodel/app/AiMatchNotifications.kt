@@ -16,7 +16,7 @@ import android.os.Build
 internal object AiMatchNotifications {
     private const val PREFS = "ai_match_notifications"
     private const val SEEN_IDS_KEY = "seen_candidate_match_ids"
-    private const val CHANNEL_ID = "iq_match_new_ai_fixtures"
+    private const val CHANNEL_ID = "iq_top_new_signal"
     private const val CHANNEL_NAME = "Новые сигналы в ТОП"
     private const val NOTIFICATION_ID = 7304
 
