@@ -37,16 +37,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
             // Notify only for newly qualified TOP matches that are not already recorded by the user.
-            val recordedMatchIds = synchronized(AutoPaperExecutionLock) {
-                val savedBets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
-                (0 until savedBets.length()).mapNotNull { index ->
-                    val bet = savedBets.optJSONObject(index) ?: return@mapNotNull null
-                    if (bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && bet.optString("marketKey") != "COUPON") {
-                        bet.optString("matchId").takeIf { it.isNotBlank() }
-                    } else null
-                }.toSet()
+            val newTopCandidates = synchronized(AutoPaperExecutionLock) {
+                collectAiNotificationCandidates(domestic)
             }
-            val newTopCandidates = collectAiNotificationCandidates(domestic).filterNot { it.first in recordedMatchIds }
             AiMatchNotifications.observe(applicationContext, newTopCandidates)
             // Persist the combined feed so MainActivity can restore background updates on launch.
             val mergedPayload = domestic.toString()
@@ -157,6 +150,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
     private fun collectAiNotificationCandidates(feed: JSONObject): List<Pair<String, String>> {
         val matchesFound = mutableListOf<Pair<String, String>>()
+        val savedBets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
         val competitions = feed.optJSONArray("competitions") ?: return matchesFound
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
@@ -205,6 +199,14 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val id = match.optString("id").ifBlank {
                     listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
                 }
+                val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
+                val alreadyRecorded = (0 until savedBets.length()).any { index ->
+                    val bet = savedBets.optJSONObject(index) ?: return@any false
+                    bet.optString("matchId") == id &&
+                        bet.optString("marketKey") == signalMarketKey &&
+                        bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+                }
+                if (alreadyRecorded) continue
                 val title = "${match.optString("home")} — ${match.optString("away")}"
                 matchesFound.add(id to title)
             }
