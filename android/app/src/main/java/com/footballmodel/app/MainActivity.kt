@@ -1596,7 +1596,6 @@ class MainActivity : Activity() {
 
         fun renderBetSection(title: String, items: List<JSONObject>, emptyText: String) {
             val section = card()
-            addText(section, title + " · " + items.size, 12, true, if (title == "ОТКРЫТЫЕ СТАВКИ") accent else cyan)
             if (items.isEmpty()) {
                 addText(section, emptyText, 11, false, muted)
                 return
@@ -1681,8 +1680,9 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         listOf("OPEN" to "Открытые ставки", "COMPLETED" to "Завершённые").forEach { (key, title) ->
+            val count = if (key == "OPEN") openBets.size else completedBets.size
             val tab = TextView(this).apply {
-                text = title
+                text = "$title · $count"
                 textSize = 10f
                 typeface = Typeface.DEFAULT_BOLD
                 letterSpacing = 0.02f
