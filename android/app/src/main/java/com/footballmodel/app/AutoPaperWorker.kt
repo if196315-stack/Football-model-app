@@ -36,6 +36,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            // Notify only for newly qualified TOP matches that are not already recorded by the user.
+            val newTopCandidates = synchronized(AutoPaperExecutionLock) {
+                collectAiNotificationCandidates(domestic)
+            }
+            AiMatchNotifications.observe(applicationContext, newTopCandidates)
             // Persist the combined feed so MainActivity can restore background updates on launch.
             val mergedPayload = domestic.toString()
             check(feedCache.edit()
@@ -137,7 +142,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         for (i in 0 until src.length()) {
             val comp = src.optJSONObject(i) ?: continue
             val code = comp.optString("code")
-            if (code != "UCL" && code != "UEL") continue
+            if (code != "UCL" && code != "UEL" && code != "UECL") continue
             for (j in dest.length() - 1 downTo 0) if (dest.optJSONObject(j)?.optString("code") == code) dest.remove(j)
             dest.put(comp)
         }
@@ -145,6 +150,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
     private fun collectAiNotificationCandidates(feed: JSONObject): List<Pair<String, String>> {
         val matchesFound = mutableListOf<Pair<String, String>>()
+        val savedBets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
         val competitions = feed.optJSONArray("competitions") ?: return matchesFound
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
@@ -156,6 +162,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             for (j in 0 until matches.length()) {
                 val match = matches.optJSONObject(j) ?: continue
                 if (match.optString("status") !in listOf("SCHEDULED", "TIMED")) continue
+                val odds = match.optJSONObject("odds") ?: continue
+                val bookmaker = odds.optString("bookmaker")
+                val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
+                    else odds.optString("source").contains("MelBet", ignoreCase = true)
+                if (!isMelBet) continue
                 val matchDay = match.optString("utcDate").take(10).ifBlank {
                     match.optString("dateEvent").take(10).ifBlank {
                         val timestamp = match.optLong("startTimestamp", 0L)
@@ -168,8 +179,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     }
                 }
                 if (matchDay.isBlank() || matchDay < today) continue
-                val signal = match.optJSONObject("prediction")?.optJSONObject("strongestSignal")
-                    ?: (if (code == "UCL" || code == "UEL") uefaSignal(match) else null)
+                val prediction = match.optJSONObject("prediction") ?: continue
+                val signal = strongestTopSignal(prediction, match)
+                    ?: (if (code == "UCL" || code == "UEL" || code == "UECL") uefaSignal(match) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
                     signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
@@ -188,11 +200,59 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val id = match.optString("id").ifBlank {
                     listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
                 }
+                val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
+                val alreadyRecorded = (0 until savedBets.length()).any { index ->
+                    val bet = savedBets.optJSONObject(index) ?: return@any false
+                    bet.optString("matchId") == id &&
+                        bet.optString("marketKey") == signalMarketKey &&
+                        bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+                }
+                if (alreadyRecorded) continue
                 val title = "${match.optString("home")} — ${match.optString("away")}"
                 matchesFound.add(id to title)
             }
         }
         return matchesFound
+    }
+
+    // Mirrors the TOP card primary-signal selection for background notifications.
+    private fun strongestTopSignal(prediction: JSONObject, match: JSONObject): JSONObject? {
+        val candidates = mutableListOf<JSONObject>()
+        prediction.optJSONObject("strongestSignal")?.let { candidates.add(it) }
+        val signals = prediction.optJSONArray("signals")
+        if (signals != null) {
+            for (index in 0 until signals.length()) {
+                val candidate = signals.optJSONObject(index) ?: continue
+                val key = candidate.optString("side").trim().lowercase(Locale.ROOT)
+                if (candidates.none { it.optString("side").trim().lowercase(Locale.ROOT) == key }) candidates.add(candidate)
+            }
+        }
+        val rawMarkets = listOf(
+            "1x" to "1X", "x2" to "X2", "bttsYes" to "ОЗ ДА",
+            "over15" to "ТБ 1.5", "over25" to "ТБ 2.5",
+            "homeOver05" to ("ИТБ 0.5 · " + match.optString("home")),
+            "homeOver15" to ("ИТБ 1.5 · " + match.optString("home")),
+            "awayOver05" to ("ИТБ 0.5 · " + match.optString("away")),
+            "awayOver15" to ("ИТБ 1.5 · " + match.optString("away"))
+        )
+        rawMarkets.forEach { (field, side) ->
+            val probability = prediction.optDouble(field, Double.NaN)
+            if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
+            if (candidates.none { it.optString("side").trim().equals(side.trim(), ignoreCase = true) }) {
+                candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
+            }
+        }
+        val available = candidates.mapNotNull { candidate ->
+            if (marketKey(candidate.optString("side"), match) == null) return@mapNotNull null
+            val probability = candidate.optDouble("modelProbability", Double.NaN)
+            val odds = priceFor(candidate, match)
+            if (!probability.isFinite() || probability !in 0.0..1.0 || odds == null) return@mapNotNull null
+            val expectedValue = probability * odds - 1.0
+            Triple(candidate, expectedValue, expectedValue / (odds - 1.0))
+        }
+        val positiveValue = available.filter { it.second > 0.0 }
+        return if (positiveValue.isNotEmpty()) positiveValue.maxByOrNull { it.third }?.first
+        else available.maxByOrNull { it.first.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }?.first
     }
 
     private fun process(feed: JSONObject, bets: JSONArray): Boolean {

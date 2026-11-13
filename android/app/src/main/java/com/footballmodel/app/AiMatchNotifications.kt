@@ -16,12 +16,13 @@ import android.os.Build
 internal object AiMatchNotifications {
     private const val PREFS = "ai_match_notifications"
     private const val SEEN_IDS_KEY = "seen_candidate_match_ids"
-    private const val CHANNEL_ID = "iq_match_new_ai_fixtures"
-    private const val CHANNEL_NAME = "Новые матчи в AI"
+    private const val PERMISSION_REQUESTED_KEY = "notification_permission_requested"
+    private const val CHANNEL_ID = "iq_top_new_signal"
+    private const val CHANNEL_NAME = "Новые сигналы в ТОП"
     private const val NOTIFICATION_ID = 7304
 
     @Synchronized
-    fun observe(context: Context, candidates: List<Pair<String, String>>) {
+    fun observe(context: Context, candidates: List<Pair<String, String>>): Boolean {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val previous = prefs.getStringSet(SEEN_IDS_KEY, null)
         val seen = previous?.toMutableSet() ?: mutableSetOf()
@@ -31,18 +32,29 @@ internal object AiMatchNotifications {
         if (previous == null) {
             candidates.forEach { (id, _) -> if (id.isNotBlank()) seen.add(id) }
             prefs.edit().putStringSet(SEEN_IDS_KEY, seen).apply()
-            return
+            return false
         }
-        if (newlyAdded.isEmpty()) return
+        if (newlyAdded.isEmpty()) return false
         // If Android notification permission is missing, leave these IDs unseen and retry
         // on the next feed refresh instead of silently losing the first alert.
         newlyAdded.forEach { (id, title) ->
-            NotificationCenter.add(context, "ai_match:$id", "ai_match", "Новый AI-матч", title, "desk", id)
+            NotificationCenter.add(context, "ai_match:$id", "ai_match", "🔥 Есть новинка! Сигнал уже в ТОП!", title, "desk", id)
         }
         if (show(context, newlyAdded.map { it.second })) {
             candidates.forEach { (id, _) -> if (id.isNotBlank()) seen.add(id) }
             prefs.edit().putStringSet(SEEN_IDS_KEY, seen).apply()
+            return false
         }
+        return true
+    }
+
+    fun requestPermissionIfNeeded(activity: android.app.Activity) {
+        if (Build.VERSION.SDK_INT < 33) return
+        if (activity.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) return
+        val prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(PERMISSION_REQUESTED_KEY, false)) return
+        prefs.edit().putBoolean(PERMISSION_REQUESTED_KEY, true).apply()
+        activity.requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7304)
     }
 
     private fun show(context: Context, newMatches: List<String>): Boolean {
@@ -52,7 +64,7 @@ internal object AiMatchNotifications {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager.getNotificationChannel(CHANNEL_ID) == null) {
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Новые матчи, прошедшие фильтры AI-аналитики"
+                description = "Новые матчи, прошедшие фильтры раздела ТОП"
                 enableVibration(true)
             }
             manager.createNotificationChannel(channel)
@@ -76,7 +88,7 @@ internal object AiMatchNotifications {
         }
         val notification = builder
             .setSmallIcon(context.applicationInfo.icon)
-            .setContentTitle(if (newMatches.size == 1) "Новый матч в AI" else "Новые матчи в AI")
+            .setContentTitle("🔥 Есть новинка! Сигнал уже в ТОП!")
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
             .setContentIntent(pendingIntent)
