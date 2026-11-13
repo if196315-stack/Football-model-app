@@ -36,6 +36,18 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val domestic = JSONObject(domesticText)
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
             if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            // Notify only for newly qualified TOP matches that are not already recorded by the user.
+            val recordedMatchIds = synchronized(AutoPaperExecutionLock) {
+                val savedBets = JSONArray(prefs.getString("bets", "[]") ?: "[]")
+                (0 until savedBets.length()).mapNotNull { index ->
+                    val bet = savedBets.optJSONObject(index) ?: return@mapNotNull null
+                    if (bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && bet.optString("marketKey") != "COUPON") {
+                        bet.optString("matchId").takeIf { it.isNotBlank() }
+                    } else null
+                }.toSet()
+            }
+            val newTopCandidates = collectAiNotificationCandidates(domestic).filterNot { it.first in recordedMatchIds }
+            AiMatchNotifications.observe(applicationContext, newTopCandidates)
             // Persist the combined feed so MainActivity can restore background updates on launch.
             val mergedPayload = domestic.toString()
             check(feedCache.edit()
