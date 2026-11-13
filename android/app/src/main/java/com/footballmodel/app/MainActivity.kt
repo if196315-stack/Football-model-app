@@ -2519,7 +2519,8 @@ class MainActivity : Activity() {
 
         if (selectedTopTab == "OPEN") {
             val intro = card()
-            openIntroCountView = addText(intro, "НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
+            openIntroCountView = label("НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
+            intro.addView(openIntroCountView)
             addText(intro, "Здесь только сигналы, которые ещё не зафиксированы. Выбери подходящий исход и добавь его в историю ставок.", 11, false, muted)
             val emptyOpenCard = card().apply {
                 addText(this, "Новых сильных сигналов пока нет.", 14, true, gold)
