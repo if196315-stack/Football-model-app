@@ -142,7 +142,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         for (i in 0 until src.length()) {
             val comp = src.optJSONObject(i) ?: continue
             val code = comp.optString("code")
-            if (code != "UCL" && code != "UEL") continue
+            if (code != "UCL" && code != "UEL" && code != "UECL") continue
             for (j in dest.length() - 1 downTo 0) if (dest.optJSONObject(j)?.optString("code") == code) dest.remove(j)
             dest.put(comp)
         }
@@ -181,7 +181,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 if (matchDay.isBlank() || matchDay < today) continue
                 val prediction = match.optJSONObject("prediction") ?: continue
                 val signal = strongestTopSignal(prediction, match)
-                    ?: (if (code == "UCL" || code == "UEL") uefaSignal(match) else null)
+                    ?: (if (code == "UCL" || code == "UEL" || code == "UECL") uefaSignal(match) else null)
                     ?: continue
                 if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
                     signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
