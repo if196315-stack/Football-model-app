@@ -3015,9 +3015,15 @@ class MainActivity : Activity() {
             leagueBar.visibility = View.VISIBLE
         }
 
-        addText(matchesContainer, "ЛИНИЯ", 9, true, cyan)
-        addText(matchesContainer, "Матчи с действующими коэффициентами MelBet и прогнозом модели", 16, true, Color.WHITE)
+        val lineHeading = label("ЛИНИЯ", 25, true, Color.WHITE).apply {
+            setPadding(dp(2), dp(5), dp(2), dp(8))
+        }
+        matchesContainer.addView(lineHeading, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(4)
+            bottomMargin = dp(2)
+        })
         addText(matchesContainer, "API-SPORT · MELBET · PITCHAPI xG", 9, true, muted)
+        matchesContainer.addView(View(this), LinearLayout.LayoutParams(1, dp(14)))
 
         if (leagues == null || leagues.length() == 0) {
             val empty = card()
