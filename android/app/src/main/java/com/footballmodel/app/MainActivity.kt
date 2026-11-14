@@ -1016,12 +1016,14 @@ class MainActivity : Activity() {
                 val tab = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     gravity = Gravity.CENTER
-                    setPadding(dp(2), dp(5), dp(2), dp(5))
+                    setPadding(0, dp(4), 0, dp(4))
+                    minimumWidth = 0
                     isClickable = true
                     isFocusable = true
+                    contentDescription = item.second
                     setOnClickListener { selectTab(item.first) }
                 }
-                val glyph = label(item.third, 18, true, accent).apply {
+                val glyph = label(item.third, 17, true, accent).apply {
                     gravity = Gravity.CENTER
                     includeFontPadding = false
                     maxLines = 1
@@ -1031,11 +1033,15 @@ class MainActivity : Activity() {
                     includeFontPadding = false
                     maxLines = 1
                     setSingleLine(true)
+                    setHorizontallyScrolling(false)
+                    setAutoSizeTextTypeUniformWithConfiguration(
+                        5, 8, 1, android.util.TypedValue.COMPLEX_UNIT_SP
+                    )
                 }
-                tab.addView(glyph, LinearLayout.LayoutParams(-1, 0, 1.1f))
-                tab.addView(title, LinearLayout.LayoutParams(-1, 0, 0.9f))
+                tab.addView(glyph, LinearLayout.LayoutParams(-1, 0, 1.05f))
+                tab.addView(title, LinearLayout.LayoutParams(-1, 0, 0.95f))
                 tabBar.addView(tab, LinearLayout.LayoutParams(0, -1, 1f).apply {
-                    setMargins(dp(2), dp(2), dp(2), dp(2))
+                    setMargins(dp(1), dp(2), dp(1), dp(2))
                 })
             }
         }
