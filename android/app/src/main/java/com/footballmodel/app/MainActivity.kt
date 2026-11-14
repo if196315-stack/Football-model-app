@@ -1783,9 +1783,9 @@ class MainActivity : Activity() {
                 letterSpacing = 0.02f
                 gravity = Gravity.CENTER
                 setPadding(dp(16), dp(12), dp(16), dp(12))
-                setTextColor(if (selectedHistoryTab == key) bg else muted)
+                setTextColor(if (selectedHistoryTab == key) Color.rgb(28, 31, 36) else muted)
                 background = if (selectedHistoryTab == key)
-                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
+                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(28).toFloat() }
                 else rounded(surface, 28)
                 setOnClickListener {
                     if (selectedHistoryTab == key) return@setOnClickListener
@@ -2612,9 +2612,9 @@ class MainActivity : Activity() {
                 letterSpacing = 0.02f
                 gravity = Gravity.CENTER
                 setPadding(dp(16), dp(12), dp(16), dp(12))
-                setTextColor(if (selectedTopTab == key) bg else muted)
+                setTextColor(if (selectedTopTab == key) Color.rgb(28, 31, 36) else muted)
                 background = if (selectedTopTab == key)
-                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
+                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(28).toFloat() }
                 else rounded(surface, 28)
                 if (key == "OPEN") openTabView = this else fixedTabView = this
                 setOnClickListener {
