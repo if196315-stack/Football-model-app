@@ -264,6 +264,9 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
+        headerAiRoiView = label("ТОП ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
+        roiRow.addView(headerAiRoiView, LinearLayout.LayoutParams(-1, -2))
+        headerRight.addView(roiRow)
         val profileGear = ImageView(this).apply {
             setImageResource(R.drawable.ic_settings_gold)
             contentDescription = "Профиль и настройки"
@@ -273,10 +276,9 @@ class MainActivity : Activity() {
             setPadding(dp(3), dp(3), dp(3), dp(3))
             setOnClickListener { selectTab("help") }
         }
-        roiRow.addView(profileGear, LinearLayout.LayoutParams(dp(25), dp(25)).apply { rightMargin = dp(5) })
-        headerAiRoiView = label("ТОП ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
-        roiRow.addView(headerAiRoiView, LinearLayout.LayoutParams(0, -2, 1f))
-        headerRight.addView(roiRow)
+        headerRight.addView(profileGear, LinearLayout.LayoutParams(dp(30), dp(30)).apply {
+            gravity = Gravity.END
+        })
         top.addView(headerRight, LinearLayout.LayoutParams(dp(116), -2))
         root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
