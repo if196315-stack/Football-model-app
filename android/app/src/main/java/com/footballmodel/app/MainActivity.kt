@@ -1328,7 +1328,7 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Размер ставки — фиксированная сумма, если она задана в профиле; иначе 1% текущего банка, но не менее установленного пользователем минимума. Дневного лимита суммарной нагрузки нет; разные рынки одного матча разрешены, повтор одной и той же ставки на тот же рынок блокируется.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Размер новой ставки: ${stakeRuleDescription()} Дневного лимита суммарной нагрузки нет; разные рынки одного матча разрешены, повтор одной и той же ставки на тот же рынок блокируется.", 11, false, Color.WHITE)
         addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 10% от локального максимума — пауза автоматической фиксации paper bets; 20% — остановка автоматической фиксации до явного пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
@@ -1795,19 +1795,81 @@ class MainActivity : Activity() {
 
         val settings = card()
         addText(settings, "НАСТРОЙКИ СУММЫ СТАВОК", 10, true, accent)
+        addText(settings, "РЕЖИМ РАСЧЁТА СТАВКИ", 11, true, Color.WHITE)
+        val stakeModeRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val stakeModeButtons = linkedMapOf<String, Button>()
+        lateinit var fixedStakeHint: TextView
+        lateinit var minimumStakeHint: TextView
+        fun styleStakeModeButton(button: Button, selected: Boolean) {
+            button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
+            button.background = GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
+                else intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
+            ).apply {
+                cornerRadius = dp(12).toFloat()
+                setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
+            }
+        }
+        fun addStakeModeButton(title: String, mode: String) {
+            val button = Button(this).apply {
+                text = title
+                textSize = 11f
+                isAllCaps = false
+                typeface = Typeface.DEFAULT_BOLD
+                minHeight = dp(44)
+                setPadding(dp(5), dp(5), dp(5), dp(5))
+                styleStakeModeButton(this, stakeMode() == mode)
+                setOnClickListener {
+                    // Persist synchronously before changing the visible selection.
+                    if (!settingsPrefs.edit().putString("stake_mode", mode).commit()) {
+                        Toast.makeText(this@MainActivity, "Не удалось сохранить режим ставки", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
+                    fixedStakeHint.text = if (mode == "FIXED") {
+                        if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
+                        else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
+                    } else "Сохранённое значение не применяется, пока выбран режим «Минимальная»."
+                    minimumStakeHint.text = if (mode == "MINIMUM") minimumStakeDescription()
+                        else "Сохранённое значение не применяется, пока выбран режим «Фиксированная»."
+                    // Invalidate dependent tabs for their next visit without rebuilding this page.
+                    tabViewCache.clear()
+                    Toast.makeText(this@MainActivity,
+                        if (mode == "FIXED") "Фиксированная сумма активна" else "Минимальный режим активен",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+            stakeModeButtons[mode] = button
+            stakeModeRow.addView(button, LinearLayout.LayoutParams(0, dp(46), 1f).apply {
+                if (mode == "FIXED") leftMargin = dp(8)
+            })
+        }
+        addStakeModeButton("Минимальная", "MINIMUM")
+        addStakeModeButton("Фиксированная", "FIXED")
+        fixedStakeHint = label(if (stakeMode() == "FIXED") {
+            if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
+            else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
+        } else "Сохранённое значение не применяется, пока выбран режим «Минимальная».", 11, false, muted)
+        minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
+            else "Сохранённое значение не применяется, пока выбран режим «Фиксированная».", 11, false, muted)
+        settings.addView(stakeModeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
-        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана · используется процент от баланса", 13, false, muted)
-        addText(settings, "Если задана, фиксированная сумма заменяет процент от баланса и минимальную сумму для новых ставок.", 11, false, muted)
+        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
+        settings.addView(fixedStakeHint)
         actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
-            showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы вернуться к расчёту 1% баланса с учётом минимальной суммы.")
+            showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы очистить значение.")
         }
         val settingsSectionGap = View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) }
         settings.addView(settingsSectionGap)
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
         addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
-        addText(settings, if (fixedStake() > 0.0) "Не применяется, пока задана фиксированная сумма." else minimumStakeDescription(), 11, false, muted)
+        settings.addView(minimumStakeHint)
         actionButton(settings, "Изменить минимальную сумму ставки") {
-            showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум. При заданной фиксированной сумме этот параметр не применяется.")
+            showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум.")
         }
 
         val displaySettings = card()
@@ -2126,14 +2188,25 @@ class MainActivity : Activity() {
     private fun fixedStake(): Double = settingsPrefs.getString("fixed_stake", null)
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
 
-    private fun calculatedStake(): Double = if (fixedStake() > 0.0) fixedStake()
-        else maxOf(currentBankroll() * 0.01, minimumStake())
+    // Keep the two stake rules independent; legacy installs with a saved fixed amount
+    // continue in fixed mode until the user explicitly selects another mode.
+    private fun stakeMode(): String = settingsPrefs.getString("stake_mode", null)
+        ?: if (fixedStake() > 0.0) "FIXED" else "MINIMUM"
 
-    private fun minimumStakeDescription(): String = if (fixedStake() > 0.0)
-        "Фиксированная сумма: ${fmt(fixedStake())} ₽ за каждую новую ставку."
-    else if (minimumStake() > 0.0)
-        "1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽."
-    else "1% от текущего баланса; пользовательский минимум не задан."
+    private fun calculatedStake(): Double = when (stakeMode()) {
+        "FIXED" -> fixedStake()
+        else -> maxOf(currentBankroll() * 0.01, minimumStake())
+    }
+
+    private fun minimumStakeDescription(): String = if (minimumStake() > 0.0)
+        "Активный расчёт: 1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽."
+    else "Активный расчёт: 1% от текущего баланса; пользовательский минимум не задан."
+
+    private fun stakeRuleDescription(): String = when (stakeMode()) {
+        "FIXED" -> if (fixedStake() > 0.0) "фиксированная сумма ${fmt(fixedStake())} ₽ на каждую новую ставку; процент и минимум не применяются."
+            else "фиксированный режим выбран, но сумма не задана — новые ставки не фиксируются."
+        else -> minimumStakeDescription()
+    }
 
     private fun showBankSettingDialog(key: String, title: String, current: Double, message: String) {
         val field = EditText(this).apply {
@@ -2826,7 +2899,7 @@ class MainActivity : Activity() {
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · СИГНАЛЫ ТОП", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена MelBet. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку с необязательным пользовательским минимумом; разные рынки одного матча разрешены, повтор того же рынка блокируется; дневного лимита нет. Пауза при просадке 10%, остановка при 20%.", 11, false, muted)
+        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена MelBet. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: ${stakeRuleDescription()} Разные рынки одного матча разрешены, повтор того же рынка блокируется; дневного лимита нет. Пауза при просадке 10%, остановка при 20%.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)
