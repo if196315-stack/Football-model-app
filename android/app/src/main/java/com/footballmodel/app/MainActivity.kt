@@ -1789,7 +1789,6 @@ class MainActivity : Activity() {
         addText(bankrollCard, "ТЕКУЩИЙ БАЛАНС", 10, true, cyan)
         addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
         addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
-        addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
         actionButton(bankrollCard, if (hasInitialBankroll()) "Изменить баланс" else "Задать баланс") {
             showBankSettingDialog("initial_bankroll", "Баланс", initialBankroll(), "Укажи стартовый баланс. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
         }
@@ -1802,6 +1801,8 @@ class MainActivity : Activity() {
         actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
             showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы вернуться к расчёту 1% баланса с учётом минимальной суммы.")
         }
+        val settingsSectionGap = View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) }
+        settings.addView(settingsSectionGap)
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
         addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
         addText(settings, if (fixedStake() > 0.0) "Не применяется, пока задана фиксированная сумма." else minimumStakeDescription(), 11, false, muted)
@@ -3024,6 +3025,20 @@ class MainActivity : Activity() {
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
+                // Match-only visual treatment: clearer hierarchy, softer navy gradient and a restrained gold outline.
+                box.setPadding(dp(18), dp(18), dp(18), dp(18))
+                box.background = GradientDrawable(
+                    GradientDrawable.Orientation.TL_BR,
+                    intArrayOf(Color.rgb(23, 43, 66), Color.rgb(11, 25, 42), Color.rgb(9, 20, 35))
+                ).apply {
+                    cornerRadius = dp(24).toFloat()
+                    setStroke(dp(1), Color.rgb(91, 78, 55))
+                }
+                box.elevation = dp(2).toFloat()
+                (box.layoutParams as? LinearLayout.LayoutParams)?.apply {
+                    topMargin = dp(10)
+                    bottomMargin = dp(12)
+                }
                 addText(box, "★  MATCH FIXTURE  ·  ${date(m.optString("utcDate"))}", 9, true, gold)
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val scoreAvailable = !m.isNull("homeScore") && !m.isNull("awayScore")
