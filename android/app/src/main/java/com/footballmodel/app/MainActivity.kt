@@ -1118,6 +1118,21 @@ class MainActivity : Activity() {
         }
     }
 
+    private data class EvaluatedMatch(
+        val league: String, val home: String, val away: String, val score: String,
+        val predicted: String, val actual: String, val correct: Boolean,
+        val date: String, val confidence: Double
+    )
+
+    private data class StatsBandRow(val label: String, val n: Int, val hits: Int)
+    private data class StatsMetricRow(
+        val name: String, val n: Int, val hits: Int, val brier: Double,
+        val logLoss: Double, val bands: List<StatsBandRow>
+    )
+    @Volatile private var statsMetricsCacheKey: String? = null
+    @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
+    private val statsCalculationInProgress = AtomicBoolean(false)
+
     private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
         val evaluatedMatches = json.optJSONArray("evaluationMatches")
