@@ -1793,14 +1793,14 @@ class MainActivity : Activity() {
 
         val settings = card()
         addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
+        actionButton(settings, if (hasInitialBankroll()) "Изменить баланс" else "Задать баланс") {
+            showBankSettingDialog("initial_bankroll", "Баланс", initialBankroll(), "Укажи стартовый баланс. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
+        }
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
         addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
         addText(settings, minimumStakeDescription(), 11, false, muted)
         actionButton(settings, "Изменить минимальную сумму ставки") {
             showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.")
-        }
-        actionButton(settings, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") {
-            showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
         }
 
         val displaySettings = card()
