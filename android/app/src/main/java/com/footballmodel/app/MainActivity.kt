@@ -984,11 +984,12 @@ class MainActivity : Activity() {
         renderTabs()
         matchesContainer.animate().cancel()
         leagueScroll.animate().cancel()
-        leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
+        leagueScroll.visibility = if (tab in listOf("matches", "desk", "stats")) View.VISIBLE else View.GONE
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
-            "desk" -> selectedTopTab
+            "desk" -> selectedTopTab + "|" + selectedLeague
+            "stats" -> selectedLeague
             else -> "ALL"
         }
         if (tabViewCache.containsKey(targetKey) && data != null) {
@@ -1016,6 +1017,44 @@ class MainActivity : Activity() {
         if (index < 0) return
         val nextIndex = (index + direction).coerceIn(0, primaryTabs.lastIndex)
         if (nextIndex != index) selectTab(primaryTabs[nextIndex])
+    }
+
+    private fun leagueLabelForCode(code: String): String = when (code) {
+        "PL" -> "АПЛ"; "PD" -> "Ла Лига"; "SA" -> "Серия А"; "BL1" -> "Бундеслига"
+        "FL1" -> "Лига 1"; "UCL" -> "ЛЧ"; "UEL" -> "ЛЕ"; "UECL" -> "ЛК"
+        else -> "Все"
+    }
+
+    private fun renderLeagueTabs() {
+        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
+        val names = listOf("Все", "АПЛ", "Ла Лига", "Серия А", "Бундеслига", "Лига 1", "ЛЧ", "ЛЕ", "ЛК")
+        leagueBar.removeAllViews()
+        codes.forEachIndexed { index, code ->
+            val active = selectedLeague == code
+            val chip = TextView(this).apply {
+                text = names[index]
+                textSize = 11f
+                typeface = Typeface.DEFAULT_BOLD
+                letterSpacing = 0.03f
+                gravity = Gravity.CENTER
+                includeFontPadding = false
+                setPadding(dp(16), dp(11), dp(16), dp(11))
+                setTextColor(if (active) Color.rgb(28, 31, 36) else muted)
+                background = if (active) GradientDrawable(
+                    GradientDrawable.Orientation.LEFT_RIGHT,
+                    intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
+                ).apply { cornerRadius = dp(24).toFloat() } else rounded(surface, 24)
+                setOnClickListener {
+                    if (selectedLeague == code) return@setOnClickListener
+                    selectedLeague = code
+                    tabViewCache.clear()
+                    render()
+                }
+            }
+            leagueBar.addView(chip, LinearLayout.LayoutParams(-2, -2).apply {
+                setMargins(0, dp(7), dp(7), dp(9))
+            })
+        }
     }
 
     private fun renderTabs() {
@@ -1159,6 +1198,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderSavedBetStats() {
+        val selectedLeagueLabel = leagueLabelForCode(selectedLeague)
         var turnover = 0.0
         var profit = 0.0
         var pendingStake = 0.0
@@ -1172,6 +1212,7 @@ class MainActivity : Activity() {
         var settledTopOddsCount = 0
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
+            if (selectedLeague != "ALL" && displayLeagueName(bet.optString("league")) != selectedLeagueLabel) continue
             val stake = bet.optDouble("stake")
             val odds = bet.optDouble("odds")
             when (bet.optString("status")) {
@@ -1219,6 +1260,7 @@ class MainActivity : Activity() {
         ).forEach { betsByLeague[it] = mutableListOf() }
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
+            if (selectedLeague != "ALL" && displayLeagueName(bet.optString("league")) != selectedLeagueLabel) continue
             val league = displayLeagueName(bet.optString("league"))
             betsByLeague.getOrPut(league) { mutableListOf() }.add(bet)
         }
@@ -2537,7 +2579,7 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных ставок ТОП.")
-        val sorted = collectAiCandidates(json)
+        val sorted = collectAiCandidates(json).filter { selectedLeague == "ALL" || displayLeagueName(it.second) == leagueLabelForCode(selectedLeague) }
         val recordedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
             .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" && it.optString("status") == "PENDING" }
             .asReversed()
@@ -2808,7 +2850,7 @@ class MainActivity : Activity() {
     private fun render() {
         val json = data ?: return
         refreshHeaderFinancials()
-        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab; else -> "ALL" }
+        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab + "|" + selectedLeague; "stats" -> selectedLeague; else -> "ALL" }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
@@ -2836,13 +2878,16 @@ class MainActivity : Activity() {
         val sourceUpdated = formatSourceTimestamp(json.optString("updatedAt"))
         statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
         renderTabs()
+        renderLeagueTabs()
+        leagueBar.visibility = if (currentTab in listOf("matches", "desk", "stats")) View.VISIBLE else View.GONE
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
         val cached = tabViewCache[targetKey]
         if (cached != null) {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
-            leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+            leagueBar.visibility = if (currentTab in listOf("matches", "desk", "stats")) View.VISIBLE else View.GONE
+            renderLeagueTabs()
             renderedKey = targetKey
             mainScrollView.post {
                 if (renderedKey == targetKey) {
@@ -2872,7 +2917,7 @@ class MainActivity : Activity() {
             return
         }
         if (currentTab == "desk") {
-            leagueBar.visibility = View.GONE
+            leagueBar.visibility = View.VISIBLE
             renderBettingDesk(json)
             return
         }
@@ -2882,7 +2927,7 @@ class MainActivity : Activity() {
             return
         }
         if (currentTab == "stats") {
-            leagueBar.visibility = View.GONE
+            leagueBar.visibility = View.VISIBLE
             renderStats(json)
             return
         } else if (currentTab == "help") {
@@ -2896,38 +2941,6 @@ class MainActivity : Activity() {
         addText(matchesContainer, "ЛИНИЯ", 9, true, cyan)
         addText(matchesContainer, "Матчи с действующими коэффициентами MelBet и прогнозом модели", 16, true, Color.WHITE)
         addText(matchesContainer, "API-SPORT · MELBET · PITCHAPI xG", 9, true, muted)
-        val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
-        val names = listOf("Все", "АПЛ", "Ла Лига", "Серия А", "Бундеслига", "Лига 1", "ЛЧ", "ЛЕ", "ЛК")
-        // League filters already live in the persistent horizontal scroller above the content.
-        codes.forEachIndexed { index, code ->
-            val b = TextView(this).apply {
-                text = names[index]
-                textSize = 10f
-                typeface = Typeface.DEFAULT_BOLD
-                letterSpacing = 0.06f
-                gravity = Gravity.CENTER
-                setPadding(dp(16), dp(12), dp(16), dp(12))
-                setTextColor(if (selectedLeague == code) bg else muted)
-                background = if (selectedLeague == code) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() } else rounded(surface, 28)
-                setOnClickListener {
-                    if (selectedLeague == code) return@setOnClickListener
-                    val previousIndex = codes.indexOf(selectedLeague)
-                    val nextIndex = codes.indexOf(code)
-                    val direction = if (nextIndex >= previousIndex) 1 else -1
-                    selectedLeague = code
-                    render()
-                    // Keep the league chips fixed; animate only the match content.
-                    matchesContainer.postOnAnimation {
-                        if (selectedLeague == code && currentTab == "matches") {
-                            animateTabEntry(matchesContainer, direction)
-                        }
-                    }
-                }
-            }
-            val lp = LinearLayout.LayoutParams(-2, -2)
-            lp.setMargins(0, 8, 7, 12)
-            leagueBar.addView(b, lp)
-        }
 
         if (leagues == null || leagues.length() == 0) {
             val empty = card()
