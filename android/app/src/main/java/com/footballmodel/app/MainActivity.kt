@@ -1804,9 +1804,9 @@ class MainActivity : Activity() {
         }
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
         addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
-        addText(settings, minimumStakeDescription(), 11, false, muted)
+        addText(settings, if (fixedStake() > 0.0) "Не применяется, пока задана фиксированная сумма." else minimumStakeDescription(), 11, false, muted)
         actionButton(settings, "Изменить минимальную сумму ставки") {
-            showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.")
+            showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум. При заданной фиксированной сумме этот параметр не применяется.")
         }
 
         val displaySettings = card()
