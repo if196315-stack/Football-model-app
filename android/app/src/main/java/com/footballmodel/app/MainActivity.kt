@@ -61,6 +61,7 @@ class MainActivity : Activity() {
     private lateinit var headerAiRoiView: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
+    private lateinit var lineHeadingView: TextView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
@@ -319,6 +320,14 @@ class MainActivity : Activity() {
             setPadding(0, 0, 0, 0)
             addView(leagueBar)
         }
+        lineHeadingView = label("ЛИНИЯ", 25, true, Color.WHITE).apply {
+            setPadding(dp(2), dp(5), dp(2), dp(8))
+            visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+        }
+        root.addView(lineHeadingView, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(4)
+            bottomMargin = dp(14)
+        })
         val leagueScrollFrame = FrameLayout(this)
         leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
         root.addView(leagueScrollFrame, LinearLayout.LayoutParams(-1, -2).apply {
@@ -991,6 +1000,7 @@ class MainActivity : Activity() {
         renderTabs()
         matchesContainer.animate().cancel()
         leagueScroll.animate().cancel()
+        lineHeadingView.visibility = if (tab == "matches") View.VISIBLE else View.GONE
         leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
@@ -1274,6 +1284,7 @@ class MainActivity : Activity() {
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
+            lineHeadingView.visibility = View.GONE
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
@@ -2983,22 +2994,26 @@ class MainActivity : Activity() {
         }
 
         if (currentTab == "day") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderDay(json)
             return
         }
         if (currentTab == "notifications") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderNotificationCenter(json)
             renderDailyInsights(json)
             return
         }
         if (currentTab == "desk") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderBetHistory(json)
             return
@@ -3008,16 +3023,14 @@ class MainActivity : Activity() {
             renderStats(json)
             return
         } else if (currentTab == "help") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderHelp()
             return
         } else {
+            lineHeadingView.visibility = View.VISIBLE
             leagueBar.visibility = View.VISIBLE
         }
-
-        addText(matchesContainer, "ЛИНИЯ", 9, true, cyan)
-        addText(matchesContainer, "Матчи с действующими коэффициентами MelBet и прогнозом модели", 16, true, Color.WHITE)
-        addText(matchesContainer, "API-SPORT · MELBET · PITCHAPI xG", 9, true, muted)
 
         if (leagues == null || leagues.length() == 0) {
             val empty = card()
@@ -3135,6 +3148,7 @@ class MainActivity : Activity() {
                 } else {
                     val signal = strongestDisplaySignal(pred, m)
                     val signalBox = card(box)
+                    signalBox.setPadding(dp(12), dp(12), dp(12), dp(12))
                     addText(signalBox, "★  САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold)
                     if (signal == null) {
                         addText(signalBox, "Нет доступной котировки MelBet ни для одного из разрешённых рынков этого матча.", 11, false, muted)
@@ -3148,14 +3162,39 @@ class MainActivity : Activity() {
                             val expectedValue = signal.optDouble("lineExpectedValue", Double.NaN)
                             val positiveValue = expectedValue.isFinite() && expectedValue > 0.0
                             addText(signalBox, displayLabel, 15, true, if (positiveValue) accent else Color.rgb(242, 190, 104))
-                            addText(signalBox, "Вероятность модели: ${String.format(Locale.US, "%.1f", probability * 100)}%  ·  Коэффициент MelBet: ${if (odds.isFinite()) String.format(Locale.US, "%.2f", odds) else "—"}", 12, true, Color.WHITE)
-                            if (expectedValue.isFinite()) {
-                                val evText = String.format(Locale.US, "%+.1f%%", expectedValue * 100.0)
-                                addText(signalBox, "Ожидаемая доходность (EV): $evText", 11, true, if (positiveValue) accent else Color.rgb(242, 190, 104))
-                                val kelly = signal.optDouble("lineKellyFraction", Double.NaN)
-                                if (positiveValue && kelly.isFinite()) {
-                                    addText(signalBox, "Доля полного Kelly для ранжирования: ${String.format(Locale.US, "%.1f", kelly * 100.0)}%", 10, false, muted)
+
+                            fun metricCell(parent: LinearLayout, title: String, value: String, valueColor: Int = Color.WHITE) {
+                                val cell = LinearLayout(this).apply {
+                                    orientation = LinearLayout.VERTICAL
+                                    setPadding(dp(9), dp(7), dp(9), dp(7))
+                                    background = rounded(Color.rgb(13, 29, 46), 12)
                                 }
+                                addText(cell, title, 9, true, muted)
+                                addText(cell, value, 12, true, valueColor)
+                                parent.addView(cell, LinearLayout.LayoutParams(0, -2, 1f))
+                            }
+                            fun metricRow(leftTitle: String, leftValue: String, rightTitle: String, rightValue: String,
+                                          leftColor: Int = Color.WHITE, rightColor: Int = Color.WHITE) {
+                                val row = LinearLayout(this).apply {
+                                    orientation = LinearLayout.HORIZONTAL
+                                    gravity = Gravity.CENTER_VERTICAL
+                                }
+                                metricCell(row, leftTitle, leftValue, leftColor)
+                                metricCell(row, rightTitle, rightValue, rightColor)
+                                (row.getChildAt(1).layoutParams as LinearLayout.LayoutParams).leftMargin = dp(7)
+                                signalBox.addView(row, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+                            }
+                            metricRow("ВЕРОЯТНОСТЬ МОДЕЛИ",
+                                String.format(Locale.US, "%.1f%%", probability * 100),
+                                "КОЭФФИЦИЕНТ MELBET",
+                                if (odds.isFinite()) String.format(Locale.US, "%.2f", odds) else "—")
+                            val evText = if (expectedValue.isFinite()) String.format(Locale.US, "%+.1f%%", expectedValue * 100.0) else "—"
+                            val kelly = signal.optDouble("lineKellyFraction", Double.NaN)
+                            metricRow("ОЖИДАЕМАЯ ДОХОДНОСТЬ (EV)", evText,
+                                "ДОЛЯ KELLY ДЛЯ РАНЖИРОВАНИЯ",
+                                if (positiveValue && kelly.isFinite()) String.format(Locale.US, "%.1f%%", kelly * 100.0) else "—",
+                                if (positiveValue) accent else Color.rgb(242, 190, 104), Color.WHITE)
+                            if (expectedValue.isFinite()) {
                                 addText(signalBox, if (positiveValue)
                                     "Выбран рынок с максимальной долей полного Kelly среди положительных EV и коэффициентов от 1.50."
                                 else
@@ -3176,7 +3215,9 @@ class MainActivity : Activity() {
                             }
                         }
                     }
+
                     val mainMarkets = card(box)
+                    mainMarkets.setPadding(dp(12), dp(12), dp(12), dp(12))
                     addMarketTitle(mainMarkets, "!", "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
                     fun quote(key: String): String {
@@ -3203,28 +3244,57 @@ class MainActivity : Activity() {
                         }
                         return "—"
                     }
-                    fun marketRow(title: String, probability: String, price: String) {
-                        addText(mainMarkets, "$title · $probability · кэф $price", 11, true, Color.WHITE)
-                    }
-                    addText(mainMarkets, "ДВОЙНОЙ ШАНС", 9, true, muted)
-                    marketRow("1X", pct(pred, "1x"), quote("1x"))
-                    marketRow("X2", pct(pred, "x2"), quote("x2"))
-                    addText(mainMarkets, "ОБЕ КОМАНДЫ ЗАБЬЮТ", 9, true, muted)
-                    marketRow("ОЗ ДА", pct(pred, "bttsYes"), quote("bttsYes"))
-                    addText(mainMarkets, "ТОТАЛ МАТЧА", 9, true, muted)
-                    for ((line, key) in listOf(1.5 to "over15", 2.5 to "over25")) {
-                        marketRow("ТБ ${fmt(line)}", pct(pred, key), totalQuote(line, "over"))
-                    }
-                    addText(mainMarkets, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 9, true, muted)
-                    for ((teamKey, teamName, sideKey) in listOf(Triple("home", m.optString("home"), "home"), Triple("away", m.optString("away"), "away"))) {
-                        addText(mainMarkets, teamName, 11, true, accent)
-                        for ((line, suffix) in listOf(0.5 to "05", 1.5 to "15")) {
-                            val probKey = "${teamKey}Over${suffix}"
-                            marketRow("ИТБ ${fmt(line)}", pct(pred, probKey), totalQuote(line, "over", sideKey))
+                    fun marketGroup(title: String, rows: List<String>): LinearLayout {
+                        val group = LinearLayout(this).apply {
+                            orientation = LinearLayout.VERTICAL
+                            setPadding(dp(9), dp(8), dp(9), dp(8))
+                            background = rounded(Color.rgb(13, 29, 46), 12)
                         }
+                        addText(group, title, 9, true, muted)
+                        rows.forEach { addText(group, it, 10, true, Color.WHITE) }
+                        return group
                     }
-                    addText(mainMarkets, "ОЖИДАЕМЫЕ ГОЛЫ", 9, true, muted)
-                    addText(mainMarkets, "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}", 13, true, Color.WHITE)
+                    fun addMarketPair(left: LinearLayout, right: LinearLayout) {
+                        val row = LinearLayout(this).apply {
+                            orientation = LinearLayout.HORIZONTAL
+                            gravity = Gravity.TOP
+                        }
+                        row.addView(left, LinearLayout.LayoutParams(0, -2, 1f))
+                        row.addView(right, LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(7) })
+                        mainMarkets.addView(row, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+                    }
+                    fun marketLine(title: String, probability: String, price: String): String =
+                        "$title · $probability · кэф $price"
+
+                    addMarketPair(
+                        marketGroup("ДВОЙНОЙ ШАНС", listOf(
+                            marketLine("1X", pct(pred, "1x"), quote("1x")),
+                            marketLine("X2", pct(pred, "x2"), quote("x2"))
+                        )),
+                        marketGroup("ОБЕ КОМАНДЫ ЗАБЬЮТ", listOf(
+                            marketLine("ОЗ ДА", pct(pred, "bttsYes"), quote("bttsYes"))
+                        ))
+                    )
+                    addMarketPair(
+                        marketGroup("ТОТАЛ МАТЧА", listOf(
+                            marketLine("ТБ 1.5", pct(pred, "over15"), totalQuote(1.5, "over")),
+                            marketLine("ТБ 2.5", pct(pred, "over25"), totalQuote(2.5, "over"))
+                        )),
+                        marketGroup("ОЖИДАЕМЫЕ ГОЛЫ", listOf(
+                            "${String.format(Locale.US, "%.2f", pred.optDouble("expectedHomeGoals"))} : ${String.format(Locale.US, "%.2f", pred.optDouble("expectedAwayGoals"))}"
+                        ))
+                    )
+                    val homeName = m.optString("home")
+                    val awayName = m.optString("away")
+                    fun teamTotalRows(teamKey: String, sideKey: String): List<String> =
+                        listOf(0.5 to "05", 1.5 to "15").map { (line, suffix) ->
+                            val probKey = "${teamKey}Over${suffix}"
+                            marketLine("ИТБ ${fmt(line)}", pct(pred, probKey), totalQuote(line, "over", sideKey))
+                        }
+                    addMarketPair(
+                        marketGroup(homeName, teamTotalRows("home", "home")),
+                        marketGroup(awayName, teamTotalRows("away", "away"))
+                    )
                     val oddsTimestamp = m.optJSONObject("odds")?.optString("updatedAt").orEmpty()
                     val quoteTime = if (oddsTimestamp.isBlank()) "время обновления неизвестно" else formatSourceTimestamp(oddsTimestamp)
                     addText(mainMarkets, "Котировка MelBet обновлена: $quoteTime", 10, false, muted)
