@@ -2863,6 +2863,7 @@ class MainActivity : Activity() {
             tabViewCache[renderedKey!!] = oldContent to oldLeagueBar
         }
 
+        matchesContainer.setPadding(if (currentTab == "stats") dp(8) else 0, 0, if (currentTab == "stats") dp(8) else 0, 0)
         matchesContainer.removeAllViews()
         leagueBar.removeAllViews()
         val leagues = json.optJSONArray("competitions")
