@@ -1736,7 +1736,7 @@ class MainActivity : Activity() {
             showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум ставки. Введи 0, чтобы снять минимум; если минимум не задан, ставка равна 1% текущего баланса.")
         }
         actionButton(settings, if (hasInitialBankroll()) "Изменить стартовый банк" else "Задать стартовый банк") {
-            showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые AI paper bets автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
+            showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
         }
 
 
@@ -1751,7 +1751,7 @@ class MainActivity : Activity() {
         addText(glossary, "EV — ожидаемая доходность", 13, true, Color.WHITE)
         addText(glossary, "Формула модели: вероятность × коэффициент − 1. EV +5% означает математическое ожидание прибыли 5 копеек на каждый рубль ставки на большой дистанции; это не прогноз прибыли в одном матче.", 11, false, muted)
         addText(glossary, "EDGE — преимущество модели", 13, true, Color.WHITE)
-        addText(glossary, "Разница между вероятностью модели и вероятностью, заложенной в коэффициенте, в процентных пунктах. Например, 65% против 55% — EDGE около +10 п.п. В AI дополнительно учитывается корректировка формы там, где она предусмотрена.", 11, false, muted)
+        addText(glossary, "Разница между вероятностью модели и вероятностью, заложенной в коэффициенте, в процентных пунктах. Например, 65% против 55% — EDGE около +10 п.п. В ТОП дополнительно учитывается корректировка формы там, где она предусмотрена.", 11, false, muted)
         addText(glossary, "Kelly — критерий размера/ранжирования", 13, true, Color.WHITE)
         addText(glossary, "Доля полного банка по формуле Келли: EV / (коэффициент − 1). В нашей Линии и ТОП этот показатель используется для ранжирования сигналов. Это доля полного Kelly, а не указание автоматически ставить весь рассчитанный процент банка.", 11, false, muted)
         addText(glossary, "xG — ожидаемые голы", 13, true, Color.WHITE)
@@ -2480,7 +2480,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных AI-ставок.")
+        screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных ставок ТОП.")
         val sorted = collectAiCandidates(json)
         val recordedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
             .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" && it.optString("status") == "PENDING" }
