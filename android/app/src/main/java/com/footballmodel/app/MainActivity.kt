@@ -236,7 +236,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val crest = ImageView(this).apply {
-            setImageResource(R.drawable.iq_match_icon_new)
+            setImageResource(R.drawable.ic_launcher)
             scaleType = ImageView.ScaleType.FIT_CENTER
             contentDescription = "IQ Match · нажмите для обновления"
             isClickable = true
@@ -984,11 +984,11 @@ class MainActivity : Activity() {
         renderTabs()
         matchesContainer.animate().cancel()
         leagueScroll.animate().cancel()
-        leagueScroll.visibility = if (tab in listOf("matches", "desk", "stats")) View.VISIBLE else View.GONE
+        leagueScroll.visibility = if (tab in listOf("matches", "stats")) View.VISIBLE else View.GONE
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
-            "desk" -> selectedTopTab + "|" + selectedLeague
+            "desk" -> selectedTopTab
             "stats" -> selectedLeague
             else -> "ALL"
         }
@@ -1070,7 +1070,7 @@ class MainActivity : Activity() {
                 val tab = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     gravity = Gravity.CENTER
-                    setPadding(dp(2), dp(5), dp(2), dp(5))
+                    setPadding(dp(2), dp(4), dp(2), dp(4))
                     minimumWidth = 0
                     isClickable = true
                     isFocusable = true
@@ -1092,8 +1092,10 @@ class MainActivity : Activity() {
                         8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
                     )
                 }
-                tab.addView(glyph, LinearLayout.LayoutParams(-1, 0, 1f))
-                tab.addView(title, LinearLayout.LayoutParams(-1, 0, 1f))
+                glyph.setPadding(0, 0, 0, 0)
+                title.setPadding(0, 0, 0, 0)
+                tab.addView(glyph, LinearLayout.LayoutParams(-1, -2))
+                tab.addView(title, LinearLayout.LayoutParams(-1, -2))
                 tabBar.addView(tab, LinearLayout.LayoutParams(0, -1, 1f).apply {
                     setMargins(dp(2), dp(2), dp(2), dp(2))
                 })
@@ -2579,7 +2581,7 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных ставок ТОП.")
-        val sorted = collectAiCandidates(json).filter { selectedLeague == "ALL" || displayLeagueName(it.second) == leagueLabelForCode(selectedLeague) }
+        val sorted = collectAiCandidates(json)
         val recordedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
             .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" && it.optString("status") == "PENDING" }
             .asReversed()
@@ -2850,7 +2852,7 @@ class MainActivity : Activity() {
     private fun render() {
         val json = data ?: return
         refreshHeaderFinancials()
-        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab + "|" + selectedLeague; "stats" -> selectedLeague; else -> "ALL" }
+        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab; "stats" -> selectedLeague; else -> "ALL" }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
@@ -2879,14 +2881,14 @@ class MainActivity : Activity() {
         statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
         renderTabs()
         renderLeagueTabs()
-        leagueBar.visibility = if (currentTab in listOf("matches", "desk", "stats")) View.VISIBLE else View.GONE
+        leagueBar.visibility = if (currentTab in listOf("matches", "stats")) View.VISIBLE else View.GONE
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
         val cached = tabViewCache[targetKey]
         if (cached != null) {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
-            leagueBar.visibility = if (currentTab in listOf("matches", "desk", "stats")) View.VISIBLE else View.GONE
+            leagueBar.visibility = if (currentTab in listOf("matches", "stats")) View.VISIBLE else View.GONE
             renderLeagueTabs()
             renderedKey = targetKey
             mainScrollView.post {
