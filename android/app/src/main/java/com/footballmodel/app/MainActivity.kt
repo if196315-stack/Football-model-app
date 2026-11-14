@@ -419,15 +419,20 @@ class MainActivity : Activity() {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            val w = width.toFloat()
-            val h = height.toFloat()
+            // Keep the flag artwork visually aligned with the 15sp emoji flags.
+            val flagWidth = dp(18).toFloat()
+            val flagHeight = dp(12).toFloat()
+            val left = (width - flagWidth) / 2f
+            val top = (height - flagHeight) / 2f
+            val right = left + flagWidth
+            val bottom = top + flagHeight
             paint.color = Color.WHITE
-            canvas.drawRect(0f, 0f, w, h, paint)
+            canvas.drawRect(left, top, right, bottom, paint)
             paint.color = Color.rgb(206, 17, 38)
-            val vertical = w * 0.22f
-            val horizontal = h * 0.34f
-            canvas.drawRect((w - vertical) / 2f, 0f, (w + vertical) / 2f, h, paint)
-            canvas.drawRect(0f, (h - horizontal) / 2f, w, (h + horizontal) / 2f, paint)
+            val vertical = flagWidth * 0.22f
+            val horizontal = flagHeight * 0.34f
+            canvas.drawRect((left + right - vertical) / 2f, top, (left + right + vertical) / 2f, bottom, paint)
+            canvas.drawRect(left, (top + bottom - horizontal) / 2f, right, (top + bottom + horizontal) / 2f, paint)
         }
     }.apply {
         setWillNotDraw(false)
