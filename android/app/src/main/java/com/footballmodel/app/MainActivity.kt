@@ -1852,11 +1852,14 @@ class MainActivity : Activity() {
             setPadding(0, dp(5), 0, dp(5))
             setOnCheckedChangeListener { _, checked ->
                 settingsPrefs.edit().putBoolean("show_line_section", checked).apply()
-                tabViewCache.clear()
-                renderedKey = null
-                if (!checked && currentTab == "matches") currentTab = "desk"
-                renderTabs()
-                if (data != null) render()
+                // Rebuild only the navigation labels/weights. Re-rendering the
+                // settings page here detached and recreated its entire content,
+                // causing a visible jump and losing the current scroll position.
+                if (!checked && currentTab == "matches") {
+                    selectTab("desk")
+                } else {
+                    renderTabs()
+                }
             }
         }
         displaySettings.addView(showLine, LinearLayout.LayoutParams(-1, -2))
