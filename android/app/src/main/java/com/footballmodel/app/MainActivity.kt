@@ -1328,7 +1328,7 @@ class MainActivity : Activity() {
 
         val strategyRisk = card()
         addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Размер ставки — 1% текущего банка, но не менее установленного пользователем минимума. По умолчанию минимум не задан: тогда ставка равна ровно 1% банка. Дневного лимита суммарной нагрузки нет; разные рынки одного матча разрешены, повтор одной и той же ставки на тот же рынок блокируется.", 11, false, Color.WHITE)
+        addText(strategyRisk, "Размер ставки — фиксированная сумма, если она задана в профиле; иначе 1% текущего банка, но не менее установленного пользователем минимума. Дневного лимита суммарной нагрузки нет; разные рынки одного матча разрешены, повтор одной и той же ставки на тот же рынок блокируется.", 11, false, Color.WHITE)
         addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 10% от локального максимума — пауза автоматической фиксации paper bets; 20% — остановка автоматической фиксации до явного пересмотра.", 11, false, muted)
 
         val strategyMarkets = card()
@@ -1790,11 +1790,17 @@ class MainActivity : Activity() {
         addText(bankrollCard, if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", bank) else "Не задан", 28, true, Color.WHITE)
         addText(bankrollCard, if (hasInitialBankroll()) "Баланс учитывает стартовый банк, чистый результат рассчитанных ставок и суммы, зарезервированные по ожидающим ставкам." else "Задай стартовый банк в профиле, чтобы рассчитывать размер ставок и текущий баланс.", 11, false, muted)
         addText(bankrollCard, "Правило ставки: " + minimumStakeDescription(), 12, true, accent)
+        actionButton(bankrollCard, if (hasInitialBankroll()) "Изменить баланс" else "Задать баланс") {
+            showBankSettingDialog("initial_bankroll", "Баланс", initialBankroll(), "Укажи стартовый баланс. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
+        }
 
         val settings = card()
-        addText(settings, "НАСТРОЙКИ БАНКА И СТАВОК", 10, true, accent)
-        actionButton(settings, if (hasInitialBankroll()) "Изменить баланс" else "Задать баланс") {
-            showBankSettingDialog("initial_bankroll", "Баланс", initialBankroll(), "Укажи стартовый баланс. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
+        addText(settings, "НАСТРОЙКИ СУММЫ СТАВОК", 10, true, accent)
+        addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
+        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана · используется процент от баланса", 13, false, muted)
+        addText(settings, "Если задана, фиксированная сумма заменяет процент от баланса и минимальную сумму для новых ставок.", 11, false, muted)
+        actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
+            showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы вернуться к расчёту 1% баланса с учётом минимальной суммы.")
         }
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
         addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
@@ -2116,7 +2122,15 @@ class MainActivity : Activity() {
     private fun minimumStake(): Double = settingsPrefs.getString("minimum_stake", null)
         ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
 
-    private fun minimumStakeDescription(): String = if (minimumStake() > 0.0)
+    private fun fixedStake(): Double = settingsPrefs.getString("fixed_stake", null)
+        ?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
+
+    private fun calculatedStake(): Double = if (fixedStake() > 0.0) fixedStake()
+        else maxOf(currentBankroll() * 0.01, minimumStake())
+
+    private fun minimumStakeDescription(): String = if (fixedStake() > 0.0)
+        "Фиксированная сумма: ${fmt(fixedStake())} ₽ за каждую новую ставку."
+    else if (minimumStake() > 0.0)
         "1% от текущего баланса, но не менее ${fmt(minimumStake())} ₽."
     else "1% от текущего баланса; пользовательский минимум не задан."
 
@@ -2141,7 +2155,7 @@ class MainActivity : Activity() {
                 if (value == 0.0) settingsPrefs.edit().remove(key).apply()
                 else settingsPrefs.edit().putString(key, value.toString()).apply()
                 // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
-                if (key == "initial_bankroll" || key == "minimum_stake") {
+                if (key == "initial_bankroll" || key == "minimum_stake" || key == "fixed_stake") {
                     tabViewCache.clear()
                 }
                 dialog.dismiss()
@@ -2338,7 +2352,7 @@ class MainActivity : Activity() {
             Toast.makeText(this, "Сначала задай стартовый банк в профиле", Toast.LENGTH_LONG).show()
             return
         }
-        val stake = maxOf(currentBankroll() * 0.01, minimumStake())
+        val stake = calculatedStake()
         if (stake <= 0.0) return
         val dialog = AlertDialog.Builder(this)
             .setTitle("Зафиксировать ставку ТОП?")
