@@ -2495,7 +2495,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        listOf("OPEN" to "Открытые ставки", "FIXED" to "Зафиксированные").forEach { (key, title) ->
+        listOf("OPEN" to "Новые сигналы", "FIXED" to "Зафиксированные").forEach { (key, title) ->
             val count = if (key == "OPEN") openSignalsCount else fixedCount
             val tab = TextView(this).apply {
                 text = "$title · $count"
@@ -2585,7 +2585,7 @@ class MainActivity : Activity() {
                                 bet.optString("marketKey") != "COUPON" &&
                                 bet.optString("status") == "PENDING"
                         }
-                        openTabView.text = "Открытые ставки · $openSignalsCount"
+                        openTabView.text = "Новые сигналы · $openSignalsCount"
                         fixedTabView.text = "Зафиксированные · $fixedCount"
                         openIntroCountView.text = "НОВЫЕ СИГНАЛЫ · $openSignalsCount"
                         val stillOpenInMatch = statusViews.keys.count { it !== signal && !isAiBetRecorded(match, it) }
