@@ -1059,10 +1059,10 @@ class MainActivity : Activity() {
 
     private fun renderTabs() {
         val items = listOf(
-            Triple("matches", "ЛИНИЯ", "≋"),
-            Triple("desk", "ТОП", "★"),
-            Triple("history", "СТАВКИ", "▣"),
-            Triple("stats", "СТАТИСТИКА", "▥")
+            "matches" to "ЛИНИЯ",
+            "desk" to "ТОП",
+            "history" to "СТАВКИ",
+            "stats" to "СТАТИСТИКА"
         )
         if (tabBar.childCount != items.size) {
             tabBar.removeAllViews()
@@ -1077,11 +1077,6 @@ class MainActivity : Activity() {
                     contentDescription = item.second
                     setOnClickListener { selectTab(item.first) }
                 }
-                val glyph = label(item.third, 19, true, accent).apply {
-                    gravity = Gravity.CENTER
-                    includeFontPadding = false
-                    maxLines = 1
-                }
                 val title = label(item.second, 10, true, Color.WHITE).apply {
                     gravity = Gravity.CENTER
                     includeFontPadding = false
@@ -1091,11 +1086,12 @@ class MainActivity : Activity() {
                     setAutoSizeTextTypeUniformWithConfiguration(
                         8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
                     )
+                    setPadding(0, 0, 0, 0)
                 }
-                glyph.setPadding(0, 0, 0, 0)
-                title.setPadding(0, 0, 0, 0)
-                tab.addView(glyph, LinearLayout.LayoutParams(-1, -2))
-                tab.addView(title, LinearLayout.LayoutParams(-1, -2))
+                // Text only: keep the label centered both horizontally and vertically.
+                tab.addView(title, LinearLayout.LayoutParams(-1, -2).apply {
+                    gravity = Gravity.CENTER
+                })
                 tabBar.addView(tab, LinearLayout.LayoutParams(0, -1, 1f).apply {
                     setMargins(dp(2), dp(2), dp(2), dp(2))
                 })
@@ -1103,10 +1099,8 @@ class MainActivity : Activity() {
         }
         items.forEachIndexed { index, item ->
             val tab = tabBar.getChildAt(index) as? LinearLayout ?: return@forEachIndexed
-            val glyph = tab.getChildAt(0) as? TextView ?: return@forEachIndexed
-            val title = tab.getChildAt(1) as? TextView ?: return@forEachIndexed
+            val title = tab.getChildAt(0) as? TextView ?: return@forEachIndexed
             val active = currentTab == item.first
-            glyph.setTextColor(if (active) bg else accent)
             title.setTextColor(if (active) bg else Color.WHITE)
             tab.background = if (active) {
                 GradientDrawable().apply {
@@ -1123,21 +1117,6 @@ class MainActivity : Activity() {
             tab.elevation = if (active) dp(3).toFloat() else 0f
         }
     }
-
-    private data class EvaluatedMatch(
-        val league: String, val home: String, val away: String, val score: String,
-        val predicted: String, val actual: String, val correct: Boolean,
-        val date: String, val confidence: Double
-    )
-
-    private data class StatsBandRow(val label: String, val n: Int, val hits: Int)
-    private data class StatsMetricRow(
-        val name: String, val n: Int, val hits: Int, val brier: Double,
-        val logLoss: Double, val bands: List<StatsBandRow>
-    )
-    @Volatile private var statsMetricsCacheKey: String? = null
-    @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
-    private val statsCalculationInProgress = AtomicBoolean(false)
 
     private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
