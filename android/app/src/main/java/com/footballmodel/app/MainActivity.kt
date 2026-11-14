@@ -1093,7 +1093,7 @@ class MainActivity : Activity() {
                     setAutoSizeTextTypeUniformWithConfiguration(
                         8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
                     )
-                    setPadding(0, 0, 0, 0)
+                    setPadding(dp(8), 0, dp(8), 0)
                 }
                 // Text only: keep the label centered both horizontally and vertically.
                 tab.addView(title, LinearLayout.LayoutParams(-1, -2).apply {
@@ -2863,7 +2863,6 @@ class MainActivity : Activity() {
             tabViewCache[renderedKey!!] = oldContent to oldLeagueBar
         }
 
-        matchesContainer.setPadding(if (currentTab == "stats") dp(8) else 0, 0, if (currentTab == "stats") dp(8) else 0, 0)
         matchesContainer.removeAllViews()
         leagueBar.removeAllViews()
         val leagues = json.optJSONArray("competitions")
