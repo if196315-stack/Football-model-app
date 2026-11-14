@@ -3022,7 +3022,6 @@ class MainActivity : Activity() {
             topMargin = dp(4)
             bottomMargin = dp(2)
         })
-        addText(matchesContainer, "API-SPORT · MELBET · PITCHAPI xG", 9, true, muted)
         matchesContainer.addView(View(this), LinearLayout.LayoutParams(1, dp(14)))
 
         if (leagues == null || leagues.length() == 0) {
