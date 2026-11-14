@@ -2563,7 +2563,7 @@ class MainActivity : Activity() {
             val count = if (key == "OPEN") openSignalsCount else fixedCount
             val tab = TextView(this).apply {
                 text = "$title · $count"
-                textSize = 10f
+                textSize = 12f
                 typeface = Typeface.DEFAULT_BOLD
                 letterSpacing = 0.02f
                 gravity = Gravity.CENTER
