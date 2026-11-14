@@ -273,7 +273,7 @@ class MainActivity : Activity() {
         headerRight.addView(roiRow)
         val profileGear = ImageView(this).apply {
             setImageResource(R.drawable.ic_settings_gold)
-            contentDescription = "Профиль и настройки"
+            contentDescription = "Настройки"
             scaleType = ImageView.ScaleType.FIT_CENTER
             isClickable = true
             isFocusable = true
@@ -1782,7 +1782,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderHelp() {
-        screenHeader("IQ MATCH · PROFILE", "Профиль", "Настройки приложения и параметров ставок.")
+        screenHeader("IQ MATCH · SETTINGS", "Настройки", "Настройки приложения и параметров ставок.")
 
         val bank = currentBankroll()
         val bankrollCard = card()
