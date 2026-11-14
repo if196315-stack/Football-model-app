@@ -326,7 +326,7 @@ class MainActivity : Activity() {
         }
         root.addView(lineHeadingView, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(4)
-            bottomMargin = dp(14)
+            bottomMargin = dp(2)
         })
         val leagueScrollFrame = FrameLayout(this)
         leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
@@ -419,15 +419,20 @@ class MainActivity : Activity() {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            val w = width.toFloat()
-            val h = height.toFloat()
+            // Keep the flag artwork visually aligned with the 15sp emoji flags.
+            val flagWidth = dp(18).toFloat()
+            val flagHeight = dp(12).toFloat()
+            val left = (width - flagWidth) / 2f
+            val top = (height - flagHeight) / 2f
+            val right = left + flagWidth
+            val bottom = top + flagHeight
             paint.color = Color.WHITE
-            canvas.drawRect(0f, 0f, w, h, paint)
+            canvas.drawRect(left, top, right, bottom, paint)
             paint.color = Color.rgb(206, 17, 38)
-            val vertical = w * 0.22f
-            val horizontal = h * 0.34f
-            canvas.drawRect((w - vertical) / 2f, 0f, (w + vertical) / 2f, h, paint)
-            canvas.drawRect(0f, (h - horizontal) / 2f, w, (h + horizontal) / 2f, paint)
+            val vertical = flagWidth * 0.22f
+            val horizontal = flagHeight * 0.34f
+            canvas.drawRect((left + right - vertical) / 2f, top, (left + right + vertical) / 2f, bottom, paint)
+            canvas.drawRect(left, (top + bottom - horizontal) / 2f, right, (top + bottom + horizontal) / 2f, paint)
         }
     }.apply {
         setWillNotDraw(false)
@@ -1868,19 +1873,19 @@ class MainActivity : Activity() {
         minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
             else "Сохранённое значение не применяется, пока выбран режим «Фиксированная».", 11, false, muted)
         settings.addView(stakeModeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
-        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
-        settings.addView(fixedStakeHint)
-        actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
-            showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы очистить значение.")
-        }
-        val settingsSectionGap = View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) }
-        settings.addView(settingsSectionGap)
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
         addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
         settings.addView(minimumStakeHint)
         actionButton(settings, "Изменить минимальную сумму ставки") {
             showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум.")
+        }
+        val settingsSectionGap = View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) }
+        settings.addView(settingsSectionGap)
+        addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
+        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
+        settings.addView(fixedStakeHint)
+        actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
+            showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы очистить значение.")
         }
 
         val displaySettings = card()
@@ -3104,7 +3109,9 @@ class MainActivity : Activity() {
             section.addView(heading)
             content.visibility = if (expanded) View.VISIBLE else View.GONE
             section.addView(content)
-            matchesContainer.addView(section)
+            matchesContainer.addView(section, LinearLayout.LayoutParams(-1, -2).apply {
+                bottomMargin = dp(8)
+            })
             if (upcoming.isEmpty()) {
                 val empty = card(content)
                 addText(empty, "Нет матчей с одновременно подтверждённой линией MelBet и прогнозом модели", 12, false, muted)
