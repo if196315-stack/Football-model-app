@@ -1679,7 +1679,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        listOf("OPEN" to "Открытые ставки", "COMPLETED" to "Завершённые").forEach { (key, title) ->
+        listOf("OPEN" to "Ожидает расчёта", "COMPLETED" to "Завершённые").forEach { (key, title) ->
             val count = if (key == "OPEN") openBets.size else completedBets.size
             val tab = TextView(this).apply {
                 text = "$title · $count"
@@ -1711,7 +1711,7 @@ class MainActivity : Activity() {
         }
         matchesContainer.addView(historyTabs)
         if (selectedHistoryTab == "OPEN") {
-            renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Открытых ставок пока нет.")
+            renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Ставок, ожидающих расчёта, пока нет.")
         } else {
             renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
         }
