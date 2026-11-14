@@ -2630,10 +2630,7 @@ class MainActivity : Activity() {
         matchesContainer.addView(topTabs)
 
         if (selectedTopTab == "OPEN") {
-            val intro = card()
             openIntroCountView = label("НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
-            intro.addView(openIntroCountView)
-            addText(intro, "Здесь только сигналы, которые ещё не зафиксированы. Выбери подходящий исход и добавь его в историю ставок.", 11, false, muted)
             val emptyOpenCard = card().apply {
                 addText(this, "Новых сильных сигналов пока нет.", 14, true, gold)
                 addText(this, "Когда появятся матчи, прошедшие фильтры TOP, они будут показаны здесь.", 11, false, muted)
@@ -2721,9 +2718,6 @@ class MainActivity : Activity() {
                 }
             }
         } else {
-            val intro = card()
-            addText(intro, "ЗАФИКСИРОВАННЫЕ СТАВКИ ТОП · $fixedCount", 10, true, cyan)
-            addText(intro, "Здесь только зафиксированные ставки, которые ещё ожидают расчёта. Выигранные, проигранные и возвращённые ставки скрыты.", 11, false, muted)
             if (recordedBets.isEmpty()) {
                 val empty = card()
                 addText(empty, "Ставок, ожидающих расчёта, пока нет.", 14, true, gold)
