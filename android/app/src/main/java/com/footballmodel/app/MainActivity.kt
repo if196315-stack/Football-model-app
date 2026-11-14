@@ -3104,7 +3104,9 @@ class MainActivity : Activity() {
             section.addView(heading)
             content.visibility = if (expanded) View.VISIBLE else View.GONE
             section.addView(content)
-            matchesContainer.addView(section)
+            matchesContainer.addView(section, LinearLayout.LayoutParams(-1, -2).apply {
+                bottomMargin = dp(8)
+            })
             if (upcoming.isEmpty()) {
                 val empty = card(content)
                 addText(empty, "Нет матчей с одновременно подтверждённой линией MelBet и прогнозом модели", 12, false, muted)
