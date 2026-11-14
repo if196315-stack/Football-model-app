@@ -1873,6 +1873,7 @@ class MainActivity : Activity() {
         minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
             else "Сохранённое значение не применяется, пока выбран режим «Фиксированная».", 11, false, muted)
         settings.addView(stakeModeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        settings.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) })
         addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
         addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
         settings.addView(minimumStakeHint)
