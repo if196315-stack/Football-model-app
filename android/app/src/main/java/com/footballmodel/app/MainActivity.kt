@@ -1094,7 +1094,8 @@ class MainActivity : Activity() {
                     setAutoSizeTextTypeUniformWithConfiguration(
                         8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
                     )
-                    setPadding(if (item.first == "stats") dp(8) else 0, 0, if (item.first == "stats") dp(8) else 0, 0)
+                    // Keep a small inset around the long Statistics label without clipping its last character.
+                    setPadding(if (item.first == "stats") dp(4) else 0, 0, if (item.first == "stats") dp(4) else 0, 0)
                 }
                 // Text only: keep the label centered both horizontally and vertically.
                 tab.addView(title, LinearLayout.LayoutParams(-1, -2).apply {
