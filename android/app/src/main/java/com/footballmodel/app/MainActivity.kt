@@ -1127,13 +1127,27 @@ class MainActivity : Activity() {
         var losses = 0
         var pushes = 0
         var pending = 0
+        var settledTopOddsTotal = 0.0
+        var settledTopOddsCount = 0
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             val stake = bet.optDouble("stake")
             val odds = bet.optDouble("odds")
             when (bet.optString("status")) {
-                "WON" -> { wins++; turnover += stake; profit += stake * (odds - 1); }
-                "LOST" -> { losses++; turnover += stake; profit -= stake }
+                "WON" -> {
+                    wins++; turnover += stake; profit += stake * (odds - 1)
+                    if (bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && odds.isFinite() && odds > 1.0) {
+                        settledTopOddsTotal += odds
+                        settledTopOddsCount++
+                    }
+                }
+                "LOST" -> {
+                    losses++; turnover += stake; profit -= stake
+                    if (bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && odds.isFinite() && odds > 1.0) {
+                        settledTopOddsTotal += odds
+                        settledTopOddsCount++
+                    }
+                }
                 "PUSH" -> { pushes++; turnover += stake }
                 else -> {
                     pending++
@@ -1147,9 +1161,11 @@ class MainActivity : Activity() {
         val sum = card().apply {
             setPadding(dp(12), dp(10), dp(12), dp(10))
         }
-        addText(sum, "СТАТИСТИКА СОХРАНЁННЫХ СТАВОК", 10, true, accent)
+        addText(sum, "СТАТИСТИКА ТОП СИГНАЛОВ", 10, true, accent)
         addText(sum, "${bets.length()} ставок  ·  W $wins  /  L $losses  /  возврат $pushes  ·  открыто $pending", 11, true)
         addText(sum, "Закрытые: оборот ${fmt(turnover)}  ·  результат " + (if (profit >= 0) "+" else "") + fmt(profit) + "  ·  ROI $roi", 11, true, if (profit >= 0) accent else Color.RED)
+        val averageTopOdds = if (settledTopOddsCount > 0) fmt(settledTopOddsTotal / settledTopOddsCount) else "—"
+        addText(sum, "Средний кэф ТОП: $averageTopOdds · по $settledTopOddsCount завершённым сигналам", 11, true, gold)
         if (pending > 0) {
             addText(sum, "Открытые: сумма ${fmt(pendingStake)}  ·  возможная выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, false, muted)
         }
