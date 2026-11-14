@@ -87,7 +87,7 @@ internal object AiMatchNotifications {
             Notification.Builder(context)
         }
         val notification = builder
-            .setSmallIcon(context.applicationInfo.icon)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("🔥 Есть новинка! Сигнал уже в ТОП!")
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
