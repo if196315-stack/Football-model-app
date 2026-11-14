@@ -2919,7 +2919,7 @@ class MainActivity : Activity() {
             return
         }
         if (currentTab == "desk") {
-            leagueBar.visibility = View.VISIBLE
+            leagueBar.visibility = View.GONE
             renderBettingDesk(json)
             return
         }
