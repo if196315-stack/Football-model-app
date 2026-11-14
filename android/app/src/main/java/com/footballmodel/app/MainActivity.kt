@@ -61,6 +61,7 @@ class MainActivity : Activity() {
     private lateinit var headerAiRoiView: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
+    private lateinit var lineHeadingView: TextView
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
@@ -319,6 +320,14 @@ class MainActivity : Activity() {
             setPadding(0, 0, 0, 0)
             addView(leagueBar)
         }
+        lineHeadingView = label("ЛИНИЯ", 25, true, Color.WHITE).apply {
+            setPadding(dp(2), dp(5), dp(2), dp(8))
+            visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+        }
+        root.addView(lineHeadingView, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(4)
+            bottomMargin = dp(14)
+        })
         val leagueScrollFrame = FrameLayout(this)
         leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
         root.addView(leagueScrollFrame, LinearLayout.LayoutParams(-1, -2).apply {
@@ -991,6 +1000,7 @@ class MainActivity : Activity() {
         renderTabs()
         matchesContainer.animate().cancel()
         leagueScroll.animate().cancel()
+        lineHeadingView.visibility = if (tab == "matches") View.VISIBLE else View.GONE
         leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
@@ -1274,6 +1284,7 @@ class MainActivity : Activity() {
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
+            lineHeadingView.visibility = View.GONE
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
@@ -2983,22 +2994,26 @@ class MainActivity : Activity() {
         }
 
         if (currentTab == "day") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderDay(json)
             return
         }
         if (currentTab == "notifications") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderNotificationCenter(json)
             renderDailyInsights(json)
             return
         }
         if (currentTab == "desk") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderBetHistory(json)
             return
@@ -3008,21 +3023,14 @@ class MainActivity : Activity() {
             renderStats(json)
             return
         } else if (currentTab == "help") {
+            lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
             renderHelp()
             return
         } else {
+            lineHeadingView.visibility = View.VISIBLE
             leagueBar.visibility = View.VISIBLE
         }
-
-        val lineHeading = label("ЛИНИЯ", 25, true, Color.WHITE).apply {
-            setPadding(dp(2), dp(5), dp(2), dp(8))
-        }
-        matchesContainer.addView(lineHeading, LinearLayout.LayoutParams(-1, -2).apply {
-            topMargin = dp(4)
-            bottomMargin = dp(2)
-        })
-        matchesContainer.addView(View(this), LinearLayout.LayoutParams(1, dp(14)))
 
         if (leagues == null || leagues.length() == 0) {
             val empty = card()
