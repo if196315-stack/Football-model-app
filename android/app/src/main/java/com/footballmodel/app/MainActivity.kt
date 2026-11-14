@@ -299,7 +299,7 @@ class MainActivity : Activity() {
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 68).apply { topMargin = 16; bottomMargin = 14 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 80).apply { topMargin = 16; bottomMargin = 14 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
