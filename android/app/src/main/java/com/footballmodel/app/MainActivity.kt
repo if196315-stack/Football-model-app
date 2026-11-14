@@ -71,6 +71,9 @@ class MainActivity : Activity() {
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
     private val aiSignalPrefs by lazy { getSharedPreferences("ai_signal_history", MODE_PRIVATE) }
     private val settingsPrefs by lazy { getSharedPreferences("bank_settings", MODE_PRIVATE) }
+    private fun isLineSectionVisible(): Boolean = settingsPrefs.getBoolean("show_line_section", true)
+    private fun navigationTabs(): List<String> =
+        primaryTabs.filter { it != "matches" || isLineSectionVisible() }
     private val feedCache by lazy { getSharedPreferences("feed_cache_v1", MODE_PRIVATE) }
     private val loadInProgress = AtomicBoolean(false)
     @Volatile private var lastPayload: String? = null
@@ -117,6 +120,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         currentTab = intent.getStringExtra("open_tab")?.takeUnless { it == "notifications" } ?: "matches"
+        if (currentTab == "matches" && !isLineSectionVisible()) currentTab = "desk"
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
@@ -970,8 +974,10 @@ class MainActivity : Activity() {
 
     private fun selectTab(tab: String) {
         if (currentTab == tab) return
-        val previousIndex = primaryTabs.indexOf(currentTab)
-        val nextIndex = primaryTabs.indexOf(tab)
+        if (tab == "matches" && !isLineSectionVisible()) return
+        val availableTabs = navigationTabs()
+        val previousIndex = availableTabs.indexOf(currentTab)
+        val nextIndex = availableTabs.indexOf(tab)
         val direction = if (previousIndex >= 0 && nextIndex >= 0) {
             if (nextIndex > previousIndex) 1 else -1
         } else 1
@@ -1013,10 +1019,11 @@ class MainActivity : Activity() {
     }
 
     private fun selectAdjacentTab(direction: Int) {
-        val index = primaryTabs.indexOf(currentTab)
+        val availableTabs = navigationTabs()
+        val index = availableTabs.indexOf(currentTab)
         if (index < 0) return
-        val nextIndex = (index + direction).coerceIn(0, primaryTabs.lastIndex)
-        if (nextIndex != index) selectTab(primaryTabs[nextIndex])
+        val nextIndex = (index + direction).coerceIn(0, availableTabs.lastIndex)
+        if (nextIndex != index) selectTab(availableTabs[nextIndex])
     }
 
     private fun leagueLabelForCode(code: String): String = when (code) {
@@ -1058,12 +1065,12 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf(
-            "matches" to "ЛИНИЯ",
-            "desk" to "ТОП",
-            "history" to "СТАВКИ",
-            "stats" to "СТАТИСТИКА"
-        )
+        val items = buildList {
+            if (isLineSectionVisible()) add("matches" to "ЛИНИЯ")
+            add("desk" to "ТОП")
+            add("history" to "СТАВКИ")
+            add("stats" to "СТАТИСТИКА")
+        }
         if (tabBar.childCount != items.size) {
             tabBar.removeAllViews()
             items.forEach { item ->
@@ -1830,6 +1837,30 @@ class MainActivity : Activity() {
             showBankSettingDialog("initial_bankroll", "Стартовый банк", initialBankroll(), "Укажи стартовый банк. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.")
         }
 
+        val displaySettings = card()
+        addText(displaySettings, "ОТОБРАЖЕНИЕ РАЗДЕЛОВ", 10, true, accent)
+        val showLine = CheckBox(this).apply {
+            text = "Показывать раздел «ЛИНИЯ»"
+            textSize = 13f
+            setTextColor(Color.WHITE)
+            isChecked = isLineSectionVisible()
+            includeFontPadding = false
+            buttonTintList = android.content.res.ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                intArrayOf(accent, Color.rgb(105, 116, 130))
+            )
+            setPadding(0, dp(5), 0, dp(5))
+            setOnCheckedChangeListener { _, checked ->
+                settingsPrefs.edit().putBoolean("show_line_section", checked).apply()
+                tabViewCache.clear()
+                renderedKey = null
+                if (!checked && currentTab == "matches") currentTab = "desk"
+                renderTabs()
+                if (data != null) render()
+            }
+        }
+        displaySettings.addView(showLine, LinearLayout.LayoutParams(-1, -2))
+        addText(displaySettings, "Если выключить, вкладка ЛИНИЯ исчезнет из навигации, а остальные вкладки автоматически займут освободившееся место.", 11, false, muted)
 
         val glossary = card()
         addText(glossary, "СЛОВАРЬ ПОКАЗАТЕЛЕЙ", 10, true, cyan)
