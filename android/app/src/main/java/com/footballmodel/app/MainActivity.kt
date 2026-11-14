@@ -708,13 +708,14 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, 0, 0, dp(7))
         }
-        val icon = label(symbol, 17, true, gold).apply {
+        val icon = label(symbol, 19, true, gold).apply {
             gravity = Gravity.CENTER
+            includeFontPadding = false
             setPadding(0, 0, 0, 0)
             background = GradientDrawable().apply {
-                setColor(Color.rgb(29, 67, 69))
+                setColor(Color.rgb(54, 43, 31))
                 cornerRadius = dp(11).toFloat()
-                setStroke(dp(1), Color.rgb(66, 131, 116))
+                setStroke(dp(1), Color.rgb(139, 105, 57))
             }
         }
         row.addView(icon, LinearLayout.LayoutParams(dp(34), dp(34)).apply { rightMargin = dp(10) })
@@ -3050,12 +3051,7 @@ class MainActivity : Activity() {
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
-                box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                    intArrayOf(Color.rgb(16, 42, 61), Color.rgb(8, 22, 39), Color.rgb(9, 35, 47))).apply {
-                    cornerRadius = dp(22).toFloat()
-                    setStroke(dp(1), Color.rgb(40, 121, 128))
-                }
-                addText(box, "✦  MATCH FIXTURE  ·  ${date(m.optString("utcDate"))}", 9, true, accent)
+                addText(box, "★  MATCH FIXTURE  ·  ${date(m.optString("utcDate"))}", 9, true, gold)
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val scoreAvailable = !m.isNull("homeScore") && !m.isNull("awayScore")
                 val scoreText = if (scoreAvailable) " · ${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else ""
@@ -3078,8 +3074,7 @@ class MainActivity : Activity() {
                 } else {
                     val signal = strongestDisplaySignal(pred, m)
                     val signalBox = card(box)
-                    signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(32, 55, 66), Color.rgb(17, 34, 52))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(67, 137, 119)) }
-                    addText(signalBox, "✦  САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold)
+                    addText(signalBox, "★  САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold)
                     if (signal == null) {
                         addText(signalBox, "Нет доступной котировки MelBet ни для одного из разрешённых рынков этого матча.", 11, false, muted)
                     } else {
@@ -3121,8 +3116,7 @@ class MainActivity : Activity() {
                         }
                     }
                     val mainMarkets = card(box)
-                    mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(17, 52, 54), Color.rgb(14, 35, 49))).apply { cornerRadius = dp(20).toFloat(); setStroke(dp(1), Color.rgb(45, 102, 91)) }
-                    addMarketTitle(mainMarkets, "◈", "РЫНКИ И КОТИРОВКИ")
+                    addMarketTitle(mainMarkets, "!", "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
                     fun quote(key: String): String {
                         val dc = bestOdds?.optJSONObject("doubleChance")
