@@ -260,7 +260,7 @@ class MainActivity : Activity() {
         }
         headerBalanceView = label("-- ₽", 12, true, Color.WHITE).apply { gravity = Gravity.END; maxLines = 1 }
         headerRight.addView(headerBalanceView)
-        headerAiRoiView = label("AI ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
+        headerAiRoiView = label("ТОП ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
         headerRight.addView(headerAiRoiView)
         top.addView(headerRight, LinearLayout.LayoutParams(dp(100), -2))
         root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
@@ -1756,7 +1756,7 @@ class MainActivity : Activity() {
         addText(glossary, "Доля полного банка по формуле Келли: EV / (коэффициент − 1). В нашей Линии и ТОП этот показатель используется для ранжирования сигналов. Это доля полного Kelly, а не указание автоматически ставить весь рассчитанный процент банка.", 11, false, muted)
         addText(glossary, "xG — ожидаемые голы", 13, true, Color.WHITE)
         addText(glossary, "Оценка качества созданных голевых моментов и ожидаемого количества голов. Это модельная метрика, а не фактический счёт.", 11, false, muted)
-        addText(glossary, "Порог отбора AI", 13, true, Color.WHITE)
+        addText(glossary, "Порог отбора ТОП", 13, true, Color.WHITE)
         addText(glossary, "Для попадания сигнала в ТОП нужны одновременно: вероятность от 60%, EV от +5%, EDGE от +5 п.п. и коэффициент MelBet от 1.50. Также действуют ограничения по допустимым рынкам.", 11, false, muted)
         addText(glossary, "Важно: вероятность, EV, EDGE, xG и Kelly — расчётные оценки. Они помогают сравнивать варианты, но не гарантируют выигрыш.", 11, true, gold)
 
@@ -2100,12 +2100,12 @@ class MainActivity : Activity() {
         if (!::headerBalanceView.isInitialized || !::headerAiRoiView.isInitialized) return
         headerBalanceView.text = if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —"
         val (roi, count) = aiPaperRoiPercent()
-        headerAiRoiView.text = if (roi == null) "AI ROI —" else String.format(Locale.US, "AI ROI %+.1f%% · %d", roi, count)
+        headerAiRoiView.text = if (roi == null) "ТОП ROI —" else String.format(Locale.US, "ТОП ROI %+.1f%% · %d", roi, count)
         headerAiRoiView.setTextColor(if (roi == null) muted else if (roi >= 0.0) accent else gold)
     }
 
     private fun renderNotificationCenter(json: JSONObject) {
-        screenHeader("IQ MATCH · ACTIVITY", "Центр уведомлений", "Важные события AI, расчёты ставок и обновления данных.")
+        screenHeader("IQ MATCH · ACTIVITY", "Центр уведомлений", "Важные события ТОП, расчёты ставок и обновления данных.")
         val allEvents = NotificationCenter.events(this)
         val unread = NotificationCenter.unreadCount(this)
         val summary = card()
@@ -2132,7 +2132,7 @@ class MainActivity : Activity() {
         if (allEvents.length() == 0) {
             val empty = card()
             addText(empty, "Пока нет событий", 15, true, Color.WHITE)
-            addText(empty, "Здесь появятся новые AI-матчи, расчёты ставок и важные изменения.", 12, false, muted)
+            addText(empty, "Здесь появятся новые матчи ТОП, расчёты ставок и важные изменения.", 12, false, muted)
             matchesContainer.addView(empty)
             return
         }
@@ -2152,7 +2152,7 @@ class MainActivity : Activity() {
                 setStroke(dp(1), if (isRead) Color.rgb(35, 55, 76) else Color.rgb(47, 111, 119))
             }
             val typeLabel = when (type) {
-                "ai_match" -> "AI-МАТЧ"
+                "ai_match" -> "МАТЧ ТОП"
                 "bet_settlement" -> "РАСЧЁТ СТАВКИ"
                 "report" -> "ОТЧЁТ И НАБЛЮДЕНИЯ"
                 "odds_change" -> "КОЭФФИЦИЕНТЫ"
@@ -2251,7 +2251,7 @@ class MainActivity : Activity() {
         val stake = maxOf(currentBankroll() * 0.01, minimumStake())
         if (stake <= 0.0) return
         val dialog = AlertDialog.Builder(this)
-            .setTitle("Зафиксировать AI-ставку?")
+            .setTitle("Зафиксировать ставку ТОП?")
             .setMessage("Матч: ${match.optString("home")} — ${match.optString("away")}\nРынок: ${signal.optString("side")}\nКоэффициент MelBet: ${fmt(odds)}\nСумма ставки: ${fmt(stake)} ₽\n\nБумажная ставка — запись в истории приложения. Букмекеру ничего не отправляется.")
             .setNegativeButton("Отмена", null)
             .setPositiveButton("Зафиксировать", null)
@@ -2275,7 +2275,7 @@ class MainActivity : Activity() {
             Thread(Runnable {
                 saveBets()
                 runOnUiThread {
-                    Toast.makeText(this, "AI-ставка добавлена в историю", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Ставка ТОП добавлена в историю", Toast.LENGTH_SHORT).show()
                     onRecorded?.invoke()
                     // Do not rebuild the active screen here: a full render can block
                     // scrolling and taps after the confirmation dialog has closed.
@@ -2473,14 +2473,14 @@ class MainActivity : Activity() {
         val roi = if (settled > 0) String.format(Locale.US, "%.1f%%", profitUnits / settled * 100.0) else "—"
         val averageOdds = if (settled > 0 && settledOddsTotal > 0.0) String.format(Locale.US, "%.2f", settledOddsTotal / settled) else "—"
         val summary = card()
-        addText(summary, "AI · РЕЗУЛЬТАТ РЕКОМЕНДАЦИЙ", 10, true, cyan)
+        addText(summary, "TOP · РЕЗУЛЬТАТ РЕКОМЕНДАЦИЙ", 10, true, cyan)
         addText(summary, "Зафиксировано: ${archive.length()} · W $wins / L $losses · ожидают: $pending", 12, true, Color.WHITE)
         addText(summary, "ROI: $roi · средний коэффициент: $averageOdds · расчёт по 1 условной единице на каждый сигнал", 10, false, muted)
         if (archive.length() == 0) addText(summary, "История начнёт накапливаться после появления первых сигналов с котировкой MelBet.", 10, false, muted)
     }
 
     private fun renderBettingDesk(json: JSONObject) {
-        screenHeader("AI · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных AI-ставок.")
+        screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных AI-ставок.")
         val sorted = collectAiCandidates(json)
         val recordedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
             .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" && it.optString("status") == "PENDING" }
@@ -2629,7 +2629,7 @@ class MainActivity : Activity() {
             }
         } else {
             val intro = card()
-            addText(intro, "ЗАФИКСИРОВАННЫЕ AI-СТАВКИ · $fixedCount", 10, true, cyan)
+            addText(intro, "ЗАФИКСИРОВАННЫЕ СТАВКИ ТОП · $fixedCount", 10, true, cyan)
             addText(intro, "Здесь только зафиксированные ставки, которые ещё ожидают расчёта. Выигранные, проигранные и возвращённые ставки скрыты.", 11, false, muted)
             if (recordedBets.isEmpty()) {
                 val empty = card()
@@ -2673,7 +2673,7 @@ class MainActivity : Activity() {
             }
         }
         val footer = card()
-        addText(footer, "ПРАВИЛА AI", 10, true, accent)
+        addText(footer, "ПРАВИЛА ТОП", 10, true, accent)
         addText(footer, "В TOP попадают сильнейшие сигналы из раздела Линия: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Фиксация в TOP сохраняет бумажную ставку в истории.", 11, false, muted)
     }
 
@@ -2722,7 +2722,7 @@ class MainActivity : Activity() {
         }
         val sorted = items.sortedByDescending { it.third.optDouble("selectionEdgePp", it.third.optDouble("edgePp")) }
         val summary = card()
-        addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · AI-СИГНАЛЫ", 9, true, accent)
+        addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · СИГНАЛЫ ТОП", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
         addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена MelBet. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: 1% банка на ставку с необязательным пользовательским минимумом; разные рынки одного матча разрешены, повтор того же рынка блокируется; дневного лимита нет. Пауза при просадке 10%, остановка при 20%.", 11, false, muted)
         if (sorted.isEmpty()) {
