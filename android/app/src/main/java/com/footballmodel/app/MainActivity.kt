@@ -236,7 +236,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val crest = ImageView(this).apply {
-            setImageResource(R.drawable.iq_match_icon)
+            setImageResource(R.drawable.iq_match_mark)
             scaleType = ImageView.ScaleType.FIT_CENTER
             contentDescription = "IQ Match · нажмите для обновления"
             isClickable = true
@@ -260,9 +260,24 @@ class MainActivity : Activity() {
         }
         headerBalanceView = label("-- ₽", 12, true, Color.WHITE).apply { gravity = Gravity.END; maxLines = 1 }
         headerRight.addView(headerBalanceView)
+        val roiRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val profileGear = ImageView(this).apply {
+            setImageResource(R.drawable.ic_settings_gold)
+            contentDescription = "Профиль и настройки"
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(3), dp(3), dp(3), dp(3))
+            setOnClickListener { selectTab("help") }
+        }
+        roiRow.addView(profileGear, LinearLayout.LayoutParams(dp(25), dp(25)).apply { rightMargin = dp(5) })
         headerAiRoiView = label("ТОП ROI --", 10, true, accent).apply { gravity = Gravity.END; maxLines = 1 }
-        headerRight.addView(headerAiRoiView)
-        top.addView(headerRight, LinearLayout.LayoutParams(dp(100), -2))
+        roiRow.addView(headerAiRoiView, LinearLayout.LayoutParams(0, -2, 1f))
+        headerRight.addView(roiRow)
+        top.addView(headerRight, LinearLayout.LayoutParams(dp(116), -2))
         root.addView(top, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
         statusView = label("Подключаюсь к серверу…", 12, false, muted)
@@ -282,7 +297,7 @@ class MainActivity : Activity() {
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 72).apply { topMargin = 16; bottomMargin = 14 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 68).apply { topMargin = 16; bottomMargin = 14 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -487,7 +502,7 @@ class MainActivity : Activity() {
 
     // Compact section heading: no oversized description banner.
     private fun screenHeader(eyebrow: String, title: String, description: String) {
-        val heading = label(title, 20, true, Color.WHITE).apply {
+        val heading = label(title, 25, true, Color.WHITE).apply {
             setPadding(dp(2), dp(5), dp(2), dp(8))
         }
         matchesContainer.addView(heading, LinearLayout.LayoutParams(-1, -2).apply {
@@ -1006,42 +1021,40 @@ class MainActivity : Activity() {
             Triple("matches", "ЛИНИЯ", "≋"),
             Triple("desk", "ТОП", "★"),
             Triple("history", "СТАВКИ", "▣"),
-            Triple("stats", "СТАТИСТИКА", "▥"),
-            Triple("help", "ПРОФИЛЬ", "●")
+            Triple("stats", "СТАТИСТИКА", "▥")
         )
-        // Keep the five navigation targets stable; only their visual treatment changes.
         if (tabBar.childCount != items.size) {
             tabBar.removeAllViews()
             items.forEach { item ->
                 val tab = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     gravity = Gravity.CENTER
-                    setPadding(0, dp(4), 0, dp(4))
+                    setPadding(dp(2), dp(5), dp(2), dp(5))
                     minimumWidth = 0
                     isClickable = true
                     isFocusable = true
                     contentDescription = item.second
                     setOnClickListener { selectTab(item.first) }
                 }
-                val glyph = label(item.third, 17, true, accent).apply {
+                val glyph = label(item.third, 19, true, accent).apply {
                     gravity = Gravity.CENTER
                     includeFontPadding = false
                     maxLines = 1
                 }
-                val title = label(item.second, 8, true, Color.WHITE).apply {
+                val title = label(item.second, 10, true, Color.WHITE).apply {
                     gravity = Gravity.CENTER
                     includeFontPadding = false
                     maxLines = 1
                     setSingleLine(true)
                     setHorizontallyScrolling(false)
                     setAutoSizeTextTypeUniformWithConfiguration(
-                        5, 8, 1, android.util.TypedValue.COMPLEX_UNIT_SP
+                        8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
                     )
                 }
-                tab.addView(glyph, LinearLayout.LayoutParams(-1, 0, 1.05f))
-                tab.addView(title, LinearLayout.LayoutParams(-1, 0, 0.95f))
+                tab.addView(glyph, LinearLayout.LayoutParams(-1, 0, 1f))
+                tab.addView(title, LinearLayout.LayoutParams(-1, 0, 1f))
                 tabBar.addView(tab, LinearLayout.LayoutParams(0, -1, 1f).apply {
-                    setMargins(dp(1), dp(2), dp(1), dp(2))
+                    setMargins(dp(2), dp(2), dp(2), dp(2))
                 })
             }
         }
@@ -1054,13 +1067,13 @@ class MainActivity : Activity() {
             title.setTextColor(if (active) bg else Color.WHITE)
             tab.background = if (active) {
                 GradientDrawable().apply {
-                    setColor(Color.rgb(218, 177, 101))
-                    cornerRadius = dp(14).toFloat()
+                    setColor(Color.rgb(218, 184, 112))
+                    cornerRadius = dp(16).toFloat()
                 }
             } else {
                 GradientDrawable().apply {
                     setColor(Color.rgb(29, 48, 66))
-                    cornerRadius = dp(14).toFloat()
+                    cornerRadius = dp(16).toFloat()
                     setStroke(dp(1), Color.rgb(39, 61, 82))
                 }
             }
@@ -1721,7 +1734,7 @@ class MainActivity : Activity() {
             val count = if (key == "OPEN") openBets.size else completedBets.size
             val tab = TextView(this).apply {
                 text = "$title · $count"
-                textSize = 10f
+                textSize = 12f
                 typeface = Typeface.DEFAULT_BOLD
                 letterSpacing = 0.02f
                 gravity = Gravity.CENTER
@@ -2550,7 +2563,7 @@ class MainActivity : Activity() {
             val count = if (key == "OPEN") openSignalsCount else fixedCount
             val tab = TextView(this).apply {
                 text = "$title · $count"
-                textSize = 10f
+                textSize = 12f
                 typeface = Typeface.DEFAULT_BOLD
                 letterSpacing = 0.02f
                 gravity = Gravity.CENTER
