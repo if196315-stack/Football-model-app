@@ -2453,25 +2453,28 @@ class MainActivity : Activity() {
         var pending = 0
         var profitUnits = 0.0
         var settledOddsTotal = 0.0
+        var settledOddsCount = 0
         for (i in 0 until archive.length()) {
             val row = archive.optJSONObject(i) ?: continue
             when (row.optString("status")) {
                 "WON" -> {
                     wins++
                     profitUnits += row.optDouble("profitUnits", 0.0)
-                    settledOddsTotal += row.optDouble("price", 0.0).takeIf { it > 1.0 } ?: 0.0
+                    val price = row.optDouble("price", 0.0)
+                    if (price > 1.0) { settledOddsTotal += price; settledOddsCount++ }
                 }
                 "LOST" -> {
                     losses++
                     profitUnits += row.optDouble("profitUnits", 0.0)
-                    settledOddsTotal += row.optDouble("price", 0.0).takeIf { it > 1.0 } ?: 0.0
+                    val price = row.optDouble("price", 0.0)
+                    if (price > 1.0) { settledOddsTotal += price; settledOddsCount++ }
                 }
                 "PENDING" -> pending++
             }
         }
         val settled = wins + losses
         val roi = if (settled > 0) String.format(Locale.US, "%.1f%%", profitUnits / settled * 100.0) else "—"
-        val averageOdds = if (settled > 0 && settledOddsTotal > 0.0) String.format(Locale.US, "%.2f", settledOddsTotal / settled) else "—"
+        val averageOdds = if (settledOddsCount > 0) String.format(Locale.US, "%.2f", settledOddsTotal / settledOddsCount) else "—"
         val summary = card()
         addText(summary, "TOP · РЕЗУЛЬТАТ РЕКОМЕНДАЦИЙ", 10, true, cyan)
         addText(summary, "Зафиксировано: ${archive.length()} · W $wins / L $losses · ожидают: $pending", 12, true, Color.WHITE)
