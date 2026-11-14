@@ -1728,7 +1728,7 @@ class MainActivity : Activity() {
                 setPadding(dp(16), dp(12), dp(16), dp(12))
                 setTextColor(if (selectedHistoryTab == key) bg else muted)
                 background = if (selectedHistoryTab == key)
-                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(28).toFloat() }
+                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
                 else rounded(surface, 28)
                 setOnClickListener {
                     if (selectedHistoryTab == key) return@setOnClickListener

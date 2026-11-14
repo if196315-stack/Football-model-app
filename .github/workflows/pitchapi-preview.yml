@@ -1,0 +1,76 @@
+name: PitchAPI migration preview
+
+on:
+  # Preview refreshes may consume substantial PitchAPI quota; run only on demand.
+  workflow_dispatch:
+    inputs:
+      max_shot_requests:
+        description: "Maximum shot/xG requests in this run"
+        required: true
+        default: "5000" # One sequential full-history xG backfill; PitchAPI fair-use retries remain enabled.
+        type: choice
+        options:
+          - "50"
+          - "100"
+          - "250"
+          - "500"
+          - "5000"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pitchapi-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    if: github.ref == 'refs/heads/feature/pitchapi-data-source'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore incremental PitchAPI history cache
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pitchapi-history-v1-
+      - name: Install dependencies
+        run: python -m pip install requests pandas
+      - name: Fetch latest production odds snapshot (read-only)
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          mkdir -p backend/cache
+          git show origin/main:docs/data.json > backend/cache/previous_odds_data.json
+      - name: Refresh PitchAPI preview
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+          PITCHAPI_MAX_SHOT_REQUESTS: ${{ inputs.max_shot_requests || '5000' }}
+          PITCHAPI_PREVIOUS_DATA_PATH: backend/cache/previous_odds_data.json
+          PITCHAPI_REFRESH_ODDS_API: "false"
+        run: python backend/update_data_pitchapi.py
+      - name: Build clean paired-xG cohort from refreshed cache
+        run: python backend/export_pitchapi_backtest.py
+      - name: Run strict chronological walk-forward backtest
+        run: |
+          python backend/backtest_pitchapi.py \
+            --input artifacts/pitchapi-clean-candidate.csv \
+            --output artifacts/pitchapi-backtest-report.json \
+            --holdout-from 2026-07-01
+      - name: Upload preview and refreshed cache
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchapi-preview-and-backtest-${{ github.run_number }}
+          path: |
+            docs/data.json
+            backend/cache/pitchapi_history.json
+            artifacts/pitchapi-clean-candidate.csv
+            artifacts/pitchapi-clean-candidate-manifest.json
+            artifacts/pitchapi-backtest-report.json
+          if-no-files-found: error
+          retention-days: 14
