@@ -236,7 +236,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val crest = ImageView(this).apply {
-            setImageResource(R.drawable.iq_match_mark)
+            setImageResource(R.drawable.iq_match_icon_new)
             scaleType = ImageView.ScaleType.FIT_CENTER
             contentDescription = "IQ Match · нажмите для обновления"
             isClickable = true
