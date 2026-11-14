@@ -51,10 +51,10 @@ class MainActivity : Activity() {
     private val bg = Color.rgb(7, 13, 25)
     private val panel = Color.rgb(17, 29, 47)
     private val surface = Color.rgb(23, 39, 61)
-    private val muted = Color.rgb(143, 161, 187)
-    private val accent = Color.rgb(89, 224, 176)
-    private val cyan = Color.rgb(91, 190, 255)
-    private val gold = Color.rgb(255, 194, 92)
+    private val muted = Color.rgb(166, 158, 143)
+    private val accent = Color.rgb(218, 184, 112)
+    private val cyan = Color.rgb(235, 215, 174)
+    private val gold = Color.rgb(244, 205, 132)
     private lateinit var root: LinearLayout
     private lateinit var statusView: TextView
     private lateinit var headerBalanceView: TextView
@@ -1054,7 +1054,7 @@ class MainActivity : Activity() {
             title.setTextColor(if (active) bg else Color.WHITE)
             tab.background = if (active) {
                 GradientDrawable().apply {
-                    setColor(Color.rgb(221, 187, 105))
+                    setColor(Color.rgb(218, 177, 101))
                     cornerRadius = dp(14).toFloat()
                 }
             } else {
@@ -1423,8 +1423,8 @@ class MainActivity : Activity() {
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit): Button {
         val b = Button(this).apply {
             text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = dp(48)
-            setPadding(dp(16), dp(8), dp(16), dp(8)); setTextColor(Color.rgb(5, 24, 31))
-            background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(16).toFloat() }
+            setPadding(dp(16), dp(8), dp(16), dp(8)); setTextColor(Color.rgb(28, 22, 13))
+            background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(16).toFloat() }
             elevation = dp(2).toFloat(); setOnClickListener { action() }
         }
         parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
@@ -1441,11 +1441,10 @@ class MainActivity : Activity() {
             minHeight = dp(36)
             minimumHeight = dp(36)
             setPadding(dp(12), 0, dp(12), 0)
-            setTextColor(tint)
-            background = GradientDrawable().apply {
+            setTextColor(if (destructive) Color.rgb(86, 37, 34) else Color.rgb(35, 27, 16))
+            background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply {
                 cornerRadius = dp(10).toFloat()
-                setColor(Color.rgb(22, 34, 49))
-                setStroke(dp(1), if (destructive) Color.rgb(105, 55, 66) else Color.rgb(55, 79, 96))
+                setStroke(dp(1), if (destructive) Color.rgb(132, 74, 54) else Color.rgb(224, 188, 120))
             }
             elevation = 0f
             setOnClickListener { action() }
@@ -1729,7 +1728,7 @@ class MainActivity : Activity() {
                 setPadding(dp(16), dp(12), dp(16), dp(12))
                 setTextColor(if (selectedHistoryTab == key) bg else muted)
                 background = if (selectedHistoryTab == key)
-                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(89,224,176), Color.rgb(91,190,255))).apply { cornerRadius = dp(28).toFloat() }
+                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(28).toFloat() }
                 else rounded(surface, 28)
                 setOnClickListener {
                     if (selectedHistoryTab == key) return@setOnClickListener
