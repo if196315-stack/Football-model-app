@@ -990,12 +990,12 @@ class MainActivity : Activity() {
         renderTabs()
         matchesContainer.animate().cancel()
         leagueScroll.animate().cancel()
-        leagueScroll.visibility = if (tab in listOf("matches", "stats")) View.VISIBLE else View.GONE
+        leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
             "desk" -> selectedTopTab
-            "stats" -> selectedLeague
+            "stats" -> "ALL"
             else -> "ALL"
         }
         if (tabViewCache.containsKey(targetKey) && data != null) {
@@ -1201,7 +1201,6 @@ class MainActivity : Activity() {
     }
 
     private fun renderSavedBetStats() {
-        val selectedLeagueLabel = leagueLabelForCode(selectedLeague)
         var turnover = 0.0
         var profit = 0.0
         var pendingStake = 0.0
@@ -1215,7 +1214,6 @@ class MainActivity : Activity() {
         var settledTopOddsCount = 0
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (selectedLeague != "ALL" && displayLeagueName(bet.optString("league")) != selectedLeagueLabel) continue
             val stake = bet.optDouble("stake")
             val odds = bet.optDouble("odds")
             when (bet.optString("status")) {
@@ -1254,41 +1252,6 @@ class MainActivity : Activity() {
         if (pending > 0) {
             addText(sum, "Открытые: сумма ${fmt(pendingStake)}  ·  возможная выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, false, muted)
         }
-        addText(sum, "ПО ТУРНИРАМ · ЗАКРЫТЫЕ СТАВКИ", 9, true, cyan)
-        val betsByLeague = linkedMapOf<String, MutableList<JSONObject>>()
-        listOf(
-            "Англия · Премьер-лига", "Испания · Ла Лига", "Италия · Серия A",
-            "Германия · Бундеслига", "Франция · Лига 1",
-            "Лига чемпионов УЕФА", "Лига Европы УЕФА", "Лига конференций УЕФА",
-        ).forEach { betsByLeague[it] = mutableListOf() }
-        for (i in 0 until bets.length()) {
-            val bet = bets.optJSONObject(i) ?: continue
-            if (selectedLeague != "ALL" && displayLeagueName(bet.optString("league")) != selectedLeagueLabel) continue
-            val league = displayLeagueName(bet.optString("league"))
-            betsByLeague.getOrPut(league) { mutableListOf() }.add(bet)
-        }
-        betsByLeague.toSortedMap().forEach { (league, rows) ->
-            var leagueWins = 0
-            var leagueLosses = 0
-            var leaguePushes = 0
-            var leagueTurnover = 0.0
-            var leagueProfit = 0.0
-            rows.forEach { bet ->
-                val stake = bet.optDouble("stake")
-                val odds = bet.optDouble("odds")
-                when (bet.optString("status")) {
-                    "WON" -> { leagueWins++; leagueTurnover += stake; leagueProfit += stake * (odds - 1.0) }
-                    "LOST" -> { leagueLosses++; leagueTurnover += stake; leagueProfit -= stake }
-                    "PUSH" -> { leaguePushes++; leagueTurnover += stake }
-                }
-            }
-            val settledCount = leagueWins + leagueLosses + leaguePushes
-            val roi = if (leagueTurnover > 0.0) String.format(Locale.US, "%.1f%%", leagueProfit / leagueTurnover * 100.0) else "—"
-            if (settledCount > 0) {
-                addText(sum, "$league · $settledCount закрытых · ROI $roi", 10, false, muted)
-            }
-        }
-
     }
 
     private fun renderStats(json: JSONObject) {
@@ -2906,7 +2869,7 @@ class MainActivity : Activity() {
         statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
         renderTabs()
         renderLeagueTabs()
-        leagueBar.visibility = if (currentTab in listOf("matches", "stats")) View.VISIBLE else View.GONE
+        leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
         val cached = tabViewCache[targetKey]
@@ -2954,7 +2917,7 @@ class MainActivity : Activity() {
             return
         }
         if (currentTab == "stats") {
-            leagueBar.visibility = View.VISIBLE
+            leagueBar.visibility = View.GONE
             renderStats(json)
             return
         } else if (currentTab == "help") {
