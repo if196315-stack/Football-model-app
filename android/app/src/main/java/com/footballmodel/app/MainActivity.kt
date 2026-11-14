@@ -326,7 +326,7 @@ class MainActivity : Activity() {
         }
         root.addView(lineHeadingView, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(4)
-            bottomMargin = dp(14)
+            bottomMargin = dp(2)
         })
         val leagueScrollFrame = FrameLayout(this)
         leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
