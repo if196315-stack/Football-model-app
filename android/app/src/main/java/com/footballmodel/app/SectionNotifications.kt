@@ -8,6 +8,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.content.pm.PackageManager
 import android.os.Build
 import java.security.MessageDigest
@@ -78,6 +79,7 @@ internal object SectionNotifications {
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(context, CHANNEL_ID) else Notification.Builder(context)
         val notification = builder
             .setSmallIcon(R.drawable.ic_notification)
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.iq_match_icon_new))
             .setContentTitle("Новое в отчёте и наблюдениях")
             .setContentText("В едином разделе появились новые данные. Нажмите, чтобы посмотреть.")
             .setContentIntent(pendingIntent)
