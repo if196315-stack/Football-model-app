@@ -1801,6 +1801,8 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val stakeModeButtons = linkedMapOf<String, Button>()
+        lateinit var fixedStakeHint: TextView
+        lateinit var minimumStakeHint: TextView
         fun styleStakeModeButton(button: Button, selected: Boolean) {
             button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
             button.background = GradientDrawable(
@@ -1848,11 +1850,11 @@ class MainActivity : Activity() {
         }
         addStakeModeButton("Минимальная", "MINIMUM")
         addStakeModeButton("Фиксированная", "FIXED")
-        val fixedStakeHint = label(if (stakeMode() == "FIXED") {
+        fixedStakeHint = label(if (stakeMode() == "FIXED") {
             if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
             else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
         } else "Сохранённое значение не применяется, пока выбран режим «Минимальная».", 11, false, muted)
-        val minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
+        minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
             else "Сохранённое значение не применяется, пока выбран режим «Фиксированная».", 11, false, muted)
         settings.addView(stakeModeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
