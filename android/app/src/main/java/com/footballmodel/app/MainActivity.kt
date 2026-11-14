@@ -1210,7 +1210,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "STATS", "Статистика сохранённых ставок и точность прогнозов модели.")
+        screenHeader("PERFORMANCE CENTER", "Статистика", "Статистика сохранённых ставок и точность прогнозов модели.")
         renderSavedBetStats()
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
