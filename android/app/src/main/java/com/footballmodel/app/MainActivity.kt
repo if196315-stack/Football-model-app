@@ -282,7 +282,7 @@ class MainActivity : Activity() {
             setPadding(5, 5, 5, 5)
             background = rounded(Color.rgb(13, 23, 39), 17)
         }
-        root.addView(tabBar, LinearLayout.LayoutParams(-1, 58).apply { topMargin = 16; bottomMargin = 14 })
+        root.addView(tabBar, LinearLayout.LayoutParams(-1, 72).apply { topMargin = 16; bottomMargin = 14 })
 
         leagueBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1002,43 +1002,63 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
-        val items = listOf("matches" to "Линия", "desk" to "ТОП", "history" to "Ставки", "stats" to "STATS", "help" to "Профиль")
-        // Создаём кнопки меню один раз: при переключении меняем только оформление,
-        // не пересоздавая сами View и обработчики нажатий.
+        val items = listOf(
+            Triple("matches", "ЛИНИЯ", "≋"),
+            Triple("desk", "ТОП", "★"),
+            Triple("history", "СТАВКИ", "▣"),
+            Triple("stats", "СТАТИСТИКА", "▥"),
+            Triple("help", "ПРОФИЛЬ", "●")
+        )
+        // Keep the five navigation targets stable; only their visual treatment changes.
         if (tabBar.childCount != items.size) {
             tabBar.removeAllViews()
             items.forEach { item ->
-                val t = label(item.second, 11, true, muted).apply {
+                val tab = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
                     gravity = Gravity.CENTER
-                    maxLines = 1
-                    includeFontPadding = false
-                    setPadding(dp(3), dp(5), dp(3), dp(5))
+                    setPadding(dp(2), dp(5), dp(2), dp(5))
                     isClickable = true
                     isFocusable = true
                     setOnClickListener { selectTab(item.first) }
                 }
-                tabBar.addView(t, LinearLayout.LayoutParams(0, -1, 1f).apply {
+                val glyph = label(item.third, 18, true, accent).apply {
+                    gravity = Gravity.CENTER
+                    includeFontPadding = false
+                    maxLines = 1
+                }
+                val title = label(item.second, 8, true, Color.WHITE).apply {
+                    gravity = Gravity.CENTER
+                    includeFontPadding = false
+                    maxLines = 1
+                    setSingleLine(true)
+                }
+                tab.addView(glyph, LinearLayout.LayoutParams(-1, 0, 1.1f))
+                tab.addView(title, LinearLayout.LayoutParams(-1, 0, 0.9f))
+                tabBar.addView(tab, LinearLayout.LayoutParams(0, -1, 1f).apply {
                     setMargins(dp(2), dp(2), dp(2), dp(2))
                 })
             }
         }
         items.forEachIndexed { index, item ->
-            val t = tabBar.getChildAt(index) as? TextView ?: return@forEachIndexed
+            val tab = tabBar.getChildAt(index) as? LinearLayout ?: return@forEachIndexed
+            val glyph = tab.getChildAt(0) as? TextView ?: return@forEachIndexed
+            val title = tab.getChildAt(1) as? TextView ?: return@forEachIndexed
             val active = currentTab == item.first
-            t.setTextColor(if (active) bg else muted)
-            t.background = if (active) {
-                GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                    intArrayOf(Color.rgb(89, 224, 176), Color.rgb(91, 190, 255))).apply {
-                    cornerRadius = dp(15).toFloat()
+            glyph.setTextColor(if (active) bg else accent)
+            title.setTextColor(if (active) bg else Color.WHITE)
+            tab.background = if (active) {
+                GradientDrawable().apply {
+                    setColor(Color.rgb(221, 187, 105))
+                    cornerRadius = dp(14).toFloat()
                 }
             } else {
                 GradientDrawable().apply {
-                    setColor(Color.rgb(21, 36, 55))
-                    cornerRadius = dp(15).toFloat()
+                    setColor(Color.rgb(29, 48, 66))
+                    cornerRadius = dp(14).toFloat()
                     setStroke(dp(1), Color.rgb(39, 61, 82))
                 }
             }
-            t.elevation = if (active) dp(3).toFloat() else 0f
+            tab.elevation = if (active) dp(3).toFloat() else 0f
         }
     }
 
@@ -1190,7 +1210,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "STATS", "Статистика сохранённых ставок и точность прогнозов модели.")
+        screenHeader("PERFORMANCE CENTER", "Статистика", "Статистика сохранённых ставок и точность прогнозов модели.")
         renderSavedBetStats()
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
@@ -1554,9 +1574,6 @@ class MainActivity : Activity() {
 
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
-        val strategyCard = card()
-        addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
-        addText(strategyCard, "Размер каждой ставки: " + minimumStakeDescription(), 12, true, Color.WHITE)
         var changed = false
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
