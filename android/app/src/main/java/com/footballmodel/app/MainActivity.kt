@@ -982,11 +982,12 @@ class MainActivity : Activity() {
         renderTabs()
         matchesContainer.animate().cancel()
         leagueScroll.animate().cancel()
-        leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
+        leagueScroll.visibility = if (tab in listOf("matches", "desk", "stats")) View.VISIBLE else View.GONE
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
-            "desk" -> selectedTopTab
+            "desk" -> selectedTopTab + "|" + selectedLeague
+            "stats" -> selectedLeague
             else -> "ALL"
         }
         if (tabViewCache.containsKey(targetKey) && data != null) {
