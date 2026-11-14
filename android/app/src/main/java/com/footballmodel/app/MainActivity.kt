@@ -1574,9 +1574,6 @@ class MainActivity : Activity() {
 
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
-        val strategyCard = card()
-        addText(strategyCard, "ПРАВИЛО СТАВКИ", 11, true, accent)
-        addText(strategyCard, "Размер каждой ставки: " + minimumStakeDescription(), 12, true, Color.WHITE)
         var changed = false
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
