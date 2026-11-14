@@ -1,0 +1,32 @@
+name: Diagnose API-Sport quota and BetBoom markets
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, feature/betting-desk-analysis]
+    paths:
+      - 'backend/diagnose_api_sport.py'
+      - '.github/workflows/diagnose-api-sport.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-sport-readonly-diagnostics
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install diagnostic dependency
+        run: python -m pip install requests
+      - name: Check daily quota and a bounded BetBoom sample
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/diagnose_api_sport.py

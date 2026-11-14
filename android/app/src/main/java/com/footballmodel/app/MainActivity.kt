@@ -1852,9 +1852,8 @@ class MainActivity : Activity() {
             setPadding(0, dp(5), 0, dp(5))
             setOnCheckedChangeListener { _, checked ->
                 settingsPrefs.edit().putBoolean("show_line_section", checked).apply()
-                // Rebuild only the navigation labels/weights. Re-rendering the
-                // settings page here detached and recreated its entire content,
-                // causing a visible jump and losing the current scroll position.
+                // Update only navigation. Rebuilding the settings screen here
+                // detached/recreated its content and caused a visible scroll jump.
                 if (!checked && currentTab == "matches") {
                     selectTab("desk")
                 } else {

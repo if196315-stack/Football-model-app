@@ -1,0 +1,60 @@
+name: Seven-competition model audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/backtest_all_markets.py"
+      - "backend/test_backtest_all_markets.py"
+      - ".github/workflows/seven-competition-model-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seven-competition-model-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore cached main-branch PitchAPI history
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pitchapi-history-Linux-main-
+      - name: Install audit dependencies
+        run: python -m pip install requests pandas numpy
+      - name: Test all-market walk-forward and calibration
+        run: python -m unittest backend/test_backtest_all_markets.py -v
+      - name: Export clean domestic paired-xG cohort
+        run: python backend/export_pitchapi_backtest.py
+      - name: Run seven-competition chronological all-market audit
+        run: |
+          python backend/backtest_all_markets.py \
+            --domestic artifacts/pitchapi-clean-candidate.csv \
+            --uefa artifacts/uefa-xg-history.json \
+            --output artifacts/seven-competition-all-market-report.json \
+            --holdout-from 2026-07-01
+      - name: Upload reproducible datasets and calibration report
+        uses: actions/upload-artifact@v4
+        with:
+          name: seven-competition-model-audit-${{ github.run_number }}
+          path: |
+            artifacts/pitchapi-clean-candidate.csv
+            artifacts/pitchapi-clean-candidate-manifest.json
+            artifacts/seven-competition-all-market-report.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,79 @@
+import sys
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from diagnose_api_sport import fixture_identity_sample, market_summary, model_fixture_sample, quota_summary, response_items
+
+
+class DiagnosticHelpersTests(unittest.TestCase):
+    def test_quota_summary_reads_documented_fields(self):
+        result = quota_summary({
+            "plan": "Pro",
+            "dailyRequestLimit": 50000,
+            "usage": {"today": 123, "remaining": 49877, "resetAt": "2026-11-10T00:00:00Z"},
+        })
+        self.assertEqual(result["dailyRequestLimit"], 50000)
+        self.assertEqual(result["today"], 123)
+        self.assertEqual(result["remaining"], 49877)
+
+    def test_response_items_supports_list_and_matches_envelope(self):
+        self.assertEqual(response_items([{"id": 1}]), [{"id": 1}])
+        self.assertEqual(response_items({"matches": [{"id": 2}]}), [{"id": 2}])
+        self.assertEqual(response_items({"unexpected": []}), [])
+
+    def test_exact_fixture_odds_summary_reports_bookmakers_and_melbet_markets(self):
+        from diagnose_api_sport import exact_fixture_odds_summary
+        result = exact_fixture_odds_summary({"data": {
+            "id": 12,
+            "homeTeam": {"name": "Home"},
+            "awayTeam": {"name": "Away"},
+            "hasBkOdds": {"melbet": False, "pari": True},
+            "oddsBk": {"pari": {"markets": {}}}
+        }})
+        self.assertEqual(result["id"], 12)
+        self.assertEqual(result["hasBkOdds"]["pari"], True)
+        self.assertEqual(result["bookmakerBoards"], ["pari"])
+        self.assertFalse(result["melbetBoard"])
+        self.assertEqual(result["melbetMarkets"], [])
+
+    def test_market_summary_preserves_market_lines_and_status(self):
+        result = market_summary({"markets": {
+            "total": {"name": {"en": "Total"}, "status": "open", "stage": "prematch", "isBettingActiveByStage": {"prematch": True},
+                      "stakes": {"over": {"lines": [
+                          {"argument": 2.5, "factor": 1.91, "suspended": False}
+                      ]}}}
+        }})
+        self.assertEqual(result[0]["slug"], "total")
+        self.assertEqual(result[0]["status"], "open")
+        self.assertEqual(result[0]["stage"], "prematch")
+        self.assertEqual(result[0]["isBettingActiveByStage"], {"prematch": True})
+        self.assertEqual(result[0]["outcomes"]["over"][0]["argument"], 2.5)
+        self.assertEqual(result[0]["outcomes"]["over"][0]["factor"], 1.91)
+
+
+    def test_fixture_identity_sample_includes_timestamp_and_team_names(self):
+        sample = fixture_identity_sample({
+            "id": 7, "startTimestamp": 1794178800000, "dateEvent": "2026-11-09",
+            "homeTeam": {"name": "Home", "translations": {"en": "Home FC"}},
+            "awayTeam": {"name": "Away"}
+        })
+        self.assertEqual(sample["startTimestamp"], 1794178800000)
+        self.assertEqual(sample["homeTranslations"], {"en": "Home FC"})
+        self.assertEqual(sample["away"], "Away")
+
+    def test_model_fixture_sample_is_bounded_and_includes_identity(self):
+        from datetime import datetime, timezone
+        today = datetime.now(timezone.utc).date().isoformat()
+        sample = model_fixture_sample({"competitions": [{
+            "code": "PL", "matches": [{
+                "id": 123, "utcDate": today + "T19:00:00Z",
+                "home": "Home FC", "away": "Away FC", "status": "SCHEDULED"
+            }]
+        }]})
+        self.assertEqual(sample[0]["competition"], "PL")
+        self.assertEqual(sample[0]["home"], "Home FC")
+
+
+if __name__ == "__main__":
+    unittest.main()
