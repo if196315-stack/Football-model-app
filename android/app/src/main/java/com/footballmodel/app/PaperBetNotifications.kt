@@ -8,6 +8,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.content.pm.PackageManager
 import android.os.Build
 import org.json.JSONObject
@@ -73,7 +74,8 @@ internal object PaperBetNotifications {
             Notification.Builder(context)
         }
         val notification = builder
-            .setSmallIcon(context.applicationInfo.icon)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.iq_match_icon_new))
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))

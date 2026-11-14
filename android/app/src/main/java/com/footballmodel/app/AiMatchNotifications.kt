@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.content.pm.PackageManager
 import android.os.Build
 
@@ -88,6 +89,7 @@ internal object AiMatchNotifications {
         }
         val notification = builder
             .setSmallIcon(R.drawable.ic_notification)
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.iq_match_icon_new))
             .setContentTitle("🔥 Есть новинка! Сигнал уже в ТОП!")
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
