@@ -1595,9 +1595,9 @@ class MainActivity : Activity() {
         }
 
         fun renderBetSection(title: String, items: List<JSONObject>, emptyText: String) {
-            val section = card()
             if (items.isEmpty()) {
-                addText(section, emptyText, 11, false, muted)
+                val emptySection = card()
+                addText(emptySection, emptyText, 11, false, muted)
                 return
             }
             items.forEach { bet ->
