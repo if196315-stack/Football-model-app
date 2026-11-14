@@ -2612,7 +2612,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        listOf("OPEN" to "Новые сигналы", "FIXED" to "Зафиксированные").forEach { (key, title) ->
+        listOf("OPEN" to "Новые сигналы", "FIXED" to "В ставках").forEach { (key, title) ->
             val count = if (key == "OPEN") openSignalsCount else fixedCount
             val tab = TextView(this).apply {
                 text = "$title · $count"
