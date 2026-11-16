@@ -54,6 +54,141 @@ fun IQMatchPremiumTheme(content: @Composable () -> Unit) {
     )
 }
 
+data class PremiumSettingsState(
+    val balance: String = "Не задан",
+    val balanceDescription: String = "Задай стартовый банк, чтобы рассчитывать размер новых ставок.",
+    val stakeMode: String = "MINIMUM",
+    val minimumStake: String = "Не задана",
+    val fixedStake: String = "Не задана",
+    val minimumHint: String = "",
+    val fixedHint: String = "",
+    val showLine: Boolean = true
+)
+
+@Composable
+fun PremiumSettingsScreen(
+    settings: PremiumSettingsState,
+    onEditBank: () -> Unit,
+    onEditMinimum: () -> Unit,
+    onEditFixed: () -> Unit,
+    onModeChanged: (String) -> Unit,
+    onShowLineChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = modifier.background(PremiumBackground).padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 22.dp, bottom = 24.dp)
+    ) {
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("IQ MATCH · PERSONAL SETTINGS", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("Настройки", color = PremiumText, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        item {
+            SettingsPanel(title = "ТЕКУЩИЙ БАЛАНС") {
+                Text(settings.balance, color = PremiumText, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                Text(settings.balanceDescription, color = PremiumMuted, fontSize = 12.sp)
+                SettingsAction(if (settings.balance == "Не задан") "Задать баланс" else "Изменить баланс", onEditBank)
+            }
+        }
+        item {
+            SettingsPanel(title = "НАСТРОЙКИ СУММЫ СТАВОК") {
+                Text("РЕЖИМ РАСЧЁТА СТАВКИ", color = PremiumMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsChoice("Минимальная", settings.stakeMode == "MINIMUM", Modifier.weight(1f)) { onModeChanged("MINIMUM") }
+                    SettingsChoice("Фиксированная", settings.stakeMode == "FIXED", Modifier.weight(1f)) { onModeChanged("FIXED") }
+                }
+                Text("Минимальная сумма ставки", color = PremiumText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(settings.minimumStake, color = PremiumGold, fontSize = 15.sp)
+                Text(settings.minimumHint, color = PremiumMuted, fontSize = 11.sp)
+                SettingsAction("Изменить минимальную сумму", onEditMinimum)
+                Text("Фиксированная сумма ставки", color = PremiumText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(settings.fixedStake, color = PremiumGold, fontSize = 15.sp)
+                Text(settings.fixedHint, color = PremiumMuted, fontSize = 11.sp)
+                SettingsAction(if (settings.fixedStake == "Не задана") "Задать фиксированную сумму" else "Изменить фиксированную сумму", onEditFixed)
+            }
+        }
+        item {
+            SettingsPanel(title = "ОТОБРАЖЕНИЕ РАЗДЕЛОВ") {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onShowLineChanged(!settings.showLine) }.padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("Показывать раздел «ЛИНИЯ»", color = PremiumText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text("При выключении вкладка ЛИНИЯ исчезает из нижней навигации.", color = PremiumMuted, fontSize = 11.sp)
+                    }
+                    Text(if (settings.showLine) "ВКЛ" else "ВЫКЛ", color = if (settings.showLine) PremiumGold else PremiumMuted, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                }
+            }
+        }
+        item {
+            SettingsPanel(title = "СЛОВАРЬ ПОКАЗАТЕЛЕЙ") {
+                GlossaryEntry("Вероятность модели", "Оценка вероятности выбранного исхода, а не гарантия результата конкретного матча.")
+                GlossaryEntry("Коэффициент", "Показывает выплату вместе с возвращаемой суммой ставки; обратная величина даёт вероятность до учёта маржи.")
+                GlossaryEntry("EV — ожидаемая доходность", "Вероятность модели × коэффициент − 1. Положительный EV — математическое ожидание на большой дистанции, не обещание прибыли.")
+                GlossaryEntry("EDGE", "Разница между вероятностью модели и вероятностью, заложенной в коэффициенте, в процентных пунктах.")
+                GlossaryEntry("Kelly", "Доля полного банка по формуле Келли. В приложении показатель используется для ранжирования сигналов, а не как команда ставить весь банк.")
+                GlossaryEntry("xG — ожидаемые голы", "Модельная оценка качества голевых моментов и ожидаемого количества голов, не фактический счёт.")
+                GlossaryEntry("Порог отбора ТОП", "Сигнал должен одновременно пройти пороги вероятности, EV, EDGE и коэффициента, а также ограничения по рынкам.")
+                Text("Все модельные показатели являются оценками и не гарантируют выигрыш.", color = PremiumGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        item {
+            SettingsPanel(title = "О ПРИЛОЖЕНИИ") {
+                Text("IQ MATCH · SMART FOOTBALL INTELLIGENCE", color = PremiumText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("Матчи и коэффициенты: API-Sport / MelBet. Модельные вероятности и xG: PitchAPI.", color = PremiumMuted, fontSize = 11.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsPanel(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().background(PremiumPanel, RoundedCornerShape(18.dp))
+            .border(1.dp, Color(0xFF293B52), RoundedCornerShape(18.dp)).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(title, color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        content()
+    }
+}
+
+@Composable
+private fun SettingsAction(title: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF1D3042)).border(1.dp, Color(0xFF4B5260), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick).padding(horizontal = 13.dp, vertical = 11.dp),
+        contentAlignment = Alignment.CenterStart
+    ) { Text(title, color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+}
+
+@Composable
+private fun SettingsChoice(title: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier.clip(RoundedCornerShape(12.dp))
+            .background(if (selected) PremiumSelected else Color(0xFF1D3042))
+            .border(1.dp, if (selected) PremiumSelected else Color(0xFF37485D), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick).padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(title, color = if (selected) PremiumBackground else PremiumText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun GlossaryEntry(title: String, description: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(title, color = PremiumText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(description, color = PremiumMuted, fontSize = 11.sp)
+    }
+}
+
 data class PremiumStatsBand(val label: String, val n: Int, val hits: Int)
 data class PremiumStatsMetric(
     val title: String,
