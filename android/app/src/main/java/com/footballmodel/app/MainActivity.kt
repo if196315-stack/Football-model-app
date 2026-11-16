@@ -1061,6 +1061,7 @@ class MainActivity : ComponentActivity() {
             if (nextIndex > previousIndex) 1 else -1
         } else 1
         currentTab = tab
+        if (tab == "help") refreshComposeSettings()
         val generation = ++tabRenderGeneration
 
         // Update navigation immediately. A previously rendered tab is attached
