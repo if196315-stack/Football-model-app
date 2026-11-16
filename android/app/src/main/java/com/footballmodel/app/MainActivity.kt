@@ -75,6 +75,8 @@ class MainActivity : ComponentActivity() {
     private var composeStatsMetrics by mutableStateOf<List<PremiumStatsMetric>>(emptyList())
     private var composeStatsSummary by mutableStateOf<List<String>>(emptyList())
     private var composeStatsLoading by mutableStateOf(false)
+    private var composeShowLine by mutableStateOf(true)
+    private var composeSettings by mutableStateOf(PremiumSettingsState())
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
     private lateinit var mainScrollView: ScrollView
@@ -380,11 +382,12 @@ class MainActivity : ComponentActivity() {
 
     private fun showComposeShell() {
         tabBar.visibility = View.GONE
+        refreshComposeSettings()
         setContent {
                 IQMatchPremiumTheme {
                     IQMatchApp(
                         selectedTab = currentTab,
-                        showLine = isLineSectionVisible(),
+                        showLine = composeShowLine,
                         onSelectTab = { tab -> selectTab(tab) },
                         content = { innerPadding ->
                             if (currentTab == "stats") {
@@ -392,6 +395,28 @@ class MainActivity : ComponentActivity() {
                                     metrics = composeStatsMetrics,
                                     summaryLines = composeStatsSummary,
                                     loading = composeStatsLoading,
+                                    modifier = Modifier.fillMaxSize().padding(innerPadding)
+                                )
+                            } else if (currentTab == "help") {
+                                PremiumSettingsScreen(
+                                    settings = composeSettings,
+                                    onEditBank = { showBankSettingDialog("initial_bankroll", "Баланс", initialBankroll(), "Укажи стартовый баланс. Пока он не задан, новые ставки ТОП автоматически не фиксируются. Записанные ставки и результаты сохраняются.") },
+                                    onEditMinimum = { showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум.") },
+                                    onEditFixed = { showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы очистить значение.") },
+                                    onModeChanged = { mode ->
+                                        if (settingsPrefs.edit().putString("stake_mode", mode).commit()) {
+                                            tabViewCache.clear()
+                                            refreshComposeSettings()
+                                            Toast.makeText(this@MainActivity, if (mode == "FIXED") "Фиксированная сумма активна" else "Минимальный режим активен", Toast.LENGTH_SHORT).show()
+                                        } else Toast.makeText(this@MainActivity, "Не удалось сохранить режим ставки", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onShowLineChanged = { checked ->
+                                        settingsPrefs.edit().putBoolean("show_line_section", checked).apply()
+                                        composeShowLine = checked
+                                        refreshComposeSettings()
+                                        if (!checked && currentTab == "matches") selectTab("desk")
+                                        else renderTabs()
+                                    },
                                     modifier = Modifier.fillMaxSize().padding(innerPadding)
                                 )
                             } else {
@@ -2244,6 +2269,23 @@ class MainActivity : ComponentActivity() {
         else -> minimumStakeDescription()
     }
 
+    private fun refreshComposeSettings() {
+        composeShowLine = isLineSectionVisible()
+        val mode = stakeMode()
+        composeSettings = PremiumSettingsState(
+            balance = if (hasInitialBankroll()) String.format(Locale.US, "%.2f ₽", currentBankroll()) else "Не задан",
+            balanceDescription = if (hasInitialBankroll()) "С учётом рассчитанных результатов и сумм, зарезервированных по открытым ставкам." else "Задай стартовый банк, чтобы рассчитывать размер новых ставок.",
+            stakeMode = mode,
+            minimumStake = if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана",
+            fixedStake = if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана",
+            minimumHint = if (mode == "MINIMUM") minimumStakeDescription() else "Это значение не применяется в фиксированном режиме.",
+            fixedHint = if (mode == "FIXED") {
+                if (fixedStake() > 0.0) "Каждая новая ставка будет ровно ${fmt(fixedStake())} ₽." else "Укажи фиксированную сумму ниже."
+            } else "Это значение не применяется в минимальном режиме.",
+            showLine = composeShowLine
+        )
+    }
+
     private fun showBankSettingDialog(key: String, title: String, current: Double, message: String) {
         val field = EditText(this).apply {
             hint = "Сумма в рублях"
@@ -2269,6 +2311,7 @@ class MainActivity : ComponentActivity() {
                     tabViewCache.clear()
                 }
                 dialog.dismiss()
+                refreshComposeSettings()
                 render()
             }
         }
