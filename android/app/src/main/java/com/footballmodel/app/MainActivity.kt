@@ -1048,6 +1048,35 @@ class MainActivity : Activity() {
         else -> "Все"
     }
 
+    private fun availableMatchCountForLeague(code: String): Int {
+        val competitions = data?.optJSONArray("competitions") ?: return 0
+        val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
+        val today = fixtureDayFormat.format(Date())
+        var count = 0
+        for (i in 0 until competitions.length()) {
+            val league = competitions.optJSONObject(i) ?: continue
+            if (code != "ALL" && league.optString("code") != code) continue
+            val matches = league.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val match = matches.optJSONObject(j) ?: continue
+                val fixtureDate = match.optString("utcDate").take(10).ifBlank {
+                    match.optString("dateEvent").take(10).ifBlank {
+                        kickoffTimestamp(match)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
+                    }
+                }
+                if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
+                    fixtureDate.isNotBlank() && fixtureDate >= today &&
+                    hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
+                ) {
+                    count++
+                }
+            }
+        }
+        return count
+    }
+
     private fun renderLeagueTabs() {
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
         val names = listOf("Все", "АПЛ", "Ла Лига", "Серия А", "Бундеслига", "Лига 1", "ЛЧ", "ЛЕ", "ЛК")
@@ -1055,7 +1084,7 @@ class MainActivity : Activity() {
         codes.forEachIndexed { index, code ->
             val active = selectedLeague == code
             val chip = TextView(this).apply {
-                text = names[index]
+                text = "${names[index]} · ${availableMatchCountForLeague(code)}"
                 textSize = 11f
                 typeface = Typeface.DEFAULT_BOLD
                 letterSpacing = 0.03f
