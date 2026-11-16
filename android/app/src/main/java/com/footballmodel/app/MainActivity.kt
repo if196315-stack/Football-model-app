@@ -1,8 +1,7 @@
 package com.footballmodel.app
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.setContent
+import androidx.activity.compose.setContent
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -378,8 +377,7 @@ class MainActivity : ComponentActivity() {
 
     private fun showComposeShell() {
         tabBar.visibility = View.GONE
-        setContentView(ComposeView(this).apply {
-            setContent {
+        setContent {
                 IQMatchPremiumTheme {
                     IQMatchApp(
                         selectedTab = currentTab,
@@ -393,8 +391,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 }
-            }
-        })
+        }
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
