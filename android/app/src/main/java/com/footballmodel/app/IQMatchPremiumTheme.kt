@@ -56,6 +56,7 @@ fun IQMatchPremiumTheme(content: @Composable () -> Unit) {
 
 data class PremiumLineMatch(
     val id: String,
+    val leagueCode: String,
     val league: String,
     val date: String,
     val home: String,
@@ -75,6 +76,7 @@ fun PremiumLineScreen(
     onSelectLeague: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val visibleMatches = if (selectedLeague == "ALL") matches else matches.filter { it.leagueCode == selectedLeague }
     val filters = listOf(
         "ALL" to "Все", "PL" to "АПЛ", "PD" to "Ла Лига", "SA" to "Серия А",
         "BL1" to "Бундеслига", "FL1" to "Лига 1", "UCL" to "ЛЧ", "UEL" to "ЛЕ", "UECL" to "ЛК"
@@ -95,19 +97,7 @@ fun PremiumLineScreen(
             androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 items(filters.size) { index ->
                     val (code, title) = filters[index]
-                    val count = if (code == "ALL") matches.size else matches.count { match ->
-                        when (code) {
-                            "PL" -> match.league.contains("Premier League", true) || match.league.contains("АПЛ", true)
-                            "PD" -> match.league.contains("Primera", true) || match.league.contains("La Liga", true)
-                            "SA" -> match.league.contains("Serie A", true)
-                            "BL1" -> match.league.contains("Bundesliga", true)
-                            "FL1" -> match.league.contains("Ligue 1", true)
-                            "UCL" -> match.league.contains("Champions League", true)
-                            "UEL" -> match.league.contains("Europa League", true)
-                            "UECL" -> match.league.contains("Conference League", true)
-                            else -> false
-                        }
-                    }
+                    val count = if (code == "ALL") matches.size else matches.count { it.leagueCode == code }
                     Box(
                         modifier = Modifier.clip(RoundedCornerShape(22.dp))
                             .background(if (selectedLeague == code) PremiumSelected else PremiumPanel)
@@ -121,17 +111,17 @@ fun PremiumLineScreen(
             }
         }
         item {
-            Text("МАТЧЕЙ В ЛИНИИ: ${matches.size}  ·  С ПОЛНЫМ ПРОГНОЗОМ: ${matches.size}", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("МАТЧЕЙ В ЛИНИИ: ${visibleMatches.size}  ·  С ПОЛНЫМ ПРОГНОЗОМ: ${visibleMatches.size}", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
-        if (matches.isEmpty()) {
+        if (visibleMatches.isEmpty()) {
             item {
                 StatsPanel(title = "НЕТ ДОСТУПНЫХ МАТЧЕЙ") {
                     Text("Нет предстоящих матчей с одновременно подтверждённой линией MelBet и полным прогнозом модели для выбранного фильтра.", color = PremiumMuted, fontSize = 12.sp)
                 }
             }
         } else {
-            items(matches.size, key = { matches[it].id }) { index ->
-                val match = matches[index]
+            items(visibleMatches.size, key = { visibleMatches[it].id }) { index ->
+                val match = visibleMatches[index]
                 Column(
                     modifier = Modifier.fillMaxWidth()
                         .background(PremiumPanel, RoundedCornerShape(20.dp))
