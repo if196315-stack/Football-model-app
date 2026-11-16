@@ -2270,6 +2270,7 @@ class MainActivity : ComponentActivity() {
         else -> minimumStakeDescription()
     }
 
+    // Compose settings are a view of existing SharedPreferences and bankroll calculations.
     private fun refreshComposeSettings() {
         composeShowLine = isLineSectionVisible()
         val mode = stakeMode()
