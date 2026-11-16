@@ -2,6 +2,7 @@ package com.footballmodel.app
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +51,103 @@ fun IQMatchPremiumTheme(content: @Composable () -> Unit) {
         ),
         content = content
     )
+}
+
+data class PremiumStatsBand(val label: String, val n: Int, val hits: Int)
+data class PremiumStatsMetric(
+    val title: String,
+    val n: Int,
+    val hits: Int,
+    val brier: Double,
+    val logLoss: Double,
+    val bands: List<PremiumStatsBand>
+)
+
+@Composable
+fun PremiumStatsScreen(
+    metrics: List<PremiumStatsMetric>,
+    summaryLines: List<String>,
+    loading: Boolean,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = modifier
+            .background(PremiumBackground)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 22.dp, bottom = 22.dp)
+    ) {
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("IQ MATCH  ·  PERFORMANCE CENTER", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("Статистика", color = PremiumText, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        item {
+            StatsPanel(title = "СТАТИСТИКА ТОП СИГНАЛОВ") {
+                if (summaryLines.isEmpty()) {
+                    Text("История ставок пока пуста", color = PremiumMuted, fontSize = 12.sp)
+                } else summaryLines.forEach { line ->
+                    Text(line, color = PremiumText, fontSize = 12.sp)
+                }
+            }
+        }
+        if (loading) {
+            item {
+                StatsPanel(title = "ОБЩАЯ СВОДКА") {
+                    Text("Подготавливаем статистику…", color = PremiumText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Расчёт выполняется в фоне. Интерфейс остаётся доступным.", color = PremiumMuted, fontSize = 12.sp)
+                }
+            }
+        } else if (metrics.isEmpty()) {
+            item {
+                StatsPanel(title = "ОБЩАЯ СВОДКА") {
+                    Text(
+                        "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.",
+                        color = PremiumMuted, fontSize = 12.sp
+                    )
+                }
+            }
+        } else {
+            item {
+                Text("ОБЩАЯ СВОДКА", color = PremiumGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+            items(metrics.size) { index ->
+                val metric = metrics[index]
+                StatsPanel(title = metric.title) {
+                    val rate = metric.hits * 100.0 / metric.n
+                    Text(
+                        "Попадания при пороге 50%: ${metric.hits}/${metric.n} (${String.format(java.util.Locale.US, "%.1f", rate)}%)",
+                        color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.SemiBold
+                    )
+                    Text("ПОПАДАНИЯ ПО УВЕРЕННОСТИ ПРОГНОЗА", color = PremiumGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    metric.bands.forEach { band ->
+                        val bandRate = if (band.n > 0) String.format(java.util.Locale.US, "%.1f%%", band.hits * 100.0 / band.n) else "—"
+                        Text("${band.label}: ${band.hits}/${band.n} ($bandRate)", color = if (band.n > 0) PremiumText else PremiumMuted, fontSize = 12.sp)
+                    }
+                    Text(
+                        "Brier Score: ${String.format(java.util.Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(java.util.Locale.US, "%.4f", metric.logLoss)}",
+                        color = PremiumMuted, fontSize = 11.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatsPanel(title: String, content: @Composable Column.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(PremiumPanel, RoundedCornerShape(18.dp))
+            .border(1.dp, Color(0xFF293B52), RoundedCornerShape(18.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(title, color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        content()
+    }
 }
 
 private data class PremiumTab(val id: String, val title: String)
