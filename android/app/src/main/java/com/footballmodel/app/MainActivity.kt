@@ -72,6 +72,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var lineHeadingView: TextView
     private lateinit var tabBar: LinearLayout
     private var currentTab by mutableStateOf("matches")
+    private var composeStatsMetrics by mutableStateOf<List<PremiumStatsMetric>>(emptyList())
+    private var composeStatsSummary by mutableStateOf<List<String>>(emptyList())
+    private var composeStatsLoading by mutableStateOf(false)
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
     private lateinit var mainScrollView: ScrollView
@@ -384,10 +387,19 @@ class MainActivity : ComponentActivity() {
                         showLine = isLineSectionVisible(),
                         onSelectTab = { tab -> selectTab(tab) },
                         content = { innerPadding ->
-                            AndroidView(
-                                factory = { mainScrollView },
-                                modifier = Modifier.fillMaxSize().padding(innerPadding)
-                            )
+                            if (currentTab == "stats") {
+                                PremiumStatsScreen(
+                                    metrics = composeStatsMetrics,
+                                    summaryLines = composeStatsSummary,
+                                    loading = composeStatsLoading,
+                                    modifier = Modifier.fillMaxSize().padding(innerPadding)
+                                )
+                            } else {
+                                AndroidView(
+                                    factory = { mainScrollView },
+                                    modifier = Modifier.fillMaxSize().padding(innerPadding)
+                                )
+                            }
                         }
                     )
                 }
@@ -1315,30 +1327,22 @@ class MainActivity : ComponentActivity() {
             }
         }
         val roi = if (turnover > 0.0) String.format(Locale.US, "%.1f%%", profit / turnover * 100.0) else "—"
-        val sum = card().apply {
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-        }
-        addText(sum, "СТАТИСТИКА ТОП СИГНАЛОВ", 10, true, accent)
-        addText(sum, "${bets.length()} ставок  ·  W $wins  /  L $losses  /  возврат $pushes  ·  открыто $pending", 11, true)
-        addText(sum, "Закрытые: оборот ${fmt(turnover)}  ·  результат " + (if (profit >= 0) "+" else "") + fmt(profit) + "  ·  ROI $roi", 11, true, if (profit >= 0) accent else Color.RED)
         val averageTopOdds = if (settledTopOddsCount > 0) fmt(settledTopOddsTotal / settledTopOddsCount) else "—"
-        addText(sum, "Средний кэф ТОП: $averageTopOdds · по $settledTopOddsCount завершённым сигналам", 11, true, gold)
-        if (pending > 0) {
-            addText(sum, "Открытые: сумма ${fmt(pendingStake)}  ·  возможная выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, false, muted)
+        composeStatsSummary = buildList {
+            add("${bets.length()} ставок  ·  W $wins / L $losses / возврат $pushes  ·  открыто $pending")
+            add("Закрытые: оборот ${fmt(turnover)}  ·  результат ${if (profit >= 0) "+" else ""}${fmt(profit)}  ·  ROI $roi")
+            add("Средний кэф ТОП: $averageTopOdds · по $settledTopOddsCount завершённым сигналам")
+            if (pending > 0) add("Открытые: сумма ${fmt(pendingStake)}  ·  возможная выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}")
         }
-
     }
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "Статистика", "")
         renderSavedBetStats()
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
-            val loading = card()
-            addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
-            addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
+            composeStatsLoading = true
             if (statsCalculationInProgress.compareAndSet(false, true)) {
-                // The feed object is replaced, not mutated, on refresh; read it on the worker.
+                // Keep the existing background calculation and cache unchanged.
                 thread(name = "stats-metrics-calculation") {
                     val calculated = calculateStatsMetrics(json)
                     runOnUiThread {
@@ -1346,35 +1350,37 @@ class MainActivity : ComponentActivity() {
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
-            lineHeadingView.visibility = View.GONE
-                            // Rebuild even when this result became stale while calculating;
-                            // renderStats will immediately schedule a calculation for the new feed.
+                            composeStatsMetrics = calculated.map { metric ->
+                                PremiumStatsMetric(
+                                    title = metric.name,
+                                    n = metric.n,
+                                    hits = metric.hits,
+                                    brier = metric.brier,
+                                    logLoss = metric.logLoss,
+                                    bands = metric.bands.map { band ->
+                                        PremiumStatsBand(band.label, band.n, band.hits)
+                                    }
+                                )
+                            }
+                            composeStatsLoading = false
                             tabViewCache.remove("stats|ALL")
-                            render()
                         }
                     }
                 }
             }
             return
         }
-        val metrics = statsMetricsCache
-        val overallHeading = card()
-        addText(overallHeading, "ОБЩАЯ СВОДКА", 11, true, cyan)
-        if (metrics.isEmpty()) {
-            val empty = card()
-            addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
-        } else metrics.forEach { metric ->
-            val box = card()
-            addText(box, metric.name, 14, true)
-            addText(box, "Попадания при пороге 50%: ${metric.hits}/${metric.n} (${String.format(Locale.US, "%.1f", metric.hits*100.0/metric.n)}%)", 11, true, accent)
-            addText(box, "ПОПАДАНИЯ ПО УВЕРЕННОСТИ ПРОГНОЗА", 9, true, cyan)
-            metric.bands.forEach { band ->
-                val rate = if (band.n > 0) String.format(Locale.US, "%.1f%%", band.hits*100.0/band.n) else "—"
-                addText(box, "${band.label}: ${band.hits}/${band.n} ($rate)", 11, false, if (band.n > 0) Color.WHITE else muted)
-            }
-            addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
+        composeStatsMetrics = statsMetricsCache.map { metric ->
+            PremiumStatsMetric(
+                title = metric.name,
+                n = metric.n,
+                hits = metric.hits,
+                brier = metric.brier,
+                logLoss = metric.logLoss,
+                bands = metric.bands.map { band -> PremiumStatsBand(band.label, band.n, band.hits) }
+            )
         }
-
+        composeStatsLoading = false
     }
 
 
