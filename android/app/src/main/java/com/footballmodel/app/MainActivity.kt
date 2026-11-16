@@ -77,6 +77,10 @@ class MainActivity : ComponentActivity() {
     private var composeStatsLoading by mutableStateOf(false)
     private var composeShowLine by mutableStateOf(true)
     private var composeSettings by mutableStateOf(PremiumSettingsState())
+    private var composeTopOpenSignals by mutableStateOf<List<PremiumTopSignal>>(emptyList())
+    private var composeTopFixedBets by mutableStateOf<List<PremiumTopBet>>(emptyList())
+    private var selectedTopTab by mutableStateOf("OPEN")
+    private var composeTopRecordTargets: List<Pair<Triple<JSONObject, String, JSONObject>, JSONObject>> = emptyList()
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
     private lateinit var mainScrollView: ScrollView
@@ -94,7 +98,6 @@ class MainActivity : ComponentActivity() {
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
     private var selectedHistoryTab = "OPEN"
-    private var selectedTopTab = "OPEN"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
@@ -395,6 +398,15 @@ class MainActivity : ComponentActivity() {
                                     metrics = composeStatsMetrics,
                                     summaryLines = composeStatsSummary,
                                     loading = composeStatsLoading,
+                                    modifier = Modifier.fillMaxSize().padding(innerPadding)
+                                )
+                            } else if (currentTab == "desk") {
+                                PremiumTopScreen(
+                                    selectedTab = selectedTopTab,
+                                    openSignals = composeTopOpenSignals,
+                                    fixedBets = composeTopFixedBets,
+                                    onSelectTab = { tab -> selectedTopTab = tab; refreshComposeTop(data) },
+                                    onRecord = { index -> recordComposeTopSignal(index) },
                                     modifier = Modifier.fillMaxSize().padding(innerPadding)
                                 )
                             } else if (currentTab == "help") {
@@ -1062,6 +1074,7 @@ class MainActivity : ComponentActivity() {
         } else 1
         currentTab = tab
         if (tab == "help") refreshComposeSettings()
+        if (tab == "desk") refreshComposeTop(data)
         val generation = ++tabRenderGeneration
 
         // Update navigation immediately. A previously rendered tab is attached
@@ -2268,6 +2281,86 @@ class MainActivity : ComponentActivity() {
         "FIXED" -> if (fixedStake() > 0.0) "фиксированная сумма ${fmt(fixedStake())} ₽ на каждую новую ставку; процент и минимум не применяются."
             else "фиксированный режим выбран, но сумма не задана — новые ставки не фиксируются."
         else -> minimumStakeDescription()
+    }
+
+    private fun refreshComposeTop(json: JSONObject?) {
+        if (json == null) {
+            composeTopOpenSignals = emptyList()
+            composeTopFixedBets = emptyList()
+            composeTopRecordTargets = emptyList()
+            return
+        }
+        val candidates = collectAiCandidates(json)
+        val targets = mutableListOf<Pair<Triple<JSONObject, String, JSONObject>, JSONObject>>()
+        val open = mutableListOf<PremiumTopSignal>()
+        candidates.forEach { item ->
+            val (match, league, bundle) = item
+            val signals = mutableListOf<JSONObject>()
+            bundle.optJSONObject("primary")?.let { signals.add(it) }
+            val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
+            for (i in 0 until alternatives.length()) alternatives.optJSONObject(i)?.let { signals.add(it) }
+            signals.filterNot { isAiBetRecorded(match, it) }.forEach { signal ->
+                val odds = topSignalOdds(signal, match) ?: return@forEach
+                val probability = signal.optDouble("modelProbability", 0.0)
+                val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
+                    else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
+                val ev = probability * odds - 1.0
+                targets.add(item to signal)
+                open.add(PremiumTopSignal(
+                    rank = open.size + 1,
+                    league = league.uppercase(Locale.getDefault()),
+                    matchup = match.optString("home") + " — " + match.optString("away"),
+                    kickoff = kickoffLabel(match),
+                    side = signal.optString("side"),
+                    odds = fmt(odds),
+                    probability = String.format(Locale.US, "%.1f%%", probability * 100.0),
+                    edge = String.format(Locale.US, "%+.1f п.п.", edge),
+                    expectedValue = String.format(Locale.US, "%+.1f%%", ev * 100.0),
+                    baseline = if (signal.optBoolean("paperOnly")) "Серверный UEFA paper-сигнал"
+                        else "Историческая база: ${String.format(Locale.US, "%.1f%%", signal.optDouble("baselineProbability") * 100.0)} · ${signal.optInt("baselineMatches")} матчей"
+                ))
+            }
+        }
+        composeTopRecordTargets = targets
+        composeTopOpenSignals = open
+        composeTopFixedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
+            .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") &&
+                it.optString("marketKey") != "COUPON" && it.optString("status") == "PENDING" }
+            .asReversed()
+            .mapIndexed { index, bet ->
+                val stake = bet.optDouble("stake")
+                val odds = bet.optDouble("odds")
+                PremiumTopBet(
+                    rank = index + 1,
+                    league = displayLeagueName(bet.optString("league")),
+                    matchup = bet.optString("home") + " — " + bet.optString("away"),
+                    market = bet.optString("market"),
+                    odds = fmt(odds),
+                    stake = fmt(stake) + " ₽",
+                    probability = String.format(Locale.US, "%.1f%%", bet.optDouble("probability") * 100.0),
+                    status = when (bet.optString("status")) {
+                        "WON" -> "ВЫИГРЫШ"
+                        "LOST" -> "ПРОИГРЫШ"
+                        "PUSH" -> "ВОЗВРАТ"
+                        else -> "ОЖИДАЕТ РАСЧЁТА"
+                    },
+                    possibleReturn = fmt(stake * odds) + " ₽",
+                    possibleProfit = fmt(stake * (odds - 1.0)) + " ₽"
+                )
+            }
+    }
+
+    private fun recordComposeTopSignal(index: Int) {
+        val target = composeTopRecordTargets.getOrNull(index) ?: return
+        val (item, signal) = target
+        val (match, league, _) = item
+        val odds = topSignalOdds(signal, match) ?: run {
+            Toast.makeText(this, "Котировка MelBet больше недоступна", Toast.LENGTH_SHORT).show()
+            return
+        }
+        confirmManualAiSignalBet(match, league, signal, odds) {
+            refreshComposeTop(data)
+        }
     }
 
     // Compose settings are a view of existing SharedPreferences and bankroll calculations.
