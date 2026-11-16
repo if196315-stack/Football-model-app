@@ -1,6 +1,13 @@
 package com.footballmodel.app
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.viewinterop.AndroidView
 import android.animation.ValueAnimator
 import android.view.animation.DecelerateInterpolator
 import android.app.AlertDialog
@@ -45,7 +52,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
-class MainActivity : Activity() {
+class MainActivity : ComponentActivity() {
     private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
     private val uefaDataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json"
     private val bg = Color.rgb(7, 13, 25)
@@ -63,7 +70,7 @@ class MainActivity : Activity() {
     private lateinit var leagueScroll: HorizontalScrollView
     private lateinit var lineHeadingView: TextView
     private lateinit var tabBar: LinearLayout
-    private var currentTab = "matches"
+    private var currentTab by mutableStateOf("matches")
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
     private lateinit var mainScrollView: ScrollView
@@ -234,7 +241,6 @@ class MainActivity : Activity() {
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(7, 14, 28), Color.rgb(10, 23, 38), Color.rgb(7, 13, 25)))
         }
         mainScrollView.addView(root)
-        setContentView(mainScrollView)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -365,6 +371,28 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+        showComposeShell()
+    }
+
+    private fun showComposeShell() {
+        tabBar.visibility = View.GONE
+        setContentView(ComposeView(this).apply {
+            setContent {
+                IQMatchPremiumTheme {
+                    IQMatchApp(
+                        selectedTab = currentTab,
+                        showLine = isLineSectionVisible(),
+                        onSelectTab = { tab -> selectTab(tab) },
+                        content = { innerPadding ->
+                            AndroidView(
+                                factory = { mainScrollView },
+                                modifier = Modifier.fillMaxSize().padding(innerPadding)
+                            )
+                        }
+                    )
+                }
+            }
+        })
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
@@ -1110,6 +1138,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderTabs() {
+        tabBar.visibility = View.GONE
         val items = buildList {
             if (isLineSectionVisible()) add("matches" to "ЛИНИЯ")
             add("desk" to "ТОП")
