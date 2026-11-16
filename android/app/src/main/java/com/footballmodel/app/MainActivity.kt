@@ -1273,7 +1273,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "Статистика", "Статистика сохранённых ставок и точность прогнозов модели.")
+        screenHeader("PERFORMANCE CENTER", "Статистика", "")
         renderSavedBetStats()
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
@@ -1303,7 +1303,6 @@ class MainActivity : Activity() {
         val metrics = statsMetricsCache
         val overallHeading = card()
         addText(overallHeading, "ОБЩАЯ СВОДКА", 11, true, cyan)
-        addText(overallHeading, "Точность прогнозов по всем 9 рабочим рынкам. Уровни уверенности и расчёты сохранены без изменений.", 10, false, muted)
         if (metrics.isEmpty()) {
             val empty = card()
             addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
@@ -1317,51 +1316,8 @@ class MainActivity : Activity() {
                 addText(box, "${band.label}: ${band.hits}/${band.n} ($rate)", 11, false, if (band.n > 0) Color.WHITE else muted)
             }
             addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
-            addText(box, "Бинарный рынок; оценка вероятностей по завершённым матчам.", 10, false, muted)
         }
-        val explainer = card()
-        addText(explainer, "КАК ЧИТАТЬ МЕТРИКИ", 10, true, accent)
-        addText(explainer, "Диапазон — это уверенность в выбранной стороне: max(p, 1−p). Например, вероятность события 28% означает прогноз на противоположный исход с уверенностью 72% и попадёт в диапазон 70–79%. В каждом диапазоне показаны верные прогнозы / все прогнозы. Brier Score и Log Loss: чем ниже, тем лучше. Попадания не равны доходности.", 11, false, muted)
-        val footer = card()
-        addText(footer, "Учитываются только неизменяемые прогнозы, зафиксированные до начала матча. Старые пересчитываемые прогнозы в эту статистику не включены.", 10, false, muted)
 
-        // IQ MATCH Strategy v1.1 — постоянно доступная памятка с правилами отбора и риска.
-        val strategyIntro = card()
-        addText(strategyIntro, "IQ MATCH STRATEGY · VERSION 1.2", 10, true, accent)
-        addText(strategyIntro, "СТРОГИЙ ОТБОР · УМЕРЕННЫЙ РИСК · ОГРАНИЧЕННЫЙ ЗАПУСК", 13, true, Color.WHITE)
-        addText(strategyIntro, "Ставка допускается только после проверки данных, вероятности, value и риска. Если хотя бы один обязательный фильтр не пройден — WAIT или REJECT. Отсутствие ставки является полноценным решением.", 11, false, muted)
-
-        val strategyFilters = card()
-        addText(strategyFilters, "1. ФИЛЬТРЫ ДОПУСКА", 11, true, accent)
-        addText(strategyFilters, "Данные: матч сопоставлен однозначно; котировка только MelBet через API-Sport; реальная цена и точное совпадение рынка, стороны и линии обязательны. Для автофиксации бумажной ставки котировка должна обновиться в последние 12 часов до матча; жёсткого фильтра возраста 5 минут нет.", 11, false, Color.WHITE)
-        addText(strategyFilters, "Сигнал A: вероятность модели ≥ 60%; преимущество над break-even ≥ 5 п.п.; EV ≥ +5%; модель проверена на данном типе рынка; сигнал устойчив к небольшим изменениям предположений.", 11, false, Color.WHITE)
-        addText(strategyFilters, "B = WAIT: интересный сигнал, но не хватает подтверждений или данных. C = REJECT: отрицательное/недостаточное value, плохие данные или неприемлемый риск.", 11, false, muted)
-
-        val strategyValue = card()
-        addText(strategyValue, "2. VALUE И EV", 11, true, accent)
-        addText(strategyValue, "Break-even probability = 1 / коэффициент. EV = вероятность модели × коэффициент − 1. Для BET стартовый минимум EV — +5%, а преимущество над break-even — не менее 5 процентных пунктов. Высокая вероятность сама по себе не означает выгодную ставку.", 11, false, Color.WHITE)
-        addText(strategyValue, "Пример: вероятность 60%, коэффициент 1.90 → break-even 52.63%, EV +14%. Пример иллюстративный; калибровка модели и фактическая цена обязательны.", 10, false, muted)
-
-        val strategyRisk = card()
-        addText(strategyRisk, "3. БАНК И РИСК", 11, true, accent)
-        addText(strategyRisk, "Размер новой ставки: ${stakeRuleDescription()} Дневного лимита суммарной нагрузки нет; разные рынки одного матча разрешены, повтор одной и той же ставки на тот же рынок блокируется.", 11, false, Color.WHITE)
-        addText(strategyRisk, "Запрещены догон, увеличение ставки после выигрыша и автоматический рост риска. Полный Kelly не используется. Просадка 10% от локального максимума — пауза автоматической фиксации paper bets; 20% — остановка автоматической фиксации до явного пересмотра.", 11, false, muted)
-
-        val strategyMarkets = card()
-        addText(strategyMarkets, "4. РЫНКИ И ИСТОЧНИК", 11, true, accent)
-        addText(strategyMarkets, "Рабочие рынки стратегии — ровно 9: ТБ матча 1.5; ТБ матча 2.5; двойной шанс 1X; двойной шанс X2; обе команды забьют — да; ИТБ хозяев 0.5; ИТБ хозяев 1.5; ИТБ гостей 0.5; ИТБ гостей 1.5.", 11, false, Color.WHITE)
-        addText(strategyMarkets, "Источник коэффициентов — только MelBet через API-Sport. Для допуска обязательны точное совпадение рынка, команды и линии и фактически загруженный коэффициент. Другие рынки, включая ТМ/UNDER, ОЗ — нет, исход 12, 1X2 и форы, рабочими рынками стратегии не являются и в ставки не допускаются.", 10, false, muted)
-        addText(strategyMarkets, "Нельзя подставлять коэффициенты другого букмекера, угадывать отсутствующую цену или сравнивать разные линии.", 10, false, muted)
-
-        val strategyTesting = card()
-        addText(strategyTesting, "5. ТЕСТИРОВАНИЕ И ДОПУСК К ЗАПУСКУ", 11, true, accent)
-        addText(strategyTesting, "Этап 1 — аудит данных и сопоставления. Этап 2 — хронологический бэктест без утечки будущих данных, с отдельными train/validation/test периодами. Этап 3 — paper trading на актуальных MelBet котировках без реальных ставок. Этап 4 — ограниченный запуск с базовой ставкой 1% банка, без дневного лимита суммарной нагрузки. Этап 5 — регулярный аудит и пересмотр.", 11, false, Color.WHITE)
-        addText(strategyTesting, "Стартовые ориентиры: ≥500 исторических сигналов и ≥500 paper-сигналов; желательно ≥150–200 наблюдений на оцениваемый рынок. Эти объёмы не гарантируют статистическую надёжность: показывать доверительные интервалы и учитывать неопределённость.", 11, false, muted)
-
-        val strategyMetrics = card()
-        addText(strategyMetrics, "6. ЧТО КОНТРОЛИРОВАТЬ В STATS", 11, true, accent)
-        addText(strategyMetrics, "ROI, Yield, CLV, максимальная просадка, Brier Score, Log Loss, калибровка вероятностей, win rate, EV по каждому рынку и причины REJECT/WAIT. Win rate не является главным критерием. Сохранять все сигналы, включая отклонённые, коэффициент на момент решения и версию стратегии.", 11, false, Color.WHITE)
-        addText(strategyMetrics, "Пороговые значения — стартовая конфигурация для проверки, а не доказанное преимущество и не гарантия прибыли. Изменения правил должны получать новую версию и проверяться на независимых данных.", 10, false, muted)
     }
 
 
