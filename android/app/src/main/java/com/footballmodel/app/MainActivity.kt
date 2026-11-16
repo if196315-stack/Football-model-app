@@ -82,6 +82,7 @@ class MainActivity : ComponentActivity() {
     private var selectedTopTab by mutableStateOf("OPEN")
     private var composeTopRecordTargets: List<Pair<Triple<JSONObject, String, JSONObject>, JSONObject>> = emptyList()
     private var composeHistoryBets by mutableStateOf<List<PremiumHistoryBet>>(emptyList())
+    private var composeLineMatches by mutableStateOf<List<PremiumLineMatch>>(emptyList())
     private var selectedComposeHistoryTab by mutableStateOf("OPEN")
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
@@ -395,7 +396,14 @@ class MainActivity : ComponentActivity() {
                         showLine = composeShowLine,
                         onSelectTab = { tab -> selectTab(tab) },
                         content = { innerPadding ->
-                            if (currentTab == "stats") {
+                            if (currentTab == "matches") {
+                                PremiumLineScreen(
+                                    matches = composeLineMatches,
+                                    selectedLeague = selectedLeague,
+                                    onSelectLeague = { selectedLeague = it; refreshComposeLine(data) },
+                                    modifier = Modifier.fillMaxSize().padding(innerPadding)
+                                )
+                            } else if (currentTab == "stats") {
                                 PremiumStatsScreen(
                                     metrics = composeStatsMetrics,
                                     summaryLines = composeStatsSummary,
@@ -1085,6 +1093,7 @@ class MainActivity : ComponentActivity() {
         } else 1
         currentTab = tab
         if (tab == "help") refreshComposeSettings()
+        if (tab == "matches") refreshComposeLine(data)
         if (tab == "desk") refreshComposeTop(data)
         val generation = ++tabRenderGeneration
 
@@ -1866,6 +1875,114 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+
+    private fun refreshComposeLine(json: JSONObject?) {
+        if (json == null) { composeLineMatches = emptyList(); return }
+        val competitions = json.optJSONArray("competitions") ?: run { composeLineMatches = emptyList(); return }
+        val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
+        val today = fixtureDayFormat.format(Date())
+        val result = mutableListOf<PremiumLineMatch>()
+        for (i in 0 until competitions.length()) {
+            val league = competitions.optJSONObject(i) ?: continue
+            val code = league.optString("code")
+            if (selectedLeague != "ALL" && selectedLeague != code) continue
+            val matches = league.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val match = matches.optJSONObject(j) ?: continue
+                val status = match.optString("status")
+                val fixtureDate = match.optString("utcDate").take(10).ifBlank {
+                    match.optString("dateEvent").take(10).ifBlank {
+                        kickoffTimestamp(match)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
+                    }
+                }
+                if (status !in listOf("SCHEDULED", "TIMED") || fixtureDate.isBlank() || fixtureDate < today ||
+                    !hasCompleteModelPrediction(match) || !hasActiveMelBetPrematchLine(match)) continue
+                val prediction = match.optJSONObject("prediction") ?: continue
+                val signal = strongestDisplaySignal(prediction, match)
+                val displayLabel = signal?.let { strongestSignalDisplayLabel(it, match) }.orEmpty()
+                val odds = match.optJSONObject("odds")
+                val best = odds?.optJSONObject("best")
+                fun quote(key: String): String {
+                    val dc = best?.optJSONObject("doubleChance")
+                    val btts = best?.optJSONObject("btts")
+                    val value = when {
+                        key in listOf("1x", "x2", "12") -> dc?.optDouble(key, Double.NaN)
+                        key == "bttsYes" -> btts?.optDouble("yes", Double.NaN)
+                        key == "bttsNo" -> btts?.optDouble("no", Double.NaN)
+                        else -> null
+                    }
+                    return if (value != null && value.isFinite() && value > 1.0) String.format(Locale.US, "%.2f", value) else "—"
+                }
+                fun totalQuote(point: Double, side: String, team: String? = null): String {
+                    val rows = best?.optJSONArray(if (team == null) "totals" else "teamTotals") ?: return "—"
+                    for (k in 0 until rows.length()) {
+                        val row = rows.optJSONObject(k) ?: continue
+                        val rowPoint = row.optDouble("point", Double.NaN)
+                        val rowPrice = row.optDouble("price", Double.NaN)
+                        if (row.optString("side").equals(side, ignoreCase = true) &&
+                            (team == null || row.optString("team") == team) &&
+                            rowPoint.isFinite() && abs(rowPoint - point) < 0.001 &&
+                            rowPrice.isFinite() && rowPrice > 1.0) return String.format(Locale.US, "%.2f", rowPrice)
+                    }
+                    return "—"
+                }
+                fun marketLine(title: String, probabilityKey: String, price: String) =
+                    "$title · ${pct(prediction, probabilityKey)} · кэф $price"
+                val markets = listOf(
+                    "ДВОЙНОЙ ШАНС" to listOf(marketLine("1X", "1x", quote("1x")), marketLine("X2", "x2", quote("x2"))),
+                    "ОБЕ КОМАНДЫ ЗАБЬЮТ" to listOf(marketLine("ОЗ ДА", "bttsYes", quote("bttsYes"))),
+                    "ТОТАЛ МАТЧА" to listOf(marketLine("ТБ 1.5", "over15", totalQuote(1.5, "over")), marketLine("ТБ 2.5", "over25", totalQuote(2.5, "over"))),
+                    "ОЖИДАЕМЫЕ ГОЛЫ" to listOf(String.format(Locale.US, "%.2f : %.2f", prediction.optDouble("expectedHomeGoals"), prediction.optDouble("expectedAwayGoals"))),
+                    match.optString("home") to listOf(
+                        marketLine("ИТБ 0.5", "homeOver05", totalQuote(0.5, "over", "home")),
+                        marketLine("ИТБ 1.5", "homeOver15", totalQuote(1.5, "over", "home"))
+                    ),
+                    match.optString("away") to listOf(
+                        marketLine("ИТБ 0.5", "awayOver05", totalQuote(0.5, "over", "away")),
+                        marketLine("ИТБ 1.5", "awayOver15", totalQuote(1.5, "over", "away"))
+                    )
+                )
+                val oddsTimestamp = odds?.optString("updatedAt").orEmpty()
+                val quoteTime = if (oddsTimestamp.isBlank()) "Время обновления неизвестно" else formatSourceTimestamp(oddsTimestamp)
+                val probability = signal?.optDouble("modelProbability", 0.0) ?: 0.0
+                val signalOdds = signal?.optDouble("lineOdds", Double.NaN) ?: Double.NaN
+                val ev = signal?.optDouble("lineExpectedValue", Double.NaN) ?: Double.NaN
+                val kelly = signal?.optDouble("lineKellyFraction", Double.NaN) ?: Double.NaN
+                val signalMetrics = if (signal == null || displayLabel.isBlank()) emptyList() else listOf(
+                    "Вероятность модели: ${String.format(Locale.US, "%.1f%%", probability * 100)}",
+                    "Коэффициент MelBet: ${if (signalOdds.isFinite()) String.format(Locale.US, "%.2f", signalOdds) else "—"}",
+                    "Ожидаемая доходность (EV): ${if (ev.isFinite()) String.format(Locale.US, "%+.1f%%", ev * 100) else "—"}",
+                    "Доля Kelly для ранжирования: ${if (ev > 0 && kelly.isFinite()) String.format(Locale.US, "%.1f%%", kelly * 100) else "—"}"
+                )
+                val context = mutableListOf<String>()
+                if (signal?.has("baselineProbability") == true) {
+                    context.add("Историческая база: ${String.format(Locale.US, "%.1f", signal.optDouble("baselineProbability") * 100)}% · ${signal.optInt("baselineMatches")} матчей до игры")
+                    val priorMatches = signal.optInt("baselinePriorMatches", 0)
+                    val priorStrength = signal.optInt("baselinePriorStrength", 0)
+                    if (priorMatches > 0 && priorStrength > 0) context.add("Общая база других лиг: $priorMatches матчей; вес — $priorStrength условных матчей")
+                }
+                val formAdjustment = signal?.optDouble("formAdjustmentPp", 0.0) ?: 0.0
+                if (formAdjustment.isFinite() && formAdjustment != 0.0) context.add("Контекст формы: ${String.format(Locale.US, "%+.1f", formAdjustment)} п.п. (справочно)")
+                result.add(PremiumLineMatch(
+                    id = match.optString("id").ifBlank { "${match.optString("utcDate")}|${match.optString("home")}|${match.optString("away")}" },
+                    league = league.optString("name"),
+                    date = date(match.optString("utcDate")),
+                    home = match.optString("home"),
+                    away = match.optString("away"),
+                    signalTitle = displayLabel,
+                    signalPositive = ev.isFinite() && ev > 0,
+                    signalMetrics = signalMetrics,
+                    signalContext = context,
+                    markets = markets,
+                    quoteTime = "Котировка MelBet обновлена: $quoteTime"
+                ))
+            }
+        }
+        composeLineMatches = result
+    }
 
     private fun betsForComposeHistory(id: String): JSONObject? {
         for (i in 0 until bets.length()) {
@@ -3279,6 +3396,12 @@ class MainActivity : ComponentActivity() {
             leagueBar.visibility = View.GONE
             renderNotificationCenter(json)
             renderDailyInsights(json)
+            return
+        }
+        if (currentTab == "matches") {
+            lineHeadingView.visibility = View.GONE
+            leagueBar.visibility = View.GONE
+            refreshComposeLine(json)
             return
         }
         if (currentTab == "desk") {
