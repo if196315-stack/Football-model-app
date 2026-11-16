@@ -1888,7 +1888,6 @@ class MainActivity : ComponentActivity() {
         for (i in 0 until competitions.length()) {
             val league = competitions.optJSONObject(i) ?: continue
             val code = league.optString("code")
-            if (selectedLeague != "ALL" && selectedLeague != code) continue
             val matches = league.optJSONArray("matches") ?: continue
             for (j in 0 until matches.length()) {
                 val match = matches.optJSONObject(j) ?: continue
@@ -1967,6 +1966,7 @@ class MainActivity : ComponentActivity() {
                 val formAdjustment = signal?.optDouble("formAdjustmentPp", 0.0) ?: 0.0
                 if (formAdjustment.isFinite() && formAdjustment != 0.0) context.add("Контекст формы: ${String.format(Locale.US, "%+.1f", formAdjustment)} п.п. (справочно)")
                 result.add(PremiumLineMatch(
+                    leagueCode = code,
                     id = match.optString("id").ifBlank { "${match.optString("utcDate")}|${match.optString("home")}|${match.optString("away")}" },
                     league = league.optString("name"),
                     date = date(match.optString("utcDate")),
