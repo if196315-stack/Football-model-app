@@ -54,6 +54,136 @@ fun IQMatchPremiumTheme(content: @Composable () -> Unit) {
     )
 }
 
+data class PremiumLineMatch(
+    val id: String,
+    val league: String,
+    val date: String,
+    val home: String,
+    val away: String,
+    val signalTitle: String,
+    val signalPositive: Boolean,
+    val signalMetrics: List<String>,
+    val signalContext: List<String>,
+    val markets: List<Pair<String, List<String>>>,
+    val quoteTime: String
+)
+
+@Composable
+fun PremiumLineScreen(
+    matches: List<PremiumLineMatch>,
+    selectedLeague: String,
+    onSelectLeague: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val filters = listOf(
+        "ALL" to "Все", "PL" to "АПЛ", "PD" to "Ла Лига", "SA" to "Серия А",
+        "BL1" to "Бундеслига", "FL1" to "Лига 1", "UCL" to "ЛЧ", "UEL" to "ЛЕ", "UECL" to "ЛК"
+    )
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = modifier.background(PremiumBackground).padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 18.dp, bottom = 22.dp)
+    ) {
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("IQ MATCH  ·  MATCH CENTER", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("Линия", color = PremiumText, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+                Text("Матчи с полным прогнозом и активной линией MelBet", color = PremiumMuted, fontSize = 12.sp)
+            }
+        }
+        item {
+            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                items(filters.size) { index ->
+                    val (code, title) = filters[index]
+                    val count = if (code == "ALL") matches.size else matches.count { match ->
+                        when (code) {
+                            "PL" -> match.league.contains("Premier League", true) || match.league.contains("АПЛ", true)
+                            "PD" -> match.league.contains("Primera", true) || match.league.contains("La Liga", true)
+                            "SA" -> match.league.contains("Serie A", true)
+                            "BL1" -> match.league.contains("Bundesliga", true)
+                            "FL1" -> match.league.contains("Ligue 1", true)
+                            "UCL" -> match.league.contains("Champions League", true)
+                            "UEL" -> match.league.contains("Europa League", true)
+                            "UECL" -> match.league.contains("Conference League", true)
+                            else -> false
+                        }
+                    }
+                    Box(
+                        modifier = Modifier.clip(RoundedCornerShape(22.dp))
+                            .background(if (selectedLeague == code) PremiumSelected else PremiumPanel)
+                            .clickable { onSelectLeague(code) }
+                            .padding(horizontal = 13.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("$title · $count", color = if (selectedLeague == code) PremiumBackground else PremiumMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    }
+                }
+            }
+        }
+        item {
+            Text("МАТЧЕЙ В ЛИНИИ: ${matches.size}  ·  С ПОЛНЫМ ПРОГНОЗОМ: ${matches.size}", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        }
+        if (matches.isEmpty()) {
+            item {
+                StatsPanel(title = "НЕТ ДОСТУПНЫХ МАТЧЕЙ") {
+                    Text("Нет предстоящих матчей с одновременно подтверждённой линией MelBet и полным прогнозом модели для выбранного фильтра.", color = PremiumMuted, fontSize = 12.sp)
+                }
+            }
+        } else {
+            items(matches.size, key = { matches[it].id }) { index ->
+                val match = matches[index]
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .background(PremiumPanel, RoundedCornerShape(20.dp))
+                        .border(1.dp, Color(0xFF5B4E37), RoundedCornerShape(20.dp))
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(9.dp)
+                ) {
+                    Text("${match.league.uppercase()}  ·  ${match.date}", color = PremiumGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text("${match.home}  —  ${match.away}", color = PremiumText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    if (match.signalTitle.isNotBlank()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().background(Color(0xFF0D1D2E), RoundedCornerShape(13.dp)).padding(11.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("★  САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", color = PremiumGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Text(match.signalTitle, color = if (match.signalPositive) PremiumGold else Color(0xFFF2BE68), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            match.signalMetrics.forEach { Text(it, color = PremiumText, fontSize = 11.sp) }
+                            match.signalContext.forEach { Text(it, color = PremiumMuted, fontSize = 10.sp) }
+                            if (match.signalMetrics.isNotEmpty()) {
+                                Text(if (match.signalPositive) "Выбран рынок с максимальной долей полного Kelly среди положительных EV и коэффициентов от 1.50." else "Нет рынка с положительным EV при коэффициенте от 1.50. Показан самый вероятный доступный вариант.", color = PremiumMuted, fontSize = 10.sp)
+                            }
+                        }
+                    } else {
+                        Text("Нет доступной котировки MelBet ни для одного из разрешённых рынков этого матча.", color = PremiumMuted, fontSize = 11.sp)
+                    }
+                    match.markets.chunked(2).forEach { pair ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            pair.forEach { (title, rows) ->
+                                Column(
+                                    modifier = Modifier.weight(1f).background(Color(0xFF0D1D2E), RoundedCornerShape(11.dp)).padding(9.dp),
+                                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Text(title, color = PremiumMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    rows.forEach { Text(it, color = PremiumText, fontSize = 10.sp) }
+                                }
+                            }
+                            if (pair.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                    }
+                    Text(match.quoteTime, color = PremiumMuted, fontSize = 9.sp)
+                }
+            }
+        }
+        item {
+            StatsPanel(title = "ВАЖНО") {
+                Text("Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", color = PremiumMuted, fontSize = 11.sp)
+                Text("Линия: API-Sport / MelBet · вероятности и xG: PitchAPI.", color = PremiumMuted, fontSize = 10.sp)
+            }
+        }
+    }
+}
+
 data class PremiumHistoryBet(
     val id: String,
     val league: String,
