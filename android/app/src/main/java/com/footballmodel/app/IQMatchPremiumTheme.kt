@@ -54,6 +54,161 @@ fun IQMatchPremiumTheme(content: @Composable () -> Unit) {
     )
 }
 
+data class PremiumTopSignal(
+    val rank: Int,
+    val league: String,
+    val matchup: String,
+    val kickoff: String,
+    val side: String,
+    val odds: String,
+    val probability: String,
+    val edge: String,
+    val expectedValue: String,
+    val baseline: String
+)
+
+data class PremiumTopBet(
+    val rank: Int,
+    val league: String,
+    val matchup: String,
+    val market: String,
+    val odds: String,
+    val stake: String,
+    val probability: String,
+    val status: String,
+    val possibleReturn: String,
+    val possibleProfit: String
+)
+
+@Composable
+fun PremiumTopScreen(
+    selectedTab: String,
+    openSignals: List<PremiumTopSignal>,
+    fixedBets: List<PremiumTopBet>,
+    onSelectTab: (String) -> Unit,
+    onRecord: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = modifier.background(PremiumBackground).padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 22.dp, bottom = 24.dp)
+    ) {
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("IQ MATCH · MATCH INTELLIGENCE", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("ТОП", color = PremiumText, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+                Text("Новые сильные сигналы отдельно от уже зафиксированных бумажных ставок.", color = PremiumMuted, fontSize = 12.sp)
+            }
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TopTabChip("Новые сигналы", openSignals.size, selectedTab == "OPEN", Modifier.weight(1f)) { onSelectTab("OPEN") }
+                TopTabChip("В ставках", fixedBets.size, selectedTab == "FIXED", Modifier.weight(1f)) { onSelectTab("FIXED") }
+            }
+        }
+        if (selectedTab == "OPEN") {
+            item {
+                Text("НОВЫЕ СИГНАЛЫ · ${openSignals.size}", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+            if (openSignals.isEmpty()) {
+                item {
+                    TopPanel(title = "ПОКА НЕТ СИГНАЛОВ") {
+                        Text("Новых сильных сигналов пока нет.", color = PremiumText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Здесь появятся матчи, прошедшие действующие фильтры ТОП.", color = PremiumMuted, fontSize = 12.sp)
+                    }
+                }
+            } else {
+                items(openSignals.size) { index ->
+                    val signal = openSignals[index]
+                    TopPanel(title = "МАТЧ #${signal.rank} · ${signal.league}") {
+                        Text(signal.matchup, color = PremiumText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(signal.kickoff, color = PremiumMuted, fontSize = 11.sp)
+                        Text("САМЫЙ СИЛЬНЫЙ СИГНАЛ", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(signal.side + " · MelBet " + signal.odds, color = PremiumGold, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text("Вероятность модели: ${signal.probability}", color = PremiumText, fontSize = 12.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("EDGE", color = PremiumMuted, fontSize = 9.sp)
+                                Text(signal.edge, color = PremiumGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("EV", color = PremiumMuted, fontSize = 9.sp)
+                                Text(signal.expectedValue, color = PremiumGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Text(signal.baseline, color = PremiumMuted, fontSize = 10.sp)
+                        TopAction("Выбрать и зафиксировать", Modifier.fillMaxWidth()) { onRecord(index) }
+                    }
+                }
+            }
+        } else {
+            item {
+                Text("ЗАФИКСИРОВАННЫЕ СТАВКИ · ${fixedBets.size}", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+            if (fixedBets.isEmpty()) {
+                item {
+                    TopPanel(title = "ИСТОРИЯ ПОКА ПУСТА") {
+                        Text("Ставок ТОП, ожидающих расчёта, пока нет.", color = PremiumText, fontSize = 13.sp)
+                        Text("После фиксации сигнала он появится здесь.", color = PremiumMuted, fontSize = 11.sp)
+                    }
+                }
+            } else {
+                items(fixedBets.size) { index ->
+                    val bet = fixedBets[index]
+                    TopPanel(title = "СТАВКА #${bet.rank} · ${bet.league}") {
+                        Text(bet.matchup, color = PremiumText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(bet.market + " · кэф " + bet.odds, color = PremiumGold, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Ставка: ${bet.stake} · модель: ${bet.probability}", color = PremiumMuted, fontSize = 11.sp)
+                        Text(bet.status, color = PremiumGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("Возможная выплата: ${bet.possibleReturn} · чистый выигрыш: +${bet.possibleProfit}", color = PremiumText, fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+        item {
+            TopPanel(title = "ПРАВИЛА ТОП") {
+                Text("В ТОП попадают сильнейшие сигналы из раздела ЛИНИЯ: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Фиксация создаёт бумажную запись в истории приложения; букмекерские операции не выполняются.", color = PremiumMuted, fontSize = 11.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TopTabChip(title: String, count: Int, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier.clip(RoundedCornerShape(24.dp))
+            .background(if (selected) PremiumSelected else PremiumPanel)
+            .border(1.dp, if (selected) PremiumSelected else Color(0xFF37485D), RoundedCornerShape(24.dp))
+            .clickable(onClick = onClick).padding(vertical = 12.dp, horizontal = 5.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("$title · $count", color = if (selected) PremiumBackground else PremiumMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun TopPanel(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().background(PremiumPanel, RoundedCornerShape(18.dp))
+            .border(1.dp, Color(0xFF293B52), RoundedCornerShape(18.dp)).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(title, color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        content()
+    }
+}
+
+@Composable
+private fun TopAction(title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xFF263C52))
+            .border(1.dp, Color(0xFF8A744F), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick).padding(vertical = 12.dp, horizontal = 14.dp),
+        contentAlignment = Alignment.Center
+    ) { Text(title, color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+}
+
 data class PremiumSettingsState(
     val balance: String = "Не задан",
     val balanceDescription: String = "Задай стартовый банк, чтобы рассчитывать размер новых ставок.",
