@@ -663,6 +663,7 @@ fun IQMatchApp(
         add(PremiumTab("desk", "ТОП"))
         add(PremiumTab("history", "СТАВКИ"))
         add(PremiumTab("stats", "СТАТИСТИКА"))
+        add(PremiumTab("help", "НАСТРОЙКИ"))
     }
     androidx.compose.material3.Scaffold(
         containerColor = PremiumBackground,
