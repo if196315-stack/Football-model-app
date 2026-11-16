@@ -81,6 +81,8 @@ class MainActivity : ComponentActivity() {
     private var composeTopFixedBets by mutableStateOf<List<PremiumTopBet>>(emptyList())
     private var selectedTopTab by mutableStateOf("OPEN")
     private var composeTopRecordTargets: List<Pair<Triple<JSONObject, String, JSONObject>, JSONObject>> = emptyList()
+    private var composeHistoryBets by mutableStateOf<List<PremiumHistoryBet>>(emptyList())
+    private var selectedComposeHistoryTab by mutableStateOf("OPEN")
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
     private lateinit var matchesContainer: LinearLayout
     private lateinit var mainScrollView: ScrollView
@@ -407,6 +409,15 @@ class MainActivity : ComponentActivity() {
                                     fixedBets = composeTopFixedBets,
                                     onSelectTab = { tab -> selectedTopTab = tab; refreshComposeTop(data) },
                                     onRecord = { index -> recordComposeTopSignal(index) },
+                                    modifier = Modifier.fillMaxSize().padding(innerPadding)
+                                )
+                            } else if (currentTab == "history") {
+                                PremiumBetHistoryScreen(
+                                    bets = composeHistoryBets,
+                                    selectedTab = selectedComposeHistoryTab,
+                                    onSelectTab = { selectedComposeHistoryTab = it },
+                                    onEditOdds = { id -> betsForComposeHistory(id)?.let { showEditBetOddsDialog(it) } },
+                                    onDelete = { id -> deleteComposeHistoryBet(id) },
                                     modifier = Modifier.fillMaxSize().padding(innerPadding)
                                 )
                             } else if (currentTab == "help") {
@@ -1855,6 +1866,107 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+    private fun betsForComposeHistory(id: String): JSONObject? {
+        for (i in 0 until bets.length()) {
+            val item = bets.optJSONObject(i) ?: continue
+            if (item.optString("id") == id) return item
+        }
+        return null
+    }
+
+    private fun deleteComposeHistoryBet(id: String) {
+        val next = JSONArray()
+        for (i in 0 until bets.length()) {
+            val item = bets.optJSONObject(i) ?: continue
+            if (item.optString("id") != id) next.put(item)
+        }
+        bets = next
+        saveBets(preserveBackgroundAuto = false)
+        refreshComposeBetHistory(data ?: JSONObject())
+    }
+
+    private fun refreshComposeBetHistory(json: JSONObject) {
+        var changed = false
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("marketKey") == "COUPON") {
+                val before = bet.optString("status")
+                val beforeScores = bet.optString("couponScores")
+                val beforeMatchStatus = bet.optString("matchStatus")
+                settleCoupon(json, bet)
+                if (bet.optString("status") != before || bet.optString("couponScores") != beforeScores ||
+                    bet.optString("matchStatus") != beforeMatchStatus) changed = true
+                continue
+            }
+            val match = findMatch(json, bet)
+            if (match != null) {
+                val matchStatus = match.optString("status")
+                val score = if (!match.isNull("homeScore") && !match.isNull("awayScore"))
+                    match.optInt("homeScore").toString() + ":" + match.optInt("awayScore") else ""
+                if (score.isNotEmpty() && bet.optString("score") != score) { bet.put("score", score); changed = true }
+                if (matchStatus.isNotEmpty() && bet.optString("matchStatus") != matchStatus) {
+                    bet.put("matchStatus", matchStatus); changed = true
+                }
+                if (bet.optString("status") == "PENDING") {
+                    val before = bet.optString("status")
+                    settleBet(bet, match)
+                    if (bet.optString("status") != before) changed = true
+                }
+            }
+        }
+        if (changed) saveBets()
+        val result = mutableListOf<PremiumHistoryBet>()
+        for (i in bets.length() - 1 downTo 0) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val state = bet.optString("status")
+            val stake = bet.optDouble("stake")
+            val odds = bet.optDouble("odds")
+            val coupon = bet.optString("marketKey") == "COUPON"
+            val live = when (bet.optString("matchStatus")) {
+                "IN_PLAY", "LIVE", "PAUSED" -> "LIVE"
+                "FINISHED" -> "ФИНАЛ"
+                "SCHEDULED", "TIMED" -> "ЕЩЁ НЕ НАЧАЛСЯ"
+                else -> ""
+            }
+            val status = when (state) {
+                "WON" -> "ВЫИГРЫШ"
+                "LOST" -> "ПРОИГРЫШ"
+                "PUSH" -> "ВОЗВРАТ"
+                else -> "ОЖИДАЕТ РАСЧЁТА"
+            }
+            val details = if (coupon) "Экспресс · ${bet.optJSONArray("selections")?.length() ?: 0} исходов"
+                else "${bet.optString("market")} · модель: ${String.format(Locale.getDefault(), "%.1f%%", bet.optDouble("probability") * 100)}"
+            val resultLine = when (state) {
+                "WON" -> "Чистая прибыль: +${fmt(stake * (odds - 1))} ₽"
+                "LOST" -> "Убыток: −${fmt(stake)} ₽"
+                "PUSH" -> "Возврат: ${fmt(stake)} ₽"
+                else -> "Возможная выплата: ${fmt(stake * odds)} ₽ · чистый выигрыш: +${fmt(stake * odds - stake)} ₽"
+            }
+            val legs = mutableListOf<String>()
+            if (coupon) {
+                val selections = bet.optJSONArray("selections")
+                for (j in 0 until (selections?.length() ?: 0)) {
+                    val leg = selections?.optJSONObject(j) ?: continue
+                    legs.add("${j + 1}. ${leg.optString("home")} — ${leg.optString("away")} · ${leg.optString("market")} · ${fmt(leg.optDouble("odds"))}")
+                }
+            }
+            result.add(PremiumHistoryBet(
+                id = bet.optString("id"),
+                league = displayLeagueName(bet.optString("league")),
+                date = date(bet.optString("date")),
+                matchup = if (coupon) "Экспресс" else bet.optString("home") + " — " + bet.optString("away"),
+                details = details + " · кэф " + fmt(odds),
+                stake = "Ставка: ${fmt(stake)} ₽",
+                status = status + (if (live.isNotEmpty()) " · $live" else "") + (if (bet.has("score")) " · счёт " + bet.optString("score") else ""),
+                result = resultLine,
+                isPending = state == "PENDING",
+                legs = legs
+            ))
+        }
+        composeHistoryBets = result
+    }
+
     private fun renderHelp() {
         screenHeader("IQ MATCH · SETTINGS", "Настройки", "Настройки приложения и параметров ставок.")
 
@@ -3178,7 +3290,7 @@ class MainActivity : ComponentActivity() {
         if (currentTab == "history") {
             lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
-            renderBetHistory(json)
+            refreshComposeBetHistory(json)
             return
         }
         if (currentTab == "stats") {
