@@ -3172,7 +3172,7 @@ class MainActivity : ComponentActivity() {
         if (currentTab == "desk") {
             lineHeadingView.visibility = View.GONE
             leagueBar.visibility = View.GONE
-            renderBettingDesk(json)
+            refreshComposeTop(json)
             return
         }
         if (currentTab == "history") {
