@@ -2299,8 +2299,8 @@ class MainActivity : ComponentActivity() {
             bundle.optJSONObject("primary")?.let { signals.add(it) }
             val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
             for (i in 0 until alternatives.length()) alternatives.optJSONObject(i)?.let { signals.add(it) }
-            signals.filterNot { isAiBetRecorded(match, it) }.forEach { signal ->
-                val odds = topSignalOdds(signal, match) ?: return@forEach
+            signals.filterNot { isAiBetRecorded(match, it) }.forEach signalLoop@ { signal ->
+                val odds = topSignalOdds(signal, match) ?: return@signalLoop
                 val probability = signal.optDouble("modelProbability", 0.0)
                 val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
                     else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
