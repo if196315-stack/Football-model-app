@@ -54,6 +54,93 @@ fun IQMatchPremiumTheme(content: @Composable () -> Unit) {
     )
 }
 
+data class PremiumHistoryBet(
+    val id: String,
+    val league: String,
+    val date: String,
+    val matchup: String,
+    val details: String,
+    val stake: String,
+    val status: String,
+    val result: String,
+    val isPending: Boolean,
+    val legs: List<String>
+)
+
+@Composable
+fun PremiumBetHistoryScreen(
+    bets: List<PremiumHistoryBet>,
+    selectedTab: String,
+    onSelectTab: (String) -> Unit,
+    onEditOdds: (String) -> Unit,
+    onDelete: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val open = bets.filter { it.isPending }
+    val completed = bets.filterNot { it.isPending }
+    val visible = if (selectedTab == "OPEN") open else completed
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = modifier.background(PremiumBackground).padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 22.dp, bottom = 22.dp)
+    ) {
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("IQ MATCH  ·  BET TRACKER", color = PremiumGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("Ставки", color = PremiumText, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+                Text("Открытые и завершённые ставки", color = PremiumMuted, fontSize = 12.sp)
+            }
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("OPEN" to "Ожидает расчёта · ${open.size}", "COMPLETED" to "Завершённые · ${completed.size}").forEach { (key, label) ->
+                    Box(
+                        modifier = Modifier.weight(1f).clip(RoundedCornerShape(14.dp))
+                            .background(if (selectedTab == key) PremiumSelected else PremiumPanel)
+                            .clickable { onSelectTab(key) }.padding(vertical = 12.dp, horizontal = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(label, color = if (selectedTab == key) PremiumBackground else PremiumMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+        if (visible.isEmpty()) {
+            item {
+                StatsPanel(title = if (selectedTab == "OPEN") "ОТКРЫТЫЕ СТАВКИ" else "ЗАВЕРШЁННЫЕ") {
+                    Text(if (selectedTab == "OPEN") "Ставок, ожидающих расчёта, пока нет." else "Завершённых ставок пока нет.", color = PremiumMuted, fontSize = 12.sp)
+                }
+            }
+        } else {
+            items(visible.size) { index ->
+                val bet = visible[index]
+                StatsPanel(title = "${bet.league} · ${bet.date}") {
+                    Text(bet.matchup, color = PremiumText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(bet.details, color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Text(bet.stake, color = PremiumMuted, fontSize = 11.sp)
+                    bet.legs.forEach { Text(it, color = PremiumMuted, fontSize = 10.sp) }
+                    Text(bet.status, color = if (bet.status.startsWith("ВЫИГРЫШ")) PremiumGold else if (bet.status.startsWith("ПРОИГРЫШ")) Color(0xFFFF7777) else PremiumMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(bet.result, color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    if (bet.isPending) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF263A50)).clickable { onEditOdds(bet.id) }.padding(horizontal = 14.dp, vertical = 9.dp)) {
+                                Text("Изменить кэф", color = PremiumText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Box(modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF3A2730)).clickable { onDelete(bet.id) }.padding(horizontal = 14.dp, vertical = 9.dp)) {
+                                Text("Удалить", color = Color(0xFFFFB3B3), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        Box(modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF3A2730)).clickable { onDelete(bet.id) }.padding(horizontal = 14.dp, vertical = 9.dp)) {
+                            Text("Удалить", color = Color(0xFFFFB3B3), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 data class PremiumTopSignal(
     val rank: Int,
     val league: String,
