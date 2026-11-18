@@ -22312,9 +22312,9 @@
           "odds": {
             "eventId": "16363661",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.385,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.557,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -22801,9 +22801,9 @@
           "odds": {
             "eventId": "16363658",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.499,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.761,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23290,9 +23290,9 @@
           "odds": {
             "eventId": "16363655",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.618,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.974,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -23779,9 +23779,9 @@
           "odds": {
             "eventId": "16363654",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.722,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.168,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24268,9 +24268,9 @@
           "odds": {
             "eventId": "16363657",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.825,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.356,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -24757,9 +24757,9 @@
           "odds": {
             "eventId": "16363663",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.936,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.56,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -25246,9 +25246,9 @@
           "odds": {
             "eventId": "16363662",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 115.038,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.742,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -25260,24 +25260,6 @@
                 },
                 "spreads": [],
                 "teamTotals": [
-                  {
-                    "team": "away",
-                    "point": 0.5,
-                    "side": "over",
-                    "price": 1.1,
-                    "market_slug": "total_team_2",
-                    "market_group": "total team",
-                    "market_name": "Total team 2"
-                  },
-                  {
-                    "team": "away",
-                    "point": 1.5,
-                    "side": "over",
-                    "price": 1.61,
-                    "market_slug": "total_team_2",
-                    "market_group": "total team",
-                    "market_name": "Total team 2"
-                  },
                   {
                     "team": "home",
                     "point": 0.5,
@@ -25295,6 +25277,24 @@
                     "market_slug": "total_team_1",
                     "market_group": "total team",
                     "market_name": "Total team 1"
+                  },
+                  {
+                    "team": "away",
+                    "point": 0.5,
+                    "side": "over",
+                    "price": 1.1,
+                    "market_slug": "total_team_2",
+                    "market_group": "total team",
+                    "market_name": "Total team 2"
+                  },
+                  {
+                    "team": "away",
+                    "point": 1.5,
+                    "side": "over",
+                    "price": 1.61,
+                    "market_slug": "total_team_2",
+                    "market_group": "total team",
+                    "market_name": "Total team 2"
                   }
                 ],
                 "totals": [
@@ -25327,24 +25327,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "away",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.1,
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2"
-                },
-                {
-                  "team": "away",
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 1.61,
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2"
-                },
-                {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
@@ -25361,6 +25343,24 @@
                   "market_slug": "total_team_1",
                   "market_group": "total team",
                   "market_name": "Total team 1"
+                },
+                {
+                  "team": "away",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.1,
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2"
+                },
+                {
+                  "team": "away",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.61,
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2"
                 }
               ],
               "totals": [
@@ -25392,24 +25392,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "away",
-                  "point": 0.5,
-                  "side": "over",
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2",
-                  "bookmaker": "MELBET"
-                },
-                {
-                  "team": "away",
-                  "point": 1.5,
-                  "side": "over",
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2",
-                  "bookmaker": "MELBET"
-                },
-                {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
@@ -25425,6 +25407,24 @@
                   "market_slug": "total_team_1",
                   "market_group": "total team",
                   "market_name": "Total team 1",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "away",
+                  "point": 0.5,
+                  "side": "over",
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "away",
+                  "point": 1.5,
+                  "side": "over",
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2",
                   "bookmaker": "MELBET"
                 }
               ],
@@ -25735,9 +25735,9 @@
           "odds": {
             "eventId": "16363659",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 115.135,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.918,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -26224,9 +26224,9 @@
           "odds": {
             "eventId": "16363660",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 115.223,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 152.078,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -26713,9 +26713,9 @@
           "odds": {
             "eventId": "16363656",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 115.272,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 152.155,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -26727,24 +26727,6 @@
                 },
                 "spreads": [],
                 "teamTotals": [
-                  {
-                    "team": "home",
-                    "point": 0.5,
-                    "side": "over",
-                    "price": 1.17,
-                    "market_slug": "total_team_1",
-                    "market_group": "total team",
-                    "market_name": "Total team 1"
-                  },
-                  {
-                    "team": "home",
-                    "point": 1.5,
-                    "side": "over",
-                    "price": 1.94,
-                    "market_slug": "total_team_1",
-                    "market_group": "total team",
-                    "market_name": "Total team 1"
-                  },
                   {
                     "team": "away",
                     "point": 0.5,
@@ -26762,6 +26744,24 @@
                     "market_slug": "total_team_2",
                     "market_group": "total team",
                     "market_name": "Total team 2"
+                  },
+                  {
+                    "team": "home",
+                    "point": 0.5,
+                    "side": "over",
+                    "price": 1.17,
+                    "market_slug": "total_team_1",
+                    "market_group": "total team",
+                    "market_name": "Total team 1"
+                  },
+                  {
+                    "team": "home",
+                    "point": 1.5,
+                    "side": "over",
+                    "price": 1.94,
+                    "market_slug": "total_team_1",
+                    "market_group": "total team",
+                    "market_name": "Total team 1"
                   }
                 ],
                 "totals": [
@@ -26794,24 +26794,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.17,
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1"
-                },
-                {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 1.94,
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1"
-                },
-                {
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
@@ -26828,6 +26810,24 @@
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2"
+                },
+                {
+                  "team": "home",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.17,
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1"
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.94,
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1"
                 }
               ],
               "totals": [
@@ -26859,24 +26859,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1",
-                  "bookmaker": "MELBET"
-                },
-                {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1",
-                  "bookmaker": "MELBET"
-                },
-                {
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
@@ -26892,6 +26874,24 @@
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "home",
+                  "point": 0.5,
+                  "side": "over",
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1",
                   "bookmaker": "MELBET"
                 }
               ],
@@ -27202,9 +27202,9 @@
           "odds": {
             "eventId": "16363673",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.437,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.152,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -27691,9 +27691,9 @@
           "odds": {
             "eventId": "16363671",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.538,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.327,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -28153,9 +28153,9 @@
           "odds": {
             "eventId": "16363672",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.637,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.503,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -28642,9 +28642,9 @@
           "odds": {
             "eventId": "16363670",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.729,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.663,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -29131,9 +29131,9 @@
           "odds": {
             "eventId": "16363668",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.81,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.812,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -29620,9 +29620,9 @@
           "odds": {
             "eventId": "16363666",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.908,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 150.987,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -30082,9 +30082,9 @@
           "odds": {
             "eventId": "16363675",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 113.998,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.152,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -30571,9 +30571,9 @@
           "odds": {
             "eventId": "16363667",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.089,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.313,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -31060,9 +31060,9 @@
           "odds": {
             "eventId": "16363669",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.177,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.468,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -31549,9 +31549,9 @@
           "odds": {
             "eventId": "16363664",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 114.263,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 151.62,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -127596,9 +127596,9 @@
           "odds": {
             "eventId": "16421111",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.878,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 185.871,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -128085,9 +128085,9 @@
           "odds": {
             "eventId": "16421119",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.983,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.063,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -128574,9 +128574,9 @@
           "odds": {
             "eventId": "16421125",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 135.077,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.236,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -129063,9 +129063,9 @@
           "odds": {
             "eventId": "16421116",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 135.157,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.378,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -129525,9 +129525,9 @@
           "odds": {
             "eventId": "16421113",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 135.245,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.539,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -129963,9 +129963,9 @@
           "odds": {
             "eventId": "16421114",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 135.342,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.715,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -130452,9 +130452,9 @@
           "odds": {
             "eventId": "16421117",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 135.419,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.849,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -130941,43 +130941,25 @@
           "odds": {
             "eventId": "16421115",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 135.487,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.963,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
                 "key": "melbet",
                 "title": "MELBET",
                 "doubleChance": {
-                  "1x": 2.28,
-                  "x2": 1.14
+                  "1x": 2.41,
+                  "x2": 1.12
                 },
                 "spreads": [],
                 "teamTotals": [
                   {
-                    "team": "home",
-                    "point": 0.5,
-                    "side": "over",
-                    "price": 1.68,
-                    "market_slug": "total_team_1",
-                    "market_group": "total team",
-                    "market_name": "Total team 1"
-                  },
-                  {
-                    "team": "home",
-                    "point": 1.5,
-                    "side": "over",
-                    "price": 4.75,
-                    "market_slug": "total_team_1",
-                    "market_group": "total team",
-                    "market_name": "Total team 1"
-                  },
-                  {
                     "team": "away",
                     "point": 0.5,
                     "side": "over",
-                    "price": 1.15,
+                    "price": 1.14,
                     "market_slug": "total_team_2",
                     "market_group": "total team",
                     "market_name": "Total team 2"
@@ -130986,10 +130968,28 @@
                     "team": "away",
                     "point": 1.5,
                     "side": "over",
-                    "price": 1.81,
+                    "price": 1.76,
                     "market_slug": "total_team_2",
                     "market_group": "total team",
                     "market_name": "Total team 2"
+                  },
+                  {
+                    "team": "home",
+                    "point": 0.5,
+                    "side": "over",
+                    "price": 1.74,
+                    "market_slug": "total_team_1",
+                    "market_group": "total team",
+                    "market_name": "Total team 1"
+                  },
+                  {
+                    "team": "home",
+                    "point": 1.5,
+                    "side": "over",
+                    "price": 5.21,
+                    "market_slug": "total_team_1",
+                    "market_group": "total team",
+                    "market_name": "Total team 1"
                   }
                 ],
                 "totals": [
@@ -131011,39 +131011,21 @@
                   }
                 ],
                 "btts": {
-                  "yes": 2.01
+                  "yes": 2.08
                 }
               }
             ],
             "best": {
               "doubleChance": {
-                "1x": 2.28,
-                "x2": 1.14
+                "1x": 2.41,
+                "x2": 1.12
               },
               "teamTotals": [
                 {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.68,
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1"
-                },
-                {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 4.75,
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1"
-                },
-                {
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.15,
+                  "price": 1.14,
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2"
@@ -131052,10 +131034,28 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.81,
+                  "price": 1.76,
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2"
+                },
+                {
+                  "team": "home",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.74,
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1"
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 5.21,
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1"
                 }
               ],
               "totals": [
@@ -131077,7 +131077,7 @@
                 }
               ],
               "btts": {
-                "yes": 2.01
+                "yes": 2.08
               }
             },
             "bestBookmakers": {
@@ -131087,24 +131087,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1",
-                  "bookmaker": "MELBET"
-                },
-                {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1",
-                  "bookmaker": "MELBET"
-                },
-                {
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
@@ -131120,6 +131102,24 @@
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "home",
+                  "point": 0.5,
+                  "side": "over",
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1",
                   "bookmaker": "MELBET"
                 }
               ],
@@ -131430,9 +131430,9 @@
           "odds": {
             "eventId": "16421118",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 135.536,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 187.039,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -131919,9 +131919,9 @@
           "odds": {
             "eventId": "16421127",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 133.703,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 185.038,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -132408,9 +132408,9 @@
           "odds": {
             "eventId": "16421120",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 133.802,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 185.215,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -133151,9 +133151,9 @@
           "odds": {
             "eventId": "16421126",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 133.981,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 185.535,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -133613,9 +133613,9 @@
           "odds": {
             "eventId": "16421129",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.058,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 185.667,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -134048,9 +134048,9 @@
           "odds": {
             "eventId": "16462482",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.139,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 185.817,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -134537,9 +134537,9 @@
           "odds": {
             "eventId": "16421123",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.228,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 185.984,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -134975,9 +134975,9 @@
           "odds": {
             "eventId": "16421121",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.308,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.128,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -135464,9 +135464,9 @@
           "odds": {
             "eventId": "16462479",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.374,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.242,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -135953,9 +135953,9 @@
           "odds": {
             "eventId": "16421122",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 134.42,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 186.313,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -226011,9 +226011,9 @@
           "odds": {
             "eventId": "16285092",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.73,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.176,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -226500,9 +226500,9 @@
           "odds": {
             "eventId": "16285089",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.821,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.351,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -226989,9 +226989,9 @@
           "odds": {
             "eventId": "16285095",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.908,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.512,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -227478,9 +227478,9 @@
           "odds": {
             "eventId": "16285096",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.985,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.64,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -227967,9 +227967,9 @@
           "odds": {
             "eventId": "16285091",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 155.068,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.787,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -228456,9 +228456,9 @@
           "odds": {
             "eventId": "16285090",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 155.154,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.939,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -228466,7 +228466,7 @@
                 "title": "MELBET",
                 "doubleChance": {
                   "1x": 1.17,
-                  "x2": 2.13
+                  "x2": 2.11
                 },
                 "spreads": [],
                 "teamTotals": [
@@ -228533,7 +228533,7 @@
             "best": {
               "doubleChance": {
                 "1x": 1.17,
-                "x2": 2.13
+                "x2": 2.11
               },
               "teamTotals": [
                 {
@@ -228945,9 +228945,9 @@
           "odds": {
             "eventId": "16285094",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 155.238,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 222.089,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -229434,9 +229434,9 @@
           "odds": {
             "eventId": "16285098",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 155.321,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 222.236,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -229923,9 +229923,9 @@
           "odds": {
             "eventId": "16285088",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 155.385,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 222.347,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -230412,9 +230412,9 @@
           "odds": {
             "eventId": "16285093",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 155.435,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 222.423,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -230901,9 +230901,9 @@
           "odds": {
             "eventId": "16285108",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 153.6,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 220.416,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -231390,9 +231390,9 @@
           "odds": {
             "eventId": "16285100",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 153.69,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 220.575,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -231852,9 +231852,9 @@
           "odds": {
             "eventId": "16285106",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 153.776,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 220.724,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -232341,9 +232341,9 @@
           "odds": {
             "eventId": "16285101",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 153.844,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 220.838,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -232803,9 +232803,9 @@
           "odds": {
             "eventId": "16285105",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 153.927,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 220.985,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -233292,9 +233292,9 @@
           "odds": {
             "eventId": "16285104",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.006,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.133,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -233754,9 +233754,9 @@
           "odds": {
             "eventId": "16285103",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.08,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.267,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -234216,9 +234216,9 @@
           "odds": {
             "eventId": "16285097",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.142,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.376,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -234705,9 +234705,9 @@
           "odds": {
             "eventId": "16285102",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.19,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.452,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -235194,9 +235194,9 @@
           "odds": {
             "eventId": "16285099",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 154.236,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 221.527,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -323662,9 +323662,9 @@
           "odds": {
             "eventId": "16434097",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.673,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.137,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -323672,24 +323672,15 @@
                 "title": "MELBET",
                 "doubleChance": {
                   "1x": 1.01,
-                  "x2": 7.94
+                  "x2": 7.85
                 },
                 "spreads": [],
                 "teamTotals": [
                   {
-                    "team": "home",
-                    "point": 1.5,
-                    "side": "over",
-                    "price": 1.08,
-                    "market_slug": "total_team_1",
-                    "market_group": "total team",
-                    "market_name": "Total team 1"
-                  },
-                  {
                     "team": "away",
                     "point": 0.5,
                     "side": "over",
-                    "price": 1.77,
+                    "price": 1.73,
                     "market_slug": "total_team_2",
                     "market_group": "total team",
                     "market_name": "Total team 2"
@@ -323698,7 +323689,7 @@
                     "team": "away",
                     "point": 1.5,
                     "side": "over",
-                    "price": 5.33,
+                    "price": 5.09,
                     "market_slug": "total_team_2",
                     "market_group": "total team",
                     "market_name": "Total team 2"
@@ -323708,37 +323699,28 @@
                   {
                     "point": 2.5,
                     "side": "over",
-                    "price": 1.17,
+                    "price": 1.16,
                     "market_slug": "total",
                     "market_group": "total",
                     "market_name": "Total"
                   }
                 ],
                 "btts": {
-                  "yes": 1.8
+                  "yes": 1.76
                 }
               }
             ],
             "best": {
               "doubleChance": {
                 "1x": 1.01,
-                "x2": 7.94
+                "x2": 7.85
               },
               "teamTotals": [
-                {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 1.08,
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1"
-                },
                 {
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.77,
+                  "price": 1.73,
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2"
@@ -323747,7 +323729,7 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 5.33,
+                  "price": 5.09,
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2"
@@ -323757,14 +323739,14 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.17,
+                  "price": 1.16,
                   "market_slug": "total",
                   "market_group": "total",
                   "market_name": "Total"
                 }
               ],
               "btts": {
-                "yes": 1.8
+                "yes": 1.76
               }
             },
             "bestBookmakers": {
@@ -323773,15 +323755,6 @@
                 "x2": "MELBET"
               },
               "teamTotals": [
-                {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1",
-                  "bookmaker": "MELBET"
-                },
                 {
                   "team": "away",
                   "point": 0.5,
@@ -324100,9 +324073,9 @@
           "odds": {
             "eventId": "16434098",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.781,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.335,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -324562,9 +324535,9 @@
           "odds": {
             "eventId": "16434103",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.903,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.562,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -325051,9 +325024,9 @@
           "odds": {
             "eventId": "16434102",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 176.043,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.769,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -325540,9 +325513,9 @@
           "odds": {
             "eventId": "16434106",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 176.163,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.948,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -326029,9 +326002,9 @@
           "odds": {
             "eventId": "16434105",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 176.27,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 257.14,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -326518,9 +326491,9 @@
           "odds": {
             "eventId": "16434109",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 176.368,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 257.317,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -327007,9 +326980,9 @@
           "odds": {
             "eventId": "16434104",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 176.452,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 257.469,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -327496,9 +327469,9 @@
           "odds": {
             "eventId": "16434107",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 176.541,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 257.625,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -327985,9 +327958,9 @@
           "odds": {
             "eventId": "16434118",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 174.71,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 255.63,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -328447,9 +328420,9 @@
           "odds": {
             "eventId": "16434112",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 174.813,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 255.809,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -328858,9 +328831,9 @@
           "odds": {
             "eventId": "16434111",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 174.905,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 255.974,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -328872,15 +328845,6 @@
                 },
                 "spreads": [],
                 "teamTotals": [
-                  {
-                    "team": "home",
-                    "point": 1.5,
-                    "side": "over",
-                    "price": 1.67,
-                    "market_slug": "total_team_1",
-                    "market_group": "total team",
-                    "market_name": "Total team 1"
-                  },
                   {
                     "team": "away",
                     "point": 0.5,
@@ -328898,6 +328862,15 @@
                     "market_slug": "total_team_2",
                     "market_group": "total team",
                     "market_name": "Total team 2"
+                  },
+                  {
+                    "team": "home",
+                    "point": 1.5,
+                    "side": "over",
+                    "price": 1.67,
+                    "market_slug": "total_team_1",
+                    "market_group": "total team",
+                    "market_name": "Total team 1"
                   }
                 ],
                 "totals": [
@@ -328930,15 +328903,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 1.67,
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1"
-                },
-                {
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
@@ -328955,6 +328919,15 @@
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2"
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.67,
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1"
                 }
               ],
               "totals": [
@@ -328986,15 +328959,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "market_slug": "total_team_1",
-                  "market_group": "total team",
-                  "market_name": "Total team 1",
-                  "bookmaker": "MELBET"
-                },
-                {
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
@@ -329010,6 +328974,15 @@
                   "market_slug": "total_team_2",
                   "market_group": "total team",
                   "market_name": "Total team 2",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "market_slug": "total_team_1",
+                  "market_group": "total team",
+                  "market_name": "Total team 1",
                   "bookmaker": "MELBET"
                 }
               ],
@@ -329320,9 +329293,9 @@
           "odds": {
             "eventId": "16434114",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 174.997,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.14,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -329809,9 +329782,9 @@
           "odds": {
             "eventId": "16434113",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.092,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.305,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -330271,9 +330244,9 @@
           "odds": {
             "eventId": "16434161",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.187,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.47,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -330733,9 +330706,9 @@
           "odds": {
             "eventId": "16434110",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.271,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.617,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -331222,9 +331195,9 @@
           "odds": {
             "eventId": "16434115",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.351,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.762,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -331660,9 +331633,9 @@
           "odds": {
             "eventId": "16434108",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 175.433,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 256.908,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -409756,9 +409729,9 @@
           "odds": {
             "eventId": "16311019",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.362,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.542,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -410245,9 +410218,9 @@
           "odds": {
             "eventId": "16311016",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.459,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.733,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -410734,9 +410707,9 @@
           "odds": {
             "eventId": "16311015",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.528,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.862,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -410748,24 +410721,6 @@
                 },
                 "spreads": [],
                 "teamTotals": [
-                  {
-                    "team": "away",
-                    "point": 0.5,
-                    "side": "over",
-                    "price": 1.55,
-                    "market_slug": "total_team_2",
-                    "market_group": "total team",
-                    "market_name": "Total team 2"
-                  },
-                  {
-                    "team": "away",
-                    "point": 1.5,
-                    "side": "over",
-                    "price": 3.92,
-                    "market_slug": "total_team_2",
-                    "market_group": "total team",
-                    "market_name": "Total team 2"
-                  },
                   {
                     "team": "home",
                     "point": 0.5,
@@ -410783,6 +410738,24 @@
                     "market_slug": "total_team_1",
                     "market_group": "total team",
                     "market_name": "Total team 1"
+                  },
+                  {
+                    "team": "away",
+                    "point": 0.5,
+                    "side": "over",
+                    "price": 1.55,
+                    "market_slug": "total_team_2",
+                    "market_group": "total team",
+                    "market_name": "Total team 2"
+                  },
+                  {
+                    "team": "away",
+                    "point": 1.5,
+                    "side": "over",
+                    "price": 3.92,
+                    "market_slug": "total_team_2",
+                    "market_group": "total team",
+                    "market_name": "Total team 2"
                   }
                 ],
                 "totals": [
@@ -410815,24 +410788,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "away",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.55,
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2"
-                },
-                {
-                  "team": "away",
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 3.92,
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2"
-                },
-                {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
@@ -410849,6 +410804,24 @@
                   "market_slug": "total_team_1",
                   "market_group": "total team",
                   "market_name": "Total team 1"
+                },
+                {
+                  "team": "away",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.55,
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2"
+                },
+                {
+                  "team": "away",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 3.92,
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2"
                 }
               ],
               "totals": [
@@ -410880,24 +410853,6 @@
               },
               "teamTotals": [
                 {
-                  "team": "away",
-                  "point": 0.5,
-                  "side": "over",
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2",
-                  "bookmaker": "MELBET"
-                },
-                {
-                  "team": "away",
-                  "point": 1.5,
-                  "side": "over",
-                  "market_slug": "total_team_2",
-                  "market_group": "total team",
-                  "market_name": "Total team 2",
-                  "bookmaker": "MELBET"
-                },
-                {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
@@ -410913,6 +410868,24 @@
                   "market_slug": "total_team_1",
                   "market_group": "total team",
                   "market_name": "Total team 1",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "away",
+                  "point": 0.5,
+                  "side": "over",
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2",
+                  "bookmaker": "MELBET"
+                },
+                {
+                  "team": "away",
+                  "point": 1.5,
+                  "side": "over",
+                  "market_slug": "total_team_2",
+                  "market_group": "total team",
+                  "market_name": "Total team 2",
                   "bookmaker": "MELBET"
                 }
               ],
@@ -411223,9 +411196,9 @@
           "odds": {
             "eventId": "16311011",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.593,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.986,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -411712,9 +411685,9 @@
           "odds": {
             "eventId": "16311018",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.665,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 286.135,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -412201,9 +412174,9 @@
           "odds": {
             "eventId": "16311012",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.736,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 286.276,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -412690,9 +412663,9 @@
           "odds": {
             "eventId": "16311017",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.811,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 286.427,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -413179,9 +413152,9 @@
           "odds": {
             "eventId": "16311013",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.887,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 286.577,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -413668,9 +413641,9 @@
           "odds": {
             "eventId": "16311014",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:22.469000+00:00",
-            "bookmakerUpdateAgeSeconds": 192.944,
+            "updatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:25.785000+00:00",
+            "bookmakerUpdateAgeSeconds": 286.687,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -414157,9 +414130,9 @@
           "odds": {
             "eventId": "16311022",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.097,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 284.677,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -414646,9 +414619,9 @@
           "odds": {
             "eventId": "16311020",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.171,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 284.817,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -415108,9 +415081,9 @@
           "odds": {
             "eventId": "16311024",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.236,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 284.932,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -415597,9 +415570,9 @@
           "odds": {
             "eventId": "16311026",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.297,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.05,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -416059,9 +416032,9 @@
           "odds": {
             "eventId": "16311023",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.359,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.17,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -416548,9 +416521,9 @@
           "odds": {
             "eventId": "16311027",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.424,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.294,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -417010,9 +416983,9 @@
           "odds": {
             "eventId": "16311021",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.502,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.453,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -417499,9 +417472,9 @@
           "odds": {
             "eventId": "16311028",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.574,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.595,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -417988,9 +417961,9 @@
           "odds": {
             "eventId": "16311025",
             "bookmaker": "MELBET",
-            "updatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdatedAt": "2026-11-18T17:32:24.359000+00:00",
-            "bookmakerUpdateAgeSeconds": 191.633,
+            "updatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdatedAt": "2026-11-18T18:22:27.876000+00:00",
+            "bookmakerUpdateAgeSeconds": 285.708,
             "freshnessStatus": "fresh",
             "bookmakers": [
               {
@@ -556117,7 +556090,7 @@
       "resultUpdatedAt": "2026-11-09T07:46:42.296812+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-18T17:35:47.862751+00:00",
+  "oddsUpdatedAt": "2026-11-18T18:27:36.649531+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsErrors": [
