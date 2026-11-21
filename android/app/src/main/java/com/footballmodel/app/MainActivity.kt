@@ -111,30 +111,7 @@ class MainActivity : Activity() {
             val isLeHavre = away in setOf("le havre", "havre ac", "le havre ac", "гавр")
             if (date != "2026-11-20" || !isTroyes || !isLeHavre) continue
             bet.put("status", "LOST")
-                .put("stake", 25.0)
                 .put("score", "3:1")
-                .put("matchStatus", "FINISHED")
-            changed = true
-        }
-        if (changed) saveBets()
-    }
-
-    // One-time correction for the confirmed Bayern–Cologne away-team total over 0.5.
-    // Cologne scored once in the 1:1 draw; only the matching pending paper bet is touched.
-    private fun applyBayernCologneCorrection() {
-        var changed = false
-        for (i in 0 until bets.length()) {
-            val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("status") != "PENDING" || bet.optString("marketKey") != "awayOver05") continue
-            val date = bet.optString("date").take(10)
-            val home = bet.optString("home").trim().lowercase(Locale.ROOT)
-            val away = bet.optString("away").trim().lowercase(Locale.ROOT)
-            val isBayern = home in setOf("fc bayern münchen", "bayern munich", "fc bayern", "бавария")
-            val isCologne = away in setOf("1. fc köln", "fc köln", "1. fc cologne", "fc cologne", "cologne", "кёльн", "кельн")
-            if (date != "2026-11-20" || !isBayern || !isCologne) continue
-            bet.put("status", "WON")
-                .put("stake", 25.0)
-                .put("score", "1:1")
                 .put("matchStatus", "FINISHED")
             changed = true
         }
@@ -383,7 +360,6 @@ class MainActivity : Activity() {
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         applyTroyesLeHavreCorrection()
-        applyBayernCologneCorrection()
         scheduleAutoPaperWorker()
         // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
         // блокировать первый показ интерфейса на главном потоке.
