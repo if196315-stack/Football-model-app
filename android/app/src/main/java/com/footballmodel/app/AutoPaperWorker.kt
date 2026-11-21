@@ -317,27 +317,14 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     }
 
     private fun settle(bet: JSONObject, match: JSONObject): Boolean {
-        if (!isFinishedMatch(match) || match.isNull("homeScore") || match.isNull("awayScore")) return false
-        val h = match.optInt("homeScore"); val a = match.optInt("awayScore")
-        val key = bet.optString("marketKey")
-        val line = key.takeLast(2).toDoubleOrNull()?.div(10.0)
-        val won: Boolean? = when (key) {
-            "1x" -> h >= a
-            "x2" -> a >= h
-            "bttsYes" -> h > 0 && a > 0
-            "bttsNo" -> h == 0 || a == 0
-            "homeOver15" -> h >= 2
-            "awayOver15" -> a >= 2
-            else -> when {
-                key.startsWith("over") && line != null -> when { h + a > line -> true; h + a < line -> false; else -> null }
-                key.startsWith("homeOver") && line != null -> when { h > line -> true; h < line -> false; else -> null }
-                key.startsWith("awayOver") && line != null -> when { a > line -> true; a < line -> false; else -> null }
-                else -> null
-            }
-        }
-        bet.put("status", when (won) { true -> "WON"; false -> "LOST"; null -> "PUSH" })
-        bet.put("score", "$h:$a")
-        bet.put("matchStatus", "FINISHED")
+        if (bet.optString("status") != "PENDING" || !isFinishedMatch(match) ||
+            match.isNull("homeScore") || match.isNull("awayScore")) return false
+        val h = match.optInt("homeScore")
+        val a = match.optInt("awayScore")
+        val result = BetSettlement.result(bet.optString("marketKey"), h, a) ?: return false
+        bet.put("status", result)
+            .put("score", "$h:$a")
+            .put("matchStatus", "FINISHED")
         return true
     }
 
