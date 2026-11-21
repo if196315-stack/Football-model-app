@@ -1610,7 +1610,7 @@ class MainActivity : Activity() {
                 else null
             }
         }
-        b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a")
+        b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a"); b.put("matchStatus","FINISHED")
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
     private fun showEditBetOddsDialog(b: JSONObject) {
