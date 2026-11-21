@@ -1560,6 +1560,10 @@ class MainActivity : Activity() {
                 val leg = JSONObject().put("status", "PENDING").put("marketKey", pick.optString("marketKey"))
                 settleBet(leg, match)
                 val result = leg.optString("status")
+                if (result !in listOf("WON", "LOST", "PUSH")) {
+                    allSettled = false
+                    continue
+                }
                 scores.add(scoreLabel + " · ФИНАЛ")
                 if (result == "LOST") lost = true
                 if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
@@ -1624,40 +1628,16 @@ class MainActivity : Activity() {
         return nameAndDateFallback ?: if (namesOnlyCount == 1) namesOnlyFallback else null
     }
 
-    private fun settleBet(b: JSONObject,m: JSONObject) {
-        if(b.optString("status")!="PENDING" || !isFinishedMatch(m) || m.isNull("homeScore") || m.isNull("awayScore")) return
-        val h=m.optInt("homeScore"); val a=m.optInt("awayScore")
-        val won: Boolean?=when(b.optString("marketKey")) {
-            "1x"->h>=a; "x2"->a>=h; "12"->h!=a
-            "1"->h>a; "x"->h==a; "2"->a>h; "over25"->h+a>=3; "under25"->h+a<=2
-            "bttsYes"->h>0&&a>0; "bttsNo"->h==0||a==0; "homeOver15"->h>=2; "awayOver15"->a>=2
-            else -> {
-                val marketKey = b.optString("marketKey")
-                val line = marketKey.takeLast(2).toDoubleOrNull()?.div(10.0)
-                val wonTotal = when {
-                    marketKey.startsWith("over") && line != null -> (h + a).toDouble() > line
-                    marketKey.startsWith("under") && line != null -> (h + a).toDouble() < line
-                    marketKey.startsWith("homeOver") && line != null -> h.toDouble() > line
-                    marketKey.startsWith("homeUnder") && line != null -> h.toDouble() < line
-                    marketKey.startsWith("awayOver") && line != null -> a.toDouble() > line
-                    marketKey.startsWith("awayUnder") && line != null -> a.toDouble() < line
-                    else -> false
-                }
-                if (marketKey.startsWith("spread:")) {
-                val parts = b.optString("marketKey").split(":")
-                val handicap = parts.getOrNull(2)?.toDoubleOrNull()
-                    when(parts.getOrNull(1)) {
-                        "home" -> handicap?.let { when { h + it > a -> true; h + it < a -> false; else -> null } }
-                        "away" -> handicap?.let { when { a + it > h -> true; a + it < h -> false; else -> null } }
-                        else -> null
-                    }
-                } else if (marketKey.startsWith("over") || marketKey.startsWith("under") ||
-                    marketKey.startsWith("homeOver") || marketKey.startsWith("homeUnder") ||
-                    marketKey.startsWith("awayOver") || marketKey.startsWith("awayUnder")) wonTotal
-                else null
-            }
-        }
-        b.put("status",when(won){true->"WON";false->"LOST";null->"PUSH"}); b.put("score","$h:$a"); b.put("matchStatus","FINISHED")
+    private fun settleBet(b: JSONObject, m: JSONObject): Boolean {
+        if (b.optString("status") != "PENDING" || !isFinishedMatch(m) ||
+            m.isNull("homeScore") || m.isNull("awayScore")) return false
+        val h = m.optInt("homeScore")
+        val a = m.optInt("awayScore")
+        val result = BetSettlement.result(b.optString("marketKey"), h, a) ?: return false
+        b.put("status", result)
+            .put("score", "$h:$a")
+            .put("matchStatus", "FINISHED")
+        return true
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
     private fun showEditBetOddsDialog(b: JSONObject) {
