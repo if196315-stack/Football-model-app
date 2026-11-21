@@ -278,21 +278,46 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         } catch (_: Exception) { null }
     }
 
+    private fun isFinishedMatch(match: JSONObject): Boolean {
+        return listOf(match.optString("status"), match.optString("statusShort"), match.optString("statusLong"))
+            .map { it.trim().uppercase(Locale.ROOT) }
+            .any { it in setOf("FINISHED", "FT", "AET", "PEN", "AFTER EXTRA TIME", "AFTER PENALTIES", "MATCH FINISHED") }
+    }
+
+    private fun normalizedTeamName(value: String): String =
+        value.trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
+
     private fun findMatch(feed: JSONObject, bet: JSONObject): JSONObject? {
         val comps = feed.optJSONArray("competitions") ?: return null
+        val targetId = bet.optString("matchId").trim()
+        val targetHome = normalizedTeamName(bet.optString("home"))
+        val targetAway = normalizedTeamName(bet.optString("away"))
+        val targetDate = bet.optString("date").take(10)
+        var nameAndDateFallback: JSONObject? = null
+        var namesOnlyFallback: JSONObject? = null
+        var namesOnlyCount = 0
         for (i in 0 until comps.length()) {
             val matches = comps.optJSONObject(i)?.optJSONArray("matches") ?: continue
             for (j in 0 until matches.length()) {
                 val match = matches.optJSONObject(j) ?: continue
-                val id = match.optString("id").ifBlank { match.optString("utcDate") + match.optString("home") + match.optString("away") }
-                if (id == bet.optString("matchId")) return match
+                val id = match.optString("id").trim().ifBlank {
+                    match.optString("utcDate") + match.optString("home") + match.optString("away")
+                }
+                if (targetId.isNotBlank() && id == targetId) return match
+                if (targetHome.isBlank() || targetAway.isBlank()) continue
+                if (normalizedTeamName(match.optString("home")) != targetHome ||
+                    normalizedTeamName(match.optString("away")) != targetAway) continue
+                namesOnlyFallback = match
+                namesOnlyCount++
+                val matchDate = match.optString("utcDate").take(10).ifBlank { match.optString("dateEvent").take(10) }
+                if (targetDate.isNotBlank() && matchDate == targetDate) nameAndDateFallback = match
             }
         }
-        return null
+        return nameAndDateFallback ?: if (namesOnlyCount == 1) namesOnlyFallback else null
     }
 
     private fun settle(bet: JSONObject, match: JSONObject): Boolean {
-        if (match.optString("status") != "FINISHED" || match.isNull("homeScore") || match.isNull("awayScore")) return false
+        if (!isFinishedMatch(match) || match.isNull("homeScore") || match.isNull("awayScore")) return false
         val h = match.optInt("homeScore"); val a = match.optInt("awayScore")
         val key = bet.optString("marketKey")
         val line = key.takeLast(2).toDoubleOrNull()?.div(10.0)
