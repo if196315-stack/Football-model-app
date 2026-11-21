@@ -96,6 +96,28 @@ class MainActivity : Activity() {
         }
     }
 
+
+    // One-time, narrowly scoped correction for the confirmed Troyes–Le Havre X2 paper bet.
+    // The 3:1 home win makes X2 a loss; only a matching pending fixture is touched.
+    private fun applyTroyesLeHavreCorrection() {
+        var changed = false
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("status") != "PENDING" || bet.optString("marketKey") != "x2") continue
+            val date = bet.optString("date").take(10)
+            val home = bet.optString("home").trim().lowercase(Locale.ROOT)
+            val away = bet.optString("away").trim().lowercase(Locale.ROOT)
+            val isTroyes = home in setOf("troyes", "estac troyes", "труа")
+            val isLeHavre = away in setOf("le havre", "havre ac", "le havre ac", "гавр")
+            if (date != "2026-11-20" || !isTroyes || !isLeHavre) continue
+            bet.put("status", "LOST")
+                .put("score", "3:1")
+                .put("matchStatus", "FINISHED")
+            changed = true
+        }
+        if (changed) saveBets()
+    }
+
     private fun scheduleAutoPaperWorker() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -337,6 +359,7 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        applyTroyesLeHavreCorrection()
         scheduleAutoPaperWorker()
         // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
         // блокировать первый показ интерфейса на главном потоке.
