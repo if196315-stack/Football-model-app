@@ -1,7 +1,6 @@
 package com.footballmodel.app
 
 import android.app.Activity
-import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.text.InputType
 import android.text.SpannableString
@@ -426,7 +425,7 @@ class MainActivity : Activity() {
             SectionNotifications.markRead(this)
             tabViewCache.clear()
             renderedKey = null
-            if (data != null) render() else loadData()
+            if (data != null) animateContentRefresh { render() } else loadData()
         } else if (requestedTab == "desk") {
             currentTab = "desk"
             selectedTopTab = "ОЖИДАЮТ"
@@ -444,7 +443,7 @@ class MainActivity : Activity() {
             invalidateStatsBetCache()
             tabViewCache.clear()
             renderedKey = null
-            if (data != null) render()
+            if (data != null) animateContentRefresh { render() }
         }
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
         liveRefreshHandler.postDelayed(liveRefreshTask, 60 * 1000L)
