@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: football-domestic-data-write
+  group: football-feed-write
   cancel-in-progress: false
 
 permissions:
