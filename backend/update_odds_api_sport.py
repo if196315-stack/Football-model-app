@@ -299,7 +299,7 @@ def parse_odds(m):
             board_age_seconds = (datetime.now(timezone.utc) - datetime.fromtimestamp(int(raw_updated) / 1000, tz=timezone.utc)).total_seconds()
         except (TypeError, ValueError, OverflowError, OSError):
             board_updated_at = None
-    freshness = "fresh" if board_age_seconds is not None and 0 <= board_age_seconds <= 300 else (
+    freshness = "fresh" if board_age_seconds is not None and -300 <= board_age_seconds <= 12 * 60 * 60 else (
         "stale" if board_age_seconds is not None else "unknown"
     )
     return {"eventId":str(m.get("id") or ""),"bookmaker":"MELBET",
