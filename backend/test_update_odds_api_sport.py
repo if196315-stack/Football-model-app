@@ -43,6 +43,22 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertLessEqual(quote["bookmakerUpdateAgeSeconds"], 300)
         self.assertIsNotNone(quote["bookmakerUpdatedAt"])
 
+    def test_quote_freshness_matches_android_twelve_hour_eligibility(self):
+        import time
+        now_ms = int(time.time() * 1000)
+        source = {"id": 91, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": now_ms - 10 * 60 * 1000},
+            "markets": {"both_teams_to_score": {"status": "open", "stage": "prematch",
+                "stakes": {"yes": {"factor": 1.8}}}}
+        }}}
+        quote = parse_odds(source)
+        self.assertEqual(quote["freshnessStatus"], "fresh")
+        self.assertGreater(quote["bookmakerUpdateAgeSeconds"], 300)
+
+        source["oddsBk"]["melbet"]["updatedAtByStage"]["prematch"] = now_ms - 13 * 60 * 60 * 1000
+        old_quote = parse_odds(source)
+        self.assertEqual(old_quote["freshnessStatus"], "stale")
+
     def test_parses_btts_match_totals_and_both_team_total_sides_from_melbet_only(self):
         source = {"id": 88, "oddsBk": {
             "melbet": {"markets": {
