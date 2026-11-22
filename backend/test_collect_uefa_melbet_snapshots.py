@@ -320,6 +320,22 @@ class UefaMelBetSnapshotTests(unittest.TestCase):
         self.assertTrue(all(row["pairedXg"] is True for row in history["matches"]))
 
 
+    def test_newer_inactive_melbet_board_wins_over_richer_older_duplicate(self):
+        older = {"id": 9100, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "isBettingActiveByStage": {"prematch": True},
+            "markets": {"double_chance": {"stakes": {"1x": {"factor": 1.8}, "x2": {"factor": 2.0}}}}
+        }}}
+        newer = {"id": 9100, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794315480000},
+            "isBettingActiveByStage": {"prematch": False},
+            "markets": {}
+        }}}
+        merged = merge_duplicate_fixture_rows(older, newer)
+        board = merged["oddsBk"]["melbet"]
+        self.assertFalse(board["isBettingActiveByStage"]["prematch"])
+        self.assertEqual(board["markets"], {})
+
 
 if __name__ == "__main__":
     unittest.main()
