@@ -8,6 +8,7 @@ on:
       - "backend/update_data_pitchapi.py"
       - "backend/predict_uefa_markets.py"
       - "backend/update_data.py"
+      - "backend/apply_melbet_snapshots.py"
       - ".github/workflows/update-data.yml"
   # Refresh domestic fixtures/results every six hours without xG backfill requests.
   schedule:
@@ -60,10 +61,8 @@ jobs:
           PITCHAPI_MAX_SHOT_REQUESTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_shot_requests || '5000' }}
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
-      - name: Refresh bookmaker odds via API-Sport
-        env:
-          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
-        run: python backend/update_odds_api_sport.py
+      - name: Apply latest fresh active MelBet snapshots
+        run: python backend/apply_melbet_snapshots.py
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
