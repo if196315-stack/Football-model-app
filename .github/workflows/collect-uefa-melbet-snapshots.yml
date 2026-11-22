@@ -8,6 +8,7 @@ on:
       - "backend/collect_uefa_melbet_snapshots.py"
       - "backend/refresh_pitchapi_uefa_fixtures.py"
       - "backend/build_uefa_app_feed.py"
+      - "backend/apply_melbet_snapshots.py"
       - "backend/predict_uefa_markets.py"
       - "backend/update_odds_api_sport.py"
       - ".github/workflows/collect-uefa-melbet-snapshots.yml"
@@ -61,6 +62,8 @@ jobs:
           key: pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-
+      - name: Require domestic PitchAPI history cache
+        run: test -s backend/cache/pitchapi_history.json
       - name: Install dependencies
         run: python -m pip install requests
       - name: Backfill all available UEFA fixture seasons
