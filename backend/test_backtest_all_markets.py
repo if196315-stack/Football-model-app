@@ -35,7 +35,8 @@ class AllMarketBacktestTests(unittest.TestCase):
             production = _market_probabilities(home_lambda, away_lambda)
             for market, extract in market_cases:
                 with self.subTest(home_lambda=home_lambda, away_lambda=away_lambda, market=market):
-                    expected = calibrate_binary_probability(research[market]) if market == "DC_X2" else research[market]\n                    self.assertAlmostEqual(expected, extract(production), places=12)
+                    expected = calibrate_binary_probability(research[market]) if market == "DC_X2" else research[market]
+                    self.assertAlmostEqual(expected, extract(production), places=12)
 
     def test_outcomes_keep_draw_and_push_semantics(self):
         draw = market_outcomes(1, 1)
