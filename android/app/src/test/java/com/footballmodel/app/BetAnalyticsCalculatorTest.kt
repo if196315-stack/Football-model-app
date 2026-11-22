@@ -15,7 +15,26 @@ class BetAnalyticsCalculatorTest {
         topSignal: Boolean = false
     ) = AnalyticsBet(id, day, source, status, stake, odds, "Over 2.5", "League A", coupon, topSignal)
 
-    @Test fun topStatsIncludeOnlyConfirmedTopSingles() {
+    @Test fun overallAndMarketStatsIncludeManualAndAiManualSinglesOnce() {
+        val report = BetAnalyticsCalculator.calculate(listOf(
+            AnalyticsBet("manual-market", 1_000L, "MANUAL", "WON", 20.0, 2.0,
+                "1X", "League A", false, marketKey = "1x"),
+            AnalyticsBet("ai-market", 1_000L, "AI_MANUAL", "LOST", 10.0, 3.0,
+                "1X", "League A", false, marketKey = "1x"),
+            AnalyticsBet("paper-auto", 1_000L, "AI_AUTO", "WON", 100.0, 5.0,
+                "1X", "League A", false, marketKey = "1x")
+        ), 0L, 10_000L)
+        assertEquals(2, report.overall.settled)
+        assertEquals(30.0, report.overall.turnover, 0.0001)
+        assertEquals(10.0, report.overall.profit, 0.0001)
+        assertEquals(8, report.byMarket.size)
+        val oneX = report.byMarket.first { it.label == "1X" }
+        assertEquals(2, oneX.count)
+        assertEquals(10.0, oneX.profit, 0.0001)
+        assertEquals(2.5, oneX.averageOdds, 0.0001)
+    }
+
+    @Test fun overallStatsIncludeAllManualAndAiManualSingles() {
         val rows = listOf(
             bet("legacy-top", source = "MANUAL", topSignal = true, status = "WON"),
             bet("new-top", source = "AI_MANUAL", status = "LOST"),
@@ -23,9 +42,9 @@ class BetAnalyticsCalculatorTest {
             bet("coupon", source = "MANUAL", status = "WON", stake = 5.0, odds = 3.0, coupon = true)
         )
         val report = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L)
-        assertEquals(2, report.overall.settled)
-        assertEquals(0.0, report.overall.profit, 0.0001)
-        assertEquals(20.0, report.overall.turnover, 0.0001)
+        assertEquals(3, report.overall.settled)
+        assertEquals(10.0, report.overall.profit, 0.0001)
+        assertEquals(30.0, report.overall.turnover, 0.0001)
     }
 
     @Test fun pendingTopBetDoesNotAffectProfitTurnoverOrWinRate() {

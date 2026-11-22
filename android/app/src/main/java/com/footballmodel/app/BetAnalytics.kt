@@ -86,24 +86,35 @@ internal object BetAnalyticsCalculator {
             it.stake.isFinite() && it.stake > 0.0 &&
             it.odds.isFinite() && it.odds > 1.0 }
         val invalid = scoped.size - valid.size
-        // Overall performance follows the current TOP-signal rule; coupons remain
-        // visible in their own section and never leak into the top-single market table.
-        val topRecords = valid.filter { isTopRecord(it) }
+        // The overall report combines all real single bets (manual and AI-assisted).
+        // AI_AUTO rows are paper observations and are excluded above; coupons stay separate.
         val singlesRecords = valid.filterNot { it.isCoupon }
         val couponRecords = valid.filter { it.isCoupon }
         val manualRecords = singlesRecords.filter { !it.source.equals("AI_MANUAL", true) }
         val aiRecords = singlesRecords.filter { it.source.equals("AI_MANUAL", true) }
-        val overall = summarize(topRecords)
-        val workingMarketRecords = topRecords.filterNot { it.isCoupon }.filter {
+        val overall = summarize(singlesRecords)
+        val workingMarketRecords = singlesRecords.filter {
             it.status != "PENDING" && isWorkingMarket(it.marketKey)
         }
-        val market = breakdown(workingMarketRecords) {
-            it.market.ifBlank { it.marketKeyFallback() }
+        val marketLabels = linkedMapOf(
+            "1x" to "1X",
+            "x2" to "X2",
+            "bttsYes" to "ОЗ — да",
+            "over25" to "ТБ 2,5",
+            "homeOver05" to "ИТБ хозяев 0,5",
+            "homeOver15" to "ИТБ хозяев 1,5",
+            "awayOver05" to "ИТБ гостей 0,5",
+            "awayOver15" to "ИТБ гостей 1,5"
+        )
+        val market = marketLabels.map { (key, label) ->
+            val result = summarize(workingMarketRecords.filter { it.marketKey == key })
+            AnalyticsBreakdown(label, result.settled, result.wins, result.losses,
+                result.profit, result.turnover, result.averageOdds)
         }
-        val league = breakdown(topRecords.filter { it.status != "PENDING" }) {
+        val league = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
             it.league.ifBlank { "Не указан" }
         }
-        val odds = breakdown(topRecords.filter { it.status != "PENDING" }) {
+        val odds = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
             when {
                 it.odds < 1.50 -> "<1.50"
                 it.odds < 2.00 -> "1.50–1.99"
@@ -112,16 +123,16 @@ internal object BetAnalyticsCalculator {
                 else -> "5.00+"
             }
         }.sortedBy { oddsOrder(it.label) }
-        val weekdays = breakdown(topRecords.filter { it.status != "PENDING" }) {
+        val weekdays = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
             val day = Calendar.getInstance().apply { timeInMillis = it.dayMillis }
                 .get(Calendar.DAY_OF_WEEK)
             listOf("Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб")[day - 1]
         }.sortedBy { listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс").indexOf(it.label) }
-        val streaks = streaks(topRecords)
+        val streaks = streaks(singlesRecords)
         val drawdown = drawdown(overall.points)
         return BetAnalyticsReport(
             overall = overall,
-            singles = summarize(singlesRecords),
+            singles = overall,
             coupons = summarize(couponRecords),
             manual = summarize(manualRecords),
             ai = summarize(aiRecords),
@@ -146,11 +157,6 @@ internal object BetAnalyticsCalculator {
         "MANUAL" -> !bet.source.equals("AI_MANUAL", true)
         else -> true
     }
-
-    private fun isTopRecord(bet: AnalyticsBet): Boolean =
-        !bet.isCoupon && (
-            bet.source.equals("AI_MANUAL", true) || bet.isTopSignal
-        )
 
     private fun summarize(records: List<AnalyticsBet>): AnalyticsSlice {
         var wins = 0; var losses = 0; var pushes = 0; var pending = 0
