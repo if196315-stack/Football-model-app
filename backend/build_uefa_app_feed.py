@@ -26,7 +26,7 @@ LEAGUES = {
     "UEL": "Лига Европы УЕФА",
     "UECL": "Лига конференций УЕФА",
 }
-MAX_QUOTE_AGE_SECONDS = 300
+MAX_QUOTE_AGE_SECONDS = 12 * 60 * 60
 
 
 def read_jsonl(path: str | Path) -> list[dict]:
@@ -60,7 +60,7 @@ def _valid_fresh_snapshot(rows: list[dict], now: datetime) -> list[dict]:
                 or source_time is None):
             continue
         current_age = (now - source_time).total_seconds()
-        if 0 <= current_age <= MAX_QUOTE_AGE_SECONDS:
+        if -300 <= current_age <= MAX_QUOTE_AGE_SECONDS:
             fresh.append(row)
     return fresh
 
