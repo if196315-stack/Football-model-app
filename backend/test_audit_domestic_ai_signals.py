@@ -57,7 +57,7 @@ class AndroidParityTests(unittest.TestCase):
         self.assertIsNone(result)
         self.assertEqual(reason, "edge_below_5pp")
 
-    def test_exact_14_supported_market_prices(self):
+    def test_exact_eight_active_market_prices(self):
         match = melbet_match({
             "doubleChance": {"1x": 1.7, "x2": 1.8},
             "btts": {"yes": 1.9, "no": 2.0},
@@ -67,14 +67,20 @@ class AndroidParityTests(unittest.TestCase):
                 for team in ("home", "away") for p in (.5, 1.5, 2.5, 3.5)
             ],
         })
-        sides = ["1X", "X2", "ОЗ ДА", "ТБ 1.5", "ТБ 2.5", "ТБ 3.5"] + [
-            f"ИТБ {p} · {team}" for team in ("Alpha", "Beta") for p in (.5, 1.5, 2.5, 3.5)
+        sides = ["1X", "X2", "ОЗ ДА", "ТБ 2.5"] + [
+            f"ИТБ {p} · {team}" for team in ("Alpha", "Beta") for p in (.5, 1.5)
         ]
         for side in sides:
             with self.subTest(side=side):
                 expected = {"1X": 1.7, "X2": 1.8}.get(side, 1.9)
                 self.assertEqual(odds_for({"side": side}, match), expected)
 
+    def test_legacy_markets_are_not_eligible_active_signals(self):
+        from audit_domestic_ai_signals import display_label
+        match = {"home": "Alpha", "away": "Beta"}
+        for side in ("ТБ 1.5", "ТБ 3.5", "ИТБ 2.5 · Alpha", "ИТБ 3.5 · Beta"):
+            with self.subTest(side=side):
+                self.assertIsNone(display_label({"side": side}, match))
     def test_rejects_betboom_and_unknown_or_mismatched_board(self):
         best = {"doubleChance": {"1x": 2.0}}
         for odds in (

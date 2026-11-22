@@ -22,7 +22,7 @@ DATA = ROOT / "docs" / "data.json"
 SNAPSHOTS = ROOT / "artifacts" / "all-eight-competitions-melbet-snapshots.jsonl"
 DOMESTIC_CODES = {"PL": "ENG", "PD": "ESP", "SA": "ITA", "BL1": "GER", "FL1": "FRA"}
 PROBABILITY_FIELDS = (
-    "1x", "x2", "over15", "over25", "homeOver05",
+    "1x", "x2", "over25", "homeOver05",
     "homeOver15", "awayOver05", "awayOver15", "bttsYes",
 )
 
@@ -61,7 +61,7 @@ def has_matching_strategy_line(match: dict, odds: dict) -> bool:
 
     for row in best.get("totals") or []:
         point = row.get("point")
-        field = {1.5: "over15", 2.5: "over25"}.get(point)
+        field = {2.5: "over25"}.get(point)
         if (row.get("side") == "over" and field
                 and _valid_probability(prediction, field)
                 and isinstance(row.get("price"), (int, float)) and row["price"] > 1.0):

@@ -60,6 +60,19 @@ class ApplyMelBetSnapshotsTests(unittest.TestCase):
             "noFreshActiveMelBet": 2, "noMatchingStrategyLine": 1,
         })
 
+    def test_over15_is_not_an_active_strategy_market(self):
+        data = {"competitions": [{"code": "PL", "matches": [
+            {"id": "only-over15", "status": "SCHEDULED",
+             "prediction": {"x2": 0.61, "over15": 0.9}},
+        ]}]}
+        rows = [{
+            **self.snapshot("only-over15", market="match_total_over", outcome="over"),
+            "point": 1.5, "side": "over",
+        }]
+        result = apply_snapshots(data, rows, self.now)
+        self.assertEqual(result["competitions"][0]["matches"], [])
+        self.assertEqual(result["oddsCoverage"]["byLeague"]["PL"]["noMatchingStrategyLine"], 1)
+
     def test_does_not_mix_snapshots_from_another_league_or_namespace(self):
         data = {"competitions": [{"code": "PL", "matches": [
             {"id": "same-id", "status": "TIMED", "prediction": self.prediction()}

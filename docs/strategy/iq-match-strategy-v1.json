@@ -41,7 +41,6 @@
   "maxQuoteAgeBeforeKickoffHours": 12,
   "supportedMarketLines": {
     "MATCH_TOTAL_OVER": [
-      1.5,
       2.5
     ],
     "TEAM_TOTAL_OVER": [

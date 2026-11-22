@@ -21,11 +21,9 @@ MIN_EV = 0.05
 MIN_EDGE_PP = 5.0
 RAW_MARKETS = (
     ("1x", "1X"), ("x2", "X2"), ("bttsYes", "ОЗ ДА"),
-    ("over15", "ТБ 1.5"), ("over25", "ТБ 2.5"), ("over35", "ТБ 3.5"),
+    ("over25", "ТБ 2.5"),
     ("homeOver05", "ИТБ 0.5 · {home}"), ("homeOver15", "ИТБ 1.5 · {home}"),
-    ("homeOver25", "ИТБ 2.5 · {home}"), ("homeOver35", "ИТБ 3.5 · {home}"),
     ("awayOver05", "ИТБ 0.5 · {away}"), ("awayOver15", "ИТБ 1.5 · {away}"),
-    ("awayOver25", "ИТБ 2.5 · {away}"), ("awayOver35", "ИТБ 3.5 · {away}"),
 )
 
 def number(value, default=float("nan")):
@@ -111,13 +109,13 @@ def display_label(signal, match):
         return None
     if upper in ("1X", "X2", "ОЗ ДА"):
         return side
-    if upper in ("ТБ 1.5", "ТБ 2.5", "ТБ 3.5"):
+    if upper == "ТБ 2.5":
         return side
     if upper.startswith("ИТБ "):
         found = re.search(r"ИТБ\s+([0-9]+(?:\.[0-9]+)?)", side, re.I)
         point = number(found.group(1)) if found else float("nan")
         team = re.sub(r"\s+", " ", side.split("·", 1)[1].strip()) if "·" in side else ""
-        if point in (.5, 1.5, 2.5, 3.5) and team.lower() in (text(match.get("home")).lower(), text(match.get("away")).lower()):
+        if point in (.5, 1.5) and team.lower() in (text(match.get("home")).lower(), text(match.get("away")).lower()):
             return side
     return None
 

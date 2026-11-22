@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ODDS_ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
+ODDS_ARCHIVE = ROOT / "artifacts" / "all-eight-competitions-melbet-snapshots.jsonl"
 SIGNAL_ARCHIVE = ROOT / "artifacts" / "uefa-paper-signals.jsonl"
 PAPER_BETS_ARCHIVE = ROOT / "artifacts" / "uefa-paper-bets.jsonl"
 MIN_PROBABILITY = 0.60
@@ -188,11 +188,23 @@ def build_signals(odds_rows: list[dict]) -> list[dict]:
         for row in snapshot:
             if row.get("candidate_market") is not True or row.get("reference_only") is True:
                 continue
-            if row.get("market_parser_version") != "betboom-fulltime-v2":
+            if row.get("market_parser_version") != "melbet-fulltime-v2":
                 continue
-            if row.get("market") not in (
-                "double_chance", "match_total_over", "team_total_over", "btts", "handicap"
-            ):
+            market = row.get("market")
+            if market == "double_chance":
+                if row.get("outcome") not in ("1x", "x2"):
+                    continue
+            elif market == "match_total_over":
+                if row.get("point") != 2.5:
+                    continue
+            elif market == "team_total_over":
+                if row.get("point") not in (0.5, 1.5):
+                    continue
+            elif market == "btts":
+                if row.get("outcome") != "yes":
+                    continue
+            else:
+                # Handicap, draw-no-bet and other legacy markets are not active.
                 continue
             signals.append(evaluate_candidate(row, snapshot))
     return sorted(signals, key=lambda row: (
