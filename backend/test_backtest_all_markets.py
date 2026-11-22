@@ -4,6 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run)
+from predict_uefa_markets import _market_probabilities
 
 
 class AllMarketBacktestTests(unittest.TestCase):
@@ -16,6 +17,25 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertAlmostEqual(sum(probabilities["DNB_AWAY"].values()), 1.0, places=8)
         self.assertTrue(all(0.0 <= value <= 1.0
                             for value in probabilities.values() if isinstance(value, float)))
+
+    def test_active_market_probabilities_match_production_engine(self):
+        market_cases = (
+            ("DC_1X", lambda p: p["double_chance"]["1x"]),
+            ("DC_X2", lambda p: p["double_chance"]["x2"]),
+            ("BTTS", lambda p: p["btts"]["yes"]),
+            ("TOTAL_OVER_2.5", lambda p: p["match_total"]["over"]["2.5"]),
+            ("HOME_OVER_0.5", lambda p: p["team_total"]["home"]["over"]["0.5"]),
+            ("HOME_OVER_1.5", lambda p: p["team_total"]["home"]["over"]["1.5"]),
+            ("AWAY_OVER_0.5", lambda p: p["team_total"]["away"]["over"]["0.5"]),
+            ("AWAY_OVER_1.5", lambda p: p["team_total"]["away"]["over"]["1.5"]),
+        )
+        for home_lambda, away_lambda in ((0.05, 0.05), (0.65, 1.85), (1.35, 0.95),
+                                         (2.75, 1.10), (4.5, 4.5)):
+            research = market_probs(home_lambda, away_lambda)
+            production = _market_probabilities(home_lambda, away_lambda)
+            for market, extract in market_cases:
+                with self.subTest(home_lambda=home_lambda, away_lambda=away_lambda, market=market):
+                    self.assertAlmostEqual(research[market], extract(production), places=12)
 
     def test_outcomes_keep_draw_and_push_semantics(self):
         draw = market_outcomes(1, 1)
