@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "backend/update_data_pitchapi.py"
+      - ".github/workflows/update-data.yml"
   # Refresh domestic fixtures/results every six hours without xG backfill requests.
   schedule:
     - cron: "23 */6 * * *"
