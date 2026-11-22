@@ -1278,12 +1278,20 @@ class MainActivity : Activity() {
         statsBetCalculationError = null
     }
 
-    private fun requestStatsBetCalculation(key: String, snapshot: List<JSONObject>, period: String, source: String, now: Long) {
+    private fun requestStatsBetCalculation(key: String, sourceBets: JSONArray, period: String, source: String, now: Long) {
         if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
         val generation = statsBetCacheGeneration.get()
         thread(name = "stats-bet-history-calculation") {
             var calculationError: String? = null
             val calculated = try {
+                // Snapshot and parse bet history off the UI thread. Deep-copying every
+                // JSONObject while opening Stats can stall or exhaust the main process.
+                val snapshot = buildList {
+                    for (index in 0 until sourceBets.length()) {
+                        val bet = runCatching { sourceBets.optJSONObject(index) }.getOrNull() ?: continue
+                        runCatching { JSONObject(bet.toString()) }.getOrNull()?.let(::add)
+                    }
+                }
                 val bounds = statsPeriodBounds(period, now)
                 val current = summarizeBets(snapshot, source, bounds.first, bounds.second)
                 val previous = if (period == "ALL") null else {
@@ -1556,11 +1564,8 @@ class MainActivity : Activity() {
             addText(loading, "Подготавливаем статистику ставок…", 13, true, Color.WHITE)
             addText(loading, "История рассчитывается в фоне, интерфейс остаётся доступным.", 11, false, muted)
             if (!statsBetCalculationInProgress.get()) {
-                // Copy each JSON object before the worker starts; settlement may mutate the live bet array concurrently.
-                val snapshot = (0 until bets.length()).mapNotNull { index ->
-                    bets.optJSONObject(index)?.let { bet -> runCatching { JSONObject(bet.toString()) }.getOrNull() }
-                }
-                requestStatsBetCalculation(key, snapshot, selectedStatsPeriod, selectedStatsSource, now)
+                // Pass the source array only; the calculation thread makes its own safe snapshot.
+                requestStatsBetCalculation(key, bets, selectedStatsPeriod, selectedStatsSource, now)
             }
             return
         }
