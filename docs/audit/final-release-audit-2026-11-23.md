@@ -29,6 +29,9 @@ The domestic MelBet feed gate still treated full-match Over 1.5 as a strategy ma
 
 The active set is now explicitly: 1X, X2, BTTS Yes, match Over 2.5, home Over 0.5/1.5, away Over 0.5/1.5.
 
+### High — UEFA paper signal evaluator used a legacy BetBoom archive (fixed in PR #273)
+The collector writes current MelBet snapshots to `artifacts/all-eight-competitions-melbet-snapshots.jsonl`, but the UEFA paper evaluator previously read `artifacts/uefa-betboom-odds-snapshots.jsonl` and accepted only `betboom-fulltime-v2`. Thus the scheduled pipeline was not evaluating the fresh MelBet rows that the app displays. The PR switches the evaluator to the unified MelBet archive, requires `melbet-fulltime-v2`, and filters candidate rows to the same eight active market lines.
+
 ### High — concurrent feed writers caused a real workflow failure (fixed in PR #273)
 Run 45066678942 completed data generation but failed at `git pull --rebase` with a content conflict in `docs/uefa-data.json`. The log shows the calibrated-feed workflow updated the same feed while the MelBet collector was committing under a different concurrency group. The PR unifies these writers under one concurrency group to serialize shared-feed writes.
 
