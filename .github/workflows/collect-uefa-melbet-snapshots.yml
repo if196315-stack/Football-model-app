@@ -12,6 +12,8 @@ on:
       - "backend/predict_uefa_markets.py"
       - "backend/update_odds_api_sport.py"
       - ".github/workflows/collect-uefa-melbet-snapshots.yml"
+      - ".github/workflows/update-data.yml"
+      - ".github/workflows/update-odds-only.yml"
   workflow_dispatch:
     inputs:
       full_history:
