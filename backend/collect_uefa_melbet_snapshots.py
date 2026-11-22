@@ -401,22 +401,10 @@ def append_rows(rows: list[dict], output_path: str | Path = ARCHIVE,
     return summary
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fixture-cache", default=str(FIXTURE_CACHE))
-    parser.add_argument("--output", default=str(ARCHIVE))
-    parser.add_argument("--xg-history", default="artifacts/uefa-xg-history.json")
-    parser.add_argument("--domestic-cache", default=str(DOMESTIC_CACHE))
-    args = parser.parse_args()
-    cache_path = Path(args.fixture_cache)
-    if not cache_path.exists():
-        raise RuntimeError(f"UEFA fixture cache is missing: {cache_path}")
-    uefa_cache = json.loads(cache_path.read_text(encoding="utf-8"))
-    domestic_path = Path(args.domestic_cache)
-    domestic_cache = json.loads(domestic_path.read_text(encoding="utf-8")) if domestic_path.exists() else {"matches": {}}
 
-    # Namespace IDs in the combined, read-only snapshot view to prevent collisions
-    # between the independent UEFA and domestic PitchAPI caches.
+def combine_pitchapi_sources(uefa_cache: dict, domestic_cache: dict,
+                             uefa_history: dict | None = None) -> tuple[dict, dict]:
+    """Build one namespaced fixture view and paired-xG history for all eight competitions."""
     combined_matches = {}
     history_rows = []
     for fixture_id, row in (uefa_cache.get("matches") or {}).items():
@@ -434,15 +422,31 @@ def main() -> int:
                 continue
             history_rows.append({**row, "id": f"DOM:{row.get('id', fixture_id)}",
                                  "pairedXg": True, "homeXg": hx, "awayXg": ax})
+    history_rows.extend((uefa_history or {}).get("matches") or [])
+    return {"matches": combined_matches}, {"matches": history_rows}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fixture-cache", default=str(FIXTURE_CACHE))
+    parser.add_argument("--output", default=str(ARCHIVE))
+    parser.add_argument("--xg-history", default="artifacts/uefa-xg-history.json")
+    parser.add_argument("--domestic-cache", default=str(DOMESTIC_CACHE))
+    args = parser.parse_args()
+    cache_path = Path(args.fixture_cache)
+    if not cache_path.exists():
+        raise RuntimeError(f"UEFA fixture cache is missing: {cache_path}")
+    uefa_cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    domestic_path = Path(args.domestic_cache)
+    domestic_cache = json.loads(domestic_path.read_text(encoding="utf-8")) if domestic_path.exists() else {"matches": {}}
+
     history_path = ROOT / args.xg_history
-    if history_path.exists():
-        uefa_history = json.loads(history_path.read_text(encoding="utf-8"))
-        history_rows.extend(uefa_history.get("matches") or [])
-    cache = {"matches": combined_matches}
+    uefa_history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else {"matches": []}
+    cache, history = combine_pitchapi_sources(uefa_cache, domestic_cache, uefa_history)
     provider_fixtures = fetch_provider_fixtures(os.environ.get("API_SPORT_KEY", "").strip())
     captured_at = datetime.now(timezone.utc).isoformat()
     diagnostics = {}
-    predictions = predict_upcoming({"matches": history_rows}, cache, predicted_at=captured_at)
+    predictions = predict_upcoming(history, cache, predicted_at=captured_at)
     diagnostics["predicted_upcoming_fixtures"] = len(predictions)
     rows = snapshot_rows(cache, provider_fixtures, captured_at, diagnostics, predictions)
     append_rows(rows, args.output, diagnostics)
