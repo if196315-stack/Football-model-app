@@ -1363,15 +1363,15 @@ class MainActivity : Activity() {
     }
 
     private fun betStatsDate(bet: StatsBetInput): Long? {
-        val rawDay = bet.betDay.takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
-        val raw = rawDay ?: bet.date.takeIf { it.isNotBlank() } ?: return bet.createdAt.takeIf { it > 0L }
+        // Report periods are defined by the fixture date, never by bet creation/entry date.
+        val raw = bet.date.takeIf { it.isNotBlank() } ?: return null
         return try {
             val fmt = if (raw.length == 10) SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 else SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
             fmt.isLenient = false
-            if (raw.length != 10) fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
             fmt.parse(raw.take(if (raw.length == 10) 10 else 19))?.time
-        } catch (_: Exception) { bet.createdAt.takeIf { it > 0L } }
+        } catch (_: Exception) { null }
     }
 
     private fun statsPeriodBounds(period: String, now: Long = System.currentTimeMillis()): Pair<Long, Long> {
@@ -1600,7 +1600,21 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>): List<StatsMetricRow> {
+    private fun evaluationMatchDayMillis(match: JSONObject): Long? {
+        val raw = match.optString("utcDate").ifBlank {
+            match.optString("dateEvent").ifBlank { match.optString("date") }
+        }.trim()
+        if (raw.isBlank()) return null
+        return parseFeedTimeMillis(raw) ?: try {
+            val day = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                isLenient = false
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            day.parse(raw.take(10))?.time
+        } catch (_: Exception) { null }
+    }
+
+    private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>, from: Long, to: Long): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
         val evaluatedMatches = json.optJSONArray("evaluationMatches")
         fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
@@ -1614,6 +1628,8 @@ class MainActivity : Activity() {
             if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
                 val m = evaluatedMatches.optJSONObject(i) ?: continue
                 if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                val matchDay = evaluationMatchDayMillis(m) ?: continue
+                if (matchDay !in from..to) continue
                 val marketKey = key
                 val matchId = m.optString("id")
                 if (!StatsPredictionScope.includes(source, matchId, marketKey, topSelections)) continue
@@ -1693,12 +1709,11 @@ class MainActivity : Activity() {
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
-    private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>): String {
-        // Include category and its exact TOP selection set: switching tabs or changing saved
-        // TOP bets must never reuse a prediction summary calculated for another scope.
+    private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>, period: String): String {
+        // Prediction metrics depend on source, TOP archive, feed version and selected match-date period.
         val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",") else "ALL"
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
-            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + scopeSignature
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + period + "|" + scopeSignature
     }
 
 
@@ -1714,7 +1729,7 @@ class MainActivity : Activity() {
         }
         val source = selectedStatsSource
         val topSelections = topPredictionSelections()
-        val statsKey = statsPredictionCacheKey(json, source, topSelections)
+        val statsKey = statsPredictionCacheKey(json, source, topSelections, selectedStatsPeriod)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
@@ -1724,7 +1739,7 @@ class MainActivity : Activity() {
                 thread(name = "stats-metrics-calculation") {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
-                        calculateStatsMetrics(json, source, topSelections).also { statsMetricsError = null }
+                        calculateStatsMetrics(json, source, topSelections, statsPeriodBounds(selectedStatsPeriod).first, statsPeriodBounds(selectedStatsPeriod).second).also { statsMetricsError = null }
                     } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
