@@ -1431,8 +1431,11 @@ class MainActivity : Activity() {
         box.addView(second)
     }
 
-    private fun addTerminalEquityChart(parent: LinearLayout, points: List<AnalyticsPoint>) {
-        val box = terminalSection(parent, "ДИНАМИКА ПРИБЫЛИ", "ТОЛЬКО РАССЧИТАННЫЕ СТАВКИ · НЕ БАЛАНС СЧЁТА")
+    private fun addTerminalEquityChart(parent: LinearLayout, points: List<AnalyticsPoint>, startingBank: Double? = null) {
+        val title = if (startingBank != null) "ДИНАМИКА БАНКА · ОЦЕНКА" else "ДИНАМИКА ПРИБЫЛИ"
+        val subtitle = if (startingBank != null) "СТАРТОВЫЙ БАНК + РЕЗУЛЬТАТ СТАВОК · БЕЗ ВВОДОВ И ВЫВОДОВ"
+            else "НАКОПЛЕННАЯ ПРИБЫЛЬ · ЗАКРЫТЫЕ СТАВКИ В ВЫБРАННОМ ПЕРИОДЕ"
+        val box = terminalSection(parent, title, subtitle)
         if (points.isEmpty()) {
             box.addView(label("Нет рассчитанных ставок за выбранный период.", 11, false, muted))
             return
@@ -1447,7 +1450,7 @@ class MainActivity : Activity() {
                 val top = dp(12).toFloat(); val bottom = height - dp(22).toFloat()
                 if (right <= left || bottom <= top) return
                 var total = 0.0
-                val values = points.map { total += it.profit; total }
+                val values = points.map { total += it.profit; (startingBank ?: 0.0) + total }
                 val low = minOf(0.0, values.minOrNull() ?: 0.0)
                 val high = maxOf(0.0, values.maxOrNull() ?: 0.0)
                 val span = (high - low).coerceAtLeast(1.0)
@@ -1464,7 +1467,7 @@ class MainActivity : Activity() {
                 }
                 line.color = if ((values.lastOrNull() ?: 0.0) >= 0) gold else Color.rgb(220, 112, 118)
                 canvas.drawPath(path, line)
-                canvas.drawText("НАЧАЛО", left, height - dp(4).toFloat(), txt)
+                canvas.drawText(if (startingBank != null) "СТАРТ" else "НАЧАЛО", left, height - dp(4).toFloat(), txt)
                 canvas.drawText("СЕЙЧАС", right - dp(38), height - dp(4).toFloat(), txt)
             }
         }
@@ -1627,16 +1630,17 @@ class MainActivity : Activity() {
         terminalMetric(third, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
         terminalMetric(third, "ОЖИДАЮТ", report.overall.pending.toString(), Color.rgb(245, 190, 95))
         hero.addView(third)
-        val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
-            ?.takeIf { it.isFinite() && it > 0.0 }
-        val allTimeBankEstimate = if (selectedStatsPeriod == "ALL") initialBank?.let { it + report.overall.profit } else null
         val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
         terminalMetric(bankRow, "БАНК · ОЦЕНКА", allTimeBankEstimate?.let { fmt(it) } ?: "—", gold)
         hero.addView(bankRow)
         hero.addView(label("Финансовая выборка содержит только подтверждённые ставки ТОП. PENDING не влияет на оборот, прибыль, ROI и win rate.", 9, false, muted))
 
-        addTerminalEquityChart(matchesContainer, report.overall.points)
+        val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 }
+        val allTimeBankEstimate = if (selectedStatsPeriod == "ALL") initialBank?.let { it + report.overall.profit } else null
+        addTerminalEquityChart(matchesContainer, report.overall.points,
+            if (selectedStatsPeriod == "ALL") initialBank else null)
         val risk = terminalSection(matchesContainer, "РИСКИ И СЕРИИ", "ПО РЕАЛЬНО ЗАФИКСИРОВАННЫМ СТАВКАМ ТОП")
         val riskRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         terminalMetric(riskRow, "МАКС. ПРОСАДКА", fmt(report.maxDrawdown), Color.rgb(220, 112, 118))
