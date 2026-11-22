@@ -214,9 +214,7 @@ internal object BetAnalyticsCalculator {
 
     private fun isWorkingMarket(rawKey: String): Boolean {
         val key = rawKey.trim()
-        return key in setOf("1x", "x2", "bttsYes") ||
-            Regex("^over\\d{2}$").matches(key) ||
-            Regex("^(homeOver|awayOver)\\d{2}$").matches(key)
+        return key in setOf("over25", "homeOver05", "homeOver15", "awayOver05", "awayOver15")
     }
 
     private fun AnalyticsBet.marketKeyFallback(): String = "Рынок не указан"
