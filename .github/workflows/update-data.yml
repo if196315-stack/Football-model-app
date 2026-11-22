@@ -26,7 +26,7 @@ on:
 # Scheduled runs refresh fixtures/results with shot-level xG requests disabled.
 # Historical xG backfill remains manual and explicitly bounded.
 concurrency:
-  group: football-domestic-data-write
+  group: football-feed-write
   cancel-in-progress: false
 
 permissions:
