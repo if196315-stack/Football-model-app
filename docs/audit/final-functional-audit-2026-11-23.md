@@ -34,7 +34,7 @@
 - Backend odds regression: **success**, run [45081805307](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805307). В полном backend-наборе выполнено 228 тестов.
 - Аудит восьми турниров: **success**, run [45081805430](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805430).
 - На срезе аудита: 277 будущих матчей с прогнозом, 125 матчей с котировкой MelBet, 34 сигнала прошли AI-пороги, 563 точные цены по активным рынкам.
-- До добавления общего FeedMerger прошёл Android debug workflow на том же Android-коде; в текущем кандидате определено 35 Android JVM-тестов (включая 3 новых теста FeedMerger). Итоговая проверка release workflow на HEAD `1411a39` ещё выполняется: [unsigned release workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805301), [debug workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805312).
+- До добавления общего FeedMerger прошёл Android debug workflow на предыдущем Android-кандидате. В текущем кодовом кандидате определено 35 Android JVM-тестов (включая 3 новых теста FeedMerger); итоговые debug/release workflows на HEAD `1411a39` ещё выполняются: [unsigned release workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805301), [debug workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805312).
 
 ## Открытые блокеры перед заявлением «готово к подписи»
 
