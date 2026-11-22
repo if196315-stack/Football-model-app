@@ -1134,7 +1134,7 @@ class MainActivity : Activity() {
                     }
                     if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
                         fixtureDate.isNotBlank() && fixtureDate >= today &&
-                        hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
+                        hasStrategyPredictionWithActiveMelBetLine(match)
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
                         if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
@@ -1263,6 +1263,10 @@ class MainActivity : Activity() {
     private val statsCalculationInProgress = AtomicBoolean(false)
     private var selectedStatsPeriod = "MONTH"
     private var selectedStatsSource = "ALL"
+    private data class StatsBetInput(
+        val betDay: String, val date: String, val createdAt: Long,
+        val source: String, val status: String, val stake: Double, val odds: Double
+    )
     private data class StatsBetViewCache(
         val key: String, val current: BetStatsSummary, val previous: BetStatsSummary?,
         val manual: BetStatsSummary?, val ai: BetStatsSummary?
@@ -1281,20 +1285,34 @@ class MainActivity : Activity() {
     private fun requestStatsBetCalculation(key: String, sourceBets: JSONArray, period: String, source: String, now: Long) {
         if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
         val generation = statsBetCacheGeneration.get()
+        // Snapshot only the five scalar fields needed by the statistics. This avoids
+        // sharing mutable JSONObject instances with the worker and avoids a second JSON tree.
+        val snapshot = try {
+            val inputs = mutableListOf<StatsBetInput>()
+            for (index in 0 until sourceBets.length()) {
+                val bet = sourceBets.optJSONObject(index) ?: continue
+                inputs.add(StatsBetInput(bet.optString("betDay"), bet.optString("date"),
+                    bet.optLong("createdAt", 0L), bet.optString("source"), bet.optString("status"),
+                    bet.optDouble("stake", 0.0), bet.optDouble("odds", 0.0)))
+            }
+            inputs
+        } catch (error: Throwable) {
+            statsBetCalculationInProgress.set(false)
+            android.util.Log.e("IQMatchStats", "Unable to snapshot bet history statistics", error)
+            statsBetCalculationError = error.javaClass.simpleName
+            return
+        }
         thread(name = "stats-bet-history-calculation") {
             var calculationError: String? = null
             val calculated = try {
-                // The source JSONArray is immutable for this calculation: refresh replaces
-                // the Activity field rather than mutating this instance. Aggregate it in place
-                // on the worker to avoid a second full copy of a potentially huge bet history.
                 val bounds = statsPeriodBounds(period, now)
-                val current = summarizeBets(sourceBets, source, bounds.first, bounds.second)
+                val current = summarizeBets(snapshot, source, bounds.first, bounds.second)
                 val previous = if (period == "ALL") null else {
                     val duration = bounds.second - bounds.first
-                    summarizeBets(sourceBets, source, bounds.first - duration, bounds.first)
+                    summarizeBets(snapshot, source, bounds.first - duration, bounds.first)
                 }
-                val manual = if (source == "ALL") summarizeBets(sourceBets, "MANUAL", bounds.first, bounds.second) else null
-                val ai = if (source == "ALL") summarizeBets(sourceBets, "AI", bounds.first, bounds.second) else null
+                val manual = if (source == "ALL") summarizeBets(snapshot, "MANUAL", bounds.first, bounds.second) else null
+                val ai = if (source == "ALL") summarizeBets(snapshot, "AI", bounds.first, bounds.second) else null
                 StatsBetViewCache(key, current, previous, manual, ai)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate bet history statistics", error)
@@ -1416,21 +1434,31 @@ class MainActivity : Activity() {
         return cal.timeInMillis to end
     }
 
-    private fun summarizeBets(sourceBets: JSONArray, source: String, from: Long, to: Long): BetStatsSummary {
+    private fun betStatsDate(bet: StatsBetInput): Long? {
+        val rawDay = bet.betDay.takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
+        val raw = rawDay ?: bet.date.takeIf { it.isNotBlank() }
+            ?: return bet.createdAt.takeIf { it > 0L }
+        return try {
+            val fmt = if (raw.length == 10) SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                else SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+            fmt.isLenient = false
+            if (raw.length != 10) fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            fmt.parse(raw.take(if (raw.length == 10) 10 else 19))?.time
+        } catch (_: Exception) { bet.createdAt.takeIf { it > 0L } }
+    }
+
+    private fun summarizeBets(sourceBets: List<StatsBetInput>, source: String, from: Long, to: Long): BetStatsSummary {
         var wins = 0; var losses = 0; var pushes = 0
         var turnover = 0.0; var profit = 0.0; var oddsTotal = 0.0; var oddsCount = 0
         val daily = sortedMapOf<Long, Pair<Double, Double>>()
-        // Read the immutable source array directly on the worker. Do not deep-copy
-        // every historical JSONObject: large user histories can exhaust app memory.
-        for (index in 0 until sourceBets.length()) {
-            val bet = sourceBets.optJSONObject(index) ?: continue
-            val isAi = bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+        for (bet in sourceBets) {
+            val isAi = bet.source in listOf("AI_MANUAL", "AI_AUTO")
             if (source == "AI" && !isAi || source == "MANUAL" && isAi) continue
             val day = betStatsDate(bet) ?: continue
             if (day < from || day > to) continue
-            val stake = bet.optDouble("stake", 0.0)
-            val odds = bet.optDouble("odds", 0.0)
-            val delta = when (bet.optString("status")) {
+            val stake = bet.stake
+            val odds = bet.odds
+            val delta = when (bet.status) {
                 "WON" -> { wins++; stake * (odds - 1.0) }
                 "LOST" -> { losses++; -stake }
                 "PUSH" -> { pushes++; 0.0 }
@@ -2475,19 +2503,75 @@ class MainActivity : Activity() {
     // an available MelBet quote from API-Sport; quote age is informational only.
     private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
         val prediction = match.optJSONObject("prediction") ?: return false
+        // A match needs a usable probability for at least one market in our active
+        // strategy. Missing probabilities for other strategy markets must not hide it.
+        // Markets outside this list (1X2, handicaps, BTTS NO, higher totals) are ignored.
         val probabilityFields = listOf(
-            "1x", "x2", "over15", "over25", "over35",
-            "homeOver05", "homeOver15", "homeOver25", "homeOver35",
-            "awayOver05", "awayOver15", "awayOver25", "awayOver35",
-            "bttsYes", "bttsNo"
+            "1x", "x2", "over15", "over25",
+            "homeOver05", "homeOver15", "awayOver05", "awayOver15",
+            "bttsYes"
         )
-        if (!probabilityFields.all { field ->
-                val value = prediction.optDouble(field, Double.NaN)
-                value.isFinite() && value in 0.0..1.0
-            }) return false
-        val homeXg = prediction.optDouble("expectedHomeGoals", Double.NaN)
-        val awayXg = prediction.optDouble("expectedAwayGoals", Double.NaN)
-        return homeXg.isFinite() && homeXg > 0.0 && awayXg.isFinite() && awayXg > 0.0
+        return probabilityFields.any { field ->
+            val value = prediction.optDouble(field, Double.NaN)
+            value.isFinite() && value in 0.0..1.0
+        }
+    }
+
+    // Eligibility requires at least one strategy market with BOTH a valid model probability
+    // and a fresh, active MelBet price for that exact market and line.
+    private fun hasStrategyPredictionWithActiveMelBetLine(match: JSONObject): Boolean {
+        val prediction = match.optJSONObject("prediction") ?: return false
+        val odds = match.optJSONObject("odds") ?: return false
+        val bookmaker = odds.optString("bookmaker")
+        val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
+            else odds.optString("source").contains("MelBet", ignoreCase = true)
+        if (!isMelBet || !hasFreshMelBetQuote(match)) return false
+        val best = odds.optJSONObject("best") ?: return false
+        fun hasProbability(field: String): Boolean {
+            val value = prediction.optDouble(field, Double.NaN)
+            return value.isFinite() && value in 0.0..1.0
+        }
+        fun validPrice(value: Double) = value.isFinite() && value > 1.0
+
+        val dc = best.optJSONObject("doubleChance")
+        if (dc != null && ((hasProbability("1x") && validPrice(dc.optDouble("1x", Double.NaN))) ||
+                (hasProbability("x2") && validPrice(dc.optDouble("x2", Double.NaN))))) return true
+        val btts = best.optJSONObject("btts")
+        if (hasProbability("bttsYes") && btts != null && validPrice(btts.optDouble("yes", Double.NaN))) return true
+
+        fun hasTotal(field: String, probabilityField: String, point: Double): Boolean {
+            if (!hasProbability(probabilityField)) return false
+            val rows = best.optJSONArray(field) ?: return false
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                val line = row.optDouble("point", Double.NaN)
+                if (row.optString("side").equals("over", ignoreCase = true) && line.isFinite() &&
+                    kotlin.math.abs(line - point) < 0.001 && validPrice(row.optDouble("price", Double.NaN))) return true
+            }
+            return false
+        }
+        if (hasTotal("totals", "over15", 1.5) || hasTotal("totals", "over25", 2.5)) return true
+
+        val teamRows = best.optJSONArray("teamTotals")
+        if (teamRows != null) {
+            val homeName = match.optString("home").trim()
+            val awayName = match.optString("away").trim()
+            for (i in 0 until teamRows.length()) {
+                val row = teamRows.optJSONObject(i) ?: continue
+                if (!row.optString("side").equals("over", ignoreCase = true)) continue
+                val point = row.optDouble("point", Double.NaN)
+                val team = row.optString("team").trim()
+                val isHome = team.equals("home", true) || team == "1" || team.equals("хозяева", true) || team.equals(homeName, true)
+                val isAway = team.equals("away", true) || team == "2" || team.equals("гости", true) || team.equals(awayName, true)
+                val price = row.optDouble("price", Double.NaN)
+                if (!validPrice(price) || !point.isFinite()) continue
+                if (isHome && ((kotlin.math.abs(point - 0.5) < 0.001 && hasProbability("homeOver05")) ||
+                        (kotlin.math.abs(point - 1.5) < 0.001 && hasProbability("homeOver15")))) return true
+                if (isAway && ((kotlin.math.abs(point - 0.5) < 0.001 && hasProbability("awayOver05")) ||
+                        (kotlin.math.abs(point - 1.5) < 0.001 && hasProbability("awayOver15")))) return true
+            }
+        }
+        return false
     }
 
     private fun hasActiveMelBetPrematchLine(match: JSONObject): Boolean {
@@ -3353,7 +3437,7 @@ class MainActivity : Activity() {
                 }
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
                 if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
-                    hasCompleteModelPrediction(m) && hasActiveMelBetPrematchLine(m)) {
+                    hasStrategyPredictionWithActiveMelBetLine(m)) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
