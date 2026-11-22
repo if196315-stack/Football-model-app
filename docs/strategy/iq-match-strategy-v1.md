@@ -63,8 +63,8 @@ For multi-outcome market analysis, account for bookmaker margin when comparing m
 
 ## 4. Stake and exposure policy
 
-- The strategy imposes no risk limits: no drawdown pause/stop, no daily exposure cap, no per-match exposure cap, and no automatic maximum stake percentage.
-- Stake amounts for paper records are user-controlled in the app; the strategy does not automatically cap or block them by bank size or aggregate exposure.
+- The strategy imposes no risk limits: no drawdown pause/stop, no daily exposure cap, no per-match exposure cap, and no maximum stake percentage.
+- Paper stake calculation follows the user's selected app mode (fixed amount, or 1% of current bank with optional user-defined minimum); there is no automatic maximum or aggregate exposure cap.
 - Different markets in the same match are permitted. Duplicate protection blocks only a repeat of the same market for the same match.
 - No real bookmaker bets are placed; paper records remain local simulation/history.
 
