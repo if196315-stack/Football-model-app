@@ -18,19 +18,24 @@ Branch: `release/hardening-before-signing`.
 1. Removed the three duplicate Kotlin-DSL Gradle files (`android/build.gradle.kts`, `android/settings.gradle.kts`, `android/app/build.gradle.kts`). The active Groovy files remain, matching the existing CI invocation. This removes ambiguity and the conflicting minSdk declarations; the surviving app configuration sets minSdk 23.
 2. Corrected README's active-market description to the eight markets enforced by Android tests: 1X, X2, BTTS Yes, match Over 2.5, home Over 0.5/1.5 and away Over 0.5/1.5. Match Over 1.5 is not part of the active set.
 3. Added `.github/workflows/android-release-candidate.yml`: it runs JVM unit tests, release lint and `assembleRelease`, then uploads the explicitly unsigned release APK. It does not sign or publish the app.
-4. These changes are awaiting PR CI at the time this addendum was written; do not treat them as passed until the workflow reports success.
+4. Removed the invalid, unused `iq_match_icon.png` resource that caused AAPT compilation to fail in release lint.
+5. Removed CSV export UI and implementation while retaining bet history and analytics.
+6. Removed the visible data-quality panel without removing internal validation/calculation.
+7. Prevented tab background transitions from replaying on every render; the tab highlight now animates only when the selected tab actually changes. Stats recalculation no longer animates the Line heading or the entire content container, and the Line heading is hidden synchronously outside its section.
+8. TOP forecast summary now derives its scope from the persisted TOP recommendation archive plus legacy manually recorded TOP bets; market-key conversion is covered by new JVM unit tests. The existing 60% TOP confidence floor and ALL calculation path remain unchanged.
+9. Backend regression workflow now also runs on Android-only PR changes, so app/model parity tests can be checked on the same candidate revision.
 
 ## Remaining release gates (not waived)
 
-- Configure signing only after the owner supplies/sets the keystore and passwords as protected GitHub Actions secrets; never commit signing material.
-- Run the new unsigned release-candidate workflow and fix every build/lint/test failure.
-- Add and execute UI/instrumentation tests, then install and exercise the candidate on supported Android versions and screen sizes.
-- Re-run backend regression, current data-feed audits, AI/Line parity and odds-coverage diagnostics against the exact release candidate commit.
+- Verify passing Android debug/unit-test, release lint, unsigned release APK assembly and backend regression runs on the exact latest PR HEAD.
+- Add and execute UI/instrumentation tests, then install and exercise the candidate on supported Android versions and screen sizes. In particular verify filter taps do not flash the Line tab, the Statistics header does not jump, and TOP has archived markets on a device with TOP history.
+- Re-run current data-feed audits, AI/Line parity and odds-coverage diagnostics against the exact release candidate commit.
 - Decide explicitly whether the existing one-leader/no-fallback signal policy is accepted; this hardening branch does not change strategy semantics.
 - Recheck current MelBet quote coverage. The low coverage figures in the historical addendum below are dated snapshots, not live guarantees.
+- Only after these gates are complete, stop before signing. Signing will be a separate pause for owner-requested final adjustments; no signing key or secret is required yet.
 - Do not claim complete functional certification or production readiness based only on compilation and JVM tests.
 
-**Status at refresh:** hardening changes prepared; signing intentionally not attempted. The release remains uncertified until the gates above are evidenced.
+**Status at refresh:** code changes prepared on the hardening branch; CI and device-level verification remain outstanding. Signing intentionally not attempted.
 
 ---
 
