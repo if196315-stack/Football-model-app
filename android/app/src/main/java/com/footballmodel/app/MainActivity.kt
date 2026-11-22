@@ -1525,7 +1525,7 @@ class MainActivity : Activity() {
             controls.addView(row)
         }
         val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf("ALL" to "ВСЕ", "MANUAL" to "РУЧНЫЕ").forEach { option ->
+        listOf("ALL" to "ВСЕ", "TOP" to "ТОП").forEach { option ->
             val active = selectedStatsSource == option.first
             val button = TextView(this).apply {
                 text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
@@ -1551,7 +1551,11 @@ class MainActivity : Activity() {
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
-        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ВСЕ РЕАЛЬНЫЕ ОДИНОЧНЫЕ СТАВКИ · РУЧНЫЕ + AI")
+        val heroSubtitle = if (selectedStatsSource == "TOP")
+            "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП"
+        else
+            "ВСЕ РЕАЛЬНЫЕ СТАВКИ ПО РАБОЧИМ РЫНКАМ · БЕЗ AI_AUTO"
+        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", heroSubtitle)
         val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
         hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
         hero.addView(label("ЧИСТАЯ ПРИБЫЛЬ / УБЫТОК", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
@@ -1573,7 +1577,7 @@ class MainActivity : Activity() {
         terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
         terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", allTimeBankEstimate?.let { fmt(it) } ?: "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", gold)
         hero.addView(bankRow)
-        hero.addView(label("Расчётный банк показывается только для периода «Всё время» и всех источников; пополнения и снятия, не внесённые в историю, не учитываются.", 9, false, muted))
+        hero.addView(label("Расчётный банк показывается только для периода «Всё время» и режима «ВСЕ»; пополнения и снятия, не внесённые в историю, не учитываются.", 9, false, muted))
 
         addTerminalEquityChart(matchesContainer, report.overall.points)
         val risk = terminalSection(matchesContainer, "РИСКИ И СЕРИИ", "МАКСИМАЛЬНАЯ ПРОСАДКА ПРИБЫЛИ · НЕ ИЗМЕНЕНИЕ ДЕНЕЖНОГО БАЛАНСА")
@@ -1587,7 +1591,9 @@ class MainActivity : Activity() {
         terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
         risk.addView(runRow)
 
-        terminalSummary(matchesContainer, "ЭКСПРЕССЫ · ОТДЕЛЬНЫЙ УЧЁТ", report.coupons)
+        if (selectedStatsSource == "ALL") {
+            terminalSummary(matchesContainer, "ЭКСПРЕССЫ · ОТДЕЛЬНЫЙ УЧЁТ", report.coupons)
+        }
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
         terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
