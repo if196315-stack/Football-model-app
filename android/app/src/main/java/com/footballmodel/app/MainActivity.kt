@@ -2,7 +2,6 @@ package com.footballmodel.app
 
 import android.app.Activity
 import android.animation.ValueAnimator
-import android.view.animation.DecelerateInterpolator
 import android.app.AlertDialog
 import android.text.InputType
 import android.text.SpannableString
@@ -1010,17 +1009,7 @@ class MainActivity : Activity() {
     private var tabRenderGeneration = 0
 
     private fun animateTabEntry(view: View, direction: Int) {
-        view.animate().cancel()
-        view.alpha = 0f
-        view.translationX = dp(22).toFloat() * direction.coerceIn(-1, 1)
-        view.visibility = View.VISIBLE
-        view.animate()
-            .alpha(1f)
-            .translationX(0f)
-            .setDuration(240L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator(1.7f))
-            .withLayer()
-            .start()
+        UiMotion.animateEntry(view, dp(6).toFloat())
     }
 
     private fun selectTab(tab: String) {
@@ -1039,10 +1028,8 @@ class MainActivity : Activity() {
         // synchronously from the view cache; only first-time screens need a frame
         // to construct their content.
         renderTabs()
-        matchesContainer.animate().cancel()
-        leagueScroll.animate().cancel()
-        lineHeadingView.visibility = if (tab == "matches") View.VISIBLE else View.GONE
-        leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
+        UiMotion.animateVisibility(lineHeadingView, tab == "matches", dp(6).toFloat())
+        if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
@@ -1151,7 +1138,7 @@ class MainActivity : Activity() {
                     if (selectedLeague == code) return@setOnClickListener
                     selectedLeague = code
                     tabViewCache.clear()
-                    render()
+                    animateContentRefresh { render() }
                 }
             }
             leagueBar.addView(chip, LinearLayout.LayoutParams(-2, -2).apply {
@@ -1205,8 +1192,8 @@ class MainActivity : Activity() {
             val tab = tabBar.getChildAt(index) as? LinearLayout ?: return@forEachIndexed
             val title = tab.getChildAt(0) as? TextView ?: return@forEachIndexed
             val active = currentTab == item.first
-            title.setTextColor(if (active) bg else Color.WHITE)
-            tab.background = if (active) {
+            UiMotion.animateTextColor(title, if (active) bg else Color.WHITE)
+            val nextBackground = if (active) {
                 GradientDrawable().apply {
                     setColor(Color.rgb(218, 184, 112))
                     cornerRadius = dp(16).toFloat()
@@ -1218,6 +1205,7 @@ class MainActivity : Activity() {
                     setStroke(dp(1), Color.rgb(39, 61, 82))
                 }
             }
+            UiMotion.transitionBackground(tab, nextBackground)
             tab.elevation = if (active) dp(3).toFloat() else 0f
         }
     }
@@ -1252,64 +1240,20 @@ class MainActivity : Activity() {
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
 
-    private fun animateStatsContentRefresh(refresh: () -> Unit) {
-        if (!::matchesContainer.isInitialized || currentTab != "stats") {
+    private fun animateContentRefresh(refresh: () -> Unit) {
+        if (!::matchesContainer.isInitialized) {
             refresh()
             return
         }
-        matchesContainer.animate().cancel()
-        matchesContainer.animate()
-            .alpha(0.42f)
-            .translationY(dp(5).toFloat())
-            .setDuration(105L)
-            .setInterpolator(DecelerateInterpolator())
-            .withEndAction {
-                refresh()
-                matchesContainer.alpha = 0.42f
-                matchesContainer.translationY = dp(5).toFloat()
-                matchesContainer.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setDuration(215L)
-                    .setInterpolator(DecelerateInterpolator())
-                    .start()
-            }
-            .start()
+        UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
     }
 
     private fun animateStakeModeVisibility(view: View, show: Boolean) {
-        view.animate().cancel()
-        if (show) {
-            if (view.visibility == View.VISIBLE) return
-            view.visibility = View.VISIBLE
-            view.alpha = 0f
-            view.translationY = dp(6).toFloat()
-            view.scaleY = 0.96f
-            view.animate().alpha(1f).translationY(0f).scaleY(1f)
-                .setDuration(220L).setInterpolator(DecelerateInterpolator()).start()
-        } else {
-            if (view.visibility != View.VISIBLE) return
-            view.animate().alpha(0f).translationY(dp(-4).toFloat()).scaleY(0.96f)
-                .setDuration(150L).setInterpolator(DecelerateInterpolator())
-                .withEndAction {
-                    view.visibility = View.GONE
-                    view.alpha = 1f
-                    view.translationY = 0f
-                    view.scaleY = 1f
-                }.start()
-        }
+        UiMotion.animateVisibility(view, show, dp(6).toFloat())
     }
 
     private fun animateStakeModeHint(view: TextView, text: String) {
-        if (view.text.toString() == text) return
-        view.animate().cancel()
-        view.animate().alpha(0.25f).setDuration(100L)
-            .setInterpolator(DecelerateInterpolator())
-            .withEndAction {
-                view.text = text
-                view.animate().alpha(1f).setDuration(180L)
-                    .setInterpolator(DecelerateInterpolator()).start()
-            }.start()
+        UiMotion.animateTextChange(view, text)
     }
 
     private fun invalidateStatsBetCache() {
@@ -1369,7 +1313,7 @@ class MainActivity : Activity() {
                 statsBetCalculationInProgress.set(false)
                 if (currentTab == "stats") {
                     tabViewCache.remove("stats|ALL")
-                    animateStatsContentRefresh { render() }
+                    animateContentRefresh { render() }
                 }
             }
         }
@@ -1578,7 +1522,7 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                     background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
-                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
+                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
@@ -1593,7 +1537,7 @@ class MainActivity : Activity() {
                 setPadding(dp(8), dp(10), dp(8), dp(10))
                 setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                 background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
-                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
+                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
@@ -1792,7 +1736,7 @@ class MainActivity : Activity() {
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
-                            animateStatsContentRefresh { render() }
+                            animateContentRefresh { render() }
                         }
                     }
                 }
@@ -2300,12 +2244,9 @@ class MainActivity : Activity() {
                     // switching between Open and Completed history subtabs.
                     val previousScrollY = mainScrollView.scrollY
                     selectedHistoryTab = key
-                    matchesContainer.animate().cancel()
-                    render()
-                    mainScrollView.post {
-                        mainScrollView.scrollTo(0, previousScrollY)
-                        matchesContainer.alpha = 1f
-                        matchesContainer.translationX = 0f
+                    animateContentRefresh {
+                        render()
+                        mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
                     }
                 }
             }
@@ -2344,7 +2285,7 @@ class MainActivity : Activity() {
         lateinit var fixedStakeButton: Button
         lateinit var minimumStakeButton: Button
         fun styleStakeModeButton(button: Button, selected: Boolean) {
-            button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
+            UiMotion.animateTextColor(button, if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
             val nextBackground = GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
@@ -2353,13 +2294,7 @@ class MainActivity : Activity() {
                 cornerRadius = dp(12).toFloat()
                 setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
             }
-            if (button.isAttachedToWindow && button.background != null) {
-                val previous = button.background.constantState?.newDrawable()?.mutate() ?: button.background
-                button.background = android.graphics.drawable.TransitionDrawable(arrayOf(previous, nextBackground)).apply {
-                    isCrossFadeEnabled = true
-                    startTransition(220)
-                }
-            } else button.background = nextBackground
+            UiMotion.transitionBackground(button, nextBackground)
         }
         fun addStakeModeButton(title: String, mode: String) {
             val button = Button(this).apply {
@@ -2931,10 +2866,12 @@ class MainActivity : Activity() {
 
     private fun refreshHeaderFinancials() {
         if (!::headerBalanceView.isInitialized || !::headerAiRoiView.isInitialized) return
-        headerBalanceView.text = if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —"
+        UiMotion.animateTextChange(headerBalanceView,
+            if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —")
         val (roi, count) = aiPaperRoiPercent()
-        headerAiRoiView.text = if (roi == null) "ТОП ROI —" else String.format(Locale.US, "ТОП ROI %+.1f%% · %d", roi, count)
-        headerAiRoiView.setTextColor(if (roi == null) muted else if (roi >= 0.0) accent else gold)
+        UiMotion.animateTextChange(headerAiRoiView,
+            if (roi == null) "ТОП ROI —" else String.format(Locale.US, "ТОП ROI %+.1f%% · %d", roi, count))
+        UiMotion.animateTextColor(headerAiRoiView, if (roi == null) muted else if (roi >= 0.0) accent else gold)
     }
 
     private fun renderNotificationCenter(json: JSONObject) {
