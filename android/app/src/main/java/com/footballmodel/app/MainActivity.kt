@@ -1935,7 +1935,11 @@ class MainActivity : Activity() {
     }
 
     private fun settleBet(b: JSONObject, m: JSONObject): Boolean {
-        if (b.optString("status") != "PENDING" || !isFinishedMatch(m) ||
+        val hasFinalFlag = m.has("scoreStatusFinal")
+        val finalFlag = if (hasFinalFlag && !m.isNull("scoreStatusFinal"))
+            m.optBoolean("scoreStatusFinal") else null
+        if (b.optString("status") != "PENDING" ||
+            !BetSettlement.isConfirmedFinal(m.optString("status"), hasFinalFlag, finalFlag) ||
             m.isNull("homeScore") || m.isNull("awayScore")) return false
         val h = m.optInt("homeScore")
         val a = m.optInt("awayScore")
