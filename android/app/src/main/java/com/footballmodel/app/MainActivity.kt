@@ -1368,16 +1368,24 @@ class MainActivity : Activity() {
     }
 
     private fun statsPeriodBounds(period: String, now: Long = System.currentTimeMillis()): Pair<Long, Long> {
-        val cal = java.util.Calendar.getInstance().apply { timeInMillis = now }
-        val end = cal.timeInMillis
+        // Use complete UTC fixture dates: WEEK is today plus the six preceding calendar days.
+        val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"), Locale.US).apply {
+            timeInMillis = now
+            set(java.util.Calendar.HOUR_OF_DAY, 0)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+        val from = cal.timeInMillis
         when (period) {
-            "WEEK" -> cal.add(java.util.Calendar.DAY_OF_YEAR, -7)
+            "WEEK" -> cal.add(java.util.Calendar.DAY_OF_YEAR, -6)
             "MONTH" -> cal.add(java.util.Calendar.MONTH, -1)
             "QUARTER" -> cal.add(java.util.Calendar.MONTH, -3)
             "HALF" -> cal.add(java.util.Calendar.MONTH, -6)
             "YEAR" -> cal.add(java.util.Calendar.YEAR, -1)
-            else -> return 0L to end
+            else -> return 0L to (from + java.util.concurrent.TimeUnit.DAYS.toMillis(1) - 1L)
         }
+        val end = from + java.util.concurrent.TimeUnit.DAYS.toMillis(1) - 1L
         return cal.timeInMillis to end
     }
 
