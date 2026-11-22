@@ -2737,9 +2737,6 @@ class MainActivity : Activity() {
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных ставок ТОП.")
         val sorted = collectAiCandidates(json)
-        val recordedBets = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
-            .filter { it.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && it.optString("marketKey") != "COUPON" && it.optString("status") == "PENDING" }
-            .asReversed()
         val openCandidates = sorted.mapNotNull { item ->
             val match = item.first
             val bundle = item.third
@@ -2751,48 +2748,8 @@ class MainActivity : Activity() {
             if (notRecorded.isEmpty()) null else Triple(item, notRecorded, available)
         }
         var openSignalsCount = openCandidates.sumOf { it.second.size }
-        var fixedCount = recordedBets.size
-        lateinit var openTabView: TextView
-        lateinit var fixedTabView: TextView
-        lateinit var openIntroCountView: TextView
-
-        val topTabs = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        listOf("OPEN" to "Новые сигналы", "FIXED" to "В ставках").forEach { (key, title) ->
-            val count = if (key == "OPEN") openSignalsCount else fixedCount
-            val tab = TextView(this).apply {
-                text = "$title · $count"
-                textSize = 12f
-                typeface = Typeface.DEFAULT_BOLD
-                letterSpacing = 0.02f
-                gravity = Gravity.CENTER
-                setPadding(dp(16), dp(12), dp(16), dp(12))
-                setTextColor(if (selectedTopTab == key) Color.rgb(28, 31, 36) else muted)
-                background = if (selectedTopTab == key)
-                    GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(28).toFloat() }
-                else rounded(surface, 28)
-                if (key == "OPEN") openTabView = this else fixedTabView = this
-                setOnClickListener {
-                    if (selectedTopTab == key) return@setOnClickListener
-                    val previousScrollY = mainScrollView.scrollY
-                    selectedTopTab = key
-                    matchesContainer.animate().cancel()
-                    render()
-                    mainScrollView.post {
-                        mainScrollView.scrollTo(0, previousScrollY)
-                        matchesContainer.alpha = 1f
-                        matchesContainer.translationX = 0f
-                    }
-                }
-            }
-            topTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
-        }
-        matchesContainer.addView(topTabs)
-
-        if (selectedTopTab == "OPEN") {
-            openIntroCountView = label("НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
+        val openIntroCountView = label("НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
+        matchesContainer.addView(openIntroCountView)
             val emptyOpenCard = card().apply {
                 addText(this, "Новых сильных сигналов пока нет.", 14, true, gold)
                 addText(this, "Когда появятся матчи, прошедшие фильтры TOP, они будут показаны здесь.", 11, false, muted)
@@ -2836,19 +2793,6 @@ class MainActivity : Activity() {
                         recordButton.text = "✓ Ставка зафиксирована"
                         recordButton.isEnabled = false
                         openSignalsCount = (openSignalsCount - 1).coerceAtLeast(0)
-                        // saveBets() may reconcile background results or statuses.
-                        // Derive the badge from the persisted in-memory bet list instead
-                        // of blindly incrementing it: a just-recorded bet may already
-                        // have moved out of PENDING by the time this callback runs.
-                        fixedCount = (0 until bets.length()).count { index ->
-                            val bet = bets.optJSONObject(index)
-                            bet != null &&
-                                bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") &&
-                                bet.optString("marketKey") != "COUPON" &&
-                                bet.optString("status") == "PENDING"
-                        }
-                        openTabView.text = "Новые сигналы · $openSignalsCount"
-                        fixedTabView.text = "Зафиксированные · $fixedCount"
                         openIntroCountView.text = "НОВЫЕ СИГНАЛЫ · $openSignalsCount"
                         val stillOpenInMatch = statusViews.keys.count { it !== signal && !isAiBetRecorded(match, it) }
                         if (stillOpenInMatch == 0) box.visibility = View.GONE
@@ -2856,7 +2800,6 @@ class MainActivity : Activity() {
                             emptyOpenCard?.visibility = View.VISIBLE
                         }
                         tabViewCache.remove("desk|OPEN")
-                        tabViewCache.remove("desk|FIXED")
                     }
                     if (remaining.size == 1) {
                         val signal = remaining.first()
@@ -2879,48 +2822,6 @@ class MainActivity : Activity() {
                     }
                 }
             }
-        } else {
-            if (recordedBets.isEmpty()) {
-                val empty = card()
-                addText(empty, "Ставок, ожидающих расчёта, пока нет.", 14, true, gold)
-                addText(empty, "После нажатия «Выбрать и зафиксировать» ставка появится здесь.", 11, false, muted)
-            }
-            recordedBets.forEachIndexed { index, bet ->
-                val box = card()
-                val state = bet.optString("status")
-                val status = when (state) {
-                    "WON" -> "ВЫИГРЫШ"
-                    "LOST" -> "ПРОИГРЫШ"
-                    "PUSH" -> "ВОЗВРАТ"
-                    else -> "ОЖИДАЕТ РАСЧЁТА"
-                }
-                val statusColor = when (state) {
-                    "WON" -> accent
-                    "LOST" -> Color.RED
-                    "PUSH" -> gold
-                    else -> cyan
-                }
-                addText(box, "СТАВКА #${index + 1} · ${displayLeagueName(bet.optString("league"))} · ${date(bet.optString("date"))}", 10, true, accent)
-                addText(box, "${bet.optString("home")} — ${bet.optString("away")}", 16, true)
-                addText(box, bet.optString("market") + " · кэф " + fmt(bet.optDouble("odds")), 13, true, gold)
-                addText(box, "Ставка: ${fmt(bet.optDouble("stake"))} · модель: ${String.format(Locale.US, "%.1f%%", bet.optDouble("probability") * 100)}", 11, false, muted)
-                val liveStatus = when (bet.optString("matchStatus")) {
-                    "IN_PLAY", "LIVE", "PAUSED" -> " · LIVE"
-                    "FINISHED" -> " · ФИНАЛ"
-                    "SCHEDULED", "TIMED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
-                    else -> ""
-                }
-                addText(box, status + liveStatus + (if (bet.has("score")) " · счёт " + bet.optString("score") else ""), 12, true, statusColor)
-                val stake = bet.optDouble("stake")
-                val odds = bet.optDouble("odds")
-                when (state) {
-                    "PENDING" -> addText(box, "Возможная выплата: ${fmt(stake * odds)} ₽ · чистый выигрыш: +${fmt(stake * (odds - 1))} ₽", 12, true, accent)
-                    "WON" -> addText(box, "Чистая прибыль: +${fmt(stake * (odds - 1))} ₽", 12, true, accent)
-                    "LOST" -> addText(box, "Убыток: −${fmt(stake)} ₽", 12, true, Color.RED)
-                    "PUSH" -> addText(box, "Возврат: ${fmt(stake)} ₽", 12, true, accent)
-                }
-            }
-        }
         val footer = card()
         addText(footer, "ПРАВИЛА ТОП", 10, true, accent)
         addText(footer, "В TOP попадают сильнейшие сигналы из раздела Линия: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Фиксация в TOP сохраняет бумажную ставку в истории.", 11, false, muted)
