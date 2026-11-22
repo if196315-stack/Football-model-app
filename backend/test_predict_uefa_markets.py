@@ -27,7 +27,7 @@ class UefaMarketPredictionTests(unittest.TestCase):
             history, fixtures, predicted_at="2026-11-09T12:00:00+00:00"
         )["future"]
         self.assertEqual(prediction["history_max_date"], "2026-10-22")
-        self.assertEqual(prediction["model_version"], "uefa-xg-poisson-v1")
+        self.assertEqual(prediction["model_version"], "xg-poisson-v1")
         markets = prediction["markets"]
         self.assertAlmostEqual(markets["match_total"]["over"]["2.5"]
                                + markets["match_total"]["under"]["2.5"], 1.0, places=8)
@@ -87,6 +87,36 @@ class UefaMarketPredictionTests(unittest.TestCase):
         }}}
         self.assertEqual(predict_upcoming(history, fixtures, "2026-11-09T12:00:00Z"), {})
 
+
+    def test_same_engine_supports_each_domestic_league_without_cross_league_history(self):
+        rows = []
+        fixtures = {}
+        for league in ("ENG", "ESP", "ITA", "GER", "FRA"):
+            teams = (f"{league}-A", f"{league}-B", f"{league}-C", f"{league}-D")
+            past = [
+                (teams[0], teams[2], 1.7, 0.6),
+                (teams[3], teams[1], 1.2, 1.1),
+                (teams[0], teams[3], 2.1, 0.8),
+                (teams[2], teams[1], 0.9, 1.5),
+            ]
+            for index, (home, away, hx, ax) in enumerate(past):
+                rows.append({"id": f"{league}-{index}", "leagueCode": league,
+                             "date": f"2026-10-{index + 1:02d}", "home": home,
+                             "away": away, "homeXg": hx, "awayXg": ax,
+                             "pairedXg": True})
+            fixtures[f"{league}-next"] = {
+                "id": f"{league}-next", "leagueCode": league,
+                "date": "2026-11-10", "status": "not_started",
+                "home": teams[0], "away": teams[1],
+            }
+        predictions = predict_upcoming({"matches": rows}, {"matches": fixtures},
+                                        "2026-11-09T12:00:00Z")
+        self.assertEqual(set(predictions), {f"{league}-next" for league in
+                                             ("ENG", "ESP", "ITA", "GER", "FRA")})
+        for prediction in predictions.values():
+            self.assertEqual(prediction["model_version"], "xg-poisson-v1")
+            self.assertEqual(prediction["home_history_matches"], 2)
+            self.assertEqual(prediction["away_history_matches"], 2)
 
 if __name__ == "__main__":
     unittest.main()
