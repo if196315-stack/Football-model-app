@@ -1683,7 +1683,7 @@ class MainActivity : Activity() {
     private fun statsCacheKey(json: JSONObject, source: String, topSelections: Set<String>): String {
         // Include category and its exact TOP selection set: switching tabs or changing saved
         // TOP bets must never reuse a prediction summary calculated for another scope.
-        val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",").hashCode() else "ALL"
+        val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",") else "ALL"
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
             (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + scopeSignature
     }
@@ -1699,8 +1699,9 @@ class MainActivity : Activity() {
             addText(failure, "Не удалось построить статистику ставок. Сводка прогнозов будет доступна отдельно.", 12, true, gold)
             matchesContainer.addView(failure)
         }
+        val source = selectedStatsSource
         val topSelections = topPredictionSelections()
-        val statsKey = statsCacheKey(json, selectedStatsSource, topSelections)
+        val statsKey = statsCacheKey(json, source, topSelections)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
@@ -1710,7 +1711,7 @@ class MainActivity : Activity() {
                 thread(name = "stats-metrics-calculation") {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
-                        calculateStatsMetrics(json, selectedStatsSource, topSelections).also { statsMetricsError = null }
+                        calculateStatsMetrics(json, source, topSelections).also { statsMetricsError = null }
                     } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
