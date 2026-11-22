@@ -1339,7 +1339,7 @@ class MainActivity : Activity() {
                 }
                 val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, source)
                 val previous = if (period == "ALL") null else {
-                    val duration = (bounds.second - bounds.first).coerceAtLeast(1L)
+                    val duration = (bounds.second - bounds.first + 1L).coerceAtLeast(1L)
                     BetAnalyticsCalculator.calculate(records, bounds.first - duration, bounds.first - 1L, source)
                 }
                 StatsBetViewCache(key, current, previous)
