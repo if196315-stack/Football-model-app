@@ -45,13 +45,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The snapshot archive is already larger than GitHub's 100 MB single-file limit.
+          # Keep the rolling archive local to this runner; publish the production feed independently.
+          # A diagnostic archive must never block fresh odds in docs/data.json from reaching the app.
           git add docs/data.json
-          if [ -f artifacts/melbet-odds-snapshots.jsonl ]; then
-            git add artifacts/melbet-odds-snapshots.jsonl
-          fi
-          if [ -f artifacts/melbet-market-observation-results.jsonl ]; then
-            git add artifacts/melbet-market-observation-results.jsonl
-          fi
-          git diff --cached --quiet || git commit -m "Update odds and append snapshot history"
+          git diff --cached --quiet || git commit -m "Update MelBet odds feed"
           git pull --rebase origin main
           git push

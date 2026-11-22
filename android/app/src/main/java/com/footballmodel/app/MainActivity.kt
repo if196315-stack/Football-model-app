@@ -1133,7 +1133,8 @@ class MainActivity : Activity() {
                         }
                     }
                     if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
-                        fixtureDate.isNotBlank() && fixtureDate >= today
+                        fixtureDate.isNotBlank() && fixtureDate >= today &&
+                        hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
                         if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
@@ -3340,8 +3341,7 @@ class MainActivity : Activity() {
             val upcoming = mutableListOf<JSONObject>()
             for (j in 0 until matches.length()) {
                 val m = matches.getJSONObject(j)
-                // Keep all upcoming domestic fixtures visible, even when xG or bookmaker odds are missing.
-                // The match card explains whether a model prediction or a MelBet quote is unavailable.
+                // Preserve the original eligibility rule: only complete forecasts with a fresh MelBet prematch quote are shown.
                 val matchStatus = m.optString("status")
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
@@ -3349,11 +3349,11 @@ class MainActivity : Activity() {
                     }
                 }
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
-                // Show every upcoming fixture; prediction and quote availability are reported on the card.
-                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming) {
+                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
+                    hasCompleteModelPrediction(m) && hasActiveMelBetPrematchLine(m)) {
                     upcoming.add(m)
                     totalUpcoming++
-                    if (hasCompleteModelPrediction(m)) totalPredicted++
+                    totalPredicted++
                 }
             }
             val leagueCode = league.optString("code")

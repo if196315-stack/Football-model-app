@@ -388,9 +388,10 @@ def run() -> dict:
                     pred, warning = predict(
                         league, home, away, st, base, names, results, date[:10],
                     )
-            # Publish every fixture in the five configured domestic leagues.
-            # The Android app displays a clear warning when xG history is insufficient,
-            # rather than silently hiding the whole competition or its fixtures.
+            # Keep the production feed limited to fixtures with a complete model forecast.
+            # The Android app applies the additional fresh-MelBet-quote eligibility check.
+            if status in ("SCHEDULED", "TIMED") and pred is None:
+                continue
             item["matches"].append({
                 "id": row["id"], "utcDate": date, "status": status,
                 "home": home, "away": away,
