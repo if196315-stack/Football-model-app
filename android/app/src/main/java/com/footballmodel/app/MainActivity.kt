@@ -1364,14 +1364,7 @@ class MainActivity : Activity() {
 
     private fun betStatsDate(bet: StatsBetInput): Long? {
         // Report periods are defined by the fixture date, never by bet creation/entry date.
-        val raw = bet.date.takeIf { it.isNotBlank() } ?: return null
-        return try {
-            val fmt = if (raw.length == 10) SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                else SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-            fmt.isLenient = false
-            fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
-            fmt.parse(raw.take(if (raw.length == 10) 10 else 19))?.time
-        } catch (_: Exception) { null }
+        return StatsPredictionScope.matchDateMillis(bet.date)
     }
 
     private fun statsPeriodBounds(period: String, now: Long = System.currentTimeMillis()): Pair<Long, Long> {
@@ -1622,15 +1615,8 @@ class MainActivity : Activity() {
     private fun evaluationMatchDayMillis(match: JSONObject): Long? {
         val raw = match.optString("utcDate").ifBlank {
             match.optString("dateEvent").ifBlank { match.optString("date") }
-        }.trim()
-        if (raw.isBlank()) return null
-        return parseFeedTimeMillis(raw) ?: try {
-            val day = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
-                isLenient = false
-                timeZone = java.util.TimeZone.getTimeZone("UTC")
-            }
-            day.parse(raw.take(10))?.time
-        } catch (_: Exception) { null }
+        }
+        return StatsPredictionScope.matchDateMillis(raw)
     }
 
     private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>, from: Long, to: Long): List<StatsMetricRow> {
