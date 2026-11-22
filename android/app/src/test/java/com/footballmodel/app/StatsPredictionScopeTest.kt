@@ -42,4 +42,18 @@ class StatsPredictionScopeTest {
         assertEquals(null, StatsPredictionScope.marketKey("unknown", "Home", "Away"))
     }
 
+    @Test fun topConfidenceBandsStartAtSixtyPercent() {
+        assertEquals(null, StatsPredictionScope.confidenceBand("TOP", 0.55))
+        assertEquals(0, StatsPredictionScope.confidenceBand("TOP", 0.60))
+        assertEquals(1, StatsPredictionScope.confidenceBand("TOP", 0.70))
+        assertEquals(2, StatsPredictionScope.confidenceBand("TOP", 0.80))
+    }
+
+    @Test fun allConfidenceBandsRetainFiftyPercentRange() {
+        assertEquals(0, StatsPredictionScope.confidenceBand("ALL", 0.50))
+        assertEquals(1, StatsPredictionScope.confidenceBand("ALL", 0.60))
+        assertEquals(2, StatsPredictionScope.confidenceBand("ALL", 0.70))
+        assertEquals(3, StatsPredictionScope.confidenceBand("ALL", 0.80))
+    }
+
 }
