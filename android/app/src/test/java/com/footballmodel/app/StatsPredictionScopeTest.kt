@@ -1,9 +1,28 @@
 package com.footballmodel.app
 
 import org.junit.Assert.assertEquals
+import java.time.Instant
 import org.junit.Test
 
 class StatsPredictionScopeTest {
+    @Test fun matchDateParserUsesFixtureDateInUtcAndRejectsMissingDates() {
+        val day = StatsPredictionScope.matchDateMillis("2026-11-23T18:45:00Z")
+        assertEquals(Instant.parse("2026-11-23T18:45:00Z").toEpochMilli(), day)
+        assertEquals(Instant.parse("2026-11-23T00:00:00Z").toEpochMilli(),
+            StatsPredictionScope.matchDateMillis("2026-11-23"))
+        assertEquals(null, StatsPredictionScope.matchDateMillis(""))
+        assertEquals(null, StatsPredictionScope.matchDateMillis("not-a-date"))
+    }
+
+    @Test fun predictionPeriodUsesInclusiveFixtureDateBounds() {
+        val from = Instant.parse("2026-11-17T00:00:00Z").toEpochMilli()
+        val to = Instant.parse("2026-11-23T23:59:59Z").toEpochMilli()
+        assertEquals(true, StatsPredictionScope.matchDateInPeriod("2026-11-17T00:15:00Z", from, to))
+        assertEquals(true, StatsPredictionScope.matchDateInPeriod("2026-11-23T22:00:00Z", from, to))
+        assertEquals(false, StatsPredictionScope.matchDateInPeriod("2026-11-16T23:59:59Z", from, to))
+        assertEquals(false, StatsPredictionScope.matchDateInPeriod("", from, to))
+    }
+
     @Test fun topSummaryIncludesOnlyMarketsSavedFromTop() {
         val top = setOf(
             StatsPredictionScope.key("match-1", "1x"),

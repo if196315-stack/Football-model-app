@@ -19,6 +19,7 @@ MIN_ODDS = 1.50
 MIN_PROBABILITY = 0.60
 MIN_EV = 0.05
 MIN_EDGE_PP = 5.0
+MAX_QUOTE_AGE_SECONDS = 12 * 60 * 60
 RAW_MARKETS = (
     ("1x", "1X"), ("x2", "X2"), ("bttsYes", "ОЗ ДА"),
     ("over25", "ТБ 2.5"),
@@ -45,10 +46,28 @@ def is_melbet(board):
     bookmaker = text(board.get("bookmaker"))
     return bookmaker.lower() == "melbet" if bookmaker else "melbet" in text(board.get("source")).lower()
 
-def odds_for(signal, match, min_odds=MIN_ODDS):
-    """Port of Android topSignalOdds: exact market, team and line; MelBet only."""
-    board = match.get("odds")
+def has_fresh_melbet_quote(board, now=None):
+    """Mirror Android hasFreshMelBetQuote: active MelBet prematch quote, at most 12h old."""
     if not is_melbet(board):
+        return False
+    if board.get("prematchActive") is not True or text(board.get("freshnessStatus")).lower() != "fresh":
+        return False
+    raw_updated = text(board.get("updatedAt"))
+    if not raw_updated:
+        return False
+    try:
+        updated = datetime.fromisoformat(raw_updated.replace("Z", "+00:00"))
+        updated = updated.replace(tzinfo=timezone.utc) if updated.tzinfo is None else updated.astimezone(timezone.utc)
+    except ValueError:
+        return False
+    current = now or datetime.now(timezone.utc)
+    age_seconds = (current - updated).total_seconds()
+    return -300 <= age_seconds <= MAX_QUOTE_AGE_SECONDS
+
+def odds_for(signal, match, min_odds=MIN_ODDS):
+    """Port of Android topSignalOdds: exact market, team, line and fresh MelBet quote."""
+    board = match.get("odds")
+    if not has_fresh_melbet_quote(board):
         return None
     best = board.get("best")
     if not isinstance(best, dict):
@@ -119,8 +138,8 @@ def display_label(signal, match):
             return side
     return None
 
-def strongest_display_signal(prediction, match):
-    """Mirror Android strongestDisplaySignal including UEFA probability fallbacks."""
+def strongest_display_signal(prediction, match, ai_eligible_only=False):
+    """Mirror Android strongestDisplaySignal, including its pre-ranking AI gate."""
     candidates = []
     strongest = prediction.get("strongestSignal")
     if isinstance(strongest, dict):
@@ -139,8 +158,11 @@ def strongest_display_signal(prediction, match):
         if not math.isfinite(probability) or not 0 <= probability <= 1:
             continue
         side = template.format(home=text(match.get("home")), away=text(match.get("away")))
-        if not any(norm_side(item.get("side")) == norm_side(side) for item in candidates):
+        existing = next((item for item in candidates if norm_side(item.get("side")) == norm_side(side)), None)
+        if existing is None:
             candidates.append({"side": side, "modelProbability": probability})
+        elif not math.isfinite(number(existing.get("modelProbability"))):
+            existing["modelProbability"] = probability
 
     # Android falls back to paperSignals only when no full-model candidate exists.
     if not candidates and isinstance(match.get("paperSignals"), list):
@@ -155,6 +177,13 @@ def strongest_display_signal(prediction, match):
         if not math.isfinite(probability) or not 0 <= probability <= 1 or odds is None:
             continue
         ev = probability * odds - 1.0
+        edge_pp = (number(candidate.get("edgePp")) if candidate.get("paperOnly") is True
+                   else (probability - 1.0 / odds) * 100.0 + number(candidate.get("formAdjustmentPp"), 0.0))
+        if ai_eligible_only and (
+            probability < MIN_PROBABILITY or ev < MIN_EV or
+            not math.isfinite(edge_pp) or edge_pp < MIN_EDGE_PP
+        ):
+            continue
         kelly = ev / (odds - 1.0) if odds > 1 else float("-inf")
         available.append((candidate, probability, odds, ev, kelly))
     positive = [item for item in available if item[3] > 0]
@@ -239,7 +268,7 @@ def build(data, today=None):
         "android_rules": {"min_odds": MIN_ODDS, "min_probability": MIN_PROBABILITY,
                           "min_ev_pct": MIN_EV * 100, "min_edge_pp": MIN_EDGE_PP,
                           "line_selection": "max full-Kelly among positive-EV exact MelBet prices; otherwise max probability",
-                          "ai_candidate": "only the single Line leader; no second-best fallback"},
+                          "ai_candidate": "apply probability, EV and edge gates before ranking; show one highest-ranked eligible market"},
         "leagues": {},
     }
     comps = data.get("competitions", [])
@@ -262,7 +291,7 @@ def build(data, today=None):
                 counts["without_melbet_board"] += 1
                 continue
             counts["with_melbet_board"] += 1
-            leader = strongest_display_signal(prediction, match)
+            leader = strongest_display_signal(prediction, match, ai_eligible_only=True)
             if leader is None:
                 counts["without_line_leader"] += 1
                 continue
@@ -292,9 +321,9 @@ def markdown(report):
     lines = ["# Аудит AI-сигналов: точное соответствие Android", "",
              f"- Дата среза UTC: **{report['as_of_utc_date']}**",
              "- Источник: текущий docs/data.json; будущие SCHEDULED/TIMED матчи национальных лиг.",
-             "- Для каждого матча сначала выбирается один лидер Линии; AI проверяет только его.",
-             "- Лидер: максимальный full-Kelly среди сигналов с положительным EV и точной ценой MelBet ≥ 1.50; если положительного EV нет — максимальная вероятность.",
-             "- AI: P ≥ 60%, EV ≥ 5%, edge ≥ 5 п.п.; BTTS NO исключён.", "",
+             "- Для AI каждый поддерживаемый рынок сначала проходит пороги P ≥ 60%, EV ≥ 5%, edge ≥ 5 п.п. и точную цену MelBet ≥ 1.50.",
+             "- После фильтрации выбирается один лидер на матч: максимальный full-Kelly среди допустимых сигналов.",
+             "- BTTS NO и сигналы с флагом noPositiveSignal не допускаются.", "",
              "| Лига | Будущих матчей | С прогнозом | MelBet board | Лидер Line | Прошли AI |",
              "|---|---:|---:|---:|---:|---:|"]
     for code, league in report["leagues"].items():
@@ -318,7 +347,7 @@ def markdown(report):
             lines.append("- **" + code + ":** " + "; ".join(f"{key.replace('_',' ')} — {value}" for key, value in sorted(reasons.items())))
     lines += ["", "## Ограничения", "",
               "- Это аудит текущего среза, не бэктест и не оценка доходности.",
-              "- В одном матче учитывается ровно один Line-лидер; второй рынок не подставляется, если лидер не проходит AI.",
+              "- В TOP показывается один рынок на матч. Ранжирование выполняется только после проверки AI-порогов для каждого поддерживаемого рынка.",
               "- Скрипт только читает feed и не меняет прогнозы, коэффициенты, пороги или ставки.", ""]
     return "\n".join(lines)
 

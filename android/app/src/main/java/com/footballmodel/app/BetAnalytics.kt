@@ -133,7 +133,8 @@ internal object BetAnalyticsCalculator {
             }
         }.sortedBy { oddsOrder(it.label) }
         val weekdays = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
-            val day = Calendar.getInstance().apply { timeInMillis = it.dayMillis }
+            val day = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"), Locale.US)
+                .apply { timeInMillis = it.dayMillis }
                 .get(Calendar.DAY_OF_WEEK)
             listOf("Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб")[day - 1]
         }.sortedBy { listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс").indexOf(it.label) }

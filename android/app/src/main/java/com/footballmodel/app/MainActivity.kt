@@ -277,6 +277,7 @@ class MainActivity : Activity() {
         }
         mainScrollView.addView(root)
         setContentView(mainScrollView)
+        applyEdgeToEdgeInsets(root)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -385,10 +386,11 @@ class MainActivity : Activity() {
         // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
         // блокировать первый показ интерфейса на главном потоке.
         thread(name = "iq-match-cache-restore") {
-            val cached = feedCache.getString("merged_json", null)
+            val cached = readFeedCache("merged_json")
             if (!cached.isNullOrBlank()) {
                 val restored = try { JSONObject(cached) } catch (_: Exception) { null }
                 if (restored == null) {
+                    FeedCacheStore.delete(filesDir, "merged_json")
                     feedCache.edit().remove("merged_json").apply()
                 } else {
                     // Precompute summaries on this cache-restore worker, never on the UI thread.
@@ -452,6 +454,33 @@ class MainActivity : Activity() {
     override fun onPause() {
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
         super.onPause()
+    }
+
+    /**
+     * Android 15 enforces edge-to-edge for targetSdk 35. Add system-bar and
+     * display-cutout insets to the existing content padding so the first and
+     * last controls remain reachable without changing the visual spacing.
+     */
+    private fun applyEdgeToEdgeInsets(content: View) {
+        if (android.os.Build.VERSION.SDK_INT < 35) return
+        val baseLeft = content.paddingLeft
+        val baseTop = content.paddingTop
+        val baseRight = content.paddingRight
+        val baseBottom = content.paddingBottom
+        content.setOnApplyWindowInsetsListener { view, insets ->
+            val safe = insets.getInsets(
+                android.view.WindowInsets.Type.systemBars() or
+                    android.view.WindowInsets.Type.displayCutout()
+            )
+            view.setPadding(
+                baseLeft + safe.left,
+                baseTop + safe.top,
+                baseRight + safe.right,
+                baseBottom + safe.bottom
+            )
+            insets
+        }
+        content.requestApplyInsets()
     }
 
     private fun countryFlagView(flag: String): View =
@@ -859,10 +888,26 @@ class MainActivity : Activity() {
         }.format(parsed)
     } catch (_: Exception) { raw.replace("T", " ").take(16) }
 
-    // Conditional HTTP requests avoid downloading identical JSON on every 30-second refresh.
+    // Large feed bodies live in private files, not SharedPreferences. Preferences
+    // retain only small metadata (ETags and timestamps).
+    private fun readFeedCache(cacheKey: String): String? {
+        FeedCacheStore.read(filesDir, cacheKey)?.let { cached ->
+            // Also clean up a legacy SharedPreferences value if a previous process
+            // was interrupted after writing the file but before removing the old key.
+            if (feedCache.contains(cacheKey)) feedCache.edit().remove(cacheKey).apply()
+            return cached
+        }
+        val legacy = feedCache.getString(cacheKey, null) ?: return null
+        if (FeedCacheStore.write(filesDir, cacheKey, legacy)) {
+            feedCache.edit().remove(cacheKey).apply()
+        }
+        return legacy
+    }
+
+    // Conditional HTTP requests avoid downloading identical JSON on every refresh.
     // The last good response is retained locally and used when the network is unavailable.
     private fun fetchFeed(url: String, cacheKey: String, required: Boolean): String? {
-        val cached = feedCache.getString(cacheKey, null)
+        val cached = readFeedCache(cacheKey)
         val etag = feedCache.getString("${cacheKey}_etag", null)
         var conn: HttpURLConnection? = null
         try {
@@ -873,14 +918,20 @@ class MainActivity : Activity() {
                 useCaches = true
                 setRequestProperty("Accept-Encoding", "gzip")
                 setRequestProperty("User-Agent", "IQMatch-Android")
-                if (!etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
+                // A conditional request is valid only when its matching body is cached.
+                if (cached != null && !etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
             }
             val code = conn.responseCode
-            if (code == HttpURLConnection.HTTP_NOT_MODIFIED && cached != null) return cached
+            if (code == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                if (cached != null) return cached
+                throw IllegalStateException("HTTP 304 without cached feed body")
+            }
             if (code !in 200..299) throw IllegalStateException("HTTP $code")
             val stream = if (conn.contentEncoding.equals("gzip", true)) GZIPInputStream(conn.inputStream) else conn.inputStream
             val body = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-            val editor = feedCache.edit().putString(cacheKey, body)
+            val bodyCached = FeedCacheStore.write(filesDir, cacheKey, body)
+            val editor = feedCache.edit()
+            if (bodyCached) editor.remove(cacheKey)
             conn.getHeaderField("ETag")?.let { editor.putString("${cacheKey}_etag", it) }
             editor.apply()
             return body
@@ -915,36 +966,7 @@ class MainActivity : Activity() {
                 if (!uefaBody.isNullOrBlank()) {
                     try {
                         val uefa = JSONObject(uefaBody)
-                        val target = json.optJSONArray("competitions") ?: JSONArray().also { json.put("competitions", it) }
-                        val extra = uefa.optJSONArray("competitions")
-                        if (extra != null) for (i in 0 until extra.length()) {
-                            val competition = extra.optJSONObject(i) ?: continue
-                            val code = competition.optString("code")
-                            if (code == "UCL" || code == "UEL" || code == "UECL") {
-                                for (j in target.length() - 1 downTo 0) {
-                                    if (target.optJSONObject(j)?.optString("code") == code) target.remove(j)
-                                }
-                                target.put(competition)
-                            }
-                        }
-                        // Merge immutable UEFA forecast evaluations into the shared Stats dataset.
-                        val combinedEvaluations = json.optJSONArray("evaluationMatches") ?: JSONArray()
-                        val knownEvaluationIds = mutableSetOf<String>()
-                        for (i in 0 until combinedEvaluations.length()) {
-                            val row = combinedEvaluations.optJSONObject(i) ?: continue
-                            knownEvaluationIds.add(row.optString("leagueCode") + ":" + row.optString("id"))
-                        }
-                        val uefaEvaluations = uefa.optJSONArray("evaluationMatches")
-                        if (uefaEvaluations != null) for (i in 0 until uefaEvaluations.length()) {
-                            val row = uefaEvaluations.optJSONObject(i) ?: continue
-                            val key = row.optString("leagueCode") + ":" + row.optString("id")
-                            if (key !in knownEvaluationIds) {
-                                combinedEvaluations.put(row)
-                                knownEvaluationIds.add(key)
-                            }
-                        }
-                        json.put("evaluationMatches", combinedEvaluations)
-                        json.put("uefaEvaluationUpdatedAt", uefa.optString("updatedAt"))
+                        FeedMerger.mergeUefa(json, uefa)
                     } catch (_: Exception) {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
@@ -956,8 +978,10 @@ class MainActivity : Activity() {
                 aiCandidatesCacheKey = statsCacheKey(json)
                 updateAiSignalArchive(json, aiMatchCandidates)
                 val payload = json.toString()
+                // Avoid rewriting a multi-megabyte feed on every unchanged 60-second poll.
+                if (payload != lastPayload) FeedCacheStore.write(filesDir, "merged_json", payload)
                 feedCache.edit()
-                    .putString("merged_json", payload)
+                    .remove("merged_json")
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
@@ -1315,7 +1339,7 @@ class MainActivity : Activity() {
                 }
                 val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, source)
                 val previous = if (period == "ALL") null else {
-                    val duration = (bounds.second - bounds.first).coerceAtLeast(1L)
+                    val duration = (bounds.second - bounds.first + 1L).coerceAtLeast(1L)
                     BetAnalyticsCalculator.calculate(records, bounds.first - duration, bounds.first - 1L, source)
                 }
                 StatsBetViewCache(key, current, previous)
@@ -1339,28 +1363,29 @@ class MainActivity : Activity() {
     }
 
     private fun betStatsDate(bet: StatsBetInput): Long? {
-        val rawDay = bet.betDay.takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
-        val raw = rawDay ?: bet.date.takeIf { it.isNotBlank() } ?: return bet.createdAt.takeIf { it > 0L }
-        return try {
-            val fmt = if (raw.length == 10) SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                else SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-            fmt.isLenient = false
-            if (raw.length != 10) fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
-            fmt.parse(raw.take(if (raw.length == 10) 10 else 19))?.time
-        } catch (_: Exception) { bet.createdAt.takeIf { it > 0L } }
+        // Report periods are defined by the fixture date, never by bet creation/entry date.
+        return StatsPredictionScope.matchDateMillis(bet.date)
     }
 
     private fun statsPeriodBounds(period: String, now: Long = System.currentTimeMillis()): Pair<Long, Long> {
-        val cal = java.util.Calendar.getInstance().apply { timeInMillis = now }
-        val end = cal.timeInMillis
+        // Use complete UTC fixture dates: WEEK is today plus the six preceding calendar days.
+        val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"), Locale.US).apply {
+            timeInMillis = now
+            set(java.util.Calendar.HOUR_OF_DAY, 0)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+        val from = cal.timeInMillis
         when (period) {
-            "WEEK" -> cal.add(java.util.Calendar.DAY_OF_YEAR, -7)
+            "WEEK" -> cal.add(java.util.Calendar.DAY_OF_YEAR, -6)
             "MONTH" -> cal.add(java.util.Calendar.MONTH, -1)
             "QUARTER" -> cal.add(java.util.Calendar.MONTH, -3)
             "HALF" -> cal.add(java.util.Calendar.MONTH, -6)
             "YEAR" -> cal.add(java.util.Calendar.YEAR, -1)
-            else -> return 0L to end
+            else -> return 0L to (from + java.util.concurrent.TimeUnit.DAYS.toMillis(1) - 1L)
         }
+        val end = from + java.util.concurrent.TimeUnit.DAYS.toMillis(1) - 1L
         return cal.timeInMillis to end
     }
 
@@ -1475,7 +1500,9 @@ class MainActivity : Activity() {
         // Including bounds.first (which contains the current time down to milliseconds)
         // caused every render to invalidate a calculation that had just completed.
         val key = listOf(selectedStatsPeriod, selectedStatsSource,
-            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now))).joinToString("|")
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }.format(Date(now))).joinToString("|")
         val cached = statsBetViewCache
         if (cached?.key != key) {
             val loading = terminalSection(matchesContainer, "РАСЧЁТ АНАЛИТИКИ", "СБОР ДАННЫХ → ПРОВЕРКА → РАСЧЁТ")
@@ -1576,7 +1603,33 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>): List<StatsMetricRow> {
+    private fun emptyPredictionMetrics(source: String): List<StatsMetricRow> {
+        val labels = listOf(
+            "1X · хозяева победят ИЛИ будет ничья",
+            "X2 · гости победят ИЛИ будет ничья",
+            "ИТБ 1.5 · хозяева",
+            "ИТБ 1.5 · гости",
+            "ТБ 2.5 · всего минимум 3 гола",
+            "ОЗ — да",
+            "ИТБ 0.5 · хозяева",
+            "ИТБ 0.5 · гости"
+        )
+        val bands = if (source == "TOP") listOf("60–69%", "70–79%", "80%+")
+            else listOf("50–59%", "60–69%", "70–79%", "80%+")
+        return labels.map { name ->
+            StatsMetricRow(name, 0, 0, Double.NaN, Double.NaN,
+                bands.map { StatsBandRow(it, 0, 0) })
+        }
+    }
+
+    private fun evaluationMatchDayMillis(match: JSONObject): Long? {
+        val raw = match.optString("utcDate").ifBlank {
+            match.optString("dateEvent").ifBlank { match.optString("date") }
+        }
+        return StatsPredictionScope.matchDateMillis(raw)
+    }
+
+    private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>, from: Long, to: Long): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
         val evaluatedMatches = json.optJSONArray("evaluationMatches")
         fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
@@ -1590,6 +1643,8 @@ class MainActivity : Activity() {
             if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
                 val m = evaluatedMatches.optJSONObject(i) ?: continue
                 if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                val matchDay = evaluationMatchDayMillis(m) ?: continue
+                if (matchDay !in from..to) continue
                 val marketKey = key
                 val matchId = m.optString("id")
                 if (!StatsPredictionScope.includes(source, matchId, marketKey, topSelections)) continue
@@ -1612,12 +1667,17 @@ class MainActivity : Activity() {
                 brier += (probability - y) * (probability - y)
                 logLoss += -(y * kotlin.math.ln(probability) + (1.0 - y) * kotlin.math.ln(1.0 - probability))
             }
-            if (n > 0) {
-                val labels = if (topOnly) listOf("60–69%", "70–79%", "80%+") else
-                    listOf("50–59%", "60–69%", "70–79%", "80%+")
-                val bands = labels.indices.map { StatsBandRow(labels[it], bandCounts[it], bandHits[it]) }
-                metrics.add(StatsMetricRow(title, n, hits, brier / n, logLoss / n, bands))
-            }
+            // Keep every active market visible in both ALL and TOP, even when
+            // the selected TOP archive has no observations for a particular market.
+            val labels = if (topOnly) listOf("60–69%", "70–79%", "80%+") else
+                listOf("50–59%", "60–69%", "70–79%", "80%+")
+            val bands = labels.indices.map { StatsBandRow(labels[it], bandCounts[it], bandHits[it]) }
+            metrics.add(StatsMetricRow(
+                title, n, hits,
+                if (n > 0) brier / n else Double.NaN,
+                if (n > 0) logLoss / n else Double.NaN,
+                bands
+            ))
         }
         collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h, a -> h >= a })
         collect("x2", "X2 · гости победят ИЛИ будет ничья", { h, a -> a >= h })
@@ -1664,12 +1724,14 @@ class MainActivity : Activity() {
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
-    private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>): String {
-        // Include category and its exact TOP selection set: switching tabs or changing saved
-        // TOP bets must never reuse a prediction summary calculated for another scope.
+    private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>, period: String): String {
+        // Prediction metrics depend on source, TOP archive, feed version and selected match-date period.
         val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",") else "ALL"
+        val utcDay = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }.format(Date())
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
-            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + scopeSignature
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + period + "|" + utcDay + "|" + scopeSignature
     }
 
 
@@ -1685,7 +1747,7 @@ class MainActivity : Activity() {
         }
         val source = selectedStatsSource
         val topSelections = topPredictionSelections()
-        val statsKey = statsPredictionCacheKey(json, source, topSelections)
+        val statsKey = statsPredictionCacheKey(json, source, topSelections, selectedStatsPeriod)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
@@ -1695,11 +1757,11 @@ class MainActivity : Activity() {
                 thread(name = "stats-metrics-calculation") {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
-                        calculateStatsMetrics(json, source, topSelections).also { statsMetricsError = null }
+                        calculateStatsMetrics(json, source, topSelections, statsPeriodBounds(selectedStatsPeriod).first, statsPeriodBounds(selectedStatsPeriod).second).also { statsMetricsError = null }
                     } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
-                        emptyList()
+                        emptyPredictionMetrics(source)
                     }
                     runOnUiThread {
                         statsMetricsCache = calculated
@@ -1716,7 +1778,7 @@ class MainActivity : Activity() {
             }
             return
         }
-        val metrics = statsMetricsCache
+        val metrics = statsMetricsCache.ifEmpty { emptyPredictionMetrics(source) }
         val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
         val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
         if (metrics.isEmpty()) {
@@ -1728,13 +1790,17 @@ class MainActivity : Activity() {
             } else {
                 empty.addView(label("Архив проверенных прогнозов пока формируется. Матч попадёт в статистику после фиксации прогноза до начала игры и получения подтверждённого итогового счёта.", 11, false, muted))
             }
-        } else metrics.forEach { metric ->
+        } else {
+            if (metrics.none { it.n > 0 }) {
+                addText(overallHeading, "Пока нет завершённых прогнозов в выбранной выборке. Все восемь активных рынков показаны ниже и начнут заполняться после подтверждения результатов.", 11, false, muted)
+            }
+            metrics.forEach { metric ->
             val box = terminalSection(matchesContainer, metric.name, "ВЫБОРКА: ${metric.n} ЗАВЕРШЁННЫХ МАТЧЕЙ")
-            val hitRate = metric.hits * 100.0 / metric.n
+            val hitRate = if (metric.n > 0) metric.hits * 100.0 / metric.n else Double.NaN
             val summaryRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(summaryRow, "ПОПАДАНИЯ", "${metric.hits} / ${metric.n}", Color.WHITE)
-            terminalMetric(summaryRow, "ТОЧНОСТЬ", String.format(Locale.US, "%.1f%%", hitRate),
-                if (hitRate >= 50.0) accent else gold)
+            terminalMetric(summaryRow, "ТОЧНОСТЬ", if (hitRate.isFinite()) String.format(Locale.US, "%.1f%%", hitRate) else "—",
+                if (hitRate.isFinite() && hitRate >= 50.0) accent else muted)
             box.addView(summaryRow)
             box.addView(label("ТОЧНОСТЬ ПО УРОВНЮ УВЕРЕННОСТИ", 9, true, cyan).apply {
                 typeface = Typeface.MONOSPACE
@@ -1761,10 +1827,22 @@ class MainActivity : Activity() {
                     bottomMargin = dp(5)
                 })
             }
-            val qualityRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            terminalMetric(qualityRow, "ОЦЕНКА БРАЙЕРА", String.format(Locale.US, "%.4f", metric.brier), Color.WHITE)
-            terminalMetric(qualityRow, "ЛОГ. ПОТЕРЯ", String.format(Locale.US, "%.4f", metric.logLoss), Color.WHITE)
-            box.addView(qualityRow)
+            val scoreRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(scoreRow, "ОЦЕНКА БРАЙЕРА", if (metric.brier.isFinite()) String.format(Locale.US, "%.4f", metric.brier) else "—", if (metric.brier.isFinite()) Color.WHITE else muted)
+            terminalMetric(scoreRow, "ЛОГ. ПОТЕРЯ", if (metric.logLoss.isFinite()) String.format(Locale.US, "%.4f", metric.logLoss) else "—", if (metric.logLoss.isFinite()) Color.WHITE else muted)
+            box.addView(scoreRow)
+            }
+        }
+        if (metrics.isNotEmpty()) {
+            val archive = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
+            val calculationError = statsMetricsError
+            if (calculationError != null) {
+                archive.addView(label("Сводка рассчитана с ошибкой; строки рынков сохранены, но показатели временно нулевые. Код: $calculationError", 11, true, gold))
+            } else if (metrics.none { it.n > 0 }) {
+                archive.addView(label("За выбранный период нет завершённых прогнозов, подходящих под выбранный источник. Матч учитывается по дате матча после подтверждения итогового счёта.", 11, false, muted))
+            } else {
+                archive.addView(label("В статистику включены завершённые прогнозы за выбранный период по дате матча.", 11, false, muted))
+            }
         }
     }
 
@@ -2494,7 +2572,10 @@ class MainActivity : Activity() {
         } else available
         val positiveValue = eligible.filter { it.optDouble("lineExpectedValue", -1.0) > 0.0 }
         return if (positiveValue.isNotEmpty()) {
-            positiveValue.maxByOrNull { it.optDouble("lineKellyFraction", Double.NEGATIVE_INFINITY) }
+            val ranking = positiveValue.map {
+                it.optDouble("modelProbability", Double.NaN) to it.optDouble("lineOdds", Double.NaN)
+            }
+            positiveValue[TopSignalRanking.bestIndex(ranking) ?: 0]
         } else {
             eligible.maxByOrNull { it.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }
         }
@@ -3366,7 +3447,7 @@ class MainActivity : Activity() {
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · СИГНАЛЫ ТОП", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
-        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена MelBet. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Риск: ${stakeRuleDescription()} Разные рынки одного матча разрешены, повтор того же рынка блокируется; дневного лимита нет. Пауза при просадке 10%, остановка при 20%.", 11, false, muted)
+        addText(summary, "Допуск: p модели ≥60%, преимущество над break-even ≥5 п.п., EV ≥5% и реальная цена MelBet. Фильтра давности в 5 минут нет; бумажная запись не является реальной ставкой. Финансовые лимиты риска не применяются: нет ограничений по просадке, дневной/матчевой экспозиции или максимальной доле ставки. Сумма бумажной ставки задаётся пользователем. Разные рынки одного матча разрешены; повтор того же рынка блокируется.", 11, false, muted)
         if (sorted.isEmpty()) {
             val empty = card()
             addText(empty, "Нет матчей, одновременно прошедших фильтр сильнейшего сигнала и коэффициента от 1.50.", 13, true)

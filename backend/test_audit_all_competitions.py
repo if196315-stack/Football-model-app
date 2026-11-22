@@ -1,6 +1,6 @@
 import sys
 import unittest
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -12,6 +12,8 @@ class EightCompetitionAuditTests(unittest.TestCase):
                 "home": "Alpha", "away": "Beta",
                 "prediction": {"1x": 0.60},
                 "odds": {"bookmaker": "MELBET", "source": "API-Sport / MelBet",
+                         "prematchActive": True, "freshnessStatus": "fresh",
+                         "updatedAt": datetime.now(timezone.utc).isoformat(),
                          "best": {"doubleChance": {"1x": 2.0}}}}
 
     def test_combines_five_domestic_and_three_uefa_competitions(self):

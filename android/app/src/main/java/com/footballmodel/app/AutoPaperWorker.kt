@@ -43,10 +43,16 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             AiMatchNotifications.observe(applicationContext, newTopCandidates)
             // Persist the combined feed so MainActivity can restore background updates on launch.
             val mergedPayload = domestic.toString()
+            val cachedMerged = FeedCacheStore.read(applicationContext.filesDir, "merged_json")
+            if (cachedMerged != mergedPayload) {
+                check(FeedCacheStore.write(applicationContext.filesDir, "merged_json", mergedPayload)) {
+                    "Unable to persist refreshed match feed"
+                }
+            }
             check(feedCache.edit()
-                .putString("merged_json", mergedPayload)
+                .remove("merged_json")
                 .putLong("last_successful_check_ms", System.currentTimeMillis())
-                .commit()) { "Unable to persist refreshed match feed" }
+                .commit()) { "Unable to persist refreshed match metadata" }
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
@@ -137,15 +143,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     }
 
     private fun mergeUefa(target: JSONObject, uefa: JSONObject) {
-        val dest = target.optJSONArray("competitions") ?: JSONArray().also { target.put("competitions", it) }
-        val src = uefa.optJSONArray("competitions") ?: return
-        for (i in 0 until src.length()) {
-            val comp = src.optJSONObject(i) ?: continue
-            val code = comp.optString("code")
-            if (code != "UCL" && code != "UEL" && code != "UECL") continue
-            for (j in dest.length() - 1 downTo 0) if (dest.optJSONObject(j)?.optString("code") == code) dest.remove(j)
-            dest.put(comp)
-        }
+        FeedMerger.mergeUefa(target, uefa)
     }
 
     private fun collectAiNotificationCandidates(feed: JSONObject): List<Pair<String, String>> {
@@ -183,32 +181,29 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val matchId = match.optString("id").ifBlank {
                     listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
                 }
-                val signals = allTopSignals(prediction, match, code)
-                for (signal in signals) {
-                    if (signal.optBoolean("noPositiveSignal") ||
-                        signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
-                    val price = priceFor(signal, match) ?: continue
-                    if (price < 1.50) continue
+                // Notify for the same single market that the foreground TOP screen
+                // ranks first. Select before checking saved bets; otherwise a lower-ranked
+                // alternative could trigger a notification while the UI hides that match.
+                val ranked = allTopSignals(prediction, match, code).mapNotNull { signal ->
+                    val price = priceFor(signal, match) ?: return@mapNotNull null
                     val probability = signal.optDouble("modelProbability", Double.NaN)
-                    val ev = probability * price - 1.0
-                    val edgePp = if (signal.optBoolean("paperOnly")) {
-                        signal.optDouble("edgePp", Double.NaN)
-                    } else {
-                        (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
-                    }
-                    if (!probability.isFinite() || probability < 0.60 ||
-                        !edgePp.isFinite() || edgePp < 5.0 || !ev.isFinite() || ev < 0.05) continue
-                    val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
-                    val alreadyRecorded = (0 until savedBets.length()).any { index ->
-                        val bet = savedBets.optJSONObject(index) ?: return@any false
-                        bet.optString("matchId") == matchId &&
-                            bet.optString("marketKey") == signalMarketKey &&
-                            bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
-                    }
-                    if (alreadyRecorded) continue
-                    val title = "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
-                    matchesFound.add("${matchId}::${signalMarketKey}" to title)
+                    Triple(signal, price, probability)
                 }
+                val selectedIndex = TopSignalRanking.bestIndex(ranked.map { it.third to it.second }) ?: continue
+                val signal = ranked[selectedIndex].first
+                val price = ranked[selectedIndex].second
+                if (signal.optBoolean("noPositiveSignal") ||
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) || price < 1.50) continue
+                val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
+                val alreadyRecorded = (0 until savedBets.length()).any { index ->
+                    val bet = savedBets.optJSONObject(index) ?: return@any false
+                    bet.optString("matchId") == matchId &&
+                        bet.optString("marketKey") == signalMarketKey &&
+                        bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+                }
+                if (alreadyRecorded) continue
+                val title = "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
+                matchesFound.add("${matchId}::${signalMarketKey}" to title)
             }
         }
         return matchesFound
@@ -238,7 +233,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
             }
         }
-        if (code == "UCL" || code == "UEL" || code == "UECL") {
+        // Match the foreground selector: legacy paper signals are a fallback
+        // only when the model feed supplied no market candidates at all.
+        if (candidates.isEmpty() && (code == "UCL" || code == "UEL" || code == "UECL")) {
             uefaSignal(match)?.let { candidates.add(it) }
         }
         return candidates.distinctBy { it.optString("side").trim().lowercase(Locale.ROOT) }

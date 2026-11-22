@@ -16,6 +16,19 @@ class BetAnalyticsCalculatorTest {
         marketKey: String = if (coupon) "COUPON" else "over25"
     ) = AnalyticsBet(id, day, source, status, stake, odds, "Over 2.5", "League A", coupon, topSignal, marketKey)
 
+    @Test fun reportPeriodIncludesOnlyRecordsWhoseFixtureDateIsWithinBounds() {
+        val report = BetAnalyticsCalculator.calculate(listOf(
+            bet("before", day = 999L, status = "WON"),
+            bet("start", day = 1_000L, status = "WON"),
+            bet("inside", day = 5_000L, status = "LOST"),
+            bet("end", day = 10_000L, status = "WON"),
+            bet("after", day = 10_001L, status = "WON")
+        ), 1_000L, 10_000L, source = "ALL")
+        assertEquals(3, report.overall.settled)
+        assertEquals(30.0, report.overall.turnover, 0.0001)
+        assertEquals(10.0, report.overall.profit, 0.0001)
+    }
+
     @Test fun activeMarketRulesMatchTheEightMarketsShownInTheApp() {
         listOf("1x", "x2", "bttsYes", "over25", "homeOver05", "homeOver15", "awayOver05", "awayOver15")
             .forEach { assertEquals(true, ActiveMarketRules.contains(it)) }
