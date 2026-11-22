@@ -963,10 +963,30 @@ class MainActivity : Activity() {
                         val uefaEvaluations = uefa.optJSONArray("evaluationMatches")
                         if (uefaEvaluations != null) for (i in 0 until uefaEvaluations.length()) {
                             val row = uefaEvaluations.optJSONObject(i) ?: continue
-                            val key = row.optString("leagueCode") + ":" + row.optString("id")
+                            val leagueKey = row.optString("leagueCode").ifBlank { row.optString("league") }
+                            val key = leagueKey + ":" + row.optString("id")
                             if (key !in knownEvaluationIds) {
                                 combinedEvaluations.put(row)
                                 knownEvaluationIds.add(key)
+                            }
+                        }
+                        // Some UEFA feed versions publish the immutable predictionArchive
+                        // before materializing evaluationMatches. Read finished archive rows
+                        // directly as well, so every UEFA match can join model analytics.
+                        val archiveMatches = uefa.optJSONObject("predictionArchive")?.optJSONObject("matches")
+                        if (archiveMatches != null) {
+                            val archiveKeys = archiveMatches.keys()
+                            while (archiveKeys.hasNext()) {
+                                val archiveRow = archiveMatches.optJSONObject(archiveKeys.next()) ?: continue
+                                if (archiveRow.optString("status") != "FINISHED" ||
+                                    archiveRow.isNull("homeScore") || archiveRow.isNull("awayScore") ||
+                                    archiveRow.optJSONObject("prediction") == null) continue
+                                val leagueKey = archiveRow.optString("leagueCode").ifBlank { archiveRow.optString("league") }
+                                val key = leagueKey + ":" + archiveRow.optString("id")
+                                if (key !in knownEvaluationIds) {
+                                    combinedEvaluations.put(JSONObject(archiveRow.toString()).put("leagueCode", leagueKey))
+                                    knownEvaluationIds.add(key)
+                                }
                             }
                         }
                         json.put("evaluationMatches", combinedEvaluations)
