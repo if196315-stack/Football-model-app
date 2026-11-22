@@ -961,36 +961,7 @@ class MainActivity : Activity() {
                 if (!uefaBody.isNullOrBlank()) {
                     try {
                         val uefa = JSONObject(uefaBody)
-                        val target = json.optJSONArray("competitions") ?: JSONArray().also { json.put("competitions", it) }
-                        val extra = uefa.optJSONArray("competitions")
-                        if (extra != null) for (i in 0 until extra.length()) {
-                            val competition = extra.optJSONObject(i) ?: continue
-                            val code = competition.optString("code")
-                            if (code == "UCL" || code == "UEL" || code == "UECL") {
-                                for (j in target.length() - 1 downTo 0) {
-                                    if (target.optJSONObject(j)?.optString("code") == code) target.remove(j)
-                                }
-                                target.put(competition)
-                            }
-                        }
-                        // Merge immutable UEFA forecast evaluations into the shared Stats dataset.
-                        val combinedEvaluations = json.optJSONArray("evaluationMatches") ?: JSONArray()
-                        val knownEvaluationIds = mutableSetOf<String>()
-                        for (i in 0 until combinedEvaluations.length()) {
-                            val row = combinedEvaluations.optJSONObject(i) ?: continue
-                            knownEvaluationIds.add(row.optString("leagueCode") + ":" + row.optString("id"))
-                        }
-                        val uefaEvaluations = uefa.optJSONArray("evaluationMatches")
-                        if (uefaEvaluations != null) for (i in 0 until uefaEvaluations.length()) {
-                            val row = uefaEvaluations.optJSONObject(i) ?: continue
-                            val key = row.optString("leagueCode") + ":" + row.optString("id")
-                            if (key !in knownEvaluationIds) {
-                                combinedEvaluations.put(row)
-                                knownEvaluationIds.add(key)
-                            }
-                        }
-                        json.put("evaluationMatches", combinedEvaluations)
-                        json.put("uefaEvaluationUpdatedAt", uefa.optString("updatedAt"))
+                        FeedMerger.mergeUefa(json, uefa)
                     } catch (_: Exception) {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
