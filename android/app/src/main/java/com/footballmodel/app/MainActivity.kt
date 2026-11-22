@@ -1024,6 +1024,7 @@ class MainActivity : Activity() {
         // to construct their content.
         renderTabs()
         UiMotion.animateVisibility(lineHeadingView, tab == "matches", dp(6).toFloat())
+        UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
         if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
@@ -1727,7 +1728,7 @@ class MainActivity : Activity() {
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
-                            lineHeadingView.visibility = View.GONE
+                            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
@@ -3309,9 +3310,9 @@ class MainActivity : Activity() {
                         openSignalsCount = (openSignalsCount - 1).coerceAtLeast(0)
                         openIntroCountView.text = "НОВЫЕ СИГНАЛЫ · $openSignalsCount"
                         val stillOpenInMatch = statusViews.keys.count { it !== signal && !isAiBetRecorded(match, it) }
-                        if (stillOpenInMatch == 0) box.visibility = View.GONE
+                        if (stillOpenInMatch == 0) UiMotion.animateVisibility(box, false, dp(6).toFloat())
                         if (openSignalsCount == 0) {
-                            emptyOpenCard?.visibility = View.VISIBLE
+                            emptyOpenCard?.let { UiMotion.animateVisibility(it, true, dp(6).toFloat()) }
                         }
                         tabViewCache.remove("desk|OPEN")
                     }
@@ -3451,14 +3452,14 @@ class MainActivity : Activity() {
         statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
         renderTabs()
         if (currentTab == "matches") renderLeagueTabs()
-        leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+        UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
         val cached = tabViewCache[targetKey]
         if (cached != null) {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
-            leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+            UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
             renderedKey = targetKey
             mainScrollView.post {
                 if (renderedKey == targetKey) {
@@ -3477,33 +3478,33 @@ class MainActivity : Activity() {
         }
 
         if (currentTab == "day") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderDay(json)
             return
         }
         if (currentTab == "notifications") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderNotificationCenter(json)
             renderDailyInsights(json)
             return
         }
         if (currentTab == "desk") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBetHistory(json)
             return
         }
         if (currentTab == "stats") {
-            leagueBar.visibility = View.GONE
-            lineHeadingView.visibility = View.GONE
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
             try {
                 renderStats(json)
             } catch (error: Throwable) {
@@ -3516,12 +3517,12 @@ class MainActivity : Activity() {
             }
             return
         } else if (currentTab == "help") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderHelp()
             return
         } else {
-            lineHeadingView.visibility = View.VISIBLE
+            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
             leagueBar.visibility = View.VISIBLE
         }
 
