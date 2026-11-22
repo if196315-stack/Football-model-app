@@ -50,10 +50,6 @@ internal data class AnalyticsBreakdown(
 
 internal data class BetAnalyticsReport(
     val overall: AnalyticsSlice,
-    val singles: AnalyticsSlice,
-    val coupons: AnalyticsSlice,
-    val manual: AnalyticsSlice,
-    val ai: AnalyticsSlice,
     val byMarket: List<AnalyticsBreakdown>,
     val byLeague: List<AnalyticsBreakdown>,
     val byOdds: List<AnalyticsBreakdown>,
@@ -70,9 +66,9 @@ internal data class BetAnalyticsReport(
 )
 
 internal object BetAnalyticsCalculator {
-    fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "TOP"): BetAnalyticsReport {
+    fun calculate(records: List<AnalyticsBet>, from: Long, to: Long): BetAnalyticsReport {
         val ignoredAuto = records.count { it.source.equals("AI_AUTO", true) }
-        val inPeriod = records.filter { !it.source.equals("AI_AUTO", true) && it.dayMillis in from..to && sourceMatches(it, source) }
+        val inPeriod = records.filter { !it.source.equals("AI_AUTO", true) && it.dayMillis in from..to && isTopRecord(it) }
         val unique = LinkedHashMap<String, AnalyticsBet>()
         inPeriod.forEachIndexed { index, bet ->
             val key = bet.id.ifBlank { "${bet.dayMillis}|${bet.source}|${bet.status}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}|${bet.isCoupon}" }
@@ -85,11 +81,7 @@ internal object BetAnalyticsCalculator {
             it.odds.isFinite() && it.odds > 1.0 }
         val invalid = scoped.size - valid.size
         val overall = summarize(valid)
-        val singlesRecords = valid.filterNot { it.isCoupon }
-        val couponRecords = valid.filter { it.isCoupon }
-        val manualRecords = singlesRecords.filter { it.source != "AI_MANUAL" }
-        val aiRecords = singlesRecords.filter { it.source == "AI_MANUAL" }
-        val market = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
+        val market = breakdown(valid.filter { it.status != "PENDING" }) {
             it.market.ifBlank { it.marketKeyFallback() }
         }
         val league = breakdown(valid.filter { it.status != "PENDING" }) {
@@ -113,10 +105,6 @@ internal object BetAnalyticsCalculator {
         val drawdown = drawdown(overall.points)
         return BetAnalyticsReport(
             overall = overall,
-            singles = summarize(singlesRecords),
-            coupons = summarize(couponRecords),
-            manual = summarize(manualRecords),
-            ai = summarize(aiRecords),
             byMarket = market,
             byLeague = league,
             byOdds = odds,
@@ -133,14 +121,10 @@ internal object BetAnalyticsCalculator {
         )
     }
 
-    private fun sourceMatches(bet: AnalyticsBet, source: String): Boolean = when (source) {
-        "TOP" -> !bet.isCoupon && (
+    private fun isTopRecord(bet: AnalyticsBet): Boolean =
+        !bet.isCoupon && (
             bet.source.equals("AI_MANUAL", true) || bet.isTopSignal
         )
-        "AI" -> bet.source.equals("AI_MANUAL", true)
-        "MANUAL" -> bet.source.equals("MANUAL", true) && bet.isTopSignal
-        else -> true
-    }
 
     private fun summarize(records: List<AnalyticsBet>): AnalyticsSlice {
         var wins = 0; var losses = 0; var pushes = 0; var pending = 0
