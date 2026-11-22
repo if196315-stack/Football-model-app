@@ -183,32 +183,29 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val matchId = match.optString("id").ifBlank {
                     listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
                 }
-                val signals = allTopSignals(prediction, match, code)
-                for (signal in signals) {
-                    if (signal.optBoolean("noPositiveSignal") ||
-                        signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
-                    val price = priceFor(signal, match) ?: continue
-                    if (price < 1.50) continue
+                // Notify for the same single market that the foreground TOP screen
+                // ranks first. Select before checking saved bets; otherwise a lower-ranked
+                // alternative could trigger a notification while the UI hides that match.
+                val ranked = allTopSignals(prediction, match, code).mapNotNull { signal ->
+                    val price = priceFor(signal, match) ?: return@mapNotNull null
                     val probability = signal.optDouble("modelProbability", Double.NaN)
-                    val ev = probability * price - 1.0
-                    val edgePp = if (signal.optBoolean("paperOnly")) {
-                        signal.optDouble("edgePp", Double.NaN)
-                    } else {
-                        (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
-                    }
-                    if (!probability.isFinite() || probability < 0.60 ||
-                        !edgePp.isFinite() || edgePp < 5.0 || !ev.isFinite() || ev < 0.05) continue
-                    val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
-                    val alreadyRecorded = (0 until savedBets.length()).any { index ->
-                        val bet = savedBets.optJSONObject(index) ?: return@any false
-                        bet.optString("matchId") == matchId &&
-                            bet.optString("marketKey") == signalMarketKey &&
-                            bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
-                    }
-                    if (alreadyRecorded) continue
-                    val title = "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
-                    matchesFound.add("${matchId}::${signalMarketKey}" to title)
+                    signal to price to probability
+                }.map { triple -> Triple(triple.first.first, triple.first.second, triple.second) }
+                val selectedIndex = TopSignalRanking.bestIndex(ranked.map { it.third to it.second }) ?: continue
+                val signal = ranked[selectedIndex].first
+                val price = ranked[selectedIndex].second
+                if (signal.optBoolean("noPositiveSignal") ||
+                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) || price < 1.50) continue
+                val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
+                val alreadyRecorded = (0 until savedBets.length()).any { index ->
+                    val bet = savedBets.optJSONObject(index) ?: return@any false
+                    bet.optString("matchId") == matchId &&
+                        bet.optString("marketKey") == signalMarketKey &&
+                        bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
                 }
+                if (alreadyRecorded) continue
+                val title = "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
+                matchesFound.add("${matchId}::${signalMarketKey}" to title)
             }
         }
         return matchesFound
@@ -238,7 +235,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
             }
         }
-        if (code == "UCL" || code == "UEL" || code == "UECL") {
+        // Match the foreground selector: legacy paper signals are a fallback
+        // only when the model feed supplied no market candidates at all.
+        if (candidates.isEmpty() && (code == "UCL" || code == "UEL" || code == "UECL")) {
             uefaSignal(match)?.let { candidates.add(it) }
         }
         return candidates.distinctBy { it.optString("side").trim().lowercase(Locale.ROOT) }
