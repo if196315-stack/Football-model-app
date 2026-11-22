@@ -69,7 +69,7 @@ UECL входит в активную модель, сбор коэффицие�
 - `artifacts/market-observation-results.jsonl` и UEFA paper-архивы — результаты наблюдений и paper-сигналов.
 - Архивы наблюдений собираются и рассчитываются GitHub Actions на стороне backend; Android-клиент их не загружает и не показывает. Историю можно отдельно анализировать по архивным JSONL-файлам.
 - `backend/diagnose_api_sport.py` — read-only диагностика доступности API-Sport, квоты и MelBet-рынков.
-- `backend/refresh_match_results_api_sport.py` — быстрый read-only к odds сборщику канал обновления статуса/счёта API-Sport для двух Android feed; не меняет прогнозы и eligibility MelBet.
+- `backend/refresh_match_results_api_sport.py` — отдельный канал обновления статуса и счёта API-Sport для двух Android feed; не меняет прогнозы и правила допуска по MelBet.
 - `backend/diagnose_uecl_api_sport_coverage.py` — read-only сравнение полного предстоящего календаря UECL с API-Sport; отдельно считает сопоставленные матчи, любые букмекерские доски и MelBet. Низкое покрытие odds не трактуется как неполнота календаря.
 - `backend/backtest_pitchapi.py` — воспроизводимый хронологический backtest национального xG-контура.
 - `backend/backtest_all_markets.py` — offline walk-forward оценка 15 независимых рынков для всех семи соревнований, сравнение с expanding-frequency baseline и paired bootstrap CI для калибровки; DNB labels помечены как дублирующие 1X2.
