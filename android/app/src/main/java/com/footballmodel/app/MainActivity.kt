@@ -1524,6 +1524,7 @@ class MainActivity : Activity() {
             }
             controls.addView(row)
         }
+        // The source toggle scopes the complete betting report, not just one summary card.
         val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         listOf("ALL" to "ВСЕ", "TOP" to "ТОП").forEach { option ->
             val active = selectedStatsSource == option.first
