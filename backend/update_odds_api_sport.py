@@ -202,7 +202,7 @@ def parse_odds(m):
     book_rows=[]
     # MelBet is the single reference bookmaker; never mix other prices.
     melbet=(m.get("oddsBk") or {}).get("melbet")
-    # Match UEFA eligibility: an explicitly inactive prematch board is not
+    # Match eligibility: an explicitly inactive prematch board is not
     # usable even if stale/open market objects remain in the provider payload.
     if isinstance(melbet, dict):
         active_by_stage = melbet.get("isBettingActiveByStage") or {}
