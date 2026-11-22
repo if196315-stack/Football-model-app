@@ -1,4 +1,4 @@
-name: Capture UEFA MelBet odds snapshots
+name: Capture unified MelBet odds snapshots
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
       - "backend/collect_uefa_melbet_snapshots.py"
       - "backend/refresh_pitchapi_uefa_fixtures.py"
       - "backend/build_uefa_app_feed.py"
+      - "backend/apply_melbet_snapshots.py"
       - "backend/predict_uefa_markets.py"
       - "backend/update_odds_api_sport.py"
       - ".github/workflows/collect-uefa-melbet-snapshots.yml"
@@ -27,7 +28,7 @@ on:
     - cron: "23 */3 * * *"
 
 concurrency:
-  group: football-uefa-data-write
+  group: football-domestic-data-write
   cancel-in-progress: false
 
 permissions:
@@ -54,6 +55,15 @@ jobs:
           key: pitchapi-uefa-fixtures-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             pitchapi-uefa-fixtures-v1-${{ runner.os }}-
+      - name: Restore domestic PitchAPI xG cache
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-
+      - name: Require domestic PitchAPI history cache
+        run: test -s backend/cache/pitchapi_history.json
       - name: Install dependencies
         run: python -m pip install requests
       - name: Backfill all available UEFA fixture seasons
@@ -85,7 +95,13 @@ jobs:
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
         run: python backend/update_uefa_xg_history.py
-      - name: Capture timestamped MelBet market quotes
+      - name: Migrate legacy UEFA snapshot archive to the shared archive
+        run: |
+          if [ -f artifacts/uefa-melbet-odds-snapshots.jsonl ]; then
+            cat artifacts/uefa-melbet-odds-snapshots.jsonl >> artifacts/all-eight-competitions-melbet-snapshots.jsonl
+            rm artifacts/uefa-melbet-odds-snapshots.jsonl
+          fi
+      - name: Capture MelBet snapshots for all eight competitions
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/collect_uefa_melbet_snapshots.py
@@ -93,15 +109,18 @@ jobs:
         run: python backend/evaluate_uefa_paper_signals.py
       - name: Settle paper bets whose matches have finished
         run: python backend/settle_uefa_paper_bets.py
+      - name: Apply fresh MelBet snapshots to domestic competitions
+        run: python backend/apply_melbet_snapshots.py
       - name: Build UEFA competitions for the Android match centre
         run: python backend/build_uefa_app_feed.py
-      - name: Commit immutable UEFA odds history
+      - name: Commit unified MelBet snapshot history and UEFA evaluation data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f artifacts/uefa-melbet-odds-snapshots.jsonl ]; then
-            git add artifacts/uefa-melbet-odds-snapshots.jsonl
+          if [ -f artifacts/all-eight-competitions-melbet-snapshots.jsonl ]; then
+            git add artifacts/all-eight-competitions-melbet-snapshots.jsonl
           fi
+          git add -u artifacts/uefa-melbet-odds-snapshots.jsonl 2>/dev/null || true
           if [ -f artifacts/uefa-xg-history.json ]; then
             git add artifacts/uefa-xg-history.json
           fi
@@ -116,6 +135,9 @@ jobs:
           fi
           if [ -f docs/uefa-data.json ]; then
             git add docs/uefa-data.json
+          fi
+          if [ -f docs/data.json ]; then
+            git add docs/data.json
           fi
           git diff --cached --quiet || git commit -m "Capture UEFA MelBet odds snapshots"
           git pull --rebase origin main

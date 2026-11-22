@@ -323,6 +323,40 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual(quote["bookmakers"], [])
 
 
+    def test_parse_odds_marks_only_explicitly_active_prematch_board_as_active(self):
+        active = {"id": 700, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "isBettingActiveByStage": {"prematch": True},
+            "markets": {"double_chance": {
+                "status": "open", "stage": "prematch",
+                "stakes": {"1x": {"factor": 1.8}}
+            }}
+        }}}
+        inferred_active = {"id": 701, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "markets": {"double_chance": {
+                "status": "open", "stage": "prematch",
+                "stakes": {"1x": {"factor": 1.8}}
+            }}
+        }}}
+        unknown = {"id": 702, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000}, "markets": {}
+        }}}
+        inactive = {"id": 703, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "isBettingActiveByStage": {"prematch": False},
+            "markets": {"double_chance": {
+                "status": "open", "stage": "prematch",
+                "stakes": {"1x": {"factor": 1.8}}
+            }}
+        }}}
+        self.assertTrue(parse_odds(active)["prematchActive"])
+        self.assertTrue(parse_odds(inferred_active)["prematchActive"])
+        self.assertFalse(parse_odds(unknown)["prematchActive"])
+        self.assertFalse(parse_odds(inactive)["prematchActive"])
+
+
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Capture timestamped MelBet odds for UEFA Champions League, Europa League and Conference League.
+"""Capture timestamped MelBet odds for all five domestic leagues and three UEFA club competitions.
 
 The archive stores only the strategy's supported markets and exact line values.
 It records both capture time and the bookmaker board's source-side prematch update
 timestamp and attaches pre-match probabilities from the UEFA xG/Poisson model
-when a paired-xG history is available.
+when the competition-local paired shot-xG history is available.
 """
 from __future__ import annotations
 
@@ -23,7 +23,8 @@ from predict_uefa_markets import predict_upcoming
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
-ARCHIVE = ROOT / "artifacts" / "uefa-melbet-odds-snapshots.jsonl"
+ARCHIVE = ROOT / "artifacts" / "all-eight-competitions-melbet-snapshots.jsonl"
+DOMESTIC_CACHE = ROOT / "backend" / "cache" / "pitchapi_history.json"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
 LOOKAHEAD_DAYS = 30
@@ -82,7 +83,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
     model_predictions_by_league = Counter()
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
-        if league not in ("UCL", "UEL", "UECL"):
+        if league not in ("UCL", "UEL", "UECL", "ENG", "ESP", "ITA", "GER", "FRA"):
             continue
         if str(match.get("status") or "").casefold() not in ("not_started", "scheduled", "timed"):
             continue
@@ -112,10 +113,9 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         bookmaker_board = (source.get("oddsBk") or {}).get("melbet") or {}
         if bookmaker_board:
             melbet_boards += 1
-        active_by_stage = bookmaker_board.get("isBettingActiveByStage") or {}
-        if active_by_stage.get("prematch") is False:
-            continue
-        if bookmaker_board and active_by_stage.get("prematch") is True:
+        quote = parse_odds(source)
+        prematch_active = quote.get("prematchActive") is True
+        if prematch_active:
             active_prematch_boards += 1
         board_updated_at = _board_timestamp(bookmaker_board)
         try:
@@ -130,7 +130,6 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "clock_skew" if board_age_seconds < -300 else
             "fresh" if board_age_seconds <= MAX_QUOTE_AGE_SECONDS else "stale"
         )
-        quote = parse_odds(source)
         best = quote.get("best") or {}
         if best:
             fixtures_with_selected_markets += 1
@@ -142,10 +141,12 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "freshness_status": freshness_status,
             "source": "API-Sport",
             "bookmaker": "MELBET",
+            "prematch_active": prematch_active,
             "market_parser_version": MARKET_PARSER_VERSION,
             "league_code": league,
             "season": match.get("season"),
-            "fixture_id": str(fixture_id),
+            "fixture_id": str(match.get("sourceFixtureId") or fixture_id),
+            "fixture_namespace": str(match.get("fixtureNamespace") or ("UEFA" if league in ("UCL", "UEL", "UECL") else "DOM")),
             "provider_event_id": str(source.get("id") or ""),
             "kickoff_utc": match.get("date"),
             "home_team": match.get("home"),
@@ -154,7 +155,11 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "model_prediction_time": (prediction or {}).get("predicted_at"),
             "model_history_max_date": (prediction or {}).get("history_max_date"),
         }
-
+        # A status-only row supersedes older active quotes if the board becomes
+        # inactive, has no supported lines, or no longer has a fresh timestamp.
+        if not prematch_active or not best:
+            rows.append({**common, "market": "board_status", "price": None})
+            continue
         for outcome in ("1x", "x2", "12"):
             price = (best.get("doubleChance") or {}).get(outcome)
             is_reference = outcome == "12"
@@ -229,6 +234,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
 
     if diagnostics is not None:
         diagnostics.update({
+            "eligible_supported_upcoming_fixtures_in_cache": eligible_fixtures,
             "eligible_uefa_upcoming_fixtures_in_cache": eligible_fixtures,
             "api_sport_provider_fixtures": len(provider_fixtures),
             "matched_pitchapi_fixtures": matched_fixtures,
@@ -259,24 +265,37 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
         "sort": "asc",
         "page": 1,
     }
-    response = session.get(URL, params=params, headers={"Authorization": api_key}, timeout=60)
-    response.raise_for_status()
-    payload = response.json()
-    fixtures = list(payload) if isinstance(payload, list) else list(payload.get("matches") or [])
-    total_pages = min(int(payload.get("totalPages") or 1), 100) if isinstance(payload, dict) else 1
-    for page in range(2, total_pages + 1):
-        page_params = {**params, "page": page}
-        page_response = session.get(URL, params=page_params,
-                                    headers={"Authorization": api_key}, timeout=60)
-        page_response.raise_for_status()
-        page_payload = page_response.json()
-        fixtures.extend(page_payload if isinstance(page_payload, list)
-                        else page_payload.get("matches") or [])
-    # UEFA competitions are fetched by tournament ID so the odds feed is not
-    # limited to the generic 30-day date window. API-Sport caps date ranges at 31 days.
-    # IDs: Champions League 7, Europa League 679, Conference League 17015.
-    tournament_ids = {"UCL": 7, "UEL": 679, "UECL": 17015}
+    # API-Sport caps date ranges at 31 inclusive days. Fetch the full 180-day
+    # domestic calendar in bounded windows, then add tournament-specific UEFA
+    # queries because some European fixtures are omitted by generic date search.
+    fixtures = []
     final_date = start + timedelta(days=180)
+    cursor = start
+    while cursor <= final_date:
+        window_end = min(cursor + timedelta(days=30), final_date)
+        window_params = {
+            **params,
+            "date_from": cursor.isoformat(),
+            "date_to": window_end.isoformat(),
+        }
+        response = session.get(URL, params=window_params,
+                               headers={"Authorization": api_key}, timeout=60)
+        response.raise_for_status()
+        payload = response.json()
+        fixtures.extend(list(payload) if isinstance(payload, list) else list(payload.get("matches") or []))
+        total_pages = min(int(payload.get("totalPages") or 1), 100) if isinstance(payload, dict) else 1
+        for page in range(2, total_pages + 1):
+            page_params = {**window_params, "page": page}
+            page_response = session.get(URL, params=page_params,
+                                        headers={"Authorization": api_key}, timeout=60)
+            page_response.raise_for_status()
+            page_payload = page_response.json()
+            fixtures.extend(page_payload if isinstance(page_payload, list)
+                            else page_payload.get("matches") or [])
+        cursor = window_end + timedelta(days=1)
+    # UEFA competitions are also fetched by tournament ID to cover fixtures
+    # omitted from generic date search. IDs: UCL 7, UEL 679, UECL 17015.
+    tournament_ids = {"UCL": 7, "UEL": 679, "UECL": 17015}
     cursor = start
     for tournament_id in tournament_ids.values():
         cursor = start
@@ -332,13 +351,17 @@ def _board_quote_count(board: Any) -> int:
     return count
 
 
-def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
-    """Keep the richest bookmaker board when API-Sport returns a fixture more than once.
+def _board_update_ms(board: dict) -> int | None:
+    raw = ((board.get("updatedAtByStage") or {}).get("prematch")
+           or board.get("updatedAt"))
+    try:
+        return int(raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
 
-    Generic date queries and tournament-specific windows overlap. A later duplicate
-    can contain fewer odds fields, so a plain last-write-wins de-duplication can erase
-    a previously returned MelBet board.
-    """
+
+def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
+    """Merge duplicate fixtures without allowing an older active board to beat a newer status."""
     merged = {**existing, **incoming}
     books = {}
     old_books = existing.get("oddsBk") or {}
@@ -347,9 +370,21 @@ def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
         old_board = old_books.get(bookmaker)
         new_board = new_books.get(bookmaker)
         if isinstance(old_board, dict) and isinstance(new_board, dict):
-            old_count = _board_quote_count(old_board)
-            new_count = _board_quote_count(new_board)
-            books[bookmaker] = new_board if new_count >= old_count else old_board
+            old_time, new_time = _board_update_ms(old_board), _board_update_ms(new_board)
+            old_active = (old_board.get("isBettingActiveByStage") or {}).get("prematch")
+            new_active = (new_board.get("isBettingActiveByStage") or {}).get("prematch")
+            if old_time is not None and new_time is not None and old_time != new_time:
+                chosen = new_board if new_time > old_time else old_board
+            elif old_active is False or new_active is False:
+                # With equal/unknown source times, fail closed on an explicit inactive flag.
+                chosen = new_board if new_active is False else old_board
+            elif old_active is True or new_active is True:
+                # Prefer an explicitly active board over an unknown-state duplicate.
+                chosen = new_board if new_active is True else old_board
+            else:
+                # Legacy duplicates without board timestamps retain the richest payload.
+                chosen = new_board if _board_quote_count(new_board) >= _board_quote_count(old_board) else old_board
+            books[bookmaker] = chosen
         elif isinstance(new_board, dict):
             books[bookmaker] = new_board
         elif isinstance(old_board, dict):
@@ -384,24 +419,52 @@ def append_rows(rows: list[dict], output_path: str | Path = ARCHIVE,
     return summary
 
 
+
+def combine_pitchapi_sources(uefa_cache: dict, domestic_cache: dict,
+                             uefa_history: dict | None = None) -> tuple[dict, dict]:
+    """Build one namespaced fixture view and paired-xG history for all eight competitions."""
+    combined_matches = {}
+    history_rows = []
+    for fixture_id, row in (uefa_cache.get("matches") or {}).items():
+        copied = {**row, "id": f"UEFA:{row.get('id', fixture_id)}", "sourceFixtureId": str(row.get("id", fixture_id)), "fixtureNamespace": "UEFA"}
+        combined_matches[copied["id"]] = copied
+    for fixture_id, row in (domestic_cache.get("matches") or {}).items():
+        copied = {**row, "id": f"DOM:{row.get('id', fixture_id)}", "sourceFixtureId": str(row.get("id", fixture_id)), "fixtureNamespace": "DOM"}
+        combined_matches[copied["id"]] = copied
+        if (row.get("status") == "finished" and row.get("hasPlayoff") is not True
+                and row.get("homeScore") is not None and row.get("awayScore") is not None
+                and row.get("homeXg") is not None and row.get("awayXg") is not None):
+            try:
+                hx, ax = float(row["homeXg"]), float(row["awayXg"])
+            except (TypeError, ValueError, OverflowError):
+                continue
+            history_rows.append({**row, "id": f"DOM:{row.get('id', fixture_id)}",
+                                 "pairedXg": True, "homeXg": hx, "awayXg": ax})
+    history_rows.extend((uefa_history or {}).get("matches") or [])
+    return {"matches": combined_matches}, {"matches": history_rows}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fixture-cache", default=str(FIXTURE_CACHE))
     parser.add_argument("--output", default=str(ARCHIVE))
     parser.add_argument("--xg-history", default="artifacts/uefa-xg-history.json")
+    parser.add_argument("--domestic-cache", default=str(DOMESTIC_CACHE))
     args = parser.parse_args()
     cache_path = Path(args.fixture_cache)
     if not cache_path.exists():
         raise RuntimeError(f"UEFA fixture cache is missing: {cache_path}")
-    cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    uefa_cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    domestic_path = Path(args.domestic_cache)
+    domestic_cache = json.loads(domestic_path.read_text(encoding="utf-8")) if domestic_path.exists() else {"matches": {}}
+
+    history_path = ROOT / args.xg_history
+    uefa_history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else {"matches": []}
+    cache, history = combine_pitchapi_sources(uefa_cache, domestic_cache, uefa_history)
     provider_fixtures = fetch_provider_fixtures(os.environ.get("API_SPORT_KEY", "").strip())
     captured_at = datetime.now(timezone.utc).isoformat()
     diagnostics = {}
-    history_path = ROOT / args.xg_history
-    predictions = {}
-    if history_path.exists():
-        history = json.loads(history_path.read_text(encoding="utf-8"))
-        predictions = predict_upcoming(history, cache, predicted_at=captured_at)
+    predictions = predict_upcoming(history, cache, predicted_at=captured_at)
     diagnostics["predicted_upcoming_fixtures"] = len(predictions)
     rows = snapshot_rows(cache, provider_fixtures, captured_at, diagnostics, predictions)
     append_rows(rows, args.output, diagnostics)

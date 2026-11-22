@@ -202,12 +202,16 @@ def parse_odds(m):
     book_rows=[]
     # MelBet is the single reference bookmaker; never mix other prices.
     melbet=(m.get("oddsBk") or {}).get("melbet")
-    # Match UEFA eligibility: an explicitly inactive prematch board is not
+    # Match eligibility: an explicitly inactive prematch board is not
     # usable even if stale/open market objects remain in the provider payload.
     if isinstance(melbet, dict):
         active_by_stage = melbet.get("isBettingActiveByStage") or {}
+        # An unknown board state is not proof that prematch betting is active.
+        prematch_active = active_by_stage.get("prematch") is True
         if active_by_stage.get("prematch") is False:
             melbet = None
+    else:
+        prematch_active = False
     if isinstance(melbet,dict):
         bk="melbet"; board=melbet
         row={"key":bk,"title":"MELBET","doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
@@ -296,6 +300,10 @@ def parse_odds(m):
             book_rows.append(row)
     best={k:v for k,v in best.items() if v}
     books_best={k:v for k,v in books_best.items() if v}
+    # If the provider omits the board-level flag, an open, supported prematch
+    # market with a usable quote is itself evidence of an active prematch line.
+    # An explicit false board flag still disables the quote above.
+    prematch_active = prematch_active or bool(book_rows)
     board_updated_at = None
     board_age_seconds = None
     if isinstance(melbet, dict):
@@ -311,7 +319,7 @@ def parse_odds(m):
     return {"eventId":str(m.get("id") or ""),"bookmaker":"MELBET",
             "updatedAt":board_updated_at or datetime.now(timezone.utc).isoformat(),
             "bookmakerUpdatedAt":board_updated_at,"bookmakerUpdateAgeSeconds":round(board_age_seconds,3) if board_age_seconds is not None else None,
-            "freshnessStatus":freshness,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
+            "freshnessStatus":freshness,"prematchActive":prematch_active,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 
 def melbet_market_diagnostics(fixtures, window_start=None, window_end=None):
