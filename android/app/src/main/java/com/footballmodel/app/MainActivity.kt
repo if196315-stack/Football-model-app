@@ -1576,10 +1576,12 @@ class MainActivity : Activity() {
         val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
             ?.takeIf { it.isFinite() && it > 0.0 }
+        val allTimeBankEstimate = if (selectedStatsPeriod == "ALL" && selectedStatsSource == "ALL")
+            initialBank?.let { it + report.overall.profit } else null
         terminalMetric(bankRow, "AVG STAKE", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
-        terminalMetric(bankRow, "EST. BANK", initialBank?.let { fmt(it + report.overall.profit) } ?: "NOT SET", Color.rgb(91, 192, 213))
+        terminalMetric(bankRow, "EST. BANK", allTimeBankEstimate?.let { fmt(it) } ?: "ALL-TIME ONLY", Color.rgb(91, 192, 213))
         hero.addView(bankRow)
-        hero.addView(label("Estimated bank = configured start bank + settled net P/L; deposits and withdrawals are not tracked.", 9, false, muted))
+        hero.addView(label("Estimated bank is shown only for ALL periods + ALL sources; it assumes no untracked deposits or withdrawals.", 9, false, muted))
 
         addTerminalEquityChart(matchesContainer, report.overall.points)
         val risk = terminalSection(matchesContainer, "RISK / STREAK CONTROL", "P&L PEAK-TO-TROUGH · NOT A CASH-BALANCE DRAWDOWN")
