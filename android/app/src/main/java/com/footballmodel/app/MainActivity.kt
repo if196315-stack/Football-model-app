@@ -1256,6 +1256,7 @@ class MainActivity : Activity() {
     )
     @Volatile private var statsMetricsCacheKey: String? = null
     @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
+    @Volatile private var statsMetricsError: String? = null
     private val statsCalculationInProgress = AtomicBoolean(false)
     private var selectedStatsPeriod = "MONTH"
     private var selectedStatsSource = "ALL"
@@ -1525,13 +1526,20 @@ class MainActivity : Activity() {
             if (statsCalculationInProgress.compareAndSet(false, true)) {
                 // The feed object is replaced, not mutated, on refresh; read it on the worker.
                 thread(name = "stats-metrics-calculation") {
-                    val calculated = calculateStatsMetrics(json)
+                    // A malformed historical row must never crash the whole Android process.
+                    val calculated = try {
+                        calculateStatsMetrics(json).also { statsMetricsError = null }
+                    } catch (error: Exception) {
+                        android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
+                        statsMetricsError = error.javaClass.simpleName
+                        emptyList()
+                    }
                     runOnUiThread {
                         statsMetricsCache = calculated
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
-            lineHeadingView.visibility = View.GONE
+                            lineHeadingView.visibility = View.GONE
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
@@ -1547,7 +1555,13 @@ class MainActivity : Activity() {
         addText(overallHeading, "ОБЩАЯ СВОДКА", 11, true, cyan)
         if (metrics.isEmpty()) {
             val empty = card()
-            addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
+            val calculationError = statsMetricsError
+            if (calculationError != null) {
+                addText(empty, "Не удалось рассчитать сводку прогнозов. Остальная статистика доступна.", 12, true, gold)
+                addText(empty, "Код ошибки: $calculationError", 10, false, muted)
+            } else {
+                addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
+            }
         } else metrics.forEach { metric ->
             val box = card()
             addText(box, metric.name, 14, true)
@@ -3204,7 +3218,17 @@ class MainActivity : Activity() {
         }
         if (currentTab == "stats") {
             leagueBar.visibility = View.GONE
-            renderStats(json)
+            lineHeadingView.visibility = View.GONE
+            try {
+                renderStats(json)
+            } catch (error: Exception) {
+                android.util.Log.e("IQMatchStats", "Unable to render statistics screen", error)
+                matchesContainer.removeAllViews()
+                val failure = card()
+                addText(failure, "Не удалось открыть статистику", 15, true, Color.WHITE)
+                addText(failure, "Ошибка обработана, приложение продолжает работать. Вернитесь на другой раздел и попробуйте снова.", 11, false, muted)
+                matchesContainer.addView(failure)
+            }
             return
         } else if (currentTab == "help") {
             lineHeadingView.visibility = View.GONE
