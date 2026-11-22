@@ -12,7 +12,8 @@ internal data class AnalyticsBet(
     val odds: Double,
     val market: String,
     val league: String,
-    val isCoupon: Boolean
+    val isCoupon: Boolean,
+    val isTopSignal: Boolean = false
 )
 
 internal data class AnalyticsPoint(val dayMillis: Long, val profit: Double, val turnover: Double)
@@ -69,7 +70,7 @@ internal data class BetAnalyticsReport(
 )
 
 internal object BetAnalyticsCalculator {
-    fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "ALL"): BetAnalyticsReport {
+    fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "TOP"): BetAnalyticsReport {
         val ignoredAuto = records.count { it.source.equals("AI_AUTO", true) }
         val inPeriod = records.filter { !it.source.equals("AI_AUTO", true) && it.dayMillis in from..to && sourceMatches(it, source) }
         val unique = LinkedHashMap<String, AnalyticsBet>()
@@ -133,8 +134,13 @@ internal object BetAnalyticsCalculator {
     }
 
     private fun sourceMatches(bet: AnalyticsBet, source: String): Boolean = when (source) {
-        "AI" -> bet.source == "AI_MANUAL"
-        "MANUAL" -> bet.source != "AI_MANUAL"
+        "TOP" -> !bet.isCoupon && (
+            bet.source.equals("AI_MANUAL", true) ||
+                bet.source.equals("AI_MANUAL", true) && bet.isTopSignal ||
+                bet.isTopSignal
+            )
+        "AI" -> bet.source.equals("AI_MANUAL", true)
+        "MANUAL" -> bet.source.equals("MANUAL", true) && bet.isTopSignal
         else -> true
     }
 
