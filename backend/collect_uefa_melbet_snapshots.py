@@ -27,6 +27,7 @@ ARCHIVE = ROOT / "artifacts" / "uefa-melbet-odds-snapshots.jsonl"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
 LOOKAHEAD_DAYS = 30
+MAX_QUOTE_AGE_SECONDS = 12 * 60 * 60
 MARKET_PARSER_VERSION = "melbet-fulltime-v2"
 
 
@@ -126,8 +127,8 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             board_age_seconds = None
         freshness_status = (
             "unknown" if board_age_seconds is None else
-            "clock_skew" if board_age_seconds < 0 else
-            "fresh" if board_age_seconds <= 300 else "stale"
+            "clock_skew" if board_age_seconds < -300 else
+            "fresh" if board_age_seconds <= MAX_QUOTE_AGE_SECONDS else "stale"
         )
         quote = parse_odds(source)
         best = quote.get("best") or {}
