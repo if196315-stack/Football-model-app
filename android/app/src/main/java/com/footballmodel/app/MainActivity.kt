@@ -389,15 +389,16 @@ class MainActivity : Activity() {
                 if (restored == null) {
                     feedCache.edit().remove("merged_json").apply()
                 } else {
+                    // Precompute summaries on this cache-restore worker, never on the UI thread.
+                    prepareAvailableMatchCounts(restored)
+                    val cachedCandidates = collectAiCandidates(restored)
+                    aiCandidatesCache = cachedCandidates
+                    aiCandidatesCacheKey = statsCacheKey(restored)
                     runOnUiThread {
                         // Если сеть уже успела вернуть свежие данные, старый кэш не перезаписывает их.
                         if (data == null) {
                             data = restored
                             lastPayload = cached
-                            prepareAvailableMatchCounts(restored)
-                            val cachedCandidates = collectAiCandidates(restored)
-                            aiCandidatesCache = cachedCandidates
-                            aiCandidatesCacheKey = statsCacheKey(restored)
                             render()
                         }
                     }
