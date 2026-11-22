@@ -44,7 +44,7 @@ internal data class AnalyticsBreakdown(
     val losses: Int,
     val profit: Double,
     val turnover: Double,
-    val averageOdds: Double
+    val averageOdds: Double = 0.0
 ) {
     val roi: Double get() = if (turnover > 0.0) profit / turnover * 100.0 else 0.0
 }
