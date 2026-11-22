@@ -17,7 +17,7 @@ from predict_uefa_markets import predict_upcoming
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
 XG_HISTORY = ROOT / "artifacts" / "uefa-xg-history.json"
-ODDS_ARCHIVE = ROOT / "artifacts" / "uefa-melbet-odds-snapshots.jsonl"
+ODDS_ARCHIVE = ROOT / "artifacts" / "melbet-odds-snapshots.jsonl"
 PAPER_BETS = ROOT / "artifacts" / "uefa-paper-bets.jsonl"
 SETTLEMENTS = ROOT / "artifacts" / "uefa-paper-settlements.jsonl"
 OUTPUT = ROOT / "docs" / "uefa-data.json"
@@ -108,6 +108,7 @@ def build_odds(rows: list[dict], now: datetime | None = None) -> dict | None:
         "updatedAt": board_time or captured_at,
         "source": "API-Sport / MelBet",
         "freshnessStatus": "fresh",
+        "prematchActive": True,
         "bookmakerUpdateAgeSeconds": round(max((now - _parse_time(r["bookmaker_updated_at"])).total_seconds() for r in fresh), 3),
     }
 
