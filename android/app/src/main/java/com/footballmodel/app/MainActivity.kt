@@ -1518,8 +1518,8 @@ class MainActivity : Activity() {
         }
 
         val controls = terminalSection(matchesContainer, "ФИЛЬТРЫ ОТЧЁТА", "ПЕРИОД / ИСТОЧНИК")
-        val periods = listOf(listOf("WEEK" to "7D", "MONTH" to "1M", "QUARTER" to "3M"),
-            listOf("HALF" to "6M", "YEAR" to "1Y", "ALL" to "ALL"))
+        val periods = listOf(listOf("WEEK" to "7 ДН", "MONTH" to "1 МЕС", "QUARTER" to "3 МЕС"),
+            listOf("HALF" to "6 МЕС", "YEAR" to "1 ГОД", "ALL" to "ВСЁ ВРЕМЯ"))
         periods.forEach { options ->
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             options.forEach { option ->
@@ -1536,7 +1536,7 @@ class MainActivity : Activity() {
             controls.addView(row)
         }
         val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf("ALL" to "ALL", "MANUAL" to "MANUAL", "AI" to "AI MANUAL").forEach { option ->
+        listOf("ALL" to "ВСЕ", "MANUAL" to "РУЧНЫЕ", "AI" to "AI-РУЧНЫЕ").forEach { option ->
             val active = selectedStatsSource == option.first
             val button = TextView(this).apply {
                 text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
@@ -1607,7 +1607,7 @@ class MainActivity : Activity() {
         terminalMetric(aiRow, "AI-РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.ai.profit), if (report.ai.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
         terminalMetric(aiRow, "AI-РУЧНЫЕ · ROI", String.format(Locale.US, "%.1f%%", report.ai.roi), Color.WHITE)
         sourceBox.addView(aiRow)
-        sourceBox.addView(label("Manual: " + report.manual.settled + " settled · AI: " + report.ai.settled + " settled", 10, false, muted))
+        sourceBox.addView(label("Ручные: " + report.manual.settled + " рассчитано · AI-ручные: " + report.ai.settled + " рассчитано", 10, false, muted))
 
         terminalSummary(matchesContainer, "ОДИНОЧНЫЕ СТАВКИ · БЕЗ ЭКСПРЕССОВ", report.singles)
         terminalSummary(matchesContainer, "ЭКСПРЕССЫ · ОТДЕЛЬНЫЙ УЧЁТ", report.coupons)
@@ -1622,11 +1622,11 @@ class MainActivity : Activity() {
         terminalMetric(integrity, "ОШИБОЧНЫЕ", report.invalidRecords.toString(), if (report.invalidRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
         terminalMetric(integrity, "ДУБЛИ", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
         quality.addView(integrity)
-        quality.addView(label("Каждый купон учитывается одной записью; его selections не добавляются как отдельные ставки.", 10, false, muted))
+        quality.addView(label("Каждый экспресс учитывается одной записью; входящие в него исходы не добавляются как отдельные ставки.", 10, false, muted))
         cached.previous?.let { previous ->
             val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
             val delta = report.overall.roi - previous.overall.roi
-            compare.addView(label("ROI Δ " + String.format(Locale.US, "%+.2f п.п.", delta) + " · P/L Δ " + fmt(report.overall.profit - previous.overall.profit), 12, true,
+            compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta) + " · изменение прибыли: " + fmt(report.overall.profit - previous.overall.profit), 12, true,
                 if (delta >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)))
             compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi) + " · прибыль: " + fmt(previous.overall.profit) + " · рассчитано: " + previous.overall.settled, 10, false, muted))
         }
