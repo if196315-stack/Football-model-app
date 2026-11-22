@@ -1528,7 +1528,7 @@ class MainActivity : Activity() {
                     text = option.second; gravity = Gravity.CENTER; textSize = 11f; typeface = Typeface.MONOSPACE
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
-                    background = rounded(if (active) accent else Color.rgb(23, 39, 61), 7)
+                    background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
                     setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); render() } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
@@ -1552,7 +1552,7 @@ class MainActivity : Activity() {
             text = "↓  ЭКСПОРТ ИСТОРИИ СТАВОК · CSV"; gravity = Gravity.CENTER; textSize = 10f
             typeface = Typeface.MONOSPACE; setPadding(dp(8), dp(11), dp(8), dp(11))
             setTextColor(accent)
-            background = rounded(Color.rgb(26, 35, 45), 7)
+            background = rounded(Color.rgb(26, 35, 45), 12)
             setOnClickListener { exportBetAnalyticsCsv() }
         }
         controls.addView(export, LinearLayout.LayoutParams(-1, -2).apply { setMargins(dp(3), dp(5), dp(3), dp(2)) })
@@ -1929,7 +1929,7 @@ class MainActivity : Activity() {
             elevation = 0f
             setOnClickListener { action() }
         }
-        parent.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply {
+        parent.addView(button, LinearLayout.LayoutParams(0, dp(36), 1f).apply {
             marginEnd = dp(6)
         })
     }
