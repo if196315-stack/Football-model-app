@@ -2,7 +2,7 @@
 
 Дата: 23 ноября 2026  
 Основной baseline: `main` / `d9bc8a8eb297fe1a527e153ab79d4a6a38f0735d`  
-Кандидат исправлений: PR [#284](https://github.com/if196315-stack/Football-model-app/pull/284), ветка `audit/final-functional-hardening`, проверяемый HEAD `1411a39b138006a68127032cff61fe51cc3f480a`.
+Кандидат исправлений: PR [#284](https://github.com/if196315-stack/Football-model-app/pull/284), ветка `audit/final-functional-hardening`, кодовый HEAD `1411a39b138006a68127032cff61fe51cc3f480a` (после него добавлен только этот audit report).
 
 ## Объём проверки
 
@@ -34,7 +34,7 @@
 - Backend odds regression: **success**, run [45081805307](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805307). В полном backend-наборе выполнено 228 тестов.
 - Аудит восьми турниров: **success**, run [45081805430](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805430).
 - На срезе аудита: 277 будущих матчей с прогнозом, 125 матчей с котировкой MelBet, 34 сигнала прошли AI-пороги, 563 точные цены по активным рынкам.
-- До последних изменений прошли 34 Android JVM-теста и debug-сборка. В текущей ветке набор расширен до 40 JVM-тестов; итоговая проверка release workflow на HEAD `1411a39` ещё выполняется: [unsigned release workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805301), [debug workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805312).
+- До добавления общего FeedMerger прошёл Android debug workflow на том же Android-коде; в текущем кандидате определено 35 Android JVM-тестов (включая 3 новых теста FeedMerger). Итоговая проверка release workflow на HEAD `1411a39` ещё выполняется: [unsigned release workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805301), [debug workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805312).
 
 ## Открытые блокеры перед заявлением «готово к подписи»
 
