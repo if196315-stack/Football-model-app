@@ -277,6 +277,7 @@ class MainActivity : Activity() {
         }
         mainScrollView.addView(root)
         setContentView(mainScrollView)
+        applyEdgeToEdgeInsets(root)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -452,6 +453,33 @@ class MainActivity : Activity() {
     override fun onPause() {
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
         super.onPause()
+    }
+
+    /**
+     * Android 15 enforces edge-to-edge for targetSdk 35. Add system-bar and
+     * display-cutout insets to the existing content padding so the first and
+     * last controls remain reachable without changing the visual spacing.
+     */
+    private fun applyEdgeToEdgeInsets(content: View) {
+        if (android.os.Build.VERSION.SDK_INT < 35) return
+        val baseLeft = content.paddingLeft
+        val baseTop = content.paddingTop
+        val baseRight = content.paddingRight
+        val baseBottom = content.paddingBottom
+        content.setOnApplyWindowInsetsListener { view, insets ->
+            val safe = insets.getInsets(
+                android.view.WindowInsets.Type.systemBars() or
+                    android.view.WindowInsets.Type.displayCutout()
+            )
+            view.setPadding(
+                baseLeft + safe.left,
+                baseTop + safe.top,
+                baseRight + safe.right,
+                baseBottom + safe.bottom
+            )
+            insets
+        }
+        content.requestApplyInsets()
     }
 
     private fun countryFlagView(flag: String): View =
@@ -2494,7 +2522,10 @@ class MainActivity : Activity() {
         } else available
         val positiveValue = eligible.filter { it.optDouble("lineExpectedValue", -1.0) > 0.0 }
         return if (positiveValue.isNotEmpty()) {
-            positiveValue.maxByOrNull { it.optDouble("lineKellyFraction", Double.NEGATIVE_INFINITY) }
+            val ranking = positiveValue.map {
+                it.optDouble("modelProbability", Double.NaN) to it.optDouble("lineOdds", Double.NaN)
+            }
+            positiveValue[TopSignalRanking.bestIndex(ranking) ?: 0]
         } else {
             eligible.maxByOrNull { it.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }
         }
