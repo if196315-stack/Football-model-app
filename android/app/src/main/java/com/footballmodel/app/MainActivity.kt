@@ -1630,15 +1630,15 @@ class MainActivity : Activity() {
         terminalMetric(third, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
         terminalMetric(third, "ОЖИДАЮТ", report.overall.pending.toString(), Color.rgb(245, 190, 95))
         hero.addView(third)
+        val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 }
+        val allTimeBankEstimate = if (selectedStatsPeriod == "ALL") initialBank?.let { it + report.overall.profit } else null
         val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
         terminalMetric(bankRow, "БАНК · ОЦЕНКА", allTimeBankEstimate?.let { fmt(it) } ?: "—", gold)
         hero.addView(bankRow)
         hero.addView(label("Финансовая выборка содержит только подтверждённые ставки ТОП. PENDING не влияет на оборот, прибыль, ROI и win rate.", 9, false, muted))
 
-        val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
-            ?.takeIf { it.isFinite() && it > 0.0 }
-        val allTimeBankEstimate = if (selectedStatsPeriod == "ALL") initialBank?.let { it + report.overall.profit } else null
         addTerminalEquityChart(matchesContainer, report.overall.points,
             if (selectedStatsPeriod == "ALL") initialBank else null)
         val risk = terminalSection(matchesContainer, "РИСКИ И СЕРИИ", "ПО РЕАЛЬНО ЗАФИКСИРОВАННЫМ СТАВКАМ ТОП")
