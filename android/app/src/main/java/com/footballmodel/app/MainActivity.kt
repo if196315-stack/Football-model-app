@@ -2913,7 +2913,16 @@ class MainActivity : Activity() {
         var settledCount = 0
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("source") != "AI_MANUAL") continue
+            val source = bet.optString("source")
+            val isTopSignal = source.equals("AI_MANUAL", true) ||
+                bet.optString("origin").equals("TOP_SIGNAL", true) ||
+                (source.equals("MANUAL", true) && bet.optString("matchId").isNotBlank() &&
+                    bet.optString("marketKey").isNotBlank() &&
+                    bet.optDouble("probability", Double.NaN).isFinite() &&
+                    bet.optString("quoteUpdatedAt").isNotBlank() &&
+                    (bet.optDouble("edgePp", Double.NaN).isFinite() ||
+                        bet.optDouble("expectedValue", Double.NaN).isFinite()))
+            if (!isTopSignal || bet.optString("marketKey") == "COUPON") continue
             val stake = bet.optDouble("stake", 0.0)
             val odds = bet.optDouble("odds", 0.0)
             when (bet.optString("status")) {
