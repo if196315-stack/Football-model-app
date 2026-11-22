@@ -117,7 +117,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f artifacts/melbet-odds-snapshots.jsonl ]; then
+          if [ -f artifacts/all-eight-competitions-melbet-snapshots.jsonl ]; then
             git add artifacts/all-eight-competitions-melbet-snapshots.jsonl
           fi
           git add -u artifacts/uefa-melbet-odds-snapshots.jsonl 2>/dev/null || true
