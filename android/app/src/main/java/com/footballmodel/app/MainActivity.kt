@@ -1612,7 +1612,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
+    private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
         val evaluatedMatches = json.optJSONArray("evaluationMatches")
         fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
@@ -1625,6 +1625,9 @@ class MainActivity : Activity() {
             if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
                 val m = evaluatedMatches.optJSONObject(i) ?: continue
                 if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                val marketKey = key
+                val matchId = m.optString("id")
+                if (!StatsPredictionScope.includes(source, matchId, marketKey, topSelections)) continue
                 val p = m.optJSONObject("prediction") ?: continue
                 if (!p.has(key) || p.isNull(key)) continue
                 val h = m.optInt("homeScore")
@@ -1665,10 +1668,24 @@ class MainActivity : Activity() {
         return metrics
     }
 
-    private fun statsCacheKey(json: JSONObject): String {
-        // A cheap feed signature avoids serializing the entire match archive on the UI thread.
+    private fun topPredictionSelections(): Set<String> {
+        val selections = linkedSetOf<String>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (!bet.optString("source").equals("AI_MANUAL", true)) continue
+            if (bet.optString("marketKey") !in setOf("1x", "x2", "homeOver15", "awayOver15", "over25", "bttsYes", "homeOver05", "awayOver05")) continue
+            val matchId = bet.optString("matchId").trim()
+            if (matchId.isNotBlank()) selections.add(StatsPredictionScope.key(matchId, bet.optString("marketKey")))
+        }
+        return selections
+    }
+
+    private fun statsCacheKey(json: JSONObject, source: String, topSelections: Set<String>): String {
+        // Include category and its exact TOP selection set: switching tabs or changing saved
+        // TOP bets must never reuse a prediction summary calculated for another scope.
+        val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",").hashCode() else "ALL"
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
-            (json.optJSONArray("evaluationMatches")?.length() ?: 0)
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + scopeSignature
     }
 
 
@@ -1682,7 +1699,8 @@ class MainActivity : Activity() {
             addText(failure, "Не удалось построить статистику ставок. Сводка прогнозов будет доступна отдельно.", 12, true, gold)
             matchesContainer.addView(failure)
         }
-        val statsKey = statsCacheKey(json)
+        val topSelections = topPredictionSelections()
+        val statsKey = statsCacheKey(json, selectedStatsSource, topSelections)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
@@ -1692,7 +1710,7 @@ class MainActivity : Activity() {
                 thread(name = "stats-metrics-calculation") {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
-                        calculateStatsMetrics(json).also { statsMetricsError = null }
+                        calculateStatsMetrics(json, selectedStatsSource, topSelections).also { statsMetricsError = null }
                     } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
@@ -1715,7 +1733,8 @@ class MainActivity : Activity() {
             return
         }
         val metrics = statsMetricsCache
-        val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", "ТОЧНОСТЬ МОДЕЛИ · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ")
+        val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
+        val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
         if (metrics.isEmpty()) {
             val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
             val calculationError = statsMetricsError
