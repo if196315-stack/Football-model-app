@@ -1551,7 +1551,7 @@ class MainActivity : Activity() {
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
-        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ВСЕ РУЧНЫЕ И AI-РУЧНЫЕ ОДИНОЧНЫЕ СТАВКИ · БЕЗ ДУБЛИРОВАНИЯ")
+        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ВСЕ РЕАЛЬНЫЕ ОДИНОЧНЫЕ СТАВКИ · РУЧНЫЕ + AI")
         val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
         hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
         hero.addView(label("ЧИСТАЯ ПРИБЫЛЬ / УБЫТОК", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
@@ -1587,7 +1587,6 @@ class MainActivity : Activity() {
         terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
         risk.addView(runRow)
 
-        terminalSummary(matchesContainer, "ОДИНОЧНЫЕ СТАВКИ · БЕЗ ЭКСПРЕССОВ", report.singles)
         terminalSummary(matchesContainer, "ЭКСПРЕССЫ · ОТДЕЛЬНЫЙ УЧЁТ", report.coupons)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
