@@ -1573,9 +1573,16 @@ class MainActivity : Activity() {
         terminalMetric(second, "AVG ODDS", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
         terminalMetric(second, "OPEN", report.overall.pending.toString(), Color.rgb(245, 190, 95))
         hero.addView(second)
+        val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 }
+        terminalMetric(bankRow, "AVG STAKE", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
+        terminalMetric(bankRow, "EST. BANK", initialBank?.let { fmt(it + report.overall.profit) } ?: "NOT SET", Color.rgb(91, 192, 213))
+        hero.addView(bankRow)
+        hero.addView(label("Estimated bank = configured start bank + settled net P/L; deposits and withdrawals are not tracked.", 9, false, muted))
 
         addTerminalEquityChart(matchesContainer, report.overall.points)
-        val risk = terminalSection(matchesContainer, "RISK / STREAK CONTROL", "CLOSED OUTCOMES ONLY")
+        val risk = terminalSection(matchesContainer, "RISK / STREAK CONTROL", "P&L PEAK-TO-TROUGH · NOT A CASH-BALANCE DRAWDOWN")
         val riskRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         terminalMetric(riskRow, "MAX DRAWDOWN", fmt(report.maxDrawdown), Color.rgb(245, 105, 112))
         terminalMetric(riskRow, "DRAWDOWN %", String.format(Locale.US, "%.1f%%", report.maxDrawdownPercent), Color.rgb(245, 105, 112))
