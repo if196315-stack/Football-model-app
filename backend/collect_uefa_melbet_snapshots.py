@@ -113,12 +113,11 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         bookmaker_board = (source.get("oddsBk") or {}).get("melbet") or {}
         if bookmaker_board:
             melbet_boards += 1
-        active_by_stage = bookmaker_board.get("isBettingActiveByStage") or {}
-        # Unknown is not active: only an explicit active prematch board is eligible.
-        if active_by_stage.get("prematch") is not True:
+        quote = parse_odds(source)
+        # If the board flag is missing, open supported prematch lines are evidence of activity.
+        if not quote.get("prematchActive"):
             continue
-        if bookmaker_board:
-            active_prematch_boards += 1
+        active_prematch_boards += 1
         board_updated_at = _board_timestamp(bookmaker_board)
         try:
             board_age_seconds = (
@@ -132,7 +131,6 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "clock_skew" if board_age_seconds < -300 else
             "fresh" if board_age_seconds <= MAX_QUOTE_AGE_SECONDS else "stale"
         )
-        quote = parse_odds(source)
         best = quote.get("best") or {}
         if best:
             fixtures_with_selected_markets += 1
