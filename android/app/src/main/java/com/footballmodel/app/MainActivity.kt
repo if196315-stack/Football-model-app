@@ -1515,7 +1515,7 @@ class MainActivity : Activity() {
         }
 
         val controls = terminalSection(matchesContainer, "QUERY FILTERS", "PERIOD / SOURCE")
-        val periods = listOf(listOf("WEEK" to "7D", "MONTH" to "30D", "QUARTER" to "90D"),
+        val periods = listOf(listOf("WEEK" to "7D", "MONTH" to "1M", "QUARTER" to "3M"),
             listOf("HALF" to "6M", "YEAR" to "1Y", "ALL" to "ALL"))
         periods.forEach { options ->
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
