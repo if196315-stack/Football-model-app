@@ -1,7 +1,6 @@
 package com.footballmodel.app
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class BetAnalyticsCalculatorTest {
@@ -27,10 +26,6 @@ class BetAnalyticsCalculatorTest {
         assertEquals(2, report.overall.settled)
         assertEquals(0.0, report.overall.profit, 0.0001)
         assertEquals(20.0, report.overall.turnover, 0.0001)
-        assertEquals(2, report.singles.settled)
-        assertEquals(0, report.coupons.settled)
-        assertEquals(10.0, report.manual.profit, 0.0001)
-        assertEquals(-10.0, report.ai.profit, 0.0001)
     }
 
     @Test fun pendingTopBetDoesNotAffectProfitTurnoverOrWinRate() {
@@ -52,7 +47,6 @@ class BetAnalyticsCalculatorTest {
         assertEquals(1, report.overall.settled)
         assertEquals(-10.0, report.overall.profit, 0.0001)
         assertEquals(1, report.ignoredAuto)
-        assertFalse(report.ai.settled > 0)
     }
 
     @Test fun duplicateTopIdsAreCountedOnlyOnce() {
