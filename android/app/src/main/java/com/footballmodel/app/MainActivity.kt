@@ -1284,22 +1284,17 @@ class MainActivity : Activity() {
         thread(name = "stats-bet-history-calculation") {
             var calculationError: String? = null
             val calculated = try {
-                // Snapshot and parse bet history off the UI thread. Deep-copying every
-                // JSONObject while opening Stats can stall or exhaust the main process.
-                val snapshot = buildList {
-                    for (index in 0 until sourceBets.length()) {
-                        val bet = runCatching { sourceBets.optJSONObject(index) }.getOrNull() ?: continue
-                        runCatching { JSONObject(bet.toString()) }.getOrNull()?.let(::add)
-                    }
-                }
+                // The source JSONArray is immutable for this calculation: refresh replaces
+                // the Activity field rather than mutating this instance. Aggregate it in place
+                // on the worker to avoid a second full copy of a potentially huge bet history.
                 val bounds = statsPeriodBounds(period, now)
-                val current = summarizeBets(snapshot, source, bounds.first, bounds.second)
+                val current = summarizeBets(sourceBets, source, bounds.first, bounds.second)
                 val previous = if (period == "ALL") null else {
                     val duration = bounds.second - bounds.first
-                    summarizeBets(snapshot, source, bounds.first - duration, bounds.first)
+                    summarizeBets(sourceBets, source, bounds.first - duration, bounds.first)
                 }
-                val manual = if (source == "ALL") summarizeBets(snapshot, "MANUAL", bounds.first, bounds.second) else null
-                val ai = if (source == "ALL") summarizeBets(snapshot, "AI", bounds.first, bounds.second) else null
+                val manual = if (source == "ALL") summarizeBets(sourceBets, "MANUAL", bounds.first, bounds.second) else null
+                val ai = if (source == "ALL") summarizeBets(sourceBets, "AI", bounds.first, bounds.second) else null
                 StatsBetViewCache(key, current, previous, manual, ai)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate bet history statistics", error)
@@ -1421,11 +1416,14 @@ class MainActivity : Activity() {
         return cal.timeInMillis to end
     }
 
-    private fun summarizeBets(snapshot: List<JSONObject>, source: String, from: Long, to: Long): BetStatsSummary {
+    private fun summarizeBets(sourceBets: JSONArray, source: String, from: Long, to: Long): BetStatsSummary {
         var wins = 0; var losses = 0; var pushes = 0
         var turnover = 0.0; var profit = 0.0; var oddsTotal = 0.0; var oddsCount = 0
         val daily = sortedMapOf<Long, Pair<Double, Double>>()
-        for (bet in snapshot) {
+        // Read the immutable source array directly on the worker. Do not deep-copy
+        // every historical JSONObject: large user histories can exhaust app memory.
+        for (index in 0 until sourceBets.length()) {
+            val bet = sourceBets.optJSONObject(index) ?: continue
             val isAi = bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
             if (source == "AI" && !isAi || source == "MANUAL" && isAi) continue
             val day = betStatsDate(bet) ?: continue
