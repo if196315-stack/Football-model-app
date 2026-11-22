@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seven-competition chronological xG backtest for supported goal markets.
+"""Eight-competition chronological xG backtest for the eight active goal markets.
 
 Offline only. Same-calendar-day fixtures are scored before same-day results/xG
 enter history. Baselines are expanding, Laplace-smoothed competition outcome
