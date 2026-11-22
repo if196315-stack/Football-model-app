@@ -105,7 +105,7 @@ internal object UiMotion {
             addUpdateListener { view.setTextColor(it.animatedValue as Int) }
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
-                    if (textColorAnimations[view] === this@apply) {
+                    if (textColorAnimations[view] === animation) {
                         textColorAnimations.remove(view)
                     }
                 }
