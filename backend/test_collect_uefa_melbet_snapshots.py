@@ -173,8 +173,15 @@ class UefaMelBetSnapshotTests(unittest.TestCase):
         session = FakeSession()
         rows = fetch_provider_fixtures("test-key", session=session, today=date(2026, 11, 11))
         tournament_calls = [params for params in session.calls if "tournament_id" in params]
+        generic_calls = [params for params in session.calls if "tournament_id" not in params]
         self.assertEqual({params["tournament_id"] for params in tournament_calls}, {"7", "679", "17015"})
         self.assertEqual(len(tournament_calls), 18)
+        self.assertEqual(len(generic_calls), 6)
+        for params in generic_calls:
+            self.assertLessEqual(
+                (date.fromisoformat(params["date_to"]) -
+                 date.fromisoformat(params["date_from"])).days, 30
+            )
         for params in tournament_calls:
             self.assertLessEqual(
                 (date.fromisoformat(params["date_to"]) -
