@@ -14,46 +14,11 @@ import android.widget.TextView
  */
 internal object UiMotion {
     const val DURATION_MS = 220L
-    private const val EXIT_MS = 70L
-    private const val ENTER_MS = DURATION_MS - EXIT_MS
     private const val CONTENT_ALPHA = 0.45f
-    private const val OFFSET_DP = 6f
 
     private fun easing() = DecelerateInterpolator(1.7f)
 
-    fun animateContentChange(view: View, offsetPx: Float, update: () -> Unit) {
-        view.animate().cancel()
-        if (!view.isAttachedToWindow || view.visibility != View.VISIBLE) {
-            update()
-            view.alpha = 1f
-            view.translationY = 0f
-            return
-        }
-        view.animate()
-            .alpha(CONTENT_ALPHA)
-            .translationY(offsetPx)
-            .setDuration(EXIT_MS)
-            .setInterpolator(easing())
-            .withEndAction {
-                update()
-                view.alpha = CONTENT_ALPHA
-                view.translationY = offsetPx
-                view.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setDuration(ENTER_MS)
-                    .setInterpolator(easing())
-                    .withLayer()
-                    .start()
-            }
-            .start()
-    }
-
-    fun animateEntry(view: View, offsetPx: Float) {
-        view.animate().cancel()
-        view.visibility = View.VISIBLE
-        view.alpha = 0f
-        view.translationY = offsetPx
+    private fun animateToRest(view: View) {
         view.animate()
             .alpha(1f)
             .translationY(0f)
@@ -63,6 +28,28 @@ internal object UiMotion {
             .start()
     }
 
+    fun animateContentChange(view: View, offsetPx: Float, update: () -> Unit) {
+        view.animate().cancel()
+        if (!view.isAttachedToWindow || view.visibility != View.VISIBLE) {
+            update()
+            view.alpha = 1f
+            view.translationY = 0f
+            return
+        }
+        view.alpha = CONTENT_ALPHA
+        view.translationY = offsetPx
+        update()
+        animateToRest(view)
+    }
+
+    fun animateEntry(view: View, offsetPx: Float) {
+        view.animate().cancel()
+        view.visibility = View.VISIBLE
+        view.alpha = 0f
+        view.translationY = offsetPx
+        animateToRest(view)
+    }
+
     fun animateVisibility(view: View, visible: Boolean, offsetPx: Float) {
         view.animate().cancel()
         if (visible) {
@@ -70,13 +57,7 @@ internal object UiMotion {
             view.visibility = View.VISIBLE
             view.alpha = 0f
             view.translationY = offsetPx
-            view.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setDuration(DURATION_MS)
-                .setInterpolator(easing())
-                .withLayer()
-                .start()
+            animateToRest(view)
         } else {
             if (view.visibility != View.VISIBLE) return
             view.animate()
@@ -96,18 +77,12 @@ internal object UiMotion {
     fun animateTextChange(view: TextView, nextText: CharSequence) {
         if (view.text == nextText) return
         view.animate().cancel()
+        view.alpha = CONTENT_ALPHA
+        view.text = nextText
         view.animate()
-            .alpha(CONTENT_ALPHA)
-            .setDuration(EXIT_MS)
+            .alpha(1f)
+            .setDuration(DURATION_MS)
             .setInterpolator(easing())
-            .withEndAction {
-                view.text = nextText
-                view.animate()
-                    .alpha(1f)
-                    .setDuration(ENTER_MS)
-                    .setInterpolator(easing())
-                    .start()
-            }
             .start()
     }
 
