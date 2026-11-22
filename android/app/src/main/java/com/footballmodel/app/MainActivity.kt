@@ -1199,8 +1199,8 @@ class MainActivity : Activity() {
             val active = currentTab == item.first
             // Filter-driven renders must not replay the tab selection animation.
             // Animate only when the selected tab actually changes.
-            if (tab.isSelected != active) {
-                tab.isSelected = active
+            if (tab.tag != active) {
+                tab.tag = active
                 UiMotion.animateTextColor(title, if (active) bg else Color.WHITE)
                 val nextBackground = if (active) {
                     GradientDrawable().apply {
