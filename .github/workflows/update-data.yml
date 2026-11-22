@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - "backend/update_data_pitchapi.py"
-  # Keep domestic fixtures, scores, xG history and model forecasts current.
-  # Scheduled runs refresh listings/results only; shot-level xG backfill stays bounded.
+  # Refresh domestic fixtures/results regularly without spending the xG backfill budget.
   schedule:
     - cron: "23 */6 * * *"
   workflow_dispatch:
@@ -22,8 +21,8 @@ on:
           - "250"
           - "5000"
 
-# Scheduled runs refresh fixtures/results without spending the shot-level xG
-# backfill budget. Historical xG backfill remains manual and explicitly bounded.
+# Scheduled runs refresh fixtures/results with shot-level xG requests disabled.
+# Historical xG backfill remains manual and explicitly bounded.
 concurrency:
   group: football-domestic-data-write
   cancel-in-progress: false
