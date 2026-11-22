@@ -4,6 +4,7 @@ import java.util.Calendar
 import java.util.Locale
 
 internal data class AnalyticsBet(
+    val id: String,
     val dayMillis: Long,
     val source: String,
     val status: String,
@@ -63,13 +64,21 @@ internal data class BetAnalyticsReport(
     val longestLossStreak: Int,
     val recordsRead: Int,
     val ignoredAuto: Int,
-    val invalidRecords: Int
+    val invalidRecords: Int,
+    val duplicateRecords: Int
 )
 
 internal object BetAnalyticsCalculator {
     fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "ALL"): BetAnalyticsReport {
         val ignoredAuto = records.count { it.source.equals("AI_AUTO", true) }
-        val scoped = records.filter { it.source != "AI_AUTO" && it.dayMillis in from..to && sourceMatches(it, source) }
+        val inPeriod = records.filter { it.source != "AI_AUTO" && it.dayMillis in from..to && sourceMatches(it, source) }
+        val unique = LinkedHashMap<String, AnalyticsBet>()
+        inPeriod.forEachIndexed { index, bet ->
+            val key = bet.id.ifBlank { "${bet.dayMillis}|${bet.source}|${bet.status}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}|$index" }
+            if (!unique.containsKey(key)) unique[key] = bet
+        }
+        val scoped = unique.values.toList()
+        val duplicates = inPeriod.size - scoped.size
         val valid = scoped.filter { it.status in setOf("WON", "LOST", "PUSH", "PENDING") &&
             it.stake.isFinite() && it.stake > 0.0 &&
             it.odds.isFinite() && it.odds > 1.0 }
@@ -77,8 +86,8 @@ internal object BetAnalyticsCalculator {
         val overall = summarize(valid)
         val singlesRecords = valid.filterNot { it.isCoupon }
         val couponRecords = valid.filter { it.isCoupon }
-        val manualRecords = valid.filter { it.source != "AI_MANUAL" }
-        val aiRecords = valid.filter { it.source == "AI_MANUAL" }
+        val manualRecords = singlesRecords.filter { it.source != "AI_MANUAL" }
+        val aiRecords = singlesRecords.filter { it.source == "AI_MANUAL" }
         val market = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
             it.market.ifBlank { it.marketKeyFallback() }
         }
@@ -118,7 +127,8 @@ internal object BetAnalyticsCalculator {
             longestLossStreak = streaks.third,
             recordsRead = scoped.size,
             ignoredAuto = ignoredAuto,
-            invalidRecords = invalid
+            invalidRecords = invalid,
+            duplicateRecords = duplicates
         )
     }
 
