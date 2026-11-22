@@ -1810,6 +1810,8 @@ class MainActivity : Activity() {
         }
         val metrics = statsMetricsCache
         val overallHeading = terminalSection(matchesContainer, "АНАЛИТИКА ВСЕХ ПРОГНОЗОВ", "ВСЕ МАТЧИ ИЗ АРХИВА · НЕ ЗАВИСИТ ОТ ФИКСАЦИИ СТАВКИ")
+        val archivedFinishedCount = json.optJSONArray("evaluationMatches")?.length() ?: 0
+        overallHeading.addView(label("Завершённых матчей в архиве прогнозов: $archivedFinishedCount. Для каждого рынка ниже показан фактический размер его выборки.", 10, false, muted))
         if (metrics.isEmpty()) {
             val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
             val calculationError = statsMetricsError
@@ -1820,7 +1822,6 @@ class MainActivity : Activity() {
                 empty.addView(label("Архив проверенных прогнозов пока формируется. Матч попадёт в статистику после фиксации прогноза до начала игры и получения подтверждённого итогового счёта.", 11, false, muted))
             }
         } else {
-            overallHeading.addView(label("В выборку входят все матчи с прогнозом, сохранённым до начала игры, и подтверждённым финальным счётом. Фиксация ставки ТОП не требуется.", 10, false, muted))
             metrics.forEach { metric ->
             val box = terminalSection(matchesContainer, metric.name, "ВЫБОРКА: ${metric.n} ЗАВЕРШЁННЫХ МАТЧЕЙ")
             val hitRate = metric.hits * 100.0 / metric.n
@@ -1863,7 +1864,7 @@ class MainActivity : Activity() {
                     typeface = Typeface.MONOSPACE
                     setPadding(0, dp(7), 0, dp(3))
                 })
-                metric.byLeague.take(5).forEach { league ->
+                metric.byLeague.take(10).forEach { league ->
                     val rate = if (league.n > 0) league.hits * 100.0 / league.n else 0.0
                     val leagueRow = LinearLayout(this).apply {
                         orientation = LinearLayout.HORIZONTAL
