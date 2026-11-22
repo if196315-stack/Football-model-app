@@ -43,10 +43,16 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             AiMatchNotifications.observe(applicationContext, newTopCandidates)
             // Persist the combined feed so MainActivity can restore background updates on launch.
             val mergedPayload = domestic.toString()
+            val cachedMerged = FeedCacheStore.read(applicationContext.filesDir, "merged_json")
+            if (cachedMerged != mergedPayload) {
+                check(FeedCacheStore.write(applicationContext.filesDir, "merged_json", mergedPayload)) {
+                    "Unable to persist refreshed match feed"
+                }
+            }
             check(feedCache.edit()
-                .putString("merged_json", mergedPayload)
+                .remove("merged_json")
                 .putLong("last_successful_check_ms", System.currentTimeMillis())
-                .commit()) { "Unable to persist refreshed match feed" }
+                .commit()) { "Unable to persist refreshed match metadata" }
             var changed = false
             var totalBets = 0
             var pendingAuto = 0
