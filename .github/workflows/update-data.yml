@@ -7,6 +7,7 @@ on:
     paths:
       - "backend/update_data_pitchapi.py"
       - "backend/predict_uefa_markets.py"
+      - "backend/update_data.py"
       - ".github/workflows/update-data.yml"
   # Refresh domestic fixtures/results every six hours without xG backfill requests.
   schedule:
