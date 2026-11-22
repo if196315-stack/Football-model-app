@@ -6,6 +6,10 @@ on:
       - main
     paths:
       - "backend/update_data_pitchapi.py"
+  # Keep domestic fixtures, scores, xG history and model forecasts current.
+  # Scheduled runs refresh listings/results only; shot-level xG backfill stays bounded.
+  schedule:
+    - cron: "23 */6 * * *"
   workflow_dispatch:
     inputs:
       max_shot_requests:
