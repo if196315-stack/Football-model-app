@@ -1525,7 +1525,7 @@ class MainActivity : Activity() {
             controls.addView(row)
         }
         val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf("ALL" to "ВСЕ", "MANUAL" to "РУЧНЫЕ", "AI" to "AI-РУЧНЫЕ").forEach { option ->
+        listOf("ALL" to "ВСЕ", "MANUAL" to "РУЧНЫЕ").forEach { option ->
             val active = selectedStatsSource == option.first
             val button = TextView(this).apply {
                 text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
