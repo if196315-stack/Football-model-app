@@ -47,5 +47,5 @@
       "YES"
     ]
   },
-  "notes": "Approved policy v1.3: MelBet via API-Sport is the sole bookmaker source. No financial risk limits are applied: no drawdown pause/stop, daily exposure cap, per-match exposure cap, or automatic stake cap. Paper stake amounts remain user-controlled. The eight active markets are the only supported user-facing strategy markets."
+  "notes": "Approved policy v1.3: MelBet via API-Sport is the sole bookmaker source. No financial risk limits are applied: no drawdown pause/stop, daily exposure cap, per-match exposure cap, or automatic stake cap. Paper stake calculation follows the selected app mode (fixed amount, or 1% of current bank with optional user-defined minimum); no automatic maximum or aggregate exposure cap. The eight active markets are the only supported user-facing strategy markets."
 }
