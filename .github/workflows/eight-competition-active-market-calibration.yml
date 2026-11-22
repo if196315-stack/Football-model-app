@@ -89,6 +89,35 @@ jobs:
                   if value:
                       lines.append(f"| {league} | {value['model']['n']} | {value['brier_skill']:.2%} | {value['log_loss_skill']:.2%} |")
               lines.append("")
+          lines += ["", "## Global calibrator holdout comparison", "",
+                    "| Market | Train N | Holdout N | Δ Brier | 95% CI | Δ Log Loss |",
+                    "|---|---:|---:|---:|---:|---:|"]
+          for market, data in report["markets"].items():
+              cal = data.get("calibration_global", {})
+              params = cal.get("calibrator", {})
+              ci = cal.get("brier_delta_ci95") or {}
+              holdout = cal.get("holdout")
+              n = holdout["n"] if holdout else 0
+              delta = cal.get("brier_delta_vs_raw")
+              ci_text = f"[{ci['ci95_lower']:+.6f}; {ci['ci95_upper']:+.6f}]" if ci else "n/a"
+              delta_text = f"{delta:+.6f}" if delta is not None else "n/a"
+              log_delta = cal.get("log_loss_delta_vs_raw")
+              log_text = f"{log_delta:+.6f}" if log_delta is not None else "n/a"
+              lines.append(f"| {market} | {params.get('train_n', 0)} | {n} | {delta_text} | {ci_text} | {log_text} |")
+          lines += ["", "## Per-competition calibration", ""]
+          for market, data in report["markets"].items():
+              lines += [f"### {market}", "", "| Competition | Train N | Holdout N | Δ Brier | 95% CI |",
+                        "|---|---:|---:|---:|---:|"]
+              for league, cal in data.get("calibration_by_competition", {}).items():
+                  params = cal.get("calibrator", {})
+                  ci = cal.get("brier_delta_ci95") or {}
+                  holdout = cal.get("holdout")
+                  n = holdout["n"] if holdout else 0
+                  delta = cal.get("brier_delta_vs_raw")
+                  ci_text = f"[{ci['ci95_lower']:+.6f}; {ci['ci95_upper']:+.6f}]" if ci else "n/a"
+                  delta_text = f"{delta:+.6f}" if delta is not None else "n/a"
+                  lines.append(f"| {league} | {params.get('train_n', 0)} | {n} | {delta_text} | {ci_text} |")
+              lines.append("")
           lines += [
               "## Interpretation guardrails",
               "",
