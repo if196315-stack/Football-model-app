@@ -1263,6 +1263,10 @@ class MainActivity : Activity() {
     private val statsCalculationInProgress = AtomicBoolean(false)
     private var selectedStatsPeriod = "MONTH"
     private var selectedStatsSource = "ALL"
+    private data class StatsBetInput(
+        val day: Long, val source: String, val status: String,
+        val stake: Double, val odds: Double
+    )
     private data class StatsBetViewCache(
         val key: String, val current: BetStatsSummary, val previous: BetStatsSummary?,
         val manual: BetStatsSummary?, val ai: BetStatsSummary?
@@ -1281,20 +1285,34 @@ class MainActivity : Activity() {
     private fun requestStatsBetCalculation(key: String, sourceBets: JSONArray, period: String, source: String, now: Long) {
         if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
         val generation = statsBetCacheGeneration.get()
+        // Snapshot only the five scalar fields needed by the statistics. This avoids
+        // sharing mutable JSONObject instances with the worker and avoids a second JSON tree.
+        val snapshot = try {
+            buildList {
+                for (index in 0 until sourceBets.length()) {
+                    val bet = sourceBets.optJSONObject(index) ?: continue
+                    val day = betStatsDate(bet) ?: continue
+                    add(StatsBetInput(day, bet.optString("source"), bet.optString("status"),
+                        bet.optDouble("stake", 0.0), bet.optDouble("odds", 0.0)))
+                }
+            }
+        } catch (error: Throwable) {
+            statsBetCalculationInProgress.set(false)
+            android.util.Log.e("IQMatchStats", "Unable to snapshot bet history statistics", error)
+            statsBetCalculationError = error.javaClass.simpleName
+            return
+        }
         thread(name = "stats-bet-history-calculation") {
             var calculationError: String? = null
             val calculated = try {
-                // The source JSONArray is immutable for this calculation: refresh replaces
-                // the Activity field rather than mutating this instance. Aggregate it in place
-                // on the worker to avoid a second full copy of a potentially huge bet history.
                 val bounds = statsPeriodBounds(period, now)
-                val current = summarizeBets(sourceBets, source, bounds.first, bounds.second)
+                val current = summarizeBets(snapshot, source, bounds.first, bounds.second)
                 val previous = if (period == "ALL") null else {
                     val duration = bounds.second - bounds.first
-                    summarizeBets(sourceBets, source, bounds.first - duration, bounds.first)
+                    summarizeBets(snapshot, source, bounds.first - duration, bounds.first)
                 }
-                val manual = if (source == "ALL") summarizeBets(sourceBets, "MANUAL", bounds.first, bounds.second) else null
-                val ai = if (source == "ALL") summarizeBets(sourceBets, "AI", bounds.first, bounds.second) else null
+                val manual = if (source == "ALL") summarizeBets(snapshot, "MANUAL", bounds.first, bounds.second) else null
+                val ai = if (source == "ALL") summarizeBets(snapshot, "AI", bounds.first, bounds.second) else null
                 StatsBetViewCache(key, current, previous, manual, ai)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate bet history statistics", error)
@@ -1416,21 +1434,17 @@ class MainActivity : Activity() {
         return cal.timeInMillis to end
     }
 
-    private fun summarizeBets(sourceBets: JSONArray, source: String, from: Long, to: Long): BetStatsSummary {
+    private fun summarizeBets(sourceBets: List<StatsBetInput>, source: String, from: Long, to: Long): BetStatsSummary {
         var wins = 0; var losses = 0; var pushes = 0
         var turnover = 0.0; var profit = 0.0; var oddsTotal = 0.0; var oddsCount = 0
         val daily = sortedMapOf<Long, Pair<Double, Double>>()
-        // Read the immutable source array directly on the worker. Do not deep-copy
-        // every historical JSONObject: large user histories can exhaust app memory.
-        for (index in 0 until sourceBets.length()) {
-            val bet = sourceBets.optJSONObject(index) ?: continue
-            val isAi = bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+        for (bet in sourceBets) {
+            val isAi = bet.source in listOf("AI_MANUAL", "AI_AUTO")
             if (source == "AI" && !isAi || source == "MANUAL" && isAi) continue
-            val day = betStatsDate(bet) ?: continue
-            if (day < from || day > to) continue
-            val stake = bet.optDouble("stake", 0.0)
-            val odds = bet.optDouble("odds", 0.0)
-            val delta = when (bet.optString("status")) {
+            if (bet.day < from || bet.day > to) continue
+            val stake = bet.stake
+            val odds = bet.odds
+            val delta = when (bet.status) {
                 "WON" -> { wins++; stake * (odds - 1.0) }
                 "LOST" -> { losses++; -stake }
                 "PUSH" -> { pushes++; 0.0 }
@@ -2475,11 +2489,12 @@ class MainActivity : Activity() {
     // an available MelBet quote from API-Sport; quote age is informational only.
     private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
         val prediction = match.optJSONObject("prediction") ?: return false
+        // Only require probabilities for markets actually used by the current strategy
+        // and parsed from MelBet: double chance, match/team overs, and BTTS YES.
         val probabilityFields = listOf(
-            "1x", "x2", "over15", "over25", "over35",
-            "homeOver05", "homeOver15", "homeOver25", "homeOver35",
-            "awayOver05", "awayOver15", "awayOver25", "awayOver35",
-            "bttsYes", "bttsNo"
+            "1x", "x2", "over15", "over25",
+            "homeOver05", "homeOver15", "awayOver05", "awayOver15",
+            "bttsYes"
         )
         if (!probabilityFields.all { field ->
                 val value = prediction.optDouble(field, Double.NaN)
