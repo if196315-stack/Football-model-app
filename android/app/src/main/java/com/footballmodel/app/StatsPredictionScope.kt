@@ -35,6 +35,25 @@ internal object StatsPredictionScope {
         return null
     }
 
+    /** Parses a fixture date (not a prediction/bet creation timestamp) as UTC. */
+    fun matchDateMillis(rawValue: String): Long? {
+        val raw = rawValue.trim()
+        if (raw.isBlank()) return null
+        return try {
+            val pattern = if (raw.length >= 19) "yyyy-MM-dd'T'HH:mm:ss" else "yyyy-MM-dd"
+            val format = java.text.SimpleDateFormat(pattern, java.util.Locale.US).apply {
+                isLenient = false
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            format.parse(raw.take(if (pattern.length > 10) 19 else 10))?.time
+        } catch (_: Exception) { null }
+    }
+
+    fun matchDateInPeriod(rawMatchDate: String, fromInclusive: Long, toInclusive: Long): Boolean {
+        val matchDay = matchDateMillis(rawMatchDate) ?: return false
+        return matchDay in fromInclusive..toInclusive
+    }
+
     fun confidenceBand(source: String, probability: Double): Int? {
         if (!probability.isFinite() || probability < 0.0 || probability > 1.0) return null
         val topOnly = source == "TOP"
