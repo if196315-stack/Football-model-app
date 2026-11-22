@@ -86,8 +86,8 @@ class MainActivity : Activity() {
     @Volatile private var lastPayload: String? = null
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
-    private var selectedHistoryTab = "OPEN"
-    private var selectedTopTab = "OPEN"
+    private var selectedHistoryTab = "ОЖИДАЮТ"
+    private var selectedTopTab = "ОЖИДАЮТ"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
@@ -430,7 +430,7 @@ class MainActivity : Activity() {
             if (data != null) render() else loadData()
         } else if (requestedTab == "desk") {
             currentTab = "desk"
-            selectedTopTab = "OPEN"
+            selectedTopTab = "ОЖИДАЮТ"
             tabViewCache.clear()
             renderedKey = null
             if (data != null) render() else loadData()
@@ -1388,21 +1388,21 @@ class MainActivity : Activity() {
     }
 
     private fun terminalSummary(parent: LinearLayout, title: String, summary: AnalyticsSlice) {
-        val box = terminalSection(parent, title, "SETTLED " + summary.settled + " · OPEN " + summary.pending)
+        val box = terminalSection(parent, title, "РАССЧИТАНО: " + summary.settled + " · ОЖИДАЮТ: " + summary.pending)
         val first = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(first, "NET P/L", fmt(summary.profit), if (summary.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
-        terminalMetric(first, "ROI", String.format(Locale.US, "%.2f%%", summary.roi), if (summary.roi >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
-        terminalMetric(first, "WIN RATE", String.format(Locale.US, "%.1f%%", summary.winRate), Color.WHITE)
+        terminalMetric(first, "ЧИСТАЯ ПРИБЫЛЬ", fmt(summary.profit), if (summary.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
+        terminalMetric(first, "ROI · ДОХОДНОСТЬ", String.format(Locale.US, "%.2f%%", summary.roi), if (summary.roi >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
+        terminalMetric(first, "ДОЛЯ ПОБЕД", String.format(Locale.US, "%.1f%%", summary.winRate), Color.WHITE)
         box.addView(first)
         val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(second, "W / L / P", summary.wins.toString() + "/" + summary.losses + "/" + summary.pushes, Color.WHITE)
-        terminalMetric(second, "TURNOVER", fmt(summary.turnover), Color.WHITE)
-        terminalMetric(second, "AVG ODDS", if (summary.averageOdds > 0) String.format(Locale.US, "%.2f", summary.averageOdds) else "—", Color.WHITE)
+        terminalMetric(second, "В / П / ВОЗВРАТ", summary.wins.toString() + "/" + summary.losses + "/" + summary.pushes, Color.WHITE)
+        terminalMetric(second, "ОБОРОТ", fmt(summary.turnover), Color.WHITE)
+        terminalMetric(second, "СРЕДНИЙ КЭФ.", if (summary.averageOdds > 0) String.format(Locale.US, "%.2f", summary.averageOdds) else "—", Color.WHITE)
         box.addView(second)
     }
 
     private fun addTerminalEquityChart(parent: LinearLayout, points: List<AnalyticsPoint>) {
-        val box = terminalSection(parent, "EQUITY / CUMULATIVE P&L", "SETTLED BETS ONLY · NOT ACCOUNT BALANCE")
+        val box = terminalSection(parent, "ДИНАМИКА ПРИБЫЛИ", "ТОЛЬКО РАССЧИТАННЫЕ СТАВКИ · НЕ БАЛАНС СЧЁТА")
         if (points.isEmpty()) {
             box.addView(label("Нет рассчитанных ставок за выбранный период.", 11, false, muted))
             return
@@ -1434,8 +1434,8 @@ class MainActivity : Activity() {
                 }
                 line.color = if ((values.lastOrNull() ?: 0.0) >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)
                 canvas.drawPath(path, line)
-                canvas.drawText("START", left, height - dp(4).toFloat(), txt)
-                canvas.drawText("LATEST", right - dp(38), height - dp(4).toFloat(), txt)
+                canvas.drawText("НАЧАЛО", left, height - dp(4).toFloat(), txt)
+                canvas.drawText("СЕЙЧАС", right - dp(38), height - dp(4).toFloat(), txt)
             }
         }
         box.addView(chart, LinearLayout.LayoutParams(-1, dp(170)))
@@ -1461,7 +1461,7 @@ class MainActivity : Activity() {
 
     private fun exportBetAnalyticsCsv() {
         try {
-            val rows = mutableListOf("id,date,source,status,kind,match_or_coupon,market,stake,odds,profit,league,selections")
+            val rows = mutableListOf("идентификатор,дата,источник,статус,тип,матч_или_экспресс,рынок,ставка,коэффициент,прибыль,чемпионат,исходы")
             for (i in 0 until bets.length()) {
                 val bet = bets.optJSONObject(i) ?: continue
                 val source = bet.optString("source")
@@ -1491,7 +1491,7 @@ class MainActivity : Activity() {
             }
             val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                 type = "text/csv"
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "Football Model betting history")
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "История ставок Football Model")
                 putExtra(android.content.Intent.EXTRA_TEXT, rows.joinToString("\n"))
             }
             startActivity(android.content.Intent.createChooser(intent, "Экспорт истории ставок"))
@@ -1510,16 +1510,16 @@ class MainActivity : Activity() {
             SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now))).joinToString("|")
         val cached = statsBetViewCache
         if (cached?.key != key) {
-            val loading = terminalSection(matchesContainer, "ANALYTICS ENGINE", "SNAPSHOT → VALIDATE → AGGREGATE")
-            loading.addView(label("Подготавливаем аналитику в фоновом потоке…", 12, true, Color.WHITE))
-            loading.addView(label("История не изменяется. Экран остаётся отзывчивым.", 10, false, muted))
+            val loading = terminalSection(matchesContainer, "РАСЧЁТ АНАЛИТИКИ", "СБОР ДАННЫХ → ПРОВЕРКА → РАСЧЁТ")
+            loading.addView(label("Рассчитываем показатели в фоновом режиме…", 12, true, Color.WHITE))
+            loading.addView(label("История ставок не изменяется. Приложение остаётся отзывчивым.", 10, false, muted))
             if (!statsBetCalculationInProgress.get()) requestStatsBetCalculation(key, bets, selectedStatsPeriod, selectedStatsSource, now)
             return
         }
 
-        val controls = terminalSection(matchesContainer, "QUERY FILTERS", "PERIOD / SOURCE")
-        val periods = listOf(listOf("WEEK" to "7D", "MONTH" to "1M", "QUARTER" to "3M"),
-            listOf("HALF" to "6M", "YEAR" to "1Y", "ALL" to "ALL"))
+        val controls = terminalSection(matchesContainer, "ФИЛЬТРЫ ОТЧЁТА", "ПЕРИОД / ИСТОЧНИК")
+        val periods = listOf(listOf("WEEK" to "7 ДН", "MONTH" to "1 МЕС", "QUARTER" to "3 МЕС"),
+            listOf("HALF" to "6 МЕС", "YEAR" to "1 ГОД", "ALL" to "ВСЁ ВРЕМЯ"))
         periods.forEach { options ->
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             options.forEach { option ->
@@ -1536,7 +1536,7 @@ class MainActivity : Activity() {
             controls.addView(row)
         }
         val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf("ALL" to "ALL", "MANUAL" to "MANUAL", "AI" to "AI MANUAL").forEach { option ->
+        listOf("ALL" to "ВСЕ", "MANUAL" to "РУЧНЫЕ", "AI" to "AI-РУЧНЫЕ").forEach { option ->
             val active = selectedStatsSource == option.first
             val button = TextView(this).apply {
                 text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
@@ -1549,7 +1549,7 @@ class MainActivity : Activity() {
         }
         controls.addView(sourceRow)
         val export = TextView(this).apply {
-            text = "↓  EXPORT BET HISTORY · CSV"; gravity = Gravity.CENTER; textSize = 10f
+            text = "↓  ЭКСПОРТ ИСТОРИИ СТАВОК · CSV"; gravity = Gravity.CENTER; textSize = 10f
             typeface = Typeface.MONOSPACE; setPadding(dp(8), dp(11), dp(8), dp(11))
             setTextColor(Color.rgb(73, 218, 163))
             background = rounded(Color.rgb(17, 39, 43), 7)
@@ -1559,76 +1559,76 @@ class MainActivity : Activity() {
 
         val report = cached.current
         statsBetCalculationError?.let { code ->
-            val warning = terminalSection(matchesContainer, "PARTIAL DATA WARNING")
+            val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, Color.rgb(245, 190, 95)))
         }
-        val hero = terminalSection(matchesContainer, "PORTFOLIO PERFORMANCE", "MANUAL + AI MANUAL + COUPONS · COUPONS INCLUDED ONCE")
+        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "РУЧНЫЕ + AI-РУЧНЫЕ + ЭКСПРЕССЫ · ЭКСПРЕССЫ УЧТЕНЫ ОДИН РАЗ")
         val pnlColor = if (report.overall.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)
         hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
-        hero.addView(label("NET PROFIT / LOSS", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
+        hero.addView(label("ЧИСТАЯ ПРИБЫЛЬ / УБЫТОК", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
         val heroRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(heroRow, "ROI", String.format(Locale.US, "%.2f%%", report.overall.roi), pnlColor)
-        terminalMetric(heroRow, "WIN RATE", String.format(Locale.US, "%.1f%%", report.overall.winRate), Color.WHITE)
-        terminalMetric(heroRow, "SETTLED", report.overall.settled.toString(), Color.WHITE)
+        terminalMetric(heroRow, "ROI · ДОХОДНОСТЬ", String.format(Locale.US, "%.2f%%", report.overall.roi), pnlColor)
+        terminalMetric(heroRow, "ДОЛЯ ПОБЕД", String.format(Locale.US, "%.1f%%", report.overall.winRate), Color.WHITE)
+        terminalMetric(heroRow, "РАССЧИТАНО", report.overall.settled.toString(), Color.WHITE)
         hero.addView(heroRow)
         val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(second, "TURNOVER", fmt(report.overall.turnover), Color.WHITE)
-        terminalMetric(second, "AVG ODDS", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
-        terminalMetric(second, "OPEN", report.overall.pending.toString(), Color.rgb(245, 190, 95))
+        terminalMetric(second, "ОБОРОТ", fmt(report.overall.turnover), Color.WHITE)
+        terminalMetric(second, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
+        terminalMetric(second, "ОЖИДАЮТ", report.overall.pending.toString(), Color.rgb(245, 190, 95))
         hero.addView(second)
         val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
             ?.takeIf { it.isFinite() && it > 0.0 }
         val allTimeBankEstimate = if (selectedStatsPeriod == "ALL" && selectedStatsSource == "ALL")
             initialBank?.let { it + report.overall.profit } else null
-        terminalMetric(bankRow, "AVG STAKE", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
-        terminalMetric(bankRow, "EST. BANK", allTimeBankEstimate?.let { fmt(it) } ?: "ALL-TIME ONLY", Color.rgb(91, 192, 213))
+        terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
+        terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", allTimeBankEstimate?.let { fmt(it) } ?: "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", Color.rgb(91, 192, 213))
         hero.addView(bankRow)
-        hero.addView(label("Estimated bank is shown only for ALL periods + ALL sources; it assumes no untracked deposits or withdrawals.", 9, false, muted))
+        hero.addView(label("Расчётный банк показывается только для периода «Всё время» и всех источников; пополнения и снятия, не внесённые в историю, не учитываются.", 9, false, muted))
 
         addTerminalEquityChart(matchesContainer, report.overall.points)
-        val risk = terminalSection(matchesContainer, "RISK / STREAK CONTROL", "P&L PEAK-TO-TROUGH · NOT A CASH-BALANCE DRAWDOWN")
+        val risk = terminalSection(matchesContainer, "РИСКИ И СЕРИИ", "МАКСИМАЛЬНАЯ ПРОСАДКА ПРИБЫЛИ · НЕ ИЗМЕНЕНИЕ ДЕНЕЖНОГО БАЛАНСА")
         val riskRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(riskRow, "MAX DRAWDOWN", fmt(report.maxDrawdown), Color.rgb(245, 105, 112))
-        terminalMetric(riskRow, "DRAWDOWN %", String.format(Locale.US, "%.1f%%", report.maxDrawdownPercent), Color.rgb(245, 105, 112))
-        terminalMetric(riskRow, "CURRENT RUN", report.currentStreak, Color.WHITE)
+        terminalMetric(riskRow, "МАКС. ПРОСАДКА", fmt(report.maxDrawdown), Color.rgb(245, 105, 112))
+        terminalMetric(riskRow, "ПРОСАДКА, %", String.format(Locale.US, "%.1f%%", report.maxDrawdownPercent), Color.rgb(245, 105, 112))
+        terminalMetric(riskRow, "ТЕКУЩАЯ СЕРИЯ", report.currentStreak, Color.WHITE)
         risk.addView(riskRow)
         val runRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(runRow, "BEST WIN RUN", report.longestWinStreak.toString(), Color.rgb(73, 218, 163))
-        terminalMetric(runRow, "WORST LOSS RUN", report.longestLossStreak.toString(), Color.rgb(245, 105, 112))
+        terminalMetric(runRow, "ЛУЧШАЯ СЕРИЯ ПОБЕД", report.longestWinStreak.toString(), Color.rgb(73, 218, 163))
+        terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(245, 105, 112))
         risk.addView(runRow)
 
-        val sourceBox = terminalSection(matchesContainer, "SINGLE BETS · SOURCE COMPARISON", "COUPONS EXCLUDED HERE AND SHOWN SEPARATELY")
+        val sourceBox = terminalSection(matchesContainer, "ОДИНОЧНЫЕ СТАВКИ · СРАВНЕНИЕ ИСТОЧНИКОВ", "ЭКСПРЕССЫ ПОКАЗАНЫ ОТДЕЛЬНО")
         val manualRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(manualRow, "MANUAL P/L", fmt(report.manual.profit), if (report.manual.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
-        terminalMetric(manualRow, "MANUAL ROI", String.format(Locale.US, "%.1f%%", report.manual.roi), Color.WHITE)
+        terminalMetric(manualRow, "РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.manual.profit), if (report.manual.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
+        terminalMetric(manualRow, "РУЧНЫЕ · ROI", String.format(Locale.US, "%.1f%%", report.manual.roi), Color.WHITE)
         sourceBox.addView(manualRow)
         val aiRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(aiRow, "AI MANUAL P/L", fmt(report.ai.profit), if (report.ai.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
-        terminalMetric(aiRow, "AI MANUAL ROI", String.format(Locale.US, "%.1f%%", report.ai.roi), Color.WHITE)
+        terminalMetric(aiRow, "AI-РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.ai.profit), if (report.ai.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
+        terminalMetric(aiRow, "AI-РУЧНЫЕ · ROI", String.format(Locale.US, "%.1f%%", report.ai.roi), Color.WHITE)
         sourceBox.addView(aiRow)
-        sourceBox.addView(label("Manual: " + report.manual.settled + " settled · AI: " + report.ai.settled + " settled", 10, false, muted))
+        sourceBox.addView(label("Ручные: " + report.manual.settled + " рассчитано · AI-ручные: " + report.ai.settled + " рассчитано", 10, false, muted))
 
-        terminalSummary(matchesContainer, "SINGLES ONLY · COUPONS EXCLUDED", report.singles)
-        terminalSummary(matchesContainer, "COUPONS · SEPARATE LEDGER", report.coupons)
-        terminalBreakdown(matchesContainer, "MARKET PERFORMANCE · SINGLES", report.byMarket, 12)
-        terminalBreakdown(matchesContainer, "COMPETITION PERFORMANCE", report.byLeague, 10)
-        terminalBreakdown(matchesContainer, "ODDS SEGMENTATION", report.byOdds, 5)
-        terminalBreakdown(matchesContainer, "WEEKDAY PERFORMANCE", report.byWeekday, 7)
+        terminalSummary(matchesContainer, "ОДИНОЧНЫЕ СТАВКИ · БЕЗ ЭКСПРЕССОВ", report.singles)
+        terminalSummary(matchesContainer, "ЭКСПРЕССЫ · ОТДЕЛЬНЫЙ УЧЁТ", report.coupons)
+        terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12)
+        terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
+        terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
+        terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ДНЯМ НЕДЕЛИ", report.byWeekday, 7)
 
-        val quality = terminalSection(matchesContainer, "DATA INTEGRITY", "PENDING EXCLUDED FROM P/L / ROI / WIN RATE")
+        val quality = terminalSection(matchesContainer, "КАЧЕСТВО ДАННЫХ", "НЕРАССЧИТАННЫЕ СТАВКИ НЕ ВХОДЯТ В ПРИБЫЛЬ, ROI И ДОЛЮ ПОБЕД")
         val integrity = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(integrity, "READ", report.recordsRead.toString(), Color.WHITE)
-        terminalMetric(integrity, "INVALID", report.invalidRecords.toString(), if (report.invalidRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
-        terminalMetric(integrity, "DUPLICATES", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
+        terminalMetric(integrity, "ПРОЧИТАНО", report.recordsRead.toString(), Color.WHITE)
+        terminalMetric(integrity, "ОШИБОЧНЫЕ", report.invalidRecords.toString(), if (report.invalidRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
+        terminalMetric(integrity, "ДУБЛИ", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
         quality.addView(integrity)
-        quality.addView(label("Каждый купон учитывается одной записью; его selections не добавляются как отдельные ставки.", 10, false, muted))
+        quality.addView(label("Каждый экспресс учитывается одной записью; входящие в него исходы не добавляются как отдельные ставки.", 10, false, muted))
         cached.previous?.let { previous ->
-            val compare = terminalSection(matchesContainer, "PERIOD COMPARISON")
+            val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
             val delta = report.overall.roi - previous.overall.roi
-            compare.addView(label("ROI Δ " + String.format(Locale.US, "%+.2f п.п.", delta) + " · P/L Δ " + fmt(report.overall.profit - previous.overall.profit), 12, true,
+            compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta) + " · изменение прибыли: " + fmt(report.overall.profit - previous.overall.profit), 12, true,
                 if (delta >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)))
-            compare.addView(label("Previous ROI " + String.format(Locale.US, "%.2f%%", previous.overall.roi) + " · P/L " + fmt(previous.overall.profit) + " · settled " + previous.overall.settled, 10, false, muted))
+            compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi) + " · прибыль: " + fmt(previous.overall.profit) + " · рассчитано: " + previous.overall.settled, 10, false, muted))
         }
     }
 
@@ -1694,7 +1694,7 @@ class MainActivity : Activity() {
 
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PRO TERMINAL · BETTING ANALYTICS", "Статистика", "Профессиональная аналитика ставок")
+        screenHeader("PRO TERMINAL · АНАЛИТИКА СТАВОК", "Статистика", "Профессиональная аналитика ставок")
         try {
             renderBetPerformanceStats()
         } catch (error: Throwable) {
@@ -1736,29 +1736,54 @@ class MainActivity : Activity() {
             return
         }
         val metrics = statsMetricsCache
-        val overallHeading = card()
-        addText(overallHeading, "ОБЩАЯ СВОДКА", 11, true, cyan)
+        val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", "ТОЧНОСТЬ МОДЕЛИ · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ")
         if (metrics.isEmpty()) {
-            val empty = card()
+            val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
             val calculationError = statsMetricsError
             if (calculationError != null) {
-                addText(empty, "Не удалось рассчитать сводку прогнозов. Остальная статистика доступна.", 12, true, gold)
-                addText(empty, "Код ошибки: $calculationError", 10, false, muted)
+                empty.addView(label("Не удалось рассчитать сводку прогнозов. Остальная статистика доступна.", 12, true, gold))
+                empty.addView(label("Код ошибки: $calculationError", 10, false, muted))
             } else {
-                addText(empty, "Архив честных прогнозов только начинается. Матчи будут учитываться после фиксации прогноза до стартового свистка и получения финального счёта.", 12, false, muted)
+                empty.addView(label("Архив проверенных прогнозов пока формируется. Матч попадёт в статистику после фиксации прогноза до начала игры и получения подтверждённого итогового счёта.", 11, false, muted))
             }
         } else metrics.forEach { metric ->
-            val box = card()
-            addText(box, metric.name, 14, true)
-            addText(box, "Попадания при пороге 50%: ${metric.hits}/${metric.n} (${String.format(Locale.US, "%.1f", metric.hits*100.0/metric.n)}%)", 11, true, accent)
-            addText(box, "ПОПАДАНИЯ ПО УВЕРЕННОСТИ ПРОГНОЗА", 9, true, cyan)
+            val box = terminalSection(matchesContainer, metric.name, "ВЫБОРКА: ${metric.n} ЗАВЕРШЁННЫХ МАТЧЕЙ")
+            val hitRate = metric.hits * 100.0 / metric.n
+            val summaryRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(summaryRow, "ПОПАДАНИЯ", "${metric.hits} / ${metric.n}", Color.WHITE)
+            terminalMetric(summaryRow, "ТОЧНОСТЬ", String.format(Locale.US, "%.1f%%", hitRate),
+                if (hitRate >= 50.0) Color.rgb(73, 218, 163) else Color.rgb(245, 190, 95))
+            box.addView(summaryRow)
+            box.addView(label("ТОЧНОСТЬ ПО УРОВНЮ УВЕРЕННОСТИ", 9, true, cyan).apply {
+                typeface = Typeface.MONOSPACE
+                setPadding(0, dp(7), 0, dp(3))
+            })
             metric.bands.forEach { band ->
-                val rate = if (band.n > 0) String.format(Locale.US, "%.1f%%", band.hits*100.0/band.n) else "—"
-                addText(box, "${band.label}: ${band.hits}/${band.n} ($rate)", 11, false, if (band.n > 0) Color.WHITE else muted)
+                val rate = if (band.n > 0) String.format(Locale.US, "%.1f%%", band.hits * 100.0 / band.n) else "—"
+                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+                row.addView(label("${band.label}", 10, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+                row.addView(label("${band.hits} / ${band.n}", 10, false, muted).apply { typeface = Typeface.MONOSPACE })
+                row.addView(label(rate, 10, true, if (band.n > 0) accent else muted).apply {
+                    typeface = Typeface.MONOSPACE
+                    gravity = Gravity.END
+                }, LinearLayout.LayoutParams(dp(58), -2))
+                box.addView(row)
+                val progress = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+                    max = 1000
+                    progress = if (band.n > 0) (band.hits * 1000 / band.n) else 0
+                    progressTintList = android.content.res.ColorStateList.valueOf(if (band.n > 0) accent else Color.rgb(47, 61, 72))
+                    progressBackgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(27, 39, 50))
+                }
+                box.addView(progress, LinearLayout.LayoutParams(-1, dp(4)).apply {
+                    topMargin = dp(3)
+                    bottomMargin = dp(5)
+                })
             }
-            addText(box, "Brier Score: ${String.format(Locale.US, "%.4f", metric.brier)} · Log Loss: ${String.format(Locale.US, "%.4f", metric.logLoss)}", 11, false, muted)
+            val qualityRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(qualityRow, "ОЦЕНКА БРАЙЕРА", String.format(Locale.US, "%.4f", metric.brier), Color.WHITE)
+            terminalMetric(qualityRow, "ЛОГ. ПОТЕРЯ", String.format(Locale.US, "%.4f", metric.logLoss), Color.WHITE)
+            box.addView(qualityRow)
         }
-
     }
 
 
@@ -2192,8 +2217,8 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        listOf("OPEN" to "Ожидает расчёта", "COMPLETED" to "Завершённые").forEach { (key, title) ->
-            val count = if (key == "OPEN") openBets.size else completedBets.size
+        listOf("ОЖИДАЮТ" to "Ожидает расчёта", "COMPLETED" to "Завершённые").forEach { (key, title) ->
+            val count = if (key == "ОЖИДАЮТ") openBets.size else completedBets.size
             val tab = TextView(this).apply {
                 text = "$title · $count"
                 textSize = 12f
@@ -2223,7 +2248,7 @@ class MainActivity : Activity() {
             historyTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
         }
         matchesContainer.addView(historyTabs)
-        if (selectedHistoryTab == "OPEN") {
+        if (selectedHistoryTab == "ОЖИДАЮТ") {
             renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Ставок, ожидающих расчёта, пока нет.")
         } else {
             renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
