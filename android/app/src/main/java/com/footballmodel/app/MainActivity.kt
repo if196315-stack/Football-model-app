@@ -3523,7 +3523,7 @@ class MainActivity : Activity() {
             return
         } else {
             UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
-            leagueBar.visibility = View.VISIBLE
+            UiMotion.animateVisibility(leagueBar, true, dp(6).toFloat())
         }
 
         if (leagues == null || leagues.length() == 0) {
