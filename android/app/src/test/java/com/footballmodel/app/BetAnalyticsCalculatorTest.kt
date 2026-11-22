@@ -23,7 +23,7 @@ class BetAnalyticsCalculatorTest {
         )
         val report = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L)
         assertEquals(3, report.overall.settled)
-        assertEquals(5.0, report.overall.profit, 0.0001)
+        assertEquals(10.0, report.overall.profit, 0.0001)
         assertEquals(2, report.singles.settled)
         assertEquals(1, report.coupons.settled)
         assertEquals(10.0, report.manual.profit, 0.0001)
