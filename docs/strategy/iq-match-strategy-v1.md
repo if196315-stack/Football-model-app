@@ -2,9 +2,9 @@
 
 **Status:** current strategy specification  
 **Selection:** STRICT  
-**Risk:** MODERATE, stake 1% of current bank with optional user-defined minimum; pause at 10% drawdown and stop at 20%  
+**Risk controls:** none; no drawdown stops, daily exposure cap, per-match exposure cap, or automatic stake cap  
 **Launch:** LIMITED  
-**Bookmaker/data source:** BetBoom odds supplied through API-Sport only
+**Bookmaker/data source:** MelBet odds supplied through API-Sport only
 
 This document is the source of truth for the current IQ MATCH strategy. Thresholds are starting engineering parameters, not validated optimal values and not a promise of profitability.
 
@@ -14,7 +14,7 @@ This document is the source of truth for the current IQ MATCH strategy. Threshol
 2. Obtain the model probability for the exact market and line.
 3. Calculate break-even probability, edge and expected value (EV).
 4. Apply signal-quality and market-specific validation.
-5. Apply duplicate-market protection and drawdown controls. There is no daily aggregate exposure cap; different markets in the same match are permitted.
+5. Apply duplicate-market protection. No risk limits or exposure caps are applied; different markets in the same match are permitted.
 6. Return exactly one decision: BET, WAIT or REJECT, with a reason.
 
 No bet is a valid outcome. A high predicted probability alone is not sufficient.
@@ -26,7 +26,7 @@ No bet is a valid outcome. A high predicted probability alone is not sufficient.
 A BET is prohibited unless all applicable checks pass:
 
 - Fixture is matched unambiguously to the correct teams and kickoff.
-- Quote originates from BetBoom through API-Sport; no other bookmaker is substituted.
+- Quote originates from MelBet through API-Sport; no other bookmaker is substituted.
 - The quote is a real BetBoom quote refreshed within the final 12 hours before kickoff; no separate 5-minute cutoff is applied.
 - Market, side and line match the model probability exactly.
 - Quote and probability are present, finite and valid.
@@ -61,23 +61,16 @@ Signal classes:
 
 For multi-outcome market analysis, account for bookmaker margin when comparing model probabilities with the market. Do not compare different lines or sides.
 
-## 4. Bank and exposure policy
+## 4. Stake and exposure policy
 
-- Stake size is 1% of the current bank, but never below the minimum amount explicitly set by the user.
-- The minimum stake is unset by default. When unset, the stake is exactly 1% of the current bank; there is no hard-coded 25 ₽ default.
-- If the user sets a minimum, stake = max(1% of current bank, user-defined minimum). The configured minimum may therefore make the stake exceed 1%.
-- There is no daily aggregate exposure cap and no aggregate per-match cap in this strategy.
-- Different markets in the same match are permitted; duplicate protection blocks only a repeat of the same market for the same match.
-- No chasing losses, no automatic stake increase after wins, and no full Kelly in v1.2.
-- Drawdown is measured from the local bank high-water mark.
-- 10% drawdown: pause new automatic paper entries.
-- 20% drawdown: stop automatic paper entries until explicit review and approval.
-
-The 10% pause and 20% stop are risk controls for paper-bet automation. They do not submit, authorize, or execute real bookmaker bets.
+- The strategy imposes no risk limits: no drawdown pause/stop, no daily exposure cap, no per-match exposure cap, and no automatic maximum stake percentage.
+- Stake amounts for paper records are user-controlled in the app; the strategy does not automatically cap or block them by bank size or aggregate exposure.
+- Different markets in the same match are permitted. Duplicate protection blocks only a repeat of the same market for the same match.
+- No real bookmaker bets are placed; paper records remain local simulation/history.
 
 ## 5. Market scope
 
-Only use exact, supported BetBoom quotes through API-Sport:
+Only use exact, supported MelBet quotes through API-Sport:
 
 - Double Chance 1X / X2.
 - Match Total OVER.
@@ -115,7 +108,7 @@ Use chronological splits for training, validation and a final untouched test set
 Run against current BetBoom quotes without placing real bets. Record BET, WAIT and REJECT candidates, decision-time odds and pre-kickoff closing odds. Do not change thresholds mid-cohort; version every change.
 
 ### Stage 4 — limited real launch
-Only after prior gates pass. Begin with 1% stakes, apply any user-defined minimum stake, retain the 10% drawdown pause and 20% drawdown stop, and manually review results. Do not expand markets or limits automatically.
+Only after prior gates pass. Any future real launch requires a separate explicit authorization. No automatic risk caps are part of this strategy. Do not expand markets or limits automatically.
 
 ### Stage 5 — ongoing review
 Review market-level performance, calibration, CLV, drawdown, data quality and rejection reasons. Change one rule group at a time and retest on independent data.
@@ -126,7 +119,7 @@ Initial evaluation volume targets: at least 500 historical candidate signals and
 
 - ROI and yield, with explicit denominators.
 - Closing Line Value (CLV), with consistent odds convention.
-- Maximum drawdown.
+- Observed maximum drawdown (reporting metric only; no automatic stop threshold).
 - Brier Score and Log Loss.
 - Calibration by probability band and market.
 - Win rate, as a secondary metric only.
@@ -141,14 +134,12 @@ A positive backtest alone is insufficient. Require out-of-sample and paper-tradi
 - Quote feed stale or unavailable: block new BET decisions.
 - Widespread fixture/market mapping errors: block new BET decisions.
 - Invalid or abnormal model probabilities: block new BET decisions.
-- Daily exposure cap reached: block further bets for the day.
-- 10% drawdown: pause automatic paper entries and audit.
-- 20% drawdown: stop automatic paper entries pending explicit review.
+- No financial risk-limit kill switches are configured in this strategy. Data-quality and feed-integrity gates remain active.
 
 A pause must not silently reset the next day. Resumption requires checking the cause.
 
 ## 10. Product presentation
 
-The Stats screen must keep this strategy guide accessible, including selection gates, value formulas, bank limits, market scope, test stages and risk stop rules. Each decision should expose its reason. Strategy version must be attached to every recorded signal.
+The Stats screen must keep this strategy guide accessible, including selection gates, value formulas, stake/exposure policy, market scope and test stages. Each decision should expose its reason. Strategy version must be attached to every recorded signal.
 
 **Governance:** v1.2 thresholds remain provisional until independently validated. No profit guarantee; no automatic execution is authorized by this document.
