@@ -1287,7 +1287,8 @@ class MainActivity : Activity() {
                 val records = snapshot.mapNotNull { item ->
                     val day = betStatsDate(item) ?: return@mapNotNull null
                     AnalyticsBet(item.id, day, item.source, item.status, item.stake, item.odds,
-                        item.market.ifBlank { item.marketKey }, item.league, item.isCoupon, item.marketKey)
+                        item.market.ifBlank { item.marketKey }, item.league, item.isCoupon,
+                        marketKey = item.marketKey)
                 }
                 val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, source)
                 val previous = if (period == "ALL") null else {
