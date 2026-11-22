@@ -47,19 +47,19 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertIn("BTTS", report["markets"])
         self.assertIn("TOTAL_OVER_2.5", report["markets"])
         self.assertIn("HOME_OVER_1.5", report["markets"])
-        self.assertIn("DNB_HOME", report["markets"])
+        self.assertNotIn("DNB_HOME", report["markets"])
         self.assertEqual(report["markets"]["DC_1X"]["holdout"]["model"]["n"], 2)
-        self.assertIn("ENG", report["markets"]["1X2"]["holdout_by_competition"])
-        self.assertIn("ENG", report["markets"]["1X2"]["all_by_competition"])
-        self.assertIn("brier_skill", report["markets"]["1X2"]["holdout"])
+        self.assertIn("ENG", report["markets"]["DC_1X"]["holdout_by_competition"])
+        self.assertIn("ENG", report["markets"]["DC_1X"]["all_by_competition"])
+        self.assertIn("brier_skill", report["markets"]["DC_1X"]["holdout"])
         self.assertIn("limitations", report)
         self.assertEqual(report["independent_market_count"], 8)
         self.assertEqual(report["active_markets"], ["DC_1X", "DC_X2", "BTTS", "TOTAL_OVER_2.5", "HOME_OVER_0.5", "HOME_OVER_1.5", "AWAY_OVER_0.5", "AWAY_OVER_1.5"])
         self.assertEqual(report["market_relationships"], {})
-        self.assertIn("calibration_global", report["markets"]["1X2"])
-        self.assertEqual(report["markets"]["1X2"]["calibration_global"]["calibrator"]["train_n"], 4)
+        self.assertIn("calibration_global", report["markets"]["DC_1X"])
+        self.assertEqual(report["markets"]["DC_1X"]["calibration_global"]["calibrator"]["train_n"], 4)
         self.assertFalse(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
-        self.assertIn("ENG", report["markets"]["1X2"]["calibration_by_competition"])
+        self.assertIn("ENG", report["markets"]["DC_1X"]["calibration_by_competition"])
 
     def test_walk_forward_produces_predictions_only_after_history_exists(self):
         rows = [
@@ -74,7 +74,7 @@ class AllMarketBacktestTests(unittest.TestCase):
         ]
         report = run(rows, "2025-01-02")
         self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 2})
-        self.assertEqual(report["markets"]["1X2"]["holdout"]["model"]["n"], 2)
+        self.assertEqual(report["markets"]["DC_1X"]["holdout"]["model"]["n"], 2)
 
 
     def test_vector_scaling_uses_training_rows_and_preserves_probability_simplex(self):
