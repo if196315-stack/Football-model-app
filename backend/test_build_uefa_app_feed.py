@@ -10,8 +10,8 @@ class BuildUefaAppFeedTests(unittest.TestCase):
             {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T10:00:00+00:00", "freshness_status": "fresh",
              "bookmaker_update_age_seconds": 20, "market_parser_version": "melbet-fulltime-v2",
              "market": "team_total_over", "team": "home", "point": 1.5, "side": "over", "price": 1.9},
-            {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:45:00+00:00", "freshness_status": "stale",
-             "bookmaker_update_age_seconds": 900, "market_parser_version": "melbet-fulltime-v2",
+            {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-09T21:00:00+00:00", "freshness_status": "stale",
+             "bookmaker_update_age_seconds": 46800, "market_parser_version": "melbet-fulltime-v2",
              "market": "btts", "outcome": "yes", "price": 1.8},
             {"captured_at": "2026-11-10T09:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:00:00+00:00", "freshness_status": "fresh",
              "bookmaker_update_age_seconds": 10, "market_parser_version": "melbet-fulltime-v2",
@@ -22,7 +22,13 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertEqual(odds["bookmaker"], "MELBET")
         self.assertEqual(odds["best"]["teamTotals"][0]["price"], 1.9)
         self.assertEqual(odds["best"]["btts"], {})
-        stale = build_odds([rows[0]], datetime(2026, 11, 10, 10, 10, 0, tzinfo=timezone.utc))
+        within_twelve_hours = build_odds(
+            [rows[0]], datetime(2026, 11, 10, 10, 10, 0, tzinfo=timezone.utc)
+        )
+        self.assertIsNotNone(within_twelve_hours)
+        stale = build_odds(
+            [rows[0]], datetime(2026, 11, 10, 23, 0, 0, tzinfo=timezone.utc)
+        )
         self.assertIsNone(stale)
 
     def test_feed_contains_only_active_club_competitions_and_settled_paper_signal(self):
