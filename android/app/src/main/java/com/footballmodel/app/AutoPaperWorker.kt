@@ -180,52 +180,48 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 }
                 if (matchDay.isBlank() || matchDay < today) continue
                 val prediction = match.optJSONObject("prediction") ?: continue
-                val signal = strongestTopSignal(prediction, match)
-                    ?: (if (code == "UCL" || code == "UEL" || code == "UECL") uefaSignal(match) else null)
-                    ?: continue
-                if (signal.optBoolean("noPositiveSignal") || signal.optDouble("edgePp") <= 0.0 ||
-                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
-                val price = priceFor(signal, match) ?: continue
-                if (price < 1.50) continue
-                val probability = signal.optDouble("modelProbability", Double.NaN)
-                val ev = probability * price - 1.0
-                val qualifies = if (signal.optBoolean("paperOnly")) {
-                    probability >= 0.60 && signal.optDouble("edgePp") >= 5.0 && ev >= 0.05
-                } else {
-                    val impliedEdge = probability - 1.0 / price +
-                        signal.optDouble("formAdjustmentPp", 0.0) / 100.0
-                    probability >= 0.60 && impliedEdge >= 0.05 && ev >= 0.05
-                }
-                if (!qualifies) continue
-                val id = match.optString("id").ifBlank {
+                val matchId = match.optString("id").ifBlank {
                     listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
                 }
-                val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
-                val alreadyRecorded = (0 until savedBets.length()).any { index ->
-                    val bet = savedBets.optJSONObject(index) ?: return@any false
-                    bet.optString("matchId") == id &&
-                        bet.optString("marketKey") == signalMarketKey &&
-                        bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+                val signals = allTopSignals(prediction, match, code)
+                for (signal in signals) {
+                    if (signal.optBoolean("noPositiveSignal") ||
+                        signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true)) continue
+                    val price = priceFor(signal, match) ?: continue
+                    if (price < 1.50) continue
+                    val probability = signal.optDouble("modelProbability", Double.NaN)
+                    val ev = probability * price - 1.0
+                    val edgePp = if (signal.optBoolean("paperOnly")) {
+                        signal.optDouble("edgePp", Double.NaN)
+                    } else {
+                        (probability - 1.0 / price) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
+                    }
+                    if (!probability.isFinite() || probability < 0.60 ||
+                        !edgePp.isFinite() || edgePp < 5.0 || !ev.isFinite() || ev < 0.05) continue
+                    val signalMarketKey = marketKey(signal.optString("side"), match) ?: continue
+                    val alreadyRecorded = (0 until savedBets.length()).any { index ->
+                        val bet = savedBets.optJSONObject(index) ?: return@any false
+                        bet.optString("matchId") == matchId &&
+                            bet.optString("marketKey") == signalMarketKey &&
+                            bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+                    }
+                    if (alreadyRecorded) continue
+                    val title = "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
+                    matchesFound.add("${matchId}::${signalMarketKey}" to title)
                 }
-                if (alreadyRecorded) continue
-                val title = "${match.optString("home")} — ${match.optString("away")}"
-                matchesFound.add(id to title)
             }
         }
         return matchesFound
     }
 
-    // Mirrors the TOP card primary-signal selection for background notifications.
-    private fun strongestTopSignal(prediction: JSONObject, match: JSONObject): JSONObject? {
+    // Return all independently qualified markets, while preserving strict AI thresholds.
+    private fun allTopSignals(prediction: JSONObject, match: JSONObject, code: String): List<JSONObject> {
         val candidates = mutableListOf<JSONObject>()
         prediction.optJSONObject("strongestSignal")?.let { candidates.add(it) }
         val signals = prediction.optJSONArray("signals")
-        if (signals != null) {
-            for (index in 0 until signals.length()) {
-                val candidate = signals.optJSONObject(index) ?: continue
-                val key = candidate.optString("side").trim().lowercase(Locale.ROOT)
-                if (candidates.none { it.optString("side").trim().lowercase(Locale.ROOT) == key }) candidates.add(candidate)
-            }
+        if (signals != null) for (index in 0 until signals.length()) {
+            val candidate = signals.optJSONObject(index) ?: continue
+            candidates.add(candidate)
         }
         val rawMarkets = listOf(
             "1x" to "1X", "x2" to "X2", "bttsYes" to "ОЗ ДА",
@@ -238,39 +234,27 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         rawMarkets.forEach { (field, side) ->
             val probability = prediction.optDouble(field, Double.NaN)
             if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
-            val existing = candidates.firstOrNull {
-                it.optString("side").trim().equals(side.trim(), ignoreCase = true)
-            }
-            if (existing == null) {
+            if (candidates.none { it.optString("side").trim().equals(side.trim(), ignoreCase = true) }) {
                 candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
-            } else if (!existing.optDouble("modelProbability", Double.NaN).isFinite()) {
-                existing.put("modelProbability", probability)
             }
         }
-        val available = candidates.mapNotNull { candidate ->
-            if (marketKey(candidate.optString("side"), match) == null) return@mapNotNull null
-            val probability = candidate.optDouble("modelProbability", Double.NaN)
-            val odds = priceFor(candidate, match)
-            if (!probability.isFinite() || probability !in 0.0..1.0 || odds == null) return@mapNotNull null
-            val expectedValue = probability * odds - 1.0
-            Triple(candidate, expectedValue, expectedValue / (odds - 1.0))
+        if (code == "UCL" || code == "UEL" || code == "UECL") {
+            uefaSignal(match)?.let { candidates.add(it) }
         }
-        // Derive edge for raw UEFA probabilities as well as prebuilt domestic signals,
-        // then apply all strict AI thresholds before choosing the best Kelly candidate.
-        val eligible = available.filter { (candidate, expectedValue, _) ->
-            val probability = candidate.optDouble("modelProbability", Double.NaN)
-            val odds = priceFor(candidate, match) ?: return@filter false
-            val edgePp = if (candidate.optBoolean("paperOnly")) {
-                candidate.optDouble("edgePp", Double.NaN)
-            } else {
-                (probability - 1.0 / odds) * 100.0 + candidate.optDouble("formAdjustmentPp", 0.0)
+        return candidates.distinctBy { it.optString("side").trim().lowercase(Locale.ROOT) }
+            .filter { candidate ->
+                val side = candidate.optString("side")
+                val probability = candidate.optDouble("modelProbability", Double.NaN)
+                val price = priceFor(candidate, match)
+                val edge = if (candidate.optBoolean("paperOnly")) candidate.optDouble("edgePp", Double.NaN)
+                    else if (price != null) (probability - 1.0 / price) * 100.0 +
+                        candidate.optDouble("formAdjustmentPp", 0.0)
+                    else Double.NaN
+                if (edge.isFinite()) candidate.put("edgePp", edge)
+                marketKey(side, match) != null && probability.isFinite() && probability in 0.0..1.0 &&
+                    price != null && edge.isFinite() && edge >= 5.0 &&
+                    probability >= 0.60 && probability * price - 1.0 >= 0.05
             }
-            if (edgePp.isFinite()) candidate.put("edgePp", edgePp)
-            probability.isFinite() && probability >= 0.60 &&
-                expectedValue.isFinite() && expectedValue >= 0.05 &&
-                edgePp.isFinite() && edgePp >= 5.0
-        }
-        return eligible.maxByOrNull { it.third }?.first
     }
 
     private fun process(feed: JSONObject, bets: JSONArray): Boolean {
