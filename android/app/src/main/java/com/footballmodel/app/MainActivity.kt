@@ -380,6 +380,7 @@ class MainActivity : Activity() {
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
         bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+        invalidateStatsBetCache()
         applyHistoricalBetCorrections()
         scheduleAutoPaperWorker()
         // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
@@ -440,6 +441,7 @@ class MainActivity : Activity() {
         val latestBets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
         if (latestBets.toString() != bets.toString()) {
             bets = latestBets
+            invalidateStatsBetCache()
             tabViewCache.clear()
             renderedKey = null
             if (data != null) render()
@@ -1260,6 +1262,44 @@ class MainActivity : Activity() {
     private val statsCalculationInProgress = AtomicBoolean(false)
     private var selectedStatsPeriod = "MONTH"
     private var selectedStatsSource = "ALL"
+    private data class StatsBetViewCache(
+        val key: String, val current: BetStatsSummary, val previous: BetStatsSummary?,
+        val manual: BetStatsSummary?, val ai: BetStatsSummary?
+    )
+    @Volatile private var statsBetViewCache: StatsBetViewCache? = null
+    private val statsBetCalculationInProgress = AtomicBoolean(false)
+
+    private fun invalidateStatsBetCache() {
+        statsBetViewCache = null
+    }
+
+    private fun requestStatsBetCalculation(key: String, snapshot: List<JSONObject>, period: String, source: String, now: Long) {
+        if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
+        thread(name = "stats-bet-history-calculation") {
+            val calculated = try {
+                val bounds = statsPeriodBounds(period, now)
+                val current = summarizeBets(snapshot, source, bounds.first, bounds.second)
+                val previous = if (period == "ALL") null else {
+                    val duration = bounds.second - bounds.first
+                    summarizeBets(snapshot, source, bounds.first - duration, bounds.first)
+                }
+                val manual = if (source == "ALL") summarizeBets(snapshot, "MANUAL", bounds.first, bounds.second) else null
+                val ai = if (source == "ALL") summarizeBets(snapshot, "AI", bounds.first, bounds.second) else null
+                StatsBetViewCache(key, current, previous, manual, ai)
+            } catch (error: Exception) {
+                android.util.Log.e("IQMatchStats", "Unable to calculate bet history statistics", error)
+                null
+            }
+            runOnUiThread {
+                if (calculated != null) statsBetViewCache = calculated
+                statsBetCalculationInProgress.set(false)
+                if (currentTab == "stats") {
+                    tabViewCache.remove("stats|ALL")
+                    render()
+                }
+            }
+        }
+    }
 
     private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
@@ -1359,12 +1399,11 @@ class MainActivity : Activity() {
         return cal.timeInMillis to end
     }
 
-    private fun summarizeBets(source: String, from: Long, to: Long): BetStatsSummary {
+    private fun summarizeBets(snapshot: List<JSONObject>, source: String, from: Long, to: Long): BetStatsSummary {
         var wins = 0; var losses = 0; var pushes = 0
         var turnover = 0.0; var profit = 0.0; var oddsTotal = 0.0; var oddsCount = 0
         val daily = sortedMapOf<Long, Pair<Double, Double>>()
-        for (i in 0 until bets.length()) {
-            val bet = bets.optJSONObject(i) ?: continue
+        for (bet in snapshot) {
             val isAi = bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
             if (source == "AI" && !isAi || source == "MANUAL" && isAi) continue
             val day = betStatsDate(bet) ?: continue
@@ -1492,12 +1531,24 @@ class MainActivity : Activity() {
         controls.addView(sourceLine)
         matchesContainer.addView(controls)
 
-        val bounds = statsPeriodBounds(selectedStatsPeriod)
-        val current = summarizeBets(selectedStatsSource, bounds.first, bounds.second)
-        val previous = if (selectedStatsPeriod == "ALL") null else {
-            val duration = bounds.second - bounds.first
-            summarizeBets(selectedStatsSource, bounds.first - duration, bounds.first)
+        val now = System.currentTimeMillis()
+        val bounds = statsPeriodBounds(selectedStatsPeriod, now)
+        val key = listOf(selectedStatsPeriod, selectedStatsSource,
+            java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now)),
+            bounds.first.toString()).joinToString("|")
+        val cached = statsBetViewCache
+        if (cached?.key != key) {
+            val loading = card()
+            addText(loading, "Подготавливаем статистику ставок…", 13, true, Color.WHITE)
+            addText(loading, "История рассчитывается в фоне, интерфейс остаётся доступным.", 11, false, muted)
+            if (!statsBetCalculationInProgress.get()) {
+                val snapshot = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
+                requestStatsBetCalculation(key, snapshot, selectedStatsPeriod, selectedStatsSource, now)
+            }
+            return
         }
+        val current = cached.current
+        val previous = cached.previous
         addStatsSummary(matchesContainer, "РЕЗУЛЬТАТЫ ЗА ПЕРИОД", current)
         if (previous != null) {
             val comparison = card()
@@ -1507,10 +1558,8 @@ class MainActivity : Activity() {
             addText(comparison, "Прошлый ROI: " + String.format(Locale.US, "%.1f%%", previous.roi) + "  ·  ставок: " + previous.settled, 10, false, muted)
             matchesContainer.addView(comparison)
         }
-        if (selectedStatsSource == "ALL") {
-            addStatsSummary(matchesContainer, "РУЧНЫЕ СТАВКИ", summarizeBets("MANUAL", bounds.first, bounds.second))
-            addStatsSummary(matchesContainer, "AI СТАВКИ", summarizeBets("AI", bounds.first, bounds.second))
-        }
+        if (cached.manual != null) addStatsSummary(matchesContainer, "РУЧНЫЕ СТАВКИ", cached.manual)
+        if (cached.ai != null) addStatsSummary(matchesContainer, "AI СТАВКИ", cached.ai)
         addStatsChart(matchesContainer, "НАКОПИТЕЛЬНЫЙ ROI", current.points, true)
         addStatsChart(matchesContainer, "ROI ПО ДНЯМ", current.points, false)
     }
@@ -1641,6 +1690,7 @@ class MainActivity : Activity() {
             if (previousStatus != null && previousStatus != bet.optString("status")) changed = true
         }
         bets = persistedBets
+        invalidateStatsBetCache()
 
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
@@ -1687,6 +1737,7 @@ class MainActivity : Activity() {
         tabViewCache.remove("desk|OPEN")
         tabViewCache.remove("desk|FIXED")
         tabViewCache.remove("stats|ALL")
+        invalidateStatsBetCache()
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit): Button {
         val b = Button(this).apply {
