@@ -1620,8 +1620,9 @@ class MainActivity : Activity() {
             var hits = 0
             var brier = 0.0
             var logLoss = 0.0
-            val bandCounts = IntArray(4)
-            val bandHits = IntArray(4)
+            val topOnly = source == "TOP"
+            val bandCounts = IntArray(if (topOnly) 3 else 4)
+            val bandHits = IntArray(if (topOnly) 3 else 4)
             if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
                 val m = evaluatedMatches.optJSONObject(i) ?: continue
                 if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
@@ -1636,11 +1637,14 @@ class MainActivity : Activity() {
                 val outcome = actual(h, aw)
                 val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
                 val confidence = maxOf(probability, 1.0 - probability)
+                // TOP admits model confidence from 60% only. Exclude any legacy
+                // below-threshold selections so the TOP summary matches current rules.
+                if (topOnly && confidence < 0.6) continue
                 val band = when {
                     confidence < 0.6 -> 0
-                    confidence < 0.7 -> 1
-                    confidence < 0.8 -> 2
-                    else -> 3
+                    confidence < 0.7 -> if (topOnly) 0 else 1
+                    confidence < 0.8 -> if (topOnly) 1 else 2
+                    else -> if (topOnly) 2 else 3
                 }
                 val correct = outcome == (probability >= 0.5)
                 val y = if (outcome) 1.0 else 0.0
@@ -1652,7 +1656,8 @@ class MainActivity : Activity() {
                 logLoss += -(y * kotlin.math.ln(probability) + (1.0 - y) * kotlin.math.ln(1.0 - probability))
             }
             if (n > 0) {
-                val labels = listOf("50–59%", "60–69%", "70–79%", "80%+")
+                val labels = if (topOnly) listOf("60–69%", "70–79%", "80%+") else
+                    listOf("50–59%", "60–69%", "70–79%", "80%+")
                 val bands = labels.indices.map { StatsBandRow(labels[it], bandCounts[it], bandHits[it]) }
                 metrics.add(StatsMetricRow(title, n, hits, brier / n, logLoss / n, bands))
             }
