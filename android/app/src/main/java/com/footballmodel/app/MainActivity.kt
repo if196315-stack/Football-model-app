@@ -1401,7 +1401,7 @@ class MainActivity : Activity() {
                     val low = minOf(0.0, values.minOrNull() ?: 0.0)
                     val high = maxOf(0.0, values.maxOrNull() ?: 0.0)
                     val span = (high - low).coerceAtLeast(1.0)
-                    val zeroY = b - (0.0 - low) / span * (b - t)
+                    val zeroY = (b - (0.0 - low) / span * (b - t)).toFloat()
                     canvas.drawLine(l, zeroY, r, zeroY, grid)
                     canvas.drawText(String.format(Locale.US, "%.0f%%", high), 0f, t + dp(4), textPaint)
                     canvas.drawText(String.format(Locale.US, "%.0f%%", low), 0f, b, textPaint)
@@ -1411,7 +1411,7 @@ class MainActivity : Activity() {
                         val lastDay = points.last().day
                         val daySpan = (lastDay - firstDay).coerceAtLeast(1L).toFloat()
                         val x = if (values.size == 1) (l + r) / 2f else l + ((points[i].day - firstDay).toFloat() / daySpan) * (r - l)
-                        val y = b - (v - low) / span * (b - t)
+                        val y = (b - (v - low) / span * (b - t)).toFloat()
                         if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
                     }
                     stroke.color = if ((values.lastOrNull() ?: 0.0) >= 0) Color.rgb(80,205,145) else Color.rgb(235,105,110)
