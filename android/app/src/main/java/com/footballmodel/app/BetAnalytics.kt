@@ -111,10 +111,10 @@ internal object BetAnalyticsCalculator {
             AnalyticsBreakdown(label, result.settled, result.wins, result.losses,
                 result.profit, result.turnover, result.averageOdds)
         }
-        val league = breakdown(topRecords.filter { it.status != "PENDING" }) {
+        val league = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
             it.league.ifBlank { "Не указан" }
         }
-        val odds = breakdown(topRecords.filter { it.status != "PENDING" }) {
+        val odds = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
             when {
                 it.odds < 1.50 -> "<1.50"
                 it.odds < 2.00 -> "1.50–1.99"
@@ -123,12 +123,12 @@ internal object BetAnalyticsCalculator {
                 else -> "5.00+"
             }
         }.sortedBy { oddsOrder(it.label) }
-        val weekdays = breakdown(topRecords.filter { it.status != "PENDING" }) {
+        val weekdays = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
             val day = Calendar.getInstance().apply { timeInMillis = it.dayMillis }
                 .get(Calendar.DAY_OF_WEEK)
             listOf("Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб")[day - 1]
         }.sortedBy { listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс").indexOf(it.label) }
-        val streaks = streaks(topRecords)
+        val streaks = streaks(singlesRecords)
         val drawdown = drawdown(overall.points)
         return BetAnalyticsReport(
             overall = overall,
