@@ -386,10 +386,11 @@ class MainActivity : Activity() {
         // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
         // блокировать первый показ интерфейса на главном потоке.
         thread(name = "iq-match-cache-restore") {
-            val cached = feedCache.getString("merged_json", null)
+            val cached = readFeedCache("merged_json")
             if (!cached.isNullOrBlank()) {
                 val restored = try { JSONObject(cached) } catch (_: Exception) { null }
                 if (restored == null) {
+                    FeedCacheStore.delete(filesDir, "merged_json")
                     feedCache.edit().remove("merged_json").apply()
                 } else {
                     // Precompute summaries on this cache-restore worker, never on the UI thread.
@@ -887,10 +888,21 @@ class MainActivity : Activity() {
         }.format(parsed)
     } catch (_: Exception) { raw.replace("T", " ").take(16) }
 
-    // Conditional HTTP requests avoid downloading identical JSON on every 30-second refresh.
+    // Large feed bodies live in private files, not SharedPreferences. Preferences
+    // retain only small metadata (ETags and timestamps).
+    private fun readFeedCache(cacheKey: String): String? {
+        FeedCacheStore.read(filesDir, cacheKey)?.let { return it }
+        val legacy = feedCache.getString(cacheKey, null) ?: return null
+        if (FeedCacheStore.write(filesDir, cacheKey, legacy)) {
+            feedCache.edit().remove(cacheKey).apply()
+        }
+        return legacy
+    }
+
+    // Conditional HTTP requests avoid downloading identical JSON on every refresh.
     // The last good response is retained locally and used when the network is unavailable.
     private fun fetchFeed(url: String, cacheKey: String, required: Boolean): String? {
-        val cached = feedCache.getString(cacheKey, null)
+        val cached = readFeedCache(cacheKey)
         val etag = feedCache.getString("${cacheKey}_etag", null)
         var conn: HttpURLConnection? = null
         try {
@@ -901,14 +913,20 @@ class MainActivity : Activity() {
                 useCaches = true
                 setRequestProperty("Accept-Encoding", "gzip")
                 setRequestProperty("User-Agent", "IQMatch-Android")
-                if (!etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
+                // A conditional request is valid only when its matching body is cached.
+                if (cached != null && !etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
             }
             val code = conn.responseCode
-            if (code == HttpURLConnection.HTTP_NOT_MODIFIED && cached != null) return cached
+            if (code == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                if (cached != null) return cached
+                throw IllegalStateException("HTTP 304 without cached feed body")
+            }
             if (code !in 200..299) throw IllegalStateException("HTTP $code")
             val stream = if (conn.contentEncoding.equals("gzip", true)) GZIPInputStream(conn.inputStream) else conn.inputStream
             val body = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-            val editor = feedCache.edit().putString(cacheKey, body)
+            val bodyCached = FeedCacheStore.write(filesDir, cacheKey, body)
+            val editor = feedCache.edit()
+            if (bodyCached) editor.remove(cacheKey)
             conn.getHeaderField("ETag")?.let { editor.putString("${cacheKey}_etag", it) }
             editor.apply()
             return body
@@ -984,8 +1002,10 @@ class MainActivity : Activity() {
                 aiCandidatesCacheKey = statsCacheKey(json)
                 updateAiSignalArchive(json, aiMatchCandidates)
                 val payload = json.toString()
+                // Avoid rewriting a multi-megabyte feed on every unchanged 60-second poll.
+                if (payload != lastPayload) FeedCacheStore.write(filesDir, "merged_json", payload)
                 feedCache.edit()
-                    .putString("merged_json", payload)
+                    .remove("merged_json")
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
