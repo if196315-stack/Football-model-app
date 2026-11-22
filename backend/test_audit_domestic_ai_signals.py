@@ -60,6 +60,14 @@ class AndroidParityTests(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertIsNone(reason)
 
+    def test_raw_market_probability_fills_missing_signal_probability(self):
+        match = melbet_match({"doubleChance": {"1x": 2.0}})
+        prediction = {"1x": .70, "signals": [{"side": "1X", "modelProbability": None}]}
+        leader = strongest_display_signal(prediction, match, ai_eligible_only=True)
+        self.assertIsNotNone(leader)
+        self.assertEqual(leader[0]["side"], "1X")
+        self.assertAlmostEqual(leader[1], .70)
+
     def test_exact_eight_active_market_prices(self):
         match = melbet_match({
             "doubleChance": {"1x": 1.7, "x2": 1.8},
