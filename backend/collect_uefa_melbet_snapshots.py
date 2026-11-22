@@ -351,13 +351,17 @@ def _board_quote_count(board: Any) -> int:
     return count
 
 
-def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
-    """Keep the richest bookmaker board when API-Sport returns a fixture more than once.
+def _board_update_ms(board: dict) -> int | None:
+    raw = ((board.get("updatedAtByStage") or {}).get("prematch")
+           or board.get("updatedAt"))
+    try:
+        return int(raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
 
-    Generic date queries and tournament-specific windows overlap. A later duplicate
-    can contain fewer odds fields, so a plain last-write-wins de-duplication can erase
-    a previously returned MelBet board.
-    """
+
+def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
+    """Merge duplicate fixtures without allowing an older active board to beat a newer status."""
     merged = {**existing, **incoming}
     books = {}
     old_books = existing.get("oddsBk") or {}
@@ -366,9 +370,21 @@ def merge_duplicate_fixture_rows(existing: dict, incoming: dict) -> dict:
         old_board = old_books.get(bookmaker)
         new_board = new_books.get(bookmaker)
         if isinstance(old_board, dict) and isinstance(new_board, dict):
-            old_count = _board_quote_count(old_board)
-            new_count = _board_quote_count(new_board)
-            books[bookmaker] = new_board if new_count >= old_count else old_board
+            old_time, new_time = _board_update_ms(old_board), _board_update_ms(new_board)
+            old_active = (old_board.get("isBettingActiveByStage") or {}).get("prematch")
+            new_active = (new_board.get("isBettingActiveByStage") or {}).get("prematch")
+            if old_time is not None and new_time is not None and old_time != new_time:
+                chosen = new_board if new_time > old_time else old_board
+            elif old_active is False or new_active is False:
+                # With equal/unknown source times, fail closed on an explicit inactive flag.
+                chosen = new_board if new_active is False else old_board
+            elif old_active is True or new_active is True:
+                # Prefer an explicitly active board over an unknown-state duplicate.
+                chosen = new_board if new_active is True else old_board
+            else:
+                # Legacy duplicates without board timestamps retain the richest payload.
+                chosen = new_board if _board_quote_count(new_board) >= _board_quote_count(old_board) else old_board
+            books[bookmaker] = chosen
         elif isinstance(new_board, dict):
             books[bookmaker] = new_board
         elif isinstance(old_board, dict):
