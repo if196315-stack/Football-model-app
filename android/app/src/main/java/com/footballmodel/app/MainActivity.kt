@@ -2419,6 +2419,7 @@ class MainActivity : Activity() {
         val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
             else odds.optString("source").contains("MelBet", ignoreCase = true)
         if (!isMelBet) return false
+        if (!odds.optBoolean("prematchActive", false)) return false
         if (odds.optString("freshnessStatus").equals("stale", ignoreCase = true)) return false
         val raw = odds.optString("updatedAt").trim()
         if (raw.isBlank()) return false
