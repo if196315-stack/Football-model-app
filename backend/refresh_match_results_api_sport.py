@@ -115,7 +115,9 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
         values["awayScore"] = away_score
 
     for key, value in values.items():
-        if target.get(key) != value:
+        # Preserve explicit JSON null: Android must distinguish API-Sport's
+        # scoreStatus.final=null from an older feed that has no final flag.
+        if key not in target or target.get(key) != value:
             target[key] = value
             changed = True
     if changed:
