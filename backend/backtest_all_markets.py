@@ -11,7 +11,7 @@ import argparse, csv, json, math
 import numpy as np
 from collections import defaultdict
 from pathlib import Path
-from backtest_pitchapi import WINDOW, HALF_LIFE, SHRINKAGE, poisson, team_strength
+from backtest_pitchapi import WINDOW, HALF_LIFE, SHRINKAGE, poisson, probabilities, team_strength
 
 MATCH_LINES = (1.5, 2.5, 3.5)
 TEAM_LINES = (0.5, 1.5, 2.5, 3.5)
@@ -80,9 +80,10 @@ def market_probs(home_lambda, away_lambda):
     joint = {(home, away): p_home * p_away
              for home, p_home in enumerate(home_pmf)
              for away, p_away in enumerate(away_pmf)}
-    p_home = sum(p for (h, a), p in joint.items() if h > a)
-    p_draw = sum(p for (h, a), p in joint.items() if h == a)
-    p_away = max(0.0, 1.0 - p_home - p_draw)
+    # Reuse the production 1X2 probability helper so double-chance markets
+    # share the exact same normalized outcome partition as Android forecasts.
+    outcome = probabilities(home_lambda, away_lambda)
+    p_home, p_draw, p_away = outcome["1"], outcome["x"], outcome["2"]
     result = {
         "1X2": {"1": p_home, "X": p_draw, "2": p_away},
         "DC_1X": p_home + p_draw, "DC_X2": p_away + p_draw,
