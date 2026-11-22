@@ -1,5 +1,5 @@
 {
-  "strategyVersion": "1.1",
+  "strategyVersion": "1.2",
   "status": "INITIAL_PROVISIONAL",
   "selectionMode": "STRICT",
   "riskMode": "MODERATE",
@@ -25,17 +25,36 @@
     "DOUBLE_CHANCE_X2",
     "MATCH_TOTAL_OVER",
     "TEAM_TOTAL_OVER",
-    "BTTS_YES",
-    "HANDICAP_EXACT_LINE_ONLY"
+    "BTTS_YES"
   ],
   "hiddenMarkets": [
     "MATCH_TOTAL_UNDER",
-    "TEAM_TOTAL_UNDER"
+    "TEAM_TOTAL_UNDER",
+    "BTTS_NO",
+    "HANDICAP"
   ],
   "disabledUntilOddsIngested": [
     "MATCH_1X2"
   ],
   "kellyEnabled": false,
   "automaticBetPlacement": false,
-  "maxQuoteAgeBeforeKickoffHours": 12
+  "maxQuoteAgeBeforeKickoffHours": 12,
+  "supportedMarketLines": {
+    "MATCH_TOTAL_OVER": [
+      1.5,
+      2.5
+    ],
+    "TEAM_TOTAL_OVER": [
+      0.5,
+      1.5
+    ],
+    "DOUBLE_CHANCE": [
+      "1X",
+      "X2"
+    ],
+    "BTTS": [
+      "YES"
+    ]
+  },
+  "notes": "Handicap is excluded from the active strategy until model probabilities, MelBet parsing, and Android display/eligibility support it end-to-end."
 }
