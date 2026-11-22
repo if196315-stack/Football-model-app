@@ -153,8 +153,9 @@ internal object BetAnalyticsCalculator {
     }
 
     private fun sourceMatches(bet: AnalyticsBet, source: String): Boolean = when (source) {
-        "AI" -> bet.source.equals("AI_MANUAL", true)
-        "MANUAL" -> !bet.source.equals("AI_MANUAL", true)
+        // Both legacy MANUAL and user-confirmed AI_MANUAL records are manual bets.
+        // AI_AUTO paper observations are excluded before this filter is applied.
+        "MANUAL" -> true
         else -> true
     }
 
