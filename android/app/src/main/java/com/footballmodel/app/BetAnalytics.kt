@@ -89,12 +89,12 @@ internal object BetAnalyticsCalculator {
         // Overall performance follows the current TOP-signal rule; coupons remain
         // visible in their own section and never leak into the top-single market table.
         val topRecords = valid.filter { isTopRecord(it) }
-        val singlesRecords = topRecords.filterNot { it.isCoupon }
+        val singlesRecords = valid.filterNot { it.isCoupon }
         val couponRecords = valid.filter { it.isCoupon }
         val manualRecords = singlesRecords.filter { !it.source.equals("AI_MANUAL", true) }
         val aiRecords = singlesRecords.filter { it.source.equals("AI_MANUAL", true) }
         val overall = summarize(topRecords)
-        val workingMarketRecords = singlesRecords.filter {
+        val workingMarketRecords = topRecords.filterNot { it.isCoupon }.filter {
             it.status != "PENDING" && isWorkingMarket(it.marketKey)
         }
         val market = breakdown(workingMarketRecords) {
