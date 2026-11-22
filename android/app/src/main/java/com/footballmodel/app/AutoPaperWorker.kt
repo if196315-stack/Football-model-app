@@ -251,7 +251,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                         candidate.optDouble("formAdjustmentPp", 0.0)
                     else Double.NaN
                 if (edge.isFinite()) candidate.put("edgePp", edge)
-                marketKey(side, match) != null && probability.isFinite() && probability in 0.0..1.0 &&
+                marketKey(side, match)?.let(ActiveMarketRules::contains) == true &&
+                    probability.isFinite() && probability in 0.0..1.0 &&
                     price != null && edge.isFinite() && edge >= 5.0 &&
                     probability >= 0.60 && probability * price - 1.0 >= 0.05
             }
@@ -429,7 +430,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         val bookmaker = odds.optString("bookmaker")
         val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
             else odds.optString("source").contains("MelBet", ignoreCase = true)
-        if (!isMelBet || odds.optString("freshnessStatus").equals("stale", ignoreCase = true)) return false
+        if (!isMelBet || !odds.optBoolean("prematchActive", false) ||
+            !odds.optString("freshnessStatus").equals("fresh", ignoreCase = true)) return false
         val updatedAt = parseInstant(odds.optString("updatedAt"))
             ?: return false
         val age = System.currentTimeMillis() - updatedAt
