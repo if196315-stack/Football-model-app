@@ -2252,8 +2252,8 @@ class MainActivity : Activity() {
         val stakeModeButtons = linkedMapOf<String, Button>()
         lateinit var fixedStakeHint: TextView
         lateinit var minimumStakeHint: TextView
-        lateinit var fixedStakeSection: LinearLayout
-        lateinit var minimumStakeSection: LinearLayout
+        lateinit var fixedStakeButton: Button
+        lateinit var minimumStakeButton: Button
         fun styleStakeModeButton(button: Button, selected: Boolean) {
             button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
             button.background = GradientDrawable(
@@ -2281,8 +2281,8 @@ class MainActivity : Activity() {
                         return@setOnClickListener
                     }
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
-                    minimumStakeSection.visibility = if (mode == "MINIMUM") View.VISIBLE else View.GONE
-                    fixedStakeSection.visibility = if (mode == "FIXED") View.VISIBLE else View.GONE
+                    minimumStakeButton.visibility = if (mode == "MINIMUM") View.VISIBLE else View.GONE
+                    fixedStakeButton.visibility = if (mode == "FIXED") View.VISIBLE else View.GONE
                     fixedStakeHint.text = if (mode == "FIXED") {
                         if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
                         else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
@@ -2310,25 +2310,23 @@ class MainActivity : Activity() {
         minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
             else "Сохранённое значение не применяется, пока выбран режим «Фиксированная».", 11, false, muted)
         settings.addView(stakeModeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        minimumStakeSection = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        addText(minimumStakeSection, "Минимальная сумма ставки", 12, true, Color.WHITE)
-        addText(minimumStakeSection, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
-        minimumStakeSection.addView(minimumStakeHint)
-        actionButton(minimumStakeSection, "Изменить минимальную сумму ставки") {
+        addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
+        addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
+        settings.addView(minimumStakeHint)
+        minimumStakeButton = actionButton(settings, "Изменить минимальную сумму ставки") {
             showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум.")
         }
-        fixedStakeSection = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        addText(fixedStakeSection, "Фиксированная сумма ставки", 12, true, Color.WHITE)
-        addText(fixedStakeSection, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
-        fixedStakeSection.addView(fixedStakeHint)
-        actionButton(fixedStakeSection, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
+        val settingsSectionGap = View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) }
+        settings.addView(settingsSectionGap)
+        addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
+        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
+        settings.addView(fixedStakeHint)
+        fixedStakeButton = actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
             showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы очистить значение.")
         }
         val selectedStakeMode = stakeMode()
-        minimumStakeSection.visibility = if (selectedStakeMode == "MINIMUM") View.VISIBLE else View.GONE
-        fixedStakeSection.visibility = if (selectedStakeMode == "FIXED") View.VISIBLE else View.GONE
-        settings.addView(minimumStakeSection)
-        settings.addView(fixedStakeSection)
+        minimumStakeButton.visibility = if (selectedStakeMode == "MINIMUM") View.VISIBLE else View.GONE
+        fixedStakeButton.visibility = if (selectedStakeMode == "FIXED") View.VISIBLE else View.GONE
 
         val displaySettings = card()
         addText(displaySettings, "ОТОБРАЖЕНИЕ РАЗДЕЛОВ", 10, true, accent)
