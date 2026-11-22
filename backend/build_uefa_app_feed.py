@@ -56,6 +56,7 @@ def _valid_fresh_snapshot(rows: list[dict], now: datetime) -> list[dict]:
     for row in selected:
         source_time = _parse_time(row.get("bookmaker_updated_at"))
         if (row.get("freshness_status") != "fresh"
+                or row.get("prematch_active") is not True
                 or row.get("market_parser_version") != "melbet-fulltime-v2"
                 or source_time is None):
             continue
