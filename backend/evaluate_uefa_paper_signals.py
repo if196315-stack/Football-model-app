@@ -190,9 +190,21 @@ def build_signals(odds_rows: list[dict]) -> list[dict]:
                 continue
             if row.get("market_parser_version") != "melbet-fulltime-v2":
                 continue
-            if row.get("market") not in (
-                "double_chance", "match_total_over", "team_total_over", "btts", "handicap"
-            ):
+            market = row.get("market")
+            if market == "double_chance":
+                if row.get("outcome") not in ("1x", "x2"):
+                    continue
+            elif market == "match_total_over":
+                if row.get("point") != 2.5:
+                    continue
+            elif market == "team_total_over":
+                if row.get("point") not in (0.5, 1.5):
+                    continue
+            elif market == "btts":
+                if row.get("outcome") != "yes":
+                    continue
+            else:
+                # Handicap, draw-no-bet and other legacy markets are not active.
                 continue
             signals.append(evaluate_candidate(row, snapshot))
     return sorted(signals, key=lambda row: (
