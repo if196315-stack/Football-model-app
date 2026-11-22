@@ -238,8 +238,13 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         rawMarkets.forEach { (field, side) ->
             val probability = prediction.optDouble(field, Double.NaN)
             if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
-            if (candidates.none { it.optString("side").trim().equals(side.trim(), ignoreCase = true) }) {
+            val existing = candidates.firstOrNull {
+                it.optString("side").trim().equals(side.trim(), ignoreCase = true)
+            }
+            if (existing == null) {
                 candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
+            } else if (!existing.optDouble("modelProbability", Double.NaN).isFinite()) {
+                existing.put("modelProbability", probability)
             }
         }
         val available = candidates.mapNotNull { candidate ->
