@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from collect_uefa_melbet_snapshots import (fetch_provider_fixtures, merge_duplicate_fixture_rows, snapshot_rows)
+from collect_uefa_melbet_snapshots import (combine_pitchapi_sources, fetch_provider_fixtures, merge_duplicate_fixture_rows, snapshot_rows)
 
 
 class UefaMelBetSnapshotTests(unittest.TestCase):
@@ -277,6 +277,36 @@ class UefaMelBetSnapshotTests(unittest.TestCase):
         self.assertEqual({row["league_code"] for row in rows}, set(leagues[1:]))
         self.assertEqual(diagnostics["eligible_supported_upcoming_fixtures_in_cache"], 8)
         self.assertEqual(diagnostics["matches_with_active_prematch_board"], 7)
+
+
+
+    def test_combines_domestic_and_uefa_caches_without_admitting_unpaired_xg(self):
+        uefa_cache = {"matches": {
+            "u1": {"id": "u1", "leagueCode": "UCL", "status": "not_started",
+                   "date": "2026-12-01", "home": "A", "away": "B"}
+        }}
+        domestic_cache = {"matches": {
+            "d1": {"id": "d1", "leagueCode": "ENG", "status": "finished",
+                   "date": "2026-10-01", "home": "C", "away": "D",
+                   "homeScore": 2, "awayScore": 1, "homeXg": 1.7, "awayXg": 0.8},
+            "d2": {"id": "d2", "leagueCode": "ENG", "status": "finished",
+                   "date": "2026-10-02", "home": "C", "away": "E",
+                   "homeScore": 1, "awayScore": 0, "homeXg": 1.1, "awayXg": None},
+            "d3": {"id": "d3", "leagueCode": "ENG", "status": "finished",
+                   "date": "2026-10-03", "home": "C", "away": "F",
+                   "homeScore": 1, "awayScore": 0, "homeXg": 1.0, "awayXg": 0.2,
+                   "hasPlayoff": True},
+        }}
+        uefa_history = {"matches": [{
+            "id": "u-old", "leagueCode": "UEL", "date": "2026-09-01",
+            "home": "G", "away": "H", "homeXg": 1.4, "awayXg": 0.7,
+            "pairedXg": True,
+        }]}
+        fixtures, history = combine_pitchapi_sources(uefa_cache, domestic_cache, uefa_history)
+        self.assertIn("UEFA:u1", fixtures["matches"])
+        self.assertIn("DOM:d1", fixtures["matches"])
+        self.assertEqual({row["id"] for row in history["matches"]}, {"DOM:d1", "u-old"})
+        self.assertTrue(all(row["pairedXg"] is True for row in history["matches"]))
 
 
 
