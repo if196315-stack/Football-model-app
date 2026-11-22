@@ -2420,7 +2420,7 @@ class MainActivity : Activity() {
             else odds.optString("source").contains("MelBet", ignoreCase = true)
         if (!isMelBet) return false
         if (!odds.optBoolean("prematchActive", false)) return false
-        if (odds.optString("freshnessStatus").equals("stale", ignoreCase = true)) return false
+        if (!odds.optString("freshnessStatus").equals("fresh", ignoreCase = true)) return false
         val raw = odds.optString("updatedAt").trim()
         if (raw.isBlank()) return false
         val normalizedTimestamp = raw.replace(Regex("\\.(\\d{3})\\d+(?=[+-]|Z$)"), ".$1")
