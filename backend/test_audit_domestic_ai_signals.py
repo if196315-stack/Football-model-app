@@ -40,25 +40,25 @@ class AndroidParityTests(unittest.TestCase):
         ]}
         self.assertEqual(strongest_display_signal(prediction, match)[0]["side"], "X2")
 
-    def test_line_does_not_promote_second_signal_when_leader_fails_ai(self):
+    def test_ai_selector_filters_each_market_before_line_ranking(self):
         match = melbet_match({"doubleChance": {"1x": 2.0, "x2": 2.0}})
         prediction = {"signals": [
             {"side": "1X", "modelProbability": .59},
             {"side": "X2", "modelProbability": .90},
         ]}
-        leader = strongest_display_signal(prediction, match)
+        leader = strongest_display_signal(prediction, match, ai_eligible_only=True)
         self.assertEqual(leader[0]["side"], "X2")
-        # Swap probabilities: the high-P 1X becomes the line leader and fails edge;
-        # the other market is not evaluated as a fallback by the match-level audit.
+        # The raw Line leader has the highest probability but fails edge;
+        # the other market passes all AI gates and must become the TOP candidate.
         prediction = {"signals": [
             {"side": "1X", "modelProbability": .90, "formAdjustmentPp": -50},
             {"side": "X2", "modelProbability": .70},
         ]}
-        leader = strongest_display_signal(prediction, match)
-        self.assertEqual(leader[0]["side"], "1X")
+        leader = strongest_display_signal(prediction, match, ai_eligible_only=True)
+        self.assertEqual(leader[0]["side"], "X2")
         result, reason = ai_eligibility(leader[0], match, leader[2], leader[1], leader[3])
-        self.assertIsNone(result)
-        self.assertEqual(reason, "edge_below_5pp")
+        self.assertIsNotNone(result)
+        self.assertIsNone(reason)
 
     def test_exact_eight_active_market_prices(self):
         match = melbet_match({
