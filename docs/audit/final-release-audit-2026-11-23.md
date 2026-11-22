@@ -1,3 +1,39 @@
+# Release hardening refresh — 2026-11-23
+
+This refresh supersedes stale status statements below where noted. The prior audit body is retained as historical evidence; its original baseline and workflow run IDs must not be read as current-main verification.
+
+## Current baseline and scope
+
+- Verified current `main` before this hardening branch: `cc31ca46687f65c2fb8fb73bca9f0501bb8e2d97`.
+- This refresh reviewed the current README, Android Gradle configuration, Android build workflow, three JVM test classes, app manifest/source inventory, and prior audit evidence.
+- Android CI on the current baseline: run [45077016756](https://github.com/if196315-stack/Football-Model-app/actions/runs/45077016756) passed unit tests, debug APK build and artifact upload.
+- The most recent confirmed backend regression and data/model audit runs remain on the earlier baseline `0a01705b9dc36c05018aac7fbf47da42014a6df8`; backend source was unchanged in the comparison to current main, but this is not a fresh full backend pass on `cc31ca4`.
+- The current Android workflow builds a debug APK only. No signed release APK/AAB or GitHub Release has been verified.
+- No UI instrumentation suite or physical-device QA evidence was found. Three JVM test classes cover selected analytics, settlement and prediction-scope logic; they do not cover every screen, lifecycle, network, notification or WorkManager path.
+
+## Hardening changes prepared on branch
+
+Branch: `release/hardening-before-signing`.
+
+1. Removed the three duplicate Kotlin-DSL Gradle files (`android/build.gradle.kts`, `android/settings.gradle.kts`, `android/app/build.gradle.kts`). The active Groovy files remain, matching the existing CI invocation. This removes ambiguity and the conflicting minSdk declarations; the surviving app configuration sets minSdk 23.
+2. Corrected README's active-market description to the eight markets enforced by Android tests: 1X, X2, BTTS Yes, match Over 2.5, home Over 0.5/1.5 and away Over 0.5/1.5. Match Over 1.5 is not part of the active set.
+3. Added `.github/workflows/android-release-candidate.yml`: it runs JVM unit tests, release lint and `assembleRelease`, then uploads the explicitly unsigned release APK. It does not sign or publish the app.
+4. These changes are awaiting PR CI at the time this addendum was written; do not treat them as passed until the workflow reports success.
+
+## Remaining release gates (not waived)
+
+- Configure signing only after the owner supplies/sets the keystore and passwords as protected GitHub Actions secrets; never commit signing material.
+- Run the new unsigned release-candidate workflow and fix every build/lint/test failure.
+- Add and execute UI/instrumentation tests, then install and exercise the candidate on supported Android versions and screen sizes.
+- Re-run backend regression, current data-feed audits, AI/Line parity and odds-coverage diagnostics against the exact release candidate commit.
+- Decide explicitly whether the existing one-leader/no-fallback signal policy is accepted; this hardening branch does not change strategy semantics.
+- Recheck current MelBet quote coverage. The low coverage figures in the historical addendum below are dated snapshots, not live guarantees.
+- Do not claim complete functional certification or production readiness based only on compilation and JVM tests.
+
+**Status at refresh:** hardening changes prepared; signing intentionally not attempted. The release remains uncertified until the gates above are evidenced.
+
+---
+
 # Final release audit — 2026-11-23
 
 Repository: `if196315-stack/Football-model-app`
