@@ -63,7 +63,7 @@ class ApplyMelBetSnapshotsTests(unittest.TestCase):
     def test_over15_is_not_an_active_strategy_market(self):
         data = {"competitions": [{"code": "PL", "matches": [
             {"id": "only-over15", "status": "SCHEDULED",
-             "prediction": {"over15": 0.9}},
+             "prediction": {"x2": 0.61, "over15": 0.9}},
         ]}]}
         rows = [{
             **self.snapshot("only-over15", market="match_total_over", outcome="over"),
