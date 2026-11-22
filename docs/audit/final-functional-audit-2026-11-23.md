@@ -34,7 +34,8 @@
 - Backend odds regression: **success**, 228 тестов, run [45082312092](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312092).
 - Аудит восьми турниров: **success**, run [45082312190](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312190).
 - На срезе аудита: 277 будущих матчей с прогнозом, 125 матчей с котировкой MelBet, 34 сигнала прошли AI-пороги, 563 точные цены по активным рынкам.
-- Android debug: **success** на HEAD `18fb9c9`; все 35 JVM-тестов и debug APK прошли — [run 45082312074](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312074). Release candidate на том же HEAD: unit tests и release lint — **success**, `assembleRelease` ещё выполняется — [run 45082312062](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312062).
+- Android debug: **success** на HEAD `18fb9c9`; все 35 JVM-тестов и debug APK прошли — [run 45082312074](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312074). Debug APK для ручной установки доступен в [артефакте run 45082312074](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312074).
+- Android release candidate: **success** на том же HEAD; unit tests, release lint, `assembleRelease` и upload прошли — [run 45082312062](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312062). Неподписанный APK: [артефакт Football-Model-release-unsigned](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312062), срок хранения до 6 декабря 2026.
 
 ## Открытые блокеры перед заявлением «готово к подписи»
 
@@ -48,6 +49,6 @@
 
 ## Вердикт
 
-Основные backend-проверки и восьмитурнирный аудит проходят; ключевые расхождения Android/background/backend выявлены и исправлены в отдельном PR. Но до статуса «осталось только подписать» ещё нужны успешная release-сборка последнего HEAD, ручная проверка приложения на устройстве и согласование трёх расхождений спецификации выше.
+Основные backend-проверки и восьмитурнирный аудит проходят; ключевые расхождения Android/background/backend выявлены и исправлены в отдельном PR. CI-проверки на кодовом HEAD зелёные, но до статуса «осталось только подписать» ещё нужны ручная проверка приложения на устройстве и согласование расхождений спецификации/политики выше.
 
 Подпись, публикация и добавление ключей не выполнялись. PR #284 остаётся отдельным открытым кандидатом, `main` не изменён этими последними исправлениями.
