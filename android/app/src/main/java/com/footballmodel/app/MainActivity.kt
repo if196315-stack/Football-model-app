@@ -1857,6 +1857,7 @@ class MainActivity : Activity() {
             }
         }
         }
+    }
 
 
     private fun parseFeedTimeMillis(raw: String): Long? {
