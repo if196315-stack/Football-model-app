@@ -10,7 +10,39 @@ from pathlib import Path
 
 from backtest_pitchapi import WINDOW, probabilities, poisson, team_strength
 
-MODEL_VERSION = "xg-poisson-v1"
+MODEL_VERSION = "xg-poisson-v2-x2-calibrated"
+
+# Frozen global X2 vector-scaling calibrator trained on 9,810 chronological
+# pre-holdout predictions (through 2026-06-30), evaluated on 695 fixtures
+# from 2026-07-01 onward. It is applied directly to production X2 forecasts.
+# Other markets are intentionally unchanged.
+X2_CALIBRATION = {
+    "method": "regularized_vector_scaling",
+    "trained_through": "2026-06-30",
+    "holdout_from": "2026-07-01",
+    "train_n": 9810,
+    "holdout_n": 695,
+    "temperature": 0.9080571864692701,
+    "bias": {"0": 0.01960210604624748, "1": -0.01960210604624747},
+    "holdout_brier_delta": 0.0020774400711742746,
+    "holdout_brier_delta_ci95": [0.0004886571071333822, 0.003794922906020779],
+    "holdout_log_loss_delta": 0.002634781752062887,
+}
+
+def calibrate_binary_probability(probability_yes: float, params: dict = X2_CALIBRATION) -> float:
+    """Apply frozen binary vector-scaling calibration to a yes probability."""
+    import math
+    p_yes = min(1.0 - 1e-8, max(1e-8, float(probability_yes)))
+    p_no = 1.0 - p_yes
+    temperature = float(params["temperature"])
+    bias = params["bias"]
+    logit_no = math.log(p_no) / temperature + float(bias["0"])
+    logit_yes = math.log(p_yes) / temperature + float(bias["1"])
+    peak = max(logit_no, logit_yes)
+    exp_no = math.exp(logit_no - peak)
+    exp_yes = math.exp(logit_yes - peak)
+    return exp_yes / (exp_no + exp_yes)
+
 MATCH_TOTAL_LINES = (1.5, 2.5, 3.5)
 TEAM_TOTAL_LINES = (0.5, 1.5, 2.5, 3.5)
 SUPPORTED_LEAGUES = {"UCL", "UEL", "UECL", "ENG", "ESP", "ITA", "GER", "FRA"}
@@ -82,7 +114,7 @@ def _market_probabilities(home_lambda: float, away_lambda: float) -> dict:
     return {
         "double_chance": {
             "1x": outcome["1"] + outcome["x"],
-            "x2": outcome["x"] + outcome["2"],
+            "x2": calibrate_binary_probability(outcome["x"] + outcome["2"]),
             "12": outcome["1"] + outcome["2"],
         },
         "match_total": match_totals,

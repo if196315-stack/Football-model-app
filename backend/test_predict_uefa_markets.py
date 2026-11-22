@@ -1,6 +1,6 @@
 import unittest
 
-from predict_uefa_markets import predict_upcoming
+from predict_uefa_markets import X2_CALIBRATION, calibrate_binary_probability, predict_upcoming
 
 
 class UefaMarketPredictionTests(unittest.TestCase):
@@ -27,7 +27,7 @@ class UefaMarketPredictionTests(unittest.TestCase):
             history, fixtures, predicted_at="2026-11-09T12:00:00+00:00"
         )["future"]
         self.assertEqual(prediction["history_max_date"], "2026-10-22")
-        self.assertEqual(prediction["model_version"], "xg-poisson-v1")
+        self.assertEqual(prediction["model_version"], "xg-poisson-v2-x2-calibrated")
         markets = prediction["markets"]
         self.assertAlmostEqual(markets["match_total"]["over"]["2.5"]
                                + markets["match_total"]["under"]["2.5"], 1.0, places=8)
@@ -114,9 +114,24 @@ class UefaMarketPredictionTests(unittest.TestCase):
         self.assertEqual(set(predictions), {f"{league}-next" for league in
                                              ("ENG", "ESP", "ITA", "GER", "FRA")})
         for prediction in predictions.values():
-            self.assertEqual(prediction["model_version"], "xg-poisson-v1")
+            self.assertEqual(prediction["model_version"], "xg-poisson-v2-x2-calibrated")
             self.assertEqual(prediction["home_history_matches"], 2)
             self.assertEqual(prediction["away_history_matches"], 2)
 
+    def test_x2_calibration_matches_frozen_vector_scaling_parameters(self):
+        self.assertAlmostEqual(calibrate_binary_probability(0.70), 0.709691, places=5)
+        self.assertAlmostEqual(calibrate_binary_probability(0.50), 0.490201, places=5)
+        self.assertEqual(X2_CALIBRATION["train_n"], 9810)
+        self.assertEqual(X2_CALIBRATION["holdout_n"], 695)
+
+    def test_x2_is_calibrated_but_other_markets_are_unchanged(self):
+        from predict_uefa_markets import _market_probabilities
+        from backtest_pitchapi import probabilities
+        raw = probabilities(1.4, 0.9)
+        markets = _market_probabilities(1.4, 0.9)
+        self.assertAlmostEqual(markets["double_chance"]["x2"],
+                               calibrate_binary_probability(raw["x"] + raw["2"]), places=12)
+        self.assertAlmostEqual(markets["double_chance"]["1x"], raw["1"] + raw["x"], places=12)
+        self.assertAlmostEqual(markets["double_chance"]["12"], raw["1"] + raw["2"], places=12)
 if __name__ == "__main__":
     unittest.main()

@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run)
-from predict_uefa_markets import _market_probabilities
+from predict_uefa_markets import _market_probabilities, calibrate_binary_probability
 
 
 class AllMarketBacktestTests(unittest.TestCase):
@@ -35,7 +35,8 @@ class AllMarketBacktestTests(unittest.TestCase):
             production = _market_probabilities(home_lambda, away_lambda)
             for market, extract in market_cases:
                 with self.subTest(home_lambda=home_lambda, away_lambda=away_lambda, market=market):
-                    self.assertAlmostEqual(research[market], extract(production), places=12)
+                    expected = calibrate_binary_probability(research[market]) if market == "DC_X2" else research[market]
+                    self.assertAlmostEqual(expected, extract(production), places=12)
 
     def test_outcomes_keep_draw_and_push_semantics(self):
         draw = market_outcomes(1, 1)
