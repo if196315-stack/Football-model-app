@@ -93,14 +93,14 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
 
     final_status = target.get("scoreStatusFinal")
     # A final score is immutable for this settlement pipeline; ignore stale snapshots.
-    if final_status is True:
+    if final_status is True and target.get("status") == "FINISHED":
         return False
 
     home_score = score_value(source, "home")
     away_score = score_value(source, "away")
     score_status = source.get("scoreStatus")
     final = score_status.get("final") if isinstance(score_status, dict) else None
-    if final not in (True, False, None):
+    if final not in (True, False, None) or status != "finished":
         final = None
 
     mapped_status = "FINISHED" if status == "finished" else "IN_PLAY"
