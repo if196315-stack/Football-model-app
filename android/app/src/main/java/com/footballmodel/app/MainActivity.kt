@@ -1008,7 +1008,7 @@ class MainActivity : Activity() {
 
     private var tabRenderGeneration = 0
 
-    private fun animateTabEntry(view: View, direction: Int) {
+    private fun animateTabEntry(view: View) {
         UiMotion.animateEntry(view, dp(6).toFloat())
     }
 
@@ -1016,11 +1016,6 @@ class MainActivity : Activity() {
         if (currentTab == tab) return
         if (tab == "matches" && !isLineSectionVisible()) return
         val availableTabs = navigationTabs()
-        val previousIndex = availableTabs.indexOf(currentTab)
-        val nextIndex = availableTabs.indexOf(tab)
-        val direction = if (previousIndex >= 0 && nextIndex >= 0) {
-            if (nextIndex > previousIndex) 1 else -1
-        } else 1
         currentTab = tab
         val generation = ++tabRenderGeneration
 
@@ -1040,15 +1035,15 @@ class MainActivity : Activity() {
         if (tabViewCache.containsKey(targetKey) && data != null) {
             render()
             matchesContainer.visibility = View.VISIBLE
-            animateTabEntry(matchesContainer, direction)
-            if (tab == "matches") animateTabEntry(leagueScroll, direction)
+            animateTabEntry(matchesContainer)
+            if (tab == "matches") animateTabEntry(leagueScroll)
         } else {
             matchesContainer.visibility = View.INVISIBLE
             matchesContainer.postOnAnimation {
                 if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
                 render()
-                animateTabEntry(matchesContainer, direction)
-                if (tab == "matches") animateTabEntry(leagueScroll, direction)
+                animateTabEntry(matchesContainer)
+                if (tab == "matches") animateTabEntry(leagueScroll)
             }
         }
 
