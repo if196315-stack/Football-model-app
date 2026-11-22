@@ -10,7 +10,7 @@ This document is the source of truth for the current IQ MATCH strategy. Threshol
 
 ## 1. Decision pipeline
 
-1. Validate fixture, market, line, BetBoom quote and data freshness.
+1. Validate fixture, market, line, MelBet quote and data freshness.
 2. Obtain the model probability for the exact market and line.
 3. Calculate break-even probability, edge and expected value (EV).
 4. Apply signal-quality and market-specific validation.
@@ -27,7 +27,7 @@ A BET is prohibited unless all applicable checks pass:
 
 - Fixture is matched unambiguously to the correct teams and kickoff.
 - Quote originates from MelBet through API-Sport; no other bookmaker is substituted.
-- The quote is a real BetBoom quote refreshed within the final 12 hours before kickoff; no separate 5-minute cutoff is applied.
+- The quote is a real MelBet quote refreshed within the final 12 hours before kickoff; no separate 5-minute cutoff is applied.
 - Market, side and line match the model probability exactly.
 - Quote and probability are present, finite and valid.
 - No critical missing or contradictory input exists.
@@ -44,7 +44,7 @@ Initial Class A / BET eligibility thresholds:
 - EV >= +5%.
 - Model has been evaluated for the corresponding market type.
 - Signal remains reasonably stable under small changes in assumptions.
-- All data and risk checks pass.
+- All data and signal-quality checks pass.
 
 Definitions:
 
@@ -55,9 +55,9 @@ Definitions:
 Example only: P=0.60 and odds=1.90 gives break-even=52.63%, edge=7.37 pp and EV=+14%. This is an arithmetic example, not a match recommendation.
 
 Signal classes:
-- A: all quality, value and risk filters pass; may become BET.
+- A: all quality and value filters pass; may become BET.
 - B: promising but missing confirmation or data; WAIT.
-- C: inadequate/negative value, poor data or unacceptable risk; REJECT.
+- C: inadequate/negative value or poor data; REJECT.
 
 For multi-outcome market analysis, account for bookmaker margin when comparing model probabilities with the market. Do not compare different lines or sides.
 
@@ -105,7 +105,7 @@ Test fixture matching, quote freshness, market/side/line mapping, missing values
 Use chronological splits for training, validation and a final untouched test set. Prevent look-ahead leakage, including same-date result leakage. Use only features and odds that would have been available at decision time. Report results separately by market and competition.
 
 ### Stage 3 — paper trading
-Run against current BetBoom quotes without placing real bets. Record BET, WAIT and REJECT candidates, decision-time odds and pre-kickoff closing odds. Do not change thresholds mid-cohort; version every change.
+Run against current MelBet quotes without placing real bets. Record BET, WAIT and REJECT candidates, decision-time odds and pre-kickoff closing odds. Do not change thresholds mid-cohort; version every change.
 
 ### Stage 4 — limited real launch
 Only after prior gates pass. Any future real launch requires a separate explicit authorization. No automatic risk caps are part of this strategy. Do not expand markets or limits automatically.
