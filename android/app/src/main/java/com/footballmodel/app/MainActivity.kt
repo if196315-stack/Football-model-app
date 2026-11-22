@@ -1503,8 +1503,11 @@ class MainActivity : Activity() {
 
     private fun renderBetPerformanceStats() {
         val now = System.currentTimeMillis()
-        val bounds = statsPeriodBounds(selectedStatsPeriod, now)
-        val key = listOf(selectedStatsPeriod, selectedStatsSource, SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now)), bounds.first.toString()).joinToString("|")
+        // Keep the analytics cache key stable for the whole local calendar day.
+        // Including bounds.first (which contains the current time down to milliseconds)
+        // caused every render to invalidate a calculation that had just completed.
+        val key = listOf(selectedStatsPeriod, selectedStatsSource,
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now))).joinToString("|")
         val cached = statsBetViewCache
         if (cached?.key != key) {
             val loading = terminalSection(matchesContainer, "ANALYTICS ENGINE", "SNAPSHOT → VALIDATE → AGGREGATE")
@@ -3383,6 +3386,12 @@ class MainActivity : Activity() {
         val json = data ?: return
         refreshHeaderFinancials()
         val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab; else -> "ALL" }
+
+        // A same-tab refresh (for example, after background statistics calculation)
+        // must preserve the user's current scroll position instead of restoring zero.
+        if (renderedKey == targetKey) {
+            tabScrollPositions[targetKey] = mainScrollView.scrollY
+        }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
