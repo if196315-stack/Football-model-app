@@ -12,7 +12,8 @@ internal data class AnalyticsBet(
     val odds: Double,
     val market: String,
     val league: String,
-    val isCoupon: Boolean
+    val isCoupon: Boolean,
+    val marketKey: String = ""
 )
 
 internal data class AnalyticsPoint(val dayMillis: Long, val profit: Double, val turnover: Double)
@@ -42,7 +43,8 @@ internal data class AnalyticsBreakdown(
     val wins: Int,
     val losses: Int,
     val profit: Double,
-    val turnover: Double
+    val turnover: Double,
+    val averageOdds: Double
 ) {
     val roi: Double get() = if (turnover > 0.0) profit / turnover * 100.0 else 0.0
 }
@@ -88,9 +90,12 @@ internal object BetAnalyticsCalculator {
         val couponRecords = valid.filter { it.isCoupon }
         val manualRecords = singlesRecords.filter { it.source != "AI_MANUAL" }
         val aiRecords = singlesRecords.filter { it.source == "AI_MANUAL" }
-        val market = breakdown(singlesRecords.filter { it.status != "PENDING" }) {
-            it.market.ifBlank { it.marketKeyFallback() }
+        // Show only markets the model can currently generate as actionable AI signals.
+        // Unknown/legacy/free-text labels are deliberately excluded from market performance.
+        val workingMarketRecords = singlesRecords.filter {
+            it.status != "PENDING" && isWorkingMarket(it.marketKey)
         }
+        val market = breakdown(workingMarketRecords, { it.market.ifBlank { it.marketKeyFallback() } })
         val league = breakdown(valid.filter { it.status != "PENDING" }) {
             it.league.ifBlank { "Не указан" }
         }
@@ -173,7 +178,7 @@ internal object BetAnalyticsCalculator {
     private fun breakdown(records: List<AnalyticsBet>, key: (AnalyticsBet) -> String): List<AnalyticsBreakdown> {
         return records.groupBy(key).map { (label, group) ->
             val result = summarize(group)
-            AnalyticsBreakdown(label, result.settled, result.wins, result.losses, result.profit, result.turnover)
+            AnalyticsBreakdown(label, result.settled, result.wins, result.losses, result.profit, result.turnover, result.averageOdds)
         }.sortedWith(compareByDescending<AnalyticsBreakdown> { it.profit }.thenBy { it.label })
     }
 
@@ -205,6 +210,13 @@ internal object BetAnalyticsCalculator {
 
     private fun oddsOrder(label: String): Int = when (label) {
         "<1.50" -> 0; "1.50–1.99" -> 1; "2.00–2.99" -> 2; "3.00–4.99" -> 3; else -> 4
+    }
+
+    private fun isWorkingMarket(rawKey: String): Boolean {
+        val key = rawKey.trim()
+        return key in setOf("1x", "x2", "bttsYes") ||
+            Regex("^over\\d{2}$").matches(key) ||
+            Regex("^(homeOver|awayOver)\\d{2}$").matches(key)
     }
 
     private fun AnalyticsBet.marketKeyFallback(): String = "Рынок не указан"
