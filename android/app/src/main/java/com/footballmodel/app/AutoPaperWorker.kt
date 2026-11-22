@@ -143,15 +143,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     }
 
     private fun mergeUefa(target: JSONObject, uefa: JSONObject) {
-        val dest = target.optJSONArray("competitions") ?: JSONArray().also { target.put("competitions", it) }
-        val src = uefa.optJSONArray("competitions") ?: return
-        for (i in 0 until src.length()) {
-            val comp = src.optJSONObject(i) ?: continue
-            val code = comp.optString("code")
-            if (code != "UCL" && code != "UEL" && code != "UECL") continue
-            for (j in dest.length() - 1 downTo 0) if (dest.optJSONObject(j)?.optString("code") == code) dest.remove(j)
-            dest.put(comp)
-        }
+        FeedMerger.mergeUefa(target, uefa)
     }
 
     private fun collectAiNotificationCandidates(feed: JSONObject): List<Pair<String, String>> {
