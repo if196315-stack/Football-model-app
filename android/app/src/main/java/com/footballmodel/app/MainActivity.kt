@@ -1526,7 +1526,7 @@ class MainActivity : Activity() {
         }
         // The source toggle scopes the complete betting report, not just one summary card.
         val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf("ALL" to "ВСЕ", "TOP" to "ТОП").forEach { option ->
+        listOf("TOP" to "ТОП", "ALL" to "ВСЕ").forEach { option ->
             val active = selectedStatsSource == option.first
             val button = TextView(this).apply {
                 text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
