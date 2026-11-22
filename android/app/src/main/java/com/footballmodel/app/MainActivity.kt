@@ -1252,6 +1252,66 @@ class MainActivity : Activity() {
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
 
+    private fun animateStatsContentRefresh(refresh: () -> Unit) {
+        if (!::matchesContainer.isInitialized || currentTab != "stats") {
+            refresh()
+            return
+        }
+        matchesContainer.animate().cancel()
+        matchesContainer.animate()
+            .alpha(0.42f)
+            .translationY(dp(5).toFloat())
+            .setDuration(105L)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                refresh()
+                matchesContainer.alpha = 0.42f
+                matchesContainer.translationY = dp(5).toFloat()
+                matchesContainer.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(215L)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+            }
+            .start()
+    }
+
+    private fun animateStakeModeVisibility(view: View, show: Boolean) {
+        view.animate().cancel()
+        if (show) {
+            if (view.visibility == View.VISIBLE) return
+            view.visibility = View.VISIBLE
+            view.alpha = 0f
+            view.translationY = dp(6).toFloat()
+            view.scaleY = 0.96f
+            view.animate().alpha(1f).translationY(0f).scaleY(1f)
+                .setDuration(220L).setInterpolator(DecelerateInterpolator()).start()
+        } else {
+            if (view.visibility != View.VISIBLE) return
+            view.animate().alpha(0f).translationY(dp(-4).toFloat()).scaleY(0.96f)
+                .setDuration(150L).setInterpolator(DecelerateInterpolator())
+                .withEndAction {
+                    view.visibility = View.GONE
+                    view.alpha = 1f
+                    view.translationY = 0f
+                    view.scaleY = 1f
+                }.start()
+        }
+    }
+
+    private fun animateStakeModeHint(view: TextView, text: String) {
+        if (view.text.toString() == text) return
+        view.animate().cancel()
+        view.animate().alpha(0.25f).setDuration(100L)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                view.text = text
+                view.animate().alpha(1f).setDuration(180L)
+                    .setInterpolator(DecelerateInterpolator()).start()
+            }.start()
+    }
+
     private fun invalidateStatsBetCache() {
         statsBetCacheGeneration.incrementAndGet()
         statsBetViewCache = null
@@ -1309,7 +1369,7 @@ class MainActivity : Activity() {
                 statsBetCalculationInProgress.set(false)
                 if (currentTab == "stats") {
                     tabViewCache.remove("stats|ALL")
-                    render()
+                    animateStatsContentRefresh { render() }
                 }
             }
         }
@@ -1518,7 +1578,7 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                     background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
-                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); render() } }
+                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
@@ -1533,7 +1593,7 @@ class MainActivity : Activity() {
                 setPadding(dp(8), dp(10), dp(8), dp(10))
                 setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                 background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
-                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); render() } }
+                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
@@ -1612,7 +1672,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
+    private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
         val evaluatedMatches = json.optJSONArray("evaluationMatches")
         fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
@@ -1625,6 +1685,9 @@ class MainActivity : Activity() {
             if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
                 val m = evaluatedMatches.optJSONObject(i) ?: continue
                 if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                val marketKey = key
+                val matchId = m.optString("id")
+                if (!StatsPredictionScope.includes(source, matchId, marketKey, topSelections)) continue
                 val p = m.optJSONObject("prediction") ?: continue
                 if (!p.has(key) || p.isNull(key)) continue
                 val h = m.optInt("homeScore")
@@ -1665,10 +1728,30 @@ class MainActivity : Activity() {
         return metrics
     }
 
+    private fun topPredictionSelections(): Set<String> {
+        val selections = linkedSetOf<String>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (!bet.optString("source").equals("AI_MANUAL", true)) continue
+            if (bet.optString("marketKey") !in setOf("1x", "x2", "homeOver15", "awayOver15", "over25", "bttsYes", "homeOver05", "awayOver05")) continue
+            val matchId = bet.optString("matchId").trim()
+            if (matchId.isNotBlank()) selections.add(StatsPredictionScope.key(matchId, bet.optString("marketKey")))
+        }
+        return selections
+    }
+
     private fun statsCacheKey(json: JSONObject): String {
-        // A cheap feed signature avoids serializing the entire match archive on the UI thread.
+        // Shared lightweight feed signature for AI candidate ordering caches.
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
+    }
+
+    private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>): String {
+        // Include category and its exact TOP selection set: switching tabs or changing saved
+        // TOP bets must never reuse a prediction summary calculated for another scope.
+        val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",") else "ALL"
+        return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + scopeSignature
     }
 
 
@@ -1682,7 +1765,9 @@ class MainActivity : Activity() {
             addText(failure, "Не удалось построить статистику ставок. Сводка прогнозов будет доступна отдельно.", 12, true, gold)
             matchesContainer.addView(failure)
         }
-        val statsKey = statsCacheKey(json)
+        val source = selectedStatsSource
+        val topSelections = topPredictionSelections()
+        val statsKey = statsPredictionCacheKey(json, source, topSelections)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
@@ -1692,7 +1777,7 @@ class MainActivity : Activity() {
                 thread(name = "stats-metrics-calculation") {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
-                        calculateStatsMetrics(json).also { statsMetricsError = null }
+                        calculateStatsMetrics(json, source, topSelections).also { statsMetricsError = null }
                     } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
@@ -1707,7 +1792,7 @@ class MainActivity : Activity() {
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
-                            render()
+                            animateStatsContentRefresh { render() }
                         }
                     }
                 }
@@ -1715,7 +1800,8 @@ class MainActivity : Activity() {
             return
         }
         val metrics = statsMetricsCache
-        val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", "ТОЧНОСТЬ МОДЕЛИ · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ")
+        val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
+        val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
         if (metrics.isEmpty()) {
             val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
             val calculationError = statsMetricsError
@@ -2259,7 +2345,7 @@ class MainActivity : Activity() {
         lateinit var minimumStakeButton: Button
         fun styleStakeModeButton(button: Button, selected: Boolean) {
             button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
-            button.background = GradientDrawable(
+            val nextBackground = GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
                 else intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
@@ -2267,6 +2353,13 @@ class MainActivity : Activity() {
                 cornerRadius = dp(12).toFloat()
                 setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
             }
+            if (button.isAttachedToWindow && button.background != null) {
+                val previous = button.background.constantState?.newDrawable()?.mutate() ?: button.background
+                button.background = android.graphics.drawable.TransitionDrawable(arrayOf(previous, nextBackground)).apply {
+                    isCrossFadeEnabled = true
+                    startTransition(220)
+                }
+            } else button.background = nextBackground
         }
         fun addStakeModeButton(title: String, mode: String) {
             val button = Button(this).apply {
@@ -2284,14 +2377,16 @@ class MainActivity : Activity() {
                         return@setOnClickListener
                     }
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
-                    minimumStakeButton.visibility = if (mode == "MINIMUM") View.VISIBLE else View.GONE
-                    fixedStakeButton.visibility = if (mode == "FIXED") View.VISIBLE else View.GONE
-                    fixedStakeHint.text = if (mode == "FIXED") {
+                    animateStakeModeVisibility(minimumStakeButton, mode == "MINIMUM")
+                    animateStakeModeVisibility(fixedStakeButton, mode == "FIXED")
+                    val nextFixedHint = if (mode == "FIXED") {
                         if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
                         else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
                     } else "Сохранённое значение не применяется, пока выбран режим «Минимальная»."
-                    minimumStakeHint.text = if (mode == "MINIMUM") minimumStakeDescription()
+                    val nextMinimumHint = if (mode == "MINIMUM") minimumStakeDescription()
                         else "Сохранённое значение не применяется, пока выбран режим «Фиксированная»."
+                    animateStakeModeHint(fixedStakeHint, nextFixedHint)
+                    animateStakeModeHint(minimumStakeHint, nextMinimumHint)
                     // Invalidate dependent tabs for their next visit without rebuilding this page.
                     tabViewCache.clear()
                     Toast.makeText(this@MainActivity,
