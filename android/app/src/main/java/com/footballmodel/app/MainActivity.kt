@@ -68,6 +68,11 @@ class MainActivity : Activity() {
     private lateinit var matchesContainer: LinearLayout
     private lateinit var mainScrollView: ScrollView
     private var data: JSONObject? = null
+    @Volatile private var leagueMatchCountsSource: JSONObject? = null
+    @Volatile private var leagueMatchCountsCache: Map<String, Int> = emptyMap()
+    private val leagueCountLock = Any()
+    @Volatile private var aiCandidatesCacheKey: String? = null
+    @Volatile private var aiCandidatesCache: List<Triple<JSONObject, String, JSONObject>> = emptyList()
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
     private val aiSignalPrefs by lazy { getSharedPreferences("ai_signal_history", MODE_PRIVATE) }
@@ -156,6 +161,8 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Request notification permission immediately on app launch.
+        AiMatchNotifications.requestPermissionIfNeeded(this)
         currentTab = intent.getStringExtra("open_tab")?.takeUnless { it == "notifications" } ?: "matches"
         if (currentTab == "matches" && !isLineSectionVisible()) currentTab = "desk"
         window.statusBarColor = bg
@@ -384,6 +391,11 @@ class MainActivity : Activity() {
                 if (restored == null) {
                     feedCache.edit().remove("merged_json").apply()
                 } else {
+                    // Precompute summaries on this cache-restore worker, never on the UI thread.
+                    prepareAvailableMatchCounts(restored)
+                    val cachedCandidates = collectAiCandidates(restored)
+                    aiCandidatesCache = cachedCandidates
+                    aiCandidatesCacheKey = statsCacheKey(restored)
                     runOnUiThread {
                         // Если сеть уже успела вернуть свежие данные, старый кэш не перезаписывает их.
                         if (data == null) {
@@ -960,8 +972,11 @@ class MainActivity : Activity() {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
                 }
-                // Build the AI candidate snapshot off the main thread before checking notifications.
+                // Prepare expensive navigation summaries and TOP candidates off the main thread.
+                prepareAvailableMatchCounts(json)
                 val aiMatchCandidates = collectAiCandidates(json)
+                aiCandidatesCache = aiMatchCandidates
+                aiCandidatesCacheKey = statsCacheKey(json)
                 updateAiSignalArchive(json, aiMatchCandidates)
                 val payload = json.toString()
                 feedCache.edit()
@@ -972,16 +987,16 @@ class MainActivity : Activity() {
                     val openTopNotificationCandidates = aiMatchCandidates.filterNot { item ->
                         val signal = item.third.optJSONObject("primary") ?: return@filterNot false
                         isAiBetRecorded(item.first, signal)
-                    }.map { item ->
+                    }.mapNotNull { item ->
                         val match = item.first
+                        val signal = item.third.optJSONObject("primary") ?: return@mapNotNull null
                         val matchId = match.optString("id").ifBlank {
                             listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
                         }
-                        matchId to "${match.optString("home")} — ${match.optString("away")}"
+                        val marketKey = marketKeyForAutoSignal(signal, match) ?: return@mapNotNull null
+                        "${matchId}::${marketKey}" to "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
                     }
-                    if (AiMatchNotifications.observe(this, openTopNotificationCandidates)) {
-                        AiMatchNotifications.requestPermissionIfNeeded(this)
-                    }
+                    AiMatchNotifications.observe(this, openTopNotificationCandidates)
                     val changed = payload != lastPayload
                     if (changed) {
                         data = json
@@ -1090,33 +1105,48 @@ class MainActivity : Activity() {
         else -> "Все"
     }
 
-    private fun availableMatchCountForLeague(code: String): Int {
-        val competitions = data?.optJSONArray("competitions") ?: return 0
-        val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
-            timeZone = java.util.TimeZone.getTimeZone("UTC")
-        }
-        val today = fixtureDayFormat.format(Date())
-        var count = 0
-        for (i in 0 until competitions.length()) {
-            val league = competitions.optJSONObject(i) ?: continue
-            if (code != "ALL" && league.optString("code") != code) continue
-            val matches = league.optJSONArray("matches") ?: continue
-            for (j in 0 until matches.length()) {
-                val match = matches.optJSONObject(j) ?: continue
-                val fixtureDate = match.optString("utcDate").take(10).ifBlank {
-                    match.optString("dateEvent").take(10).ifBlank {
-                        kickoffTimestamp(match)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
+    // Precompute all league counters once per feed snapshot, not once per chip.
+    private fun prepareAvailableMatchCounts(json: JSONObject) {
+        synchronized(leagueCountLock) {
+            if (leagueMatchCountsSource === json) return
+            val counts = mutableMapOf(
+                "ALL" to 0, "PL" to 0, "PD" to 0, "SA" to 0,
+                "BL1" to 0, "FL1" to 0, "UCL" to 0, "UEL" to 0, "UECL" to 0
+            )
+            val competitions = json.optJSONArray("competitions")
+            val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            val today = fixtureDayFormat.format(Date())
+            if (competitions != null) for (i in 0 until competitions.length()) {
+                val league = competitions.optJSONObject(i) ?: continue
+                val code = league.optString("code")
+                val matches = league.optJSONArray("matches") ?: continue
+                for (j in 0 until matches.length()) {
+                    val match = matches.optJSONObject(j) ?: continue
+                    val fixtureDate = match.optString("utcDate").take(10).ifBlank {
+                        match.optString("dateEvent").take(10).ifBlank {
+                            kickoffTimestamp(match)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
+                        }
+                    }
+                    if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
+                        fixtureDate.isNotBlank() && fixtureDate >= today &&
+                        hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
+                    ) {
+                        counts["ALL"] = (counts["ALL"] ?: 0) + 1
+                        if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
                     }
                 }
-                if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
-                    fixtureDate.isNotBlank() && fixtureDate >= today &&
-                    hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
-                ) {
-                    count++
-                }
             }
+            leagueMatchCountsCache = counts.toMap()
+            leagueMatchCountsSource = json
         }
-        return count
+    }
+
+    private fun availableMatchCountForLeague(code: String): Int {
+        val snapshot = data ?: return 0
+        if (leagueMatchCountsSource !== snapshot) prepareAvailableMatchCounts(snapshot)
+        return leagueMatchCountsCache[code] ?: 0
     }
 
     private fun renderLeagueTabs() {
@@ -2923,7 +2953,11 @@ class MainActivity : Activity() {
 
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных ставок ТОП.")
-        val sorted = collectAiCandidates(json)
+        val sorted = if (aiCandidatesCacheKey == statsCacheKey(json)) {
+            aiCandidatesCache
+        } else {
+            collectAiCandidates(json)
+        }
         val openCandidates = sorted.mapNotNull { item ->
             val match = item.first
             val bundle = item.third
@@ -3117,7 +3151,7 @@ class MainActivity : Activity() {
         val sourceUpdated = formatSourceTimestamp(json.optString("updatedAt"))
         statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
         renderTabs()
-        renderLeagueTabs()
+        if (currentTab == "matches") renderLeagueTabs()
         leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
@@ -3126,7 +3160,6 @@ class MainActivity : Activity() {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
             leagueBar.visibility = if (currentTab in listOf("matches", "stats")) View.VISIBLE else View.GONE
-            renderLeagueTabs()
             renderedKey = targetKey
             mainScrollView.post {
                 if (renderedKey == targetKey) {
