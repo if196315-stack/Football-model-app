@@ -46315,11 +46315,11 @@
         {
           "id": "m_3ZF56r",
           "utcDate": "2026-11-22",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Getafe",
           "away": "Atlético Madrid",
           "homeScore": 0,
-          "awayScore": 2,
+          "awayScore": 3,
           "prediction": {
             "1x": 0.5638468258134075,
             "x2": 0.7286142257964331,
@@ -46343,9 +46343,9 @@
             "historyMaxDate": "2026-11-21"
           },
           "predictionWarning": null,
-          "scoreStatusFinal": null,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T21:20:26.589990+00:00"
+          "resultUpdatedAt": "2026-11-22T22:10:25.296544+00:00"
         },
         {
           "id": "m_3jVoFq",
@@ -69454,11 +69454,11 @@
         {
           "id": "m_0ZgZVI",
           "utcDate": "2026-11-22",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Atalanta",
           "away": "Inter",
-          "homeScore": 2,
-          "awayScore": 3,
+          "homeScore": 4,
+          "awayScore": 4,
           "prediction": {
             "1x": 0.417414123228929,
             "x2": 0.7981991168950775,
@@ -69482,9 +69482,9 @@
             "historyMaxDate": "2026-11-21"
           },
           "predictionWarning": null,
-          "scoreStatusFinal": null,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T21:20:26.589990+00:00"
+          "resultUpdatedAt": "2026-11-22T22:10:25.296544+00:00"
         },
         {
           "id": "m_08lkfg",
@@ -109482,11 +109482,11 @@
         {
           "id": "m_3pvUaB",
           "utcDate": "2026-11-22",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Marseille",
           "away": "Le Mans",
           "homeScore": 2,
-          "awayScore": 1,
+          "awayScore": 3,
           "prediction": {
             "1x": 0.7104514193563918,
             "x2": 0.4804817537940634,
@@ -109510,9 +109510,9 @@
             "historyMaxDate": "2026-11-21"
           },
           "predictionWarning": null,
-          "scoreStatusFinal": null,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T21:20:26.589990+00:00"
+          "resultUpdatedAt": "2026-11-22T22:10:25.296544+00:00"
         },
         {
           "id": "m_1oxRzF",
