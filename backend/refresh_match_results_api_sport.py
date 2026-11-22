@@ -92,8 +92,8 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
         return False
 
     final_status = target.get("scoreStatusFinal")
-    # Never roll back a result already confirmed final.
-    if final_status is True and status != "finished":
+    # A final score is immutable for this settlement pipeline; ignore stale snapshots.
+    if final_status is True:
         return False
 
     home_score = score_value(source, "home")
