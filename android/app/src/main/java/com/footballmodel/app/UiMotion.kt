@@ -1,5 +1,7 @@
 package com.footballmodel.app
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.graphics.drawable.Drawable
@@ -7,6 +9,7 @@ import android.graphics.drawable.TransitionDrawable
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
+import java.util.WeakHashMap
 
 /**
  * Shared motion language for all equivalent screen, filter and setting transitions.
@@ -15,6 +18,7 @@ import android.widget.TextView
 internal object UiMotion {
     const val DURATION_MS = 220L
     private const val CONTENT_ALPHA = 0.45f
+    private val textColorAnimations = WeakHashMap<TextView, ValueAnimator>()
 
     private fun easing() = DecelerateInterpolator(1.7f)
 
@@ -53,7 +57,12 @@ internal object UiMotion {
     fun animateVisibility(view: View, visible: Boolean, offsetPx: Float) {
         view.animate().cancel()
         if (visible) {
-            if (view.visibility == View.VISIBLE) return
+            if (view.visibility == View.VISIBLE) {
+                if (view.alpha < 0.999f || kotlin.math.abs(view.translationY) > 0.5f) {
+                    animateToRest(view)
+                }
+                return
+            }
             view.visibility = View.VISIBLE
             view.alpha = 0f
             view.translationY = offsetPx
@@ -89,11 +98,20 @@ internal object UiMotion {
     fun animateTextColor(view: TextView, nextColor: Int) {
         val current = view.currentTextColor
         if (current == nextColor) return
+        textColorAnimations.remove(view)?.cancel()
         val animator = ValueAnimator.ofObject(ArgbEvaluator(), current, nextColor).apply {
             duration = DURATION_MS
             interpolator = easing()
             addUpdateListener { view.setTextColor(it.animatedValue as Int) }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (textColorAnimations[view] === this@apply) {
+                        textColorAnimations.remove(view)
+                    }
+                }
+            })
         }
+        textColorAnimations[view] = animator
         animator.start()
     }
 
