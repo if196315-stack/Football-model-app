@@ -1288,14 +1288,14 @@ class MainActivity : Activity() {
         // Snapshot only the five scalar fields needed by the statistics. This avoids
         // sharing mutable JSONObject instances with the worker and avoids a second JSON tree.
         val snapshot = try {
-            buildList {
-                for (index in 0 until sourceBets.length()) {
-                    val bet = sourceBets.optJSONObject(index) ?: continue
-                    add(StatsBetInput(bet.optString("betDay"), bet.optString("date"),
-                        bet.optLong("createdAt", 0L), bet.optString("source"), bet.optString("status"),
-                        bet.optDouble("stake", 0.0), bet.optDouble("odds", 0.0)))
-                }
+            val inputs = mutableListOf<StatsBetInput>()
+            for (index in 0 until sourceBets.length()) {
+                val bet = sourceBets.optJSONObject(index) ?: continue
+                inputs.add(StatsBetInput(bet.optString("betDay"), bet.optString("date"),
+                    bet.optLong("createdAt", 0L), bet.optString("source"), bet.optString("status"),
+                    bet.optDouble("stake", 0.0), bet.optDouble("odds", 0.0)))
             }
+            inputs
         } catch (error: Throwable) {
             statsBetCalculationInProgress.set(false)
             android.util.Log.e("IQMatchStats", "Unable to snapshot bet history statistics", error)
