@@ -1134,7 +1134,7 @@ class MainActivity : Activity() {
                     }
                     if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
                         fixtureDate.isNotBlank() && fixtureDate >= today &&
-                        hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
+                        hasStrategyPredictionWithActiveMelBetLine(match)
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
                         if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
@@ -2517,6 +2517,63 @@ class MainActivity : Activity() {
         }
     }
 
+    // Eligibility requires at least one strategy market with BOTH a valid model probability
+    // and a fresh, active MelBet price for that exact market and line.
+    private fun hasStrategyPredictionWithActiveMelBetLine(match: JSONObject): Boolean {
+        val prediction = match.optJSONObject("prediction") ?: return false
+        val odds = match.optJSONObject("odds") ?: return false
+        val bookmaker = odds.optString("bookmaker")
+        val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
+            else odds.optString("source").contains("MelBet", ignoreCase = true)
+        if (!isMelBet || !hasFreshMelBetQuote(match)) return false
+        val best = odds.optJSONObject("best") ?: return false
+        fun hasProbability(field: String): Boolean {
+            val value = prediction.optDouble(field, Double.NaN)
+            return value.isFinite() && value in 0.0..1.0
+        }
+        fun validPrice(value: Double) = value.isFinite() && value > 1.0
+
+        val dc = best.optJSONObject("doubleChance")
+        if (dc != null && ((hasProbability("1x") && validPrice(dc.optDouble("1x", Double.NaN))) ||
+                (hasProbability("x2") && validPrice(dc.optDouble("x2", Double.NaN))))) return true
+        val btts = best.optJSONObject("btts")
+        if (hasProbability("bttsYes") && btts != null && validPrice(btts.optDouble("yes", Double.NaN))) return true
+
+        fun hasTotal(field: String, probabilityField: String, point: Double): Boolean {
+            if (!hasProbability(probabilityField)) return false
+            val rows = best.optJSONArray(field) ?: return false
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                val line = row.optDouble("point", Double.NaN)
+                if (row.optString("side").equals("over", ignoreCase = true) && line.isFinite() &&
+                    kotlin.math.abs(line - point) < 0.001 && validPrice(row.optDouble("price", Double.NaN))) return true
+            }
+            return false
+        }
+        if (hasTotal("totals", "over15", 1.5) || hasTotal("totals", "over25", 2.5)) return true
+
+        val teamRows = best.optJSONArray("teamTotals")
+        if (teamRows != null) {
+            val homeName = match.optString("home").trim()
+            val awayName = match.optString("away").trim()
+            for (i in 0 until teamRows.length()) {
+                val row = teamRows.optJSONObject(i) ?: continue
+                if (!row.optString("side").equals("over", ignoreCase = true)) continue
+                val point = row.optDouble("point", Double.NaN)
+                val team = row.optString("team").trim()
+                val isHome = team.equals("home", true) || team == "1" || team.equals("хозяева", true) || team.equals(homeName, true)
+                val isAway = team.equals("away", true) || team == "2" || team.equals("гости", true) || team.equals(awayName, true)
+                val price = row.optDouble("price", Double.NaN)
+                if (!validPrice(price) || !point.isFinite()) continue
+                if (isHome && ((kotlin.math.abs(point - 0.5) < 0.001 && hasProbability("homeOver05")) ||
+                        (kotlin.math.abs(point - 1.5) < 0.001 && hasProbability("homeOver15")))) return true
+                if (isAway && ((kotlin.math.abs(point - 0.5) < 0.001 && hasProbability("awayOver05")) ||
+                        (kotlin.math.abs(point - 1.5) < 0.001 && hasProbability("awayOver15")))) return true
+            }
+        }
+        return false
+    }
+
     private fun hasActiveMelBetPrematchLine(match: JSONObject): Boolean {
         val odds = match.optJSONObject("odds") ?: return false
         val bookmaker = odds.optString("bookmaker")
@@ -3380,7 +3437,7 @@ class MainActivity : Activity() {
                 }
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
                 if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
-                    hasCompleteModelPrediction(m) && hasActiveMelBetPrematchLine(m)) {
+                    hasStrategyPredictionWithActiveMelBetLine(m)) {
                     upcoming.add(m)
                     totalUpcoming++
                     totalPredicted++
