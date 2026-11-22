@@ -1680,7 +1680,13 @@ class MainActivity : Activity() {
         return selections
     }
 
-    private fun statsCacheKey(json: JSONObject, source: String, topSelections: Set<String>): String {
+    private fun statsCacheKey(json: JSONObject): String {
+        // Shared lightweight feed signature for AI candidate ordering caches.
+        return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0)
+    }
+
+    private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>): String {
         // Include category and its exact TOP selection set: switching tabs or changing saved
         // TOP bets must never reuse a prediction summary calculated for another scope.
         val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",") else "ALL"
@@ -1701,7 +1707,7 @@ class MainActivity : Activity() {
         }
         val source = selectedStatsSource
         val topSelections = topPredictionSelections()
-        val statsKey = statsCacheKey(json, source, topSelections)
+        val statsKey = statsPredictionCacheKey(json, source, topSelections)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
             addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
