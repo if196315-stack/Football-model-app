@@ -59,6 +59,20 @@ class ApiSportOddsTests(unittest.TestCase):
         old_quote = parse_odds(source)
         self.assertEqual(old_quote["freshnessStatus"], "stale")
 
+
+    def test_ignores_open_markets_when_melbet_prematch_board_is_inactive(self):
+        source = {"id": 777, "oddsBk": {"melbet": {
+            "isBettingActiveByStage": {"prematch": False},
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "markets": {"both_teams_to_score": {
+                "status": "open", "stage": "prematch",
+                "stakes": {"yes": {"factor": 1.8}}
+            }}
+        }}}
+        quote = parse_odds(source)
+        self.assertEqual(quote["best"], {})
+        self.assertEqual(quote["bookmakers"], [])
+
     def test_parses_btts_match_totals_and_both_team_total_sides_from_melbet_only(self):
         source = {"id": 88, "oddsBk": {
             "melbet": {"markets": {
