@@ -2503,20 +2503,18 @@ class MainActivity : Activity() {
     // an available MelBet quote from API-Sport; quote age is informational only.
     private fun hasCompleteModelPrediction(match: JSONObject): Boolean {
         val prediction = match.optJSONObject("prediction") ?: return false
-        // Only require probabilities for markets actually used by the current strategy
-        // and parsed from MelBet: double chance, match/team overs, and BTTS YES.
+        // A match needs a usable probability for at least one market in our active
+        // strategy. Missing probabilities for other strategy markets must not hide it.
+        // Markets outside this list (1X2, handicaps, BTTS NO, higher totals) are ignored.
         val probabilityFields = listOf(
             "1x", "x2", "over15", "over25",
             "homeOver05", "homeOver15", "awayOver05", "awayOver15",
             "bttsYes"
         )
-        if (!probabilityFields.all { field ->
-                val value = prediction.optDouble(field, Double.NaN)
-                value.isFinite() && value in 0.0..1.0
-            }) return false
-        val homeXg = prediction.optDouble("expectedHomeGoals", Double.NaN)
-        val awayXg = prediction.optDouble("expectedAwayGoals", Double.NaN)
-        return homeXg.isFinite() && homeXg > 0.0 && awayXg.isFinite() && awayXg > 0.0
+        return probabilityFields.any { field ->
+            val value = prediction.optDouble(field, Double.NaN)
+            value.isFinite() && value in 0.0..1.0
+        }
     }
 
     private fun hasActiveMelBetPrematchLine(match: JSONObject): Boolean {
