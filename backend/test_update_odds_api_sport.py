@@ -323,6 +323,27 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual(quote["bookmakers"], [])
 
 
+    def test_parse_odds_marks_only_explicitly_active_prematch_board_as_active(self):
+        active = {"id": 700, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "isBettingActiveByStage": {"prematch": True},
+            "markets": {"double_chance": {
+                "status": "open", "stage": "prematch",
+                "stakes": {"1x": {"factor": 1.8}}
+            }}
+        }}}
+        unknown = {"id": 701, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "markets": {"double_chance": {
+                "status": "open", "stage": "prematch",
+                "stakes": {"1x": {"factor": 1.8}}
+            }}
+        }}}
+        self.assertTrue(parse_odds(active)["prematchActive"])
+        self.assertFalse(parse_odds(unknown)["prematchActive"])
+
+
+
 if __name__ == "__main__":
     unittest.main()
 
