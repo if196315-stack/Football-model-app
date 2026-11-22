@@ -13,7 +13,7 @@ def base_row(**overrides):
         "fixture_id": "fixture-1", "provider_event_id": "provider-1",
         "league_code": "UCL", "season": "2026/2027",
         "kickoff_utc": "2026-11-24", "home_team": "Home", "away_team": "Away",
-        "market": "match_total_over", "market_parser_version": "betboom-fulltime-v2",
+        "market": "match_total_over", "market_parser_version": "melbet-fulltime-v2",
         "provider_market_slug": "total_goals", "provider_market_group": "total goals",
         "provider_market_name": "Total Goals", "point": 2.5, "side": "over",
         "candidate_market": True, "reference_only": False,
@@ -105,6 +105,9 @@ class UefaPaperSignalTests(unittest.TestCase):
             again = append_unique_paper_bets([first, second], path)
             self.assertEqual(again["unique_paper_bets_added"], 0)
 
+    def test_legacy_betboom_snapshots_are_not_used_for_melbet_paper_signals(self):
+        legacy = base_row(market_parser_version="betboom-fulltime-v2")
+        self.assertEqual(build_signals([legacy]), [])
     def test_legacy_snapshots_without_parser_version_are_ignored(self):
         legacy = base_row()
         legacy.pop("market_parser_version")
