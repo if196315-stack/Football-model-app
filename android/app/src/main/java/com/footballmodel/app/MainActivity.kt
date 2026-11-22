@@ -1261,8 +1261,8 @@ class MainActivity : Activity() {
     @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
     @Volatile private var statsMetricsError: String? = null
     private val statsCalculationInProgress = AtomicBoolean(false)
-    private var selectedStatsPeriod = "MONTH"
-    private var selectedStatsSource = "ALL"
+    private var selectedStatsPeriod = "ALL"
+    private var selectedStatsSource = "TOP"
     private data class StatsBetInput(
         val id: String, val betDay: String, val date: String, val createdAt: Long,
         val source: String, val status: String, val stake: Double, val odds: Double,
@@ -1524,7 +1524,7 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                     background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
-                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
+                    setOnClickListener { if (selectedStatsPeriod != option.first) { val scrollY = mainScrollView.scrollY; selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); render(); mainScrollView.post { mainScrollView.scrollTo(0, scrollY) } } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
@@ -1539,7 +1539,7 @@ class MainActivity : Activity() {
                 setPadding(dp(8), dp(10), dp(8), dp(10))
                 setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                 background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
-                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
+                setOnClickListener { if (selectedStatsSource != option.first) { val scrollY = mainScrollView.scrollY; selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); render(); mainScrollView.post { mainScrollView.scrollTo(0, scrollY) } } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
@@ -1592,7 +1592,6 @@ class MainActivity : Activity() {
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
         terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
-        terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ДНЯМ НЕДЕЛИ", report.byWeekday, 7)
 
         cached.previous?.let { previous ->
             val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
