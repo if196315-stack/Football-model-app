@@ -1227,6 +1227,8 @@ class MainActivity : Activity() {
     @Volatile private var statsMetricsCacheKey: String? = null
     @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
     private val statsCalculationInProgress = AtomicBoolean(false)
+    private var selectedStatsPeriod = "MONTH"
+    private var selectedStatsSource = "ALL"
 
     private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
@@ -1288,64 +1290,203 @@ class MainActivity : Activity() {
             (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
-    private fun renderSavedBetStats() {
-        var turnover = 0.0
-        var profit = 0.0
-        var pendingStake = 0.0
-        var possiblePayout = 0.0
-        var possibleProfit = 0.0
-        var wins = 0
-        var losses = 0
-        var pushes = 0
-        var pending = 0
-        var settledTopOddsTotal = 0.0
-        var settledTopOddsCount = 0
+
+    private data class BetStatsPoint(val day: Long, val profit: Double, val turnover: Double)
+    private data class BetStatsSummary(
+        val wins: Int, val losses: Int, val pushes: Int, val turnover: Double,
+        val profit: Double, val averageOdds: Double, val points: List<BetStatsPoint>
+    ) {
+        val settled: Int get() = wins + losses + pushes
+        val roi: Double get() = if (turnover > 0.0) profit / turnover * 100.0 else 0.0
+        val winRate: Double get() = if (wins + losses > 0) wins * 100.0 / (wins + losses) else 0.0
+    }
+
+    private fun betStatsDate(bet: JSONObject): Long? {
+        val rawDay = bet.optString("betDay").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
+        val raw = rawDay ?: bet.optString("date").takeIf { it.isNotBlank() }
+            ?: return bet.optLong("createdAt", 0L).takeIf { it > 0L }
+        return try {
+            val fmt = if (raw.length == 10) SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                else SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+            fmt.isLenient = false
+            if (raw.length != 10) fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            fmt.parse(raw.take(if (raw.length == 10) 10 else 19))?.time
+        } catch (_: Exception) { bet.optLong("createdAt", 0L).takeIf { it > 0L } }
+    }
+
+    private fun statsPeriodBounds(period: String, now: Long = System.currentTimeMillis()): Pair<Long, Long> {
+        val cal = java.util.Calendar.getInstance().apply { timeInMillis = now }
+        val end = cal.timeInMillis
+        when (period) {
+            "WEEK" -> cal.add(java.util.Calendar.DAY_OF_YEAR, -7)
+            "MONTH" -> cal.add(java.util.Calendar.MONTH, -1)
+            "QUARTER" -> cal.add(java.util.Calendar.MONTH, -3)
+            "HALF" -> cal.add(java.util.Calendar.MONTH, -6)
+            "YEAR" -> cal.add(java.util.Calendar.YEAR, -1)
+            else -> return 0L to end
+        }
+        return cal.timeInMillis to end
+    }
+
+    private fun summarizeBets(source: String, from: Long, to: Long): BetStatsSummary {
+        var wins = 0; var losses = 0; var pushes = 0
+        var turnover = 0.0; var profit = 0.0; var oddsTotal = 0.0; var oddsCount = 0
+        val daily = sortedMapOf<Long, Pair<Double, Double>>()
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            val stake = bet.optDouble("stake")
-            val odds = bet.optDouble("odds")
-            when (bet.optString("status")) {
-                "WON" -> {
-                    wins++; turnover += stake; profit += stake * (odds - 1)
-                    if (bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && odds.isFinite() && odds > 1.0) {
-                        settledTopOddsTotal += odds
-                        settledTopOddsCount++
+            val isAi = bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO")
+            if (source == "AI" && !isAi || source == "MANUAL" && isAi) continue
+            val day = betStatsDate(bet) ?: continue
+            if (day < from || day > to) continue
+            val stake = bet.optDouble("stake", 0.0)
+            val odds = bet.optDouble("odds", 0.0)
+            val delta = when (bet.optString("status")) {
+                "WON" -> { wins++; stake * (odds - 1.0) }
+                "LOST" -> { losses++; -stake }
+                "PUSH" -> { pushes++; 0.0 }
+                else -> continue
+            }
+            turnover += stake
+            profit += delta
+            if (odds > 1.0 && odds.isFinite()) { oddsTotal += odds; oddsCount++ }
+            val old = daily[day] ?: (0.0 to 0.0)
+            daily[day] = (old.first + delta) to (old.second + stake)
+        }
+        return BetStatsSummary(wins, losses, pushes, turnover, profit,
+            if (oddsCount > 0) oddsTotal / oddsCount else 0.0,
+            daily.map { BetStatsPoint(it.key, it.value.first, it.value.second) })
+    }
+
+    private fun statsMoney(value: Double): String = (if (value >= 0) "+" else "") + fmt(value)
+
+    private fun addStatsSummary(parent: LinearLayout, title: String, summary: BetStatsSummary) {
+        val box = card()
+        addText(box, title, 11, true, cyan)
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        fun metric(label: String, value: String, tint: Int) {
+            val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(5), dp(7), dp(5), dp(7)) }
+            addText(col, label, 9, false, muted)
+            addText(col, value, 17, true, tint)
+            row.addView(col, LinearLayout.LayoutParams(0, -2, 1f))
+        }
+        metric("ROI", String.format(Locale.US, "%.1f%%", summary.roi), if (summary.roi >= 0) Color.rgb(80,205,145) else Color.rgb(235,105,110))
+        metric("Прибыль", statsMoney(summary.profit), if (summary.profit >= 0) Color.rgb(80,205,145) else Color.rgb(235,105,110))
+        metric("Рассчитано", summary.settled.toString(), Color.WHITE)
+        box.addView(row)
+        addText(box, "Выигрыши: " + summary.wins + "  ·  Проигрыши: " + summary.losses + "  ·  Возвраты: " + summary.pushes, 11, true)
+        addText(box, "Победы: " + String.format(Locale.US, "%.1f", summary.winRate) + "%  ·  Оборот: " + fmt(summary.turnover) + "  ·  Средний кэф: " + if (summary.averageOdds > 0) String.format(Locale.US, "%.2f", summary.averageOdds) else "—", 10, false, muted)
+        parent.addView(box)
+    }
+
+    private fun addStatsChart(parent: LinearLayout, title: String, points: List<BetStatsPoint>, cumulative: Boolean) {
+        val box = card()
+        addText(box, title, 12, true, cyan)
+        if (points.isEmpty()) addText(box, "Нет рассчитанных ставок за выбранный период.", 11, false, muted)
+        else {
+            val chart = object : View(this) {
+                private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = dp(2).toFloat(); strokeCap = Paint.Cap.ROUND }
+                private val grid = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; alpha = 35 }
+                private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = muted; textSize = dp(9).toFloat() }
+                override fun onDraw(canvas: Canvas) {
+                    super.onDraw(canvas)
+                    val l = dp(36).toFloat(); val r = width - dp(8).toFloat()
+                    val t = dp(12).toFloat(); val b = height - dp(22).toFloat()
+                    if (r <= l || b <= t) return
+                    var p = 0.0; var turn = 0.0
+                    val values = points.map { point ->
+                        p += point.profit; turn += point.turnover
+                        if (cumulative) if (turn > 0) p / turn * 100.0 else 0.0
+                        else if (point.turnover > 0) point.profit / point.turnover * 100.0 else 0.0
                     }
-                }
-                "LOST" -> {
-                    losses++; turnover += stake; profit -= stake
-                    if (bet.optString("source") in listOf("AI_MANUAL", "AI_AUTO") && odds.isFinite() && odds > 1.0) {
-                        settledTopOddsTotal += odds
-                        settledTopOddsCount++
+                    val low = minOf(0.0, values.minOrNull() ?: 0.0)
+                    val high = maxOf(0.0, values.maxOrNull() ?: 0.0)
+                    val span = (high - low).coerceAtLeast(1.0)
+                    val zeroY = (b - (0.0 - low) / span * (b - t)).toFloat()
+                    canvas.drawLine(l, zeroY, r, zeroY, grid)
+                    canvas.drawText(String.format(Locale.US, "%.0f%%", high), 0f, t + dp(4), textPaint)
+                    canvas.drawText(String.format(Locale.US, "%.0f%%", low), 0f, b, textPaint)
+                    val path = android.graphics.Path()
+                    values.forEachIndexed { i, v ->
+                        val firstDay = points.first().day
+                        val lastDay = points.last().day
+                        val daySpan = (lastDay - firstDay).coerceAtLeast(1L).toFloat()
+                        val x = if (values.size == 1) (l + r) / 2f else l + ((points[i].day - firstDay).toFloat() / daySpan) * (r - l)
+                        val y = (b - (v - low) / span * (b - t)).toFloat()
+                        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
                     }
-                }
-                "PUSH" -> { pushes++; turnover += stake }
-                else -> {
-                    pending++
-                    pendingStake += stake
-                    possiblePayout += stake * odds
-                    possibleProfit += stake * (odds - 1.0)
+                    stroke.color = if ((values.lastOrNull() ?: 0.0) >= 0) Color.rgb(80,205,145) else Color.rgb(235,105,110)
+                    canvas.drawPath(path, stroke)
+                    canvas.drawText("Начало", l, height - dp(4).toFloat(), textPaint)
+                    canvas.drawText("Конец", r - dp(28), height - dp(4).toFloat(), textPaint)
                 }
             }
+            box.addView(chart, LinearLayout.LayoutParams(-1, dp(145)))
         }
-        val roi = if (turnover > 0.0) String.format(Locale.US, "%.1f%%", profit / turnover * 100.0) else "—"
-        val sum = card().apply {
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-        }
-        addText(sum, "СТАТИСТИКА ТОП СИГНАЛОВ", 10, true, accent)
-        addText(sum, "${bets.length()} ставок  ·  W $wins  /  L $losses  /  возврат $pushes  ·  открыто $pending", 11, true)
-        addText(sum, "Закрытые: оборот ${fmt(turnover)}  ·  результат " + (if (profit >= 0) "+" else "") + fmt(profit) + "  ·  ROI $roi", 11, true, if (profit >= 0) accent else Color.RED)
-        val averageTopOdds = if (settledTopOddsCount > 0) fmt(settledTopOddsTotal / settledTopOddsCount) else "—"
-        addText(sum, "Средний кэф ТОП: $averageTopOdds · по $settledTopOddsCount завершённым сигналам", 11, true, gold)
-        if (pending > 0) {
-            addText(sum, "Открытые: сумма ${fmt(pendingStake)}  ·  возможная выплата ${fmt(possiblePayout)}  ·  прибыль +${fmt(possibleProfit)}", 10, false, muted)
-        }
+        parent.addView(box)
+    }
 
+    private fun renderBetPerformanceStats() {
+        val controls = card()
+        addText(controls, "ПЕРИОД", 10, true, cyan)
+        val rows = listOf(
+            listOf("WEEK" to "Неделя", "MONTH" to "Месяц", "QUARTER" to "3 месяца"),
+            listOf("HALF" to "Полгода", "YEAR" to "Год", "ALL" to "Весь срок")
+        )
+        rows.forEach { options ->
+            val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            options.forEach { item ->
+                val button = TextView(this).apply {
+                    text = item.second; gravity = Gravity.CENTER; textSize = 11f; typeface = Typeface.DEFAULT_BOLD
+                    setPadding(dp(6), dp(9), dp(6), dp(9))
+                    setTextColor(if (selectedStatsPeriod == item.first) Color.rgb(28,31,36) else Color.WHITE)
+                    background = rounded(if (selectedStatsPeriod == item.first) accent else surface, 12)
+                    setOnClickListener { if (selectedStatsPeriod != item.first) { selectedStatsPeriod = item.first; tabViewCache.remove("stats|ALL"); render() } }
+                }
+                line.addView(button, LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(dp(3), dp(4), dp(3), dp(4)) })
+            }
+            controls.addView(line)
+        }
+        addText(controls, "ИСТОЧНИК СТАВОК", 10, true, cyan)
+        val sourceLine = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        listOf("ALL" to "Все", "MANUAL" to "Ручные", "AI" to "AI").forEach { item ->
+            val button = TextView(this).apply {
+                text = item.second; gravity = Gravity.CENTER; textSize = 11f; typeface = Typeface.DEFAULT_BOLD
+                setPadding(dp(8), dp(8), dp(8), dp(8))
+                setTextColor(if (selectedStatsSource == item.first) Color.rgb(28,31,36) else Color.WHITE)
+                background = rounded(if (selectedStatsSource == item.first) accent else surface, 12)
+                setOnClickListener { if (selectedStatsSource != item.first) { selectedStatsSource = item.first; tabViewCache.remove("stats|ALL"); render() } }
+            }
+            sourceLine.addView(button, LinearLayout.LayoutParams(0, dp(38), 1f).apply { setMargins(dp(3), dp(4), dp(3), dp(4)) })
+        }
+        controls.addView(sourceLine)
+        matchesContainer.addView(controls)
+
+        val bounds = statsPeriodBounds(selectedStatsPeriod)
+        val current = summarizeBets(selectedStatsSource, bounds.first, bounds.second)
+        val previous = if (selectedStatsPeriod == "ALL") null else {
+            val duration = bounds.second - bounds.first
+            summarizeBets(selectedStatsSource, bounds.first - duration, bounds.first)
+        }
+        addStatsSummary(matchesContainer, "РЕЗУЛЬТАТЫ ЗА ПЕРИОД", current)
+        if (previous != null) {
+            val comparison = card()
+            val delta = current.roi - previous.roi
+            addText(comparison, "СРАВНЕНИЕ С ПРЕДЫДУЩИМ ПЕРИОДОМ", 10, true, cyan)
+            addText(comparison, "Изменение ROI: " + String.format(Locale.US, "%+.1f п.п.", delta) + "  ·  прибыль: " + statsMoney(current.profit - previous.profit), 12, true, if (delta >= 0) Color.rgb(80,205,145) else Color.rgb(235,105,110))
+            addText(comparison, "Прошлый ROI: " + String.format(Locale.US, "%.1f%%", previous.roi) + "  ·  ставок: " + previous.settled, 10, false, muted)
+            matchesContainer.addView(comparison)
+        }
+        if (selectedStatsSource == "ALL") {
+            addStatsSummary(matchesContainer, "РУЧНЫЕ СТАВКИ", summarizeBets("MANUAL", bounds.first, bounds.second))
+            addStatsSummary(matchesContainer, "AI СТАВКИ", summarizeBets("AI", bounds.first, bounds.second))
+        }
+        addStatsChart(matchesContainer, "НАКОПИТЕЛЬНЫЙ ROI", current.points, true)
+        addStatsChart(matchesContainer, "ROI ПО ДНЯМ", current.points, false)
     }
 
     private fun renderStats(json: JSONObject) {
         screenHeader("PERFORMANCE CENTER", "Статистика", "")
-        renderSavedBetStats()
+        renderBetPerformanceStats()
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
