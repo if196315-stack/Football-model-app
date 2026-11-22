@@ -1570,7 +1570,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderStats(json: JSONObject) {
-        screenHeader("PERFORMANCE CENTER", "Статистика", "")
+        screenHeader("PRO TERMINAL · BETTING ANALYTICS", "Статистика", "Профессиональная аналитика ставок")
         try {
             renderBetPerformanceStats()
         } catch (error: Throwable) {
