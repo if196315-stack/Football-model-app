@@ -6,6 +6,8 @@ at least one matching strategy market with a fresh, active MelBet prematch price
 """
 from __future__ import annotations
 
+# Re-applied snapshots always operate on the latest main feed to preserve calibrated model outputs.
+
 import argparse
 import json
 import math
