@@ -1,17 +1,7 @@
 name: Update odds and archive snapshots
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "backend/update_odds_api_sport.py"
-      - "backend/apply_melbet_snapshots.py"
-      - "backend/collect_odds_snapshots.py"
-      - ".github/workflows/update-odds-only.yml"
   workflow_dispatch:
-  schedule:
-    - cron: "41 * * * *"
 
 concurrency:
   group: football-domestic-data-write
