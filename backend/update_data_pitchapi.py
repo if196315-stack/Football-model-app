@@ -388,10 +388,9 @@ def run() -> dict:
                     pred, warning = predict(
                         league, home, away, st, base, names, results, date[:10],
                     )
-            # Keep unsupported upcoming fixtures out of the app feed entirely.
-            # Only publish a scheduled fixture once both teams have sufficient paired xG history.
-            if status in ("SCHEDULED", "TIMED") and pred is None:
-                continue
+            # Publish every fixture in the five configured domestic leagues.
+            # The Android app displays a clear warning when xG history is insufficient,
+            # rather than silently hiding the whole competition or its fixtures.
             item["matches"].append({
                 "id": row["id"], "utcDate": date, "status": status,
                 "home": home, "away": away,
