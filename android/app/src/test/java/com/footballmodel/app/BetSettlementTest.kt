@@ -5,6 +5,15 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class BetSettlementTest {
+    @Test fun apiSportFinalFlagControlsSettlement() {
+        assertEquals(true, BetSettlement.isConfirmedFinal("FINISHED", true, true))
+        assertEquals(false, BetSettlement.isConfirmedFinal("FINISHED", true, false))
+        assertEquals(false, BetSettlement.isConfirmedFinal("FINISHED", true, null))
+        assertEquals(false, BetSettlement.isConfirmedFinal("IN_PLAY", true, true))
+        // Older feeds without the new field retain the previous finished-status behavior.
+        assertEquals(true, BetSettlement.isConfirmedFinal("FT", false, null))
+    }
+
     @Test fun doubleChanceAndMatchResultMarkets() {
         assertEquals("LOST", BetSettlement.result("x2", 3, 1))
         assertEquals("WON", BetSettlement.result("x2", 1, 1))
