@@ -1252,6 +1252,66 @@ class MainActivity : Activity() {
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
 
+    private fun animateStatsContentRefresh(refresh: () -> Unit) {
+        if (!::matchesContainer.isInitialized || currentTab != "stats") {
+            refresh()
+            return
+        }
+        matchesContainer.animate().cancel()
+        matchesContainer.animate()
+            .alpha(0.42f)
+            .translationY(dp(5).toFloat())
+            .setDuration(105L)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                refresh()
+                matchesContainer.alpha = 0.42f
+                matchesContainer.translationY = dp(5).toFloat()
+                matchesContainer.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(215L)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+            }
+            .start()
+    }
+
+    private fun animateStakeModeVisibility(view: View, show: Boolean) {
+        view.animate().cancel()
+        if (show) {
+            if (view.visibility == View.VISIBLE) return
+            view.visibility = View.VISIBLE
+            view.alpha = 0f
+            view.translationY = dp(6).toFloat()
+            view.scaleY = 0.96f
+            view.animate().alpha(1f).translationY(0f).scaleY(1f)
+                .setDuration(220L).setInterpolator(DecelerateInterpolator()).start()
+        } else {
+            if (view.visibility != View.VISIBLE) return
+            view.animate().alpha(0f).translationY(dp(-4).toFloat()).scaleY(0.96f)
+                .setDuration(150L).setInterpolator(DecelerateInterpolator())
+                .withEndAction {
+                    view.visibility = View.GONE
+                    view.alpha = 1f
+                    view.translationY = 0f
+                    view.scaleY = 1f
+                }.start()
+        }
+    }
+
+    private fun animateStakeModeHint(view: TextView, text: String) {
+        if (view.text.toString() == text) return
+        view.animate().cancel()
+        view.animate().alpha(0.25f).setDuration(100L)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                view.text = text
+                view.animate().alpha(1f).setDuration(180L)
+                    .setInterpolator(DecelerateInterpolator()).start()
+            }.start()
+    }
+
     private fun invalidateStatsBetCache() {
         statsBetCacheGeneration.incrementAndGet()
         statsBetViewCache = null
@@ -1309,7 +1369,7 @@ class MainActivity : Activity() {
                 statsBetCalculationInProgress.set(false)
                 if (currentTab == "stats") {
                     tabViewCache.remove("stats|ALL")
-                    render()
+                    animateStatsContentRefresh { render() }
                 }
             }
         }
@@ -1518,7 +1578,7 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                     background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
-                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); render() } }
+                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
@@ -1533,7 +1593,7 @@ class MainActivity : Activity() {
                 setPadding(dp(8), dp(10), dp(8), dp(10))
                 setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                 background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
-                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); render() } }
+                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
@@ -1732,7 +1792,7 @@ class MainActivity : Activity() {
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
-                            render()
+                            animateStatsContentRefresh { render() }
                         }
                     }
                 }
@@ -2285,7 +2345,7 @@ class MainActivity : Activity() {
         lateinit var minimumStakeButton: Button
         fun styleStakeModeButton(button: Button, selected: Boolean) {
             button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
-            button.background = GradientDrawable(
+            val nextBackground = GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
                 else intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
@@ -2293,6 +2353,13 @@ class MainActivity : Activity() {
                 cornerRadius = dp(12).toFloat()
                 setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
             }
+            if (button.isAttachedToWindow && button.background != null) {
+                val previous = button.background.constantState?.newDrawable()?.mutate() ?: button.background
+                button.background = android.graphics.drawable.TransitionDrawable(arrayOf(previous, nextBackground)).apply {
+                    isCrossFadeEnabled = true
+                    startTransition(220)
+                }
+            } else button.background = nextBackground
         }
         fun addStakeModeButton(title: String, mode: String) {
             val button = Button(this).apply {
@@ -2310,14 +2377,16 @@ class MainActivity : Activity() {
                         return@setOnClickListener
                     }
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
-                    minimumStakeButton.visibility = if (mode == "MINIMUM") View.VISIBLE else View.GONE
-                    fixedStakeButton.visibility = if (mode == "FIXED") View.VISIBLE else View.GONE
-                    fixedStakeHint.text = if (mode == "FIXED") {
+                    animateStakeModeVisibility(minimumStakeButton, mode == "MINIMUM")
+                    animateStakeModeVisibility(fixedStakeButton, mode == "FIXED")
+                    val nextFixedHint = if (mode == "FIXED") {
                         if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
                         else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
                     } else "Сохранённое значение не применяется, пока выбран режим «Минимальная»."
-                    minimumStakeHint.text = if (mode == "MINIMUM") minimumStakeDescription()
+                    val nextMinimumHint = if (mode == "MINIMUM") minimumStakeDescription()
                         else "Сохранённое значение не применяется, пока выбран режим «Фиксированная»."
+                    animateStakeModeHint(fixedStakeHint, nextFixedHint)
+                    animateStakeModeHint(minimumStakeHint, nextMinimumHint)
                     // Invalidate dependent tabs for their next visit without rebuilding this page.
                     tabViewCache.clear()
                     Toast.makeText(this@MainActivity,
