@@ -95,4 +95,29 @@ class BetAnalyticsCalculatorTest {
         assertEquals(1, report.overall.settled)
         assertEquals(2, report.invalidRecords)
     }
+    @Test fun manualSourceFilterIncludesLegacyAndAiAssistedUserConfirmedBets() {
+        val rows = listOf(
+            bet("legacy-manual", source = "MANUAL", status = "WON"),
+            bet("top-confirmed", source = "AI_MANUAL", status = "LOST"),
+            bet("automatic-paper", source = "AI_AUTO", status = "WON")
+        )
+        val report = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "MANUAL")
+        assertEquals(2, report.overall.settled)
+        assertEquals(0.0, report.overall.profit, 0.0001)
+        assertEquals(20.0, report.overall.turnover, 0.0001)
+        assertEquals(1, report.ignoredAuto)
+    }
+
+    @Test fun allSourceAndManualSourceReturnSameUserConfirmedSingles() {
+        val rows = listOf(
+            bet("legacy-manual", source = "MANUAL", status = "WON"),
+            bet("top-confirmed", source = "AI_MANUAL", status = "WON"),
+            bet("automatic-paper", source = "AI_AUTO", status = "WON")
+        )
+        val all = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "ALL")
+        val manual = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "MANUAL")
+        assertEquals(all.overall.settled, manual.overall.settled)
+        assertEquals(all.overall.turnover, manual.overall.turnover, 0.0001)
+        assertEquals(all.overall.profit, manual.overall.profit, 0.0001)
+    }
 }
