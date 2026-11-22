@@ -4,6 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from backtest_all_markets import (apply_vector_scaling, fit_vector_scaling, market_outcomes, market_probs, paired_bootstrap_brier_delta, run)
+from predict_uefa_markets import _market_probabilities
 
 
 class AllMarketBacktestTests(unittest.TestCase):
@@ -16,6 +17,25 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertAlmostEqual(sum(probabilities["DNB_AWAY"].values()), 1.0, places=8)
         self.assertTrue(all(0.0 <= value <= 1.0
                             for value in probabilities.values() if isinstance(value, float)))
+
+    def test_active_market_probabilities_match_production_engine(self):
+        market_cases = (
+            ("DC_1X", lambda p: p["double_chance"]["1x"]),
+            ("DC_X2", lambda p: p["double_chance"]["x2"]),
+            ("BTTS", lambda p: p["btts"]["yes"]),
+            ("TOTAL_OVER_2.5", lambda p: p["match_total"]["over"]["2.5"]),
+            ("HOME_OVER_0.5", lambda p: p["team_total"]["home"]["over"]["0.5"]),
+            ("HOME_OVER_1.5", lambda p: p["team_total"]["home"]["over"]["1.5"]),
+            ("AWAY_OVER_0.5", lambda p: p["team_total"]["away"]["over"]["0.5"]),
+            ("AWAY_OVER_1.5", lambda p: p["team_total"]["away"]["over"]["1.5"]),
+        )
+        for home_lambda, away_lambda in ((0.05, 0.05), (0.65, 1.85), (1.35, 0.95),
+                                         (2.75, 1.10), (4.5, 4.5)):
+            research = market_probs(home_lambda, away_lambda)
+            production = _market_probabilities(home_lambda, away_lambda)
+            for market, extract in market_cases:
+                with self.subTest(home_lambda=home_lambda, away_lambda=away_lambda, market=market):
+                    self.assertAlmostEqual(research[market], extract(production), places=12)
 
     def test_outcomes_keep_draw_and_push_semantics(self):
         draw = market_outcomes(1, 1)
@@ -43,22 +63,23 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertEqual(report["input_matches"], 8)
         self.assertEqual(report["input_matches_by_competition"], {"ENG": 8})
         self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 6})
-        self.assertIn("1X2", report["markets"])
+        self.assertEqual(set(report["markets"]), set(report["active_markets"]))
         self.assertIn("BTTS", report["markets"])
         self.assertIn("TOTAL_OVER_2.5", report["markets"])
         self.assertIn("HOME_OVER_1.5", report["markets"])
-        self.assertIn("DNB_HOME", report["markets"])
-        self.assertEqual(report["markets"]["1X2"]["holdout"]["model"]["n"], 2)
-        self.assertIn("ENG", report["markets"]["1X2"]["holdout_by_competition"])
-        self.assertIn("ENG", report["markets"]["1X2"]["all_by_competition"])
-        self.assertIn("brier_skill", report["markets"]["1X2"]["holdout"])
+        self.assertNotIn("DNB_HOME", report["markets"])
+        self.assertEqual(report["markets"]["DC_1X"]["holdout"]["model"]["n"], 2)
+        self.assertIn("ENG", report["markets"]["DC_1X"]["holdout_by_competition"])
+        self.assertIn("ENG", report["markets"]["DC_1X"]["all_by_competition"])
+        self.assertIn("brier_skill", report["markets"]["DC_1X"]["holdout"])
         self.assertIn("limitations", report)
-        self.assertEqual(report["independent_market_count"], 15)
-        self.assertIn("DNB_HOME", report["market_relationships"])
-        self.assertIn("calibration_global", report["markets"]["1X2"])
-        self.assertEqual(report["markets"]["1X2"]["calibration_global"]["calibrator"]["train_n"], 4)
-        self.assertFalse(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
-        self.assertIn("ENG", report["markets"]["1X2"]["calibration_by_competition"])
+        self.assertEqual(report["independent_market_count"], 8)
+        self.assertEqual(report["active_markets"], ["DC_1X", "DC_X2", "BTTS", "TOTAL_OVER_2.5", "HOME_OVER_0.5", "HOME_OVER_1.5", "AWAY_OVER_0.5", "AWAY_OVER_1.5"])
+        self.assertEqual(report["market_relationships"], {})
+        self.assertIn("calibration_global", report["markets"]["DC_1X"])
+        self.assertEqual(report["markets"]["DC_1X"]["calibration_global"]["calibrator"]["train_n"], 4)
+        self.assertFalse(report["markets"]["DC_1X"]["calibration_global"]["calibrator"]["available"])
+        self.assertIn("ENG", report["markets"]["DC_1X"]["calibration_by_competition"])
 
     def test_walk_forward_produces_predictions_only_after_history_exists(self):
         rows = [
@@ -73,7 +94,7 @@ class AllMarketBacktestTests(unittest.TestCase):
         ]
         report = run(rows, "2025-01-02")
         self.assertEqual(report["predicted_matches_by_competition"], {"ENG": 2})
-        self.assertEqual(report["markets"]["1X2"]["holdout"]["model"]["n"], 2)
+        self.assertEqual(report["markets"]["DC_1X"]["holdout"]["model"]["n"], 2)
 
 
     def test_vector_scaling_uses_training_rows_and_preserves_probability_simplex(self):
