@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - "backend/update_data_pitchapi.py"
+  # Refresh domestic fixtures/results every six hours without xG backfill requests.
+  schedule:
+    - cron: "23 */6 * * *"
   workflow_dispatch:
     inputs:
       max_shot_requests:
@@ -18,8 +21,8 @@ on:
           - "250"
           - "5000"
 
-# PitchAPI/xG refresh is manual or code-change driven to avoid unnecessary
-# repeated history pulls. Odds refresh runs independently on its own schedule.
+# Scheduled runs refresh fixtures/results with shot-level xG requests disabled.
+# Historical xG backfill remains manual and explicitly bounded.
 concurrency:
   group: football-domestic-data-write
   cancel-in-progress: false
