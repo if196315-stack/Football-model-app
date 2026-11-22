@@ -102,7 +102,7 @@ class AndroidParityTests(unittest.TestCase):
         best = {"doubleChance": {"1x": 2.0}}
         now = datetime.now(timezone.utc)
         boundary = melbet_match(best)
-        boundary["odds"]["updatedAt"] = (now - timedelta(hours=12)).isoformat()
+        boundary["odds"]["updatedAt"] = (now - timedelta(hours=12) + timedelta(seconds=2)).isoformat()
         self.assertEqual(odds_for({"side": "1X"}, boundary), 2.0)
         future = melbet_match(best)
         future["odds"]["updatedAt"] = (now + timedelta(minutes=6)).isoformat()
