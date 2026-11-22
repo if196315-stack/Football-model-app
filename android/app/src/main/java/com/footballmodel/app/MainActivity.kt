@@ -1636,11 +1636,9 @@ class MainActivity : Activity() {
             val row = archive.optJSONObject(i) ?: continue
             val matchId = row.optString("matchId").trim()
             if (matchId.isBlank()) continue
-            val match = JSONObject()
-                .put("home", row.optString("home"))
-                .put("away", row.optString("away"))
-            val signal = JSONObject().put("side", row.optString("side"))
-            val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
+            val marketKey = StatsPredictionScope.marketKey(
+                row.optString("side"), row.optString("home"), row.optString("away")
+            ) ?: continue
             selections.add(StatsPredictionScope.key(matchId, marketKey))
         }
         for (i in 0 until bets.length()) {
