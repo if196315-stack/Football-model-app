@@ -6,6 +6,20 @@ package com.footballmodel.app
  * the bet remains pending rather than being recorded as a false loss or push.
  */
 internal object BetSettlement {
+    /**
+     * API-Sport scoreStatus.final is authoritative when the field is present.
+     * Missing field keeps legacy feeds compatible; explicit false/null never settles.
+     */
+    fun isConfirmedFinal(status: String, scoreStatusFinalPresent: Boolean,
+                         scoreStatusFinal: Boolean?): Boolean {
+        val finished = status.trim().uppercase() in setOf(
+            "FINISHED", "FT", "AET", "PEN", "AFTER EXTRA TIME",
+            "AFTER PENALTIES", "MATCH FINISHED"
+        )
+        if (!finished) return false
+        return if (scoreStatusFinalPresent) scoreStatusFinal == true else true
+    }
+
     fun result(marketKey: String, homeGoals: Int, awayGoals: Int): String? {
         if (homeGoals < 0 || awayGoals < 0) return null
         val total = homeGoals + awayGoals
