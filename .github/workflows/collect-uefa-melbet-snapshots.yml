@@ -30,7 +30,7 @@ on:
     - cron: "23 */3 * * *"
 
 concurrency:
-  group: football-domestic-data-write
+  group: football-feed-write
   cancel-in-progress: false
 
 permissions:
