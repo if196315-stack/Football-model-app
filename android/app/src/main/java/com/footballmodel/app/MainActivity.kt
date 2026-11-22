@@ -1311,7 +1311,7 @@ class MainActivity : Activity() {
                 val records = snapshot.mapNotNull { item ->
                     val day = betStatsDate(item) ?: return@mapNotNull null
                     AnalyticsBet(item.id, day, item.source, item.status, item.stake, item.odds,
-                        item.market.ifBlank { item.marketKey }, item.league, item.isCoupon)
+                        item.market.ifBlank { item.marketKey }, item.league, item.isCoupon, item.marketKey)
                 }
                 val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, source)
                 val previous = if (period == "ALL") null else {
@@ -1443,6 +1443,15 @@ class MainActivity : Activity() {
 
     private fun terminalBreakdown(parent: LinearLayout, title: String, rows: List<AnalyticsBreakdown>, limit: Int = 8) {
         val box = terminalSection(parent, title)
+        if (title.contains("РЫНКАМИ")) {
+            val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(2), 0, dp(4)) }
+            header.addView(label("РЫНОК", 8, true, muted), LinearLayout.LayoutParams(0, -2, 1.5f))
+            header.addView(label("СТАВКИ", 8, true, muted), LinearLayout.LayoutParams(0, -2, 0.8f))
+            header.addView(label("СР.КЭФ", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.55f))
+            header.addView(label("ROI", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
+            header.addView(label("П/У", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
+            box.addView(header)
+        }
         if (rows.isEmpty()) {
             box.addView(label("Недостаточно рассчитанных данных.", 11, false, muted))
             return
@@ -1451,8 +1460,9 @@ class MainActivity : Activity() {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(5), 0, dp(5)) }
             row.addView(label((index + 1).toString() + ". " + item.label, 10, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1.5f))
             row.addView(label(item.count.toString() + " · " + item.wins + "/" + item.losses, 9, false, muted).apply { typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.8f))
-            row.addView(label(String.format(Locale.US, "%.1f%%", item.roi), 9, true, if (item.roi >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
-            row.addView(label(fmt(item.profit), 9, true, if (item.profit >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
+            row.addView(label(String.format(Locale.US, "%.2f", item.averageOdds), 9, true, Color.WHITE).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.55f))
+            row.addView(label(String.format(Locale.US, "%.1f%%", item.roi), 9, true, if (item.roi >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.65f))
+            row.addView(label(fmt(item.profit), 9, true, if (item.profit >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.65f))
             box.addView(row)
         }
     }
