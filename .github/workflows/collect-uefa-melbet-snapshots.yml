@@ -27,7 +27,7 @@ on:
     - cron: "23 */3 * * *"
 
 concurrency:
-  group: football-uefa-data-write
+  group: football-domestic-data-write
   cancel-in-progress: false
 
 permissions:
@@ -95,7 +95,7 @@ jobs:
       - name: Migrate legacy UEFA snapshot archive to the shared archive
         run: |
           if [ -f artifacts/uefa-melbet-odds-snapshots.jsonl ]; then
-            cat artifacts/uefa-melbet-odds-snapshots.jsonl >> artifacts/melbet-odds-snapshots.jsonl
+            cat artifacts/uefa-melbet-odds-snapshots.jsonl >> artifacts/all-eight-competitions-melbet-snapshots.jsonl
             rm artifacts/uefa-melbet-odds-snapshots.jsonl
           fi
       - name: Capture MelBet snapshots for all eight competitions
@@ -106,6 +106,8 @@ jobs:
         run: python backend/evaluate_uefa_paper_signals.py
       - name: Settle paper bets whose matches have finished
         run: python backend/settle_uefa_paper_bets.py
+      - name: Apply fresh MelBet snapshots to domestic competitions
+        run: python backend/apply_melbet_snapshots.py
       - name: Build UEFA competitions for the Android match centre
         run: python backend/build_uefa_app_feed.py
       - name: Commit unified MelBet snapshot history and UEFA evaluation data
@@ -113,7 +115,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ -f artifacts/melbet-odds-snapshots.jsonl ]; then
-            git add artifacts/melbet-odds-snapshots.jsonl
+            git add artifacts/all-eight-competitions-melbet-snapshots.jsonl
           fi
           git add -u artifacts/uefa-melbet-odds-snapshots.jsonl 2>/dev/null || true
           if [ -f artifacts/uefa-xg-history.json ]; then
@@ -130,6 +132,9 @@ jobs:
           fi
           if [ -f docs/uefa-data.json ]; then
             git add docs/uefa-data.json
+          fi
+          if [ -f docs/data.json ]; then
+            git add docs/data.json
           fi
           git diff --cached --quiet || git commit -m "Capture UEFA MelBet odds snapshots"
           git pull --rebase origin main
