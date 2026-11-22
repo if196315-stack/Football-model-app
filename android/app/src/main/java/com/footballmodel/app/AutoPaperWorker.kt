@@ -262,7 +262,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         // Settle every pending single from the latest official score feed.
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("status") != "PENDING" || bet.optString("source") != "AI_AUTO") continue
+            if (bet.optString("status") != "PENDING" || bet.optString("marketKey") == "COUPON") continue
             val match = findMatch(feed, bet) ?: continue
             if (settle(bet, match)) changed = true
         }
@@ -319,7 +319,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
     }
 
     private fun settle(bet: JSONObject, match: JSONObject): Boolean {
-        if (bet.optString("status") != "PENDING" || !isFinishedMatch(match) ||
+        val hasFinalFlag = match.has("scoreStatusFinal")
+        val finalFlag = if (hasFinalFlag && !match.isNull("scoreStatusFinal"))
+            match.optBoolean("scoreStatusFinal") else null
+        if (bet.optString("status") != "PENDING" ||
+            !BetSettlement.isConfirmedFinal(match.optString("status"), hasFinalFlag, finalFlag) ||
             match.isNull("homeScore") || match.isNull("awayScore")) return false
         val h = match.optInt("homeScore")
         val a = match.optInt("awayScore")
