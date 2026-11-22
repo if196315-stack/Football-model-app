@@ -150,6 +150,22 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertEqual(evaluated["homeScore"], 2)
         self.assertEqual(evaluated["awayScore"], 1)
         self.assertEqual(evaluated["leagueCode"], "UECL")
+    def test_new_inactive_board_marker_invalidates_older_active_snapshot(self):
+        rows = [
+            {"captured_at": "2026-11-10T09:00:00+00:00",
+             "bookmaker_updated_at": "2026-11-10T08:59:00+00:00",
+             "freshness_status": "fresh", "prematch_active": True,
+             "market_parser_version": "melbet-fulltime-v2",
+             "market": "double_chance", "outcome": "1x", "price": 1.8},
+            {"captured_at": "2026-11-10T10:00:00+00:00",
+             "bookmaker_updated_at": "2026-11-10T09:59:00+00:00",
+             "freshness_status": "fresh", "prematch_active": False,
+             "market_parser_version": "melbet-fulltime-v2",
+             "market": "board_status", "price": None},
+        ]
+        odds = build_odds(rows, datetime(2026, 11, 10, 10, 0, 0, tzinfo=timezone.utc))
+        self.assertIsNone(odds)
+
 
 if __name__ == "__main__":
     unittest.main()
