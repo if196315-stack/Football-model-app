@@ -37,6 +37,7 @@ import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.GZIPInputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -1132,8 +1133,7 @@ class MainActivity : Activity() {
                         }
                     }
                     if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
-                        fixtureDate.isNotBlank() && fixtureDate >= today &&
-                        hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
+                        fixtureDate.isNotBlank() && fixtureDate >= today
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
                         if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
@@ -1267,15 +1267,21 @@ class MainActivity : Activity() {
         val manual: BetStatsSummary?, val ai: BetStatsSummary?
     )
     @Volatile private var statsBetViewCache: StatsBetViewCache? = null
+    @Volatile private var statsBetCalculationError: String? = null
     private val statsBetCalculationInProgress = AtomicBoolean(false)
+    private val statsBetCacheGeneration = AtomicLong(0L)
 
     private fun invalidateStatsBetCache() {
+        statsBetCacheGeneration.incrementAndGet()
         statsBetViewCache = null
+        statsBetCalculationError = null
     }
 
     private fun requestStatsBetCalculation(key: String, snapshot: List<JSONObject>, period: String, source: String, now: Long) {
         if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
+        val generation = statsBetCacheGeneration.get()
         thread(name = "stats-bet-history-calculation") {
+            var calculationError: String? = null
             val calculated = try {
                 val bounds = statsPeriodBounds(period, now)
                 val current = summarizeBets(snapshot, source, bounds.first, bounds.second)
@@ -1286,12 +1292,19 @@ class MainActivity : Activity() {
                 val manual = if (source == "ALL") summarizeBets(snapshot, "MANUAL", bounds.first, bounds.second) else null
                 val ai = if (source == "ALL") summarizeBets(snapshot, "AI", bounds.first, bounds.second) else null
                 StatsBetViewCache(key, current, previous, manual, ai)
-            } catch (error: Exception) {
+            } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate bet history statistics", error)
-                null
+                calculationError = error.javaClass.simpleName
+                val empty = BetStatsSummary(0, 0, 0, 0.0, 0.0, 0.0, emptyList())
+                StatsBetViewCache(key, empty, null,
+                    if (source == "ALL") empty else null,
+                    if (source == "ALL") empty else null)
             }
             runOnUiThread {
-                if (calculated != null) statsBetViewCache = calculated
+                if (generation == statsBetCacheGeneration.get()) {
+                    statsBetViewCache = calculated
+                    statsBetCalculationError = calculationError
+                }
                 statsBetCalculationInProgress.set(false)
                 if (currentTab == "stats") {
                     tabViewCache.remove("stats|ALL")
@@ -1542,13 +1555,22 @@ class MainActivity : Activity() {
             addText(loading, "Подготавливаем статистику ставок…", 13, true, Color.WHITE)
             addText(loading, "История рассчитывается в фоне, интерфейс остаётся доступным.", 11, false, muted)
             if (!statsBetCalculationInProgress.get()) {
-                val snapshot = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
+                // Copy each JSON object before the worker starts; settlement may mutate the live bet array concurrently.
+                val snapshot = (0 until bets.length()).mapNotNull { index ->
+                    bets.optJSONObject(index)?.let { bet -> runCatching { JSONObject(bet.toString()) }.getOrNull() }
+                }
                 requestStatsBetCalculation(key, snapshot, selectedStatsPeriod, selectedStatsSource, now)
             }
             return
         }
         val current = cached.current
         val previous = cached.previous
+        statsBetCalculationError?.let { errorCode ->
+            val warning = card()
+            addText(warning, "Часть истории ставок не удалось обработать; расчёт показан без повреждённых записей.", 11, true, gold)
+            addText(warning, "Код ошибки: $errorCode", 10, false, muted)
+            matchesContainer.addView(warning)
+        }
         addStatsSummary(matchesContainer, "РЕЗУЛЬТАТЫ ЗА ПЕРИОД", current)
         if (previous != null) {
             val comparison = card()
@@ -1566,7 +1588,14 @@ class MainActivity : Activity() {
 
     private fun renderStats(json: JSONObject) {
         screenHeader("PERFORMANCE CENTER", "Статистика", "")
-        renderBetPerformanceStats()
+        try {
+            renderBetPerformanceStats()
+        } catch (error: Throwable) {
+            android.util.Log.e("IQMatchStats", "Unable to render bet performance section", error)
+            val failure = card()
+            addText(failure, "Не удалось построить статистику ставок. Сводка прогнозов будет доступна отдельно.", 12, true, gold)
+            matchesContainer.addView(failure)
+        }
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
@@ -1578,7 +1607,7 @@ class MainActivity : Activity() {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
                         calculateStatsMetrics(json).also { statsMetricsError = null }
-                    } catch (error: Exception) {
+                    } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
                         emptyList()
@@ -3272,7 +3301,7 @@ class MainActivity : Activity() {
             lineHeadingView.visibility = View.GONE
             try {
                 renderStats(json)
-            } catch (error: Exception) {
+            } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to render statistics screen", error)
                 matchesContainer.removeAllViews()
                 val failure = card()
@@ -3311,8 +3340,8 @@ class MainActivity : Activity() {
             val upcoming = mutableListOf<JSONObject>()
             for (j in 0 until matches.length()) {
                 val m = matches.getJSONObject(j)
-                // Do not show fixtures without a complete model prediction.
-                // A scheduled match with insufficient paired xG/history stays out of the app.
+                // Keep all upcoming domestic fixtures visible, even when xG or bookmaker odds are missing.
+                // The match card explains whether a model prediction or a MelBet quote is unavailable.
                 val matchStatus = m.optString("status")
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
@@ -3320,14 +3349,11 @@ class MainActivity : Activity() {
                     }
                 }
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
-                // Apply the same visibility rule to every competition, including UECL:
-                // show only upcoming fixtures with a complete model prediction and
-                // an active MelBet prematch line. Keep raw feeds intact for settlement.
-                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
-                    hasCompleteModelPrediction(m) && hasActiveMelBetPrematchLine(m)) {
+                // Show every upcoming fixture; prediction and quote availability are reported on the card.
+                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming) {
                     upcoming.add(m)
                     totalUpcoming++
-                    totalPredicted++
+                    if (hasCompleteModelPrediction(m)) totalPredicted++
                 }
             }
             val leagueCode = league.optString("code")
@@ -3368,7 +3394,7 @@ class MainActivity : Activity() {
             })
             if (upcoming.isEmpty()) {
                 val empty = card(content)
-                addText(empty, "Нет матчей с одновременно подтверждённой линией MelBet и прогнозом модели", 12, false, muted)
+                addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)

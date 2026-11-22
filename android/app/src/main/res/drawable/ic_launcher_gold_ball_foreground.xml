@@ -9,8 +9,6 @@
         android:scaleY="0.72"
         android:pivotX="54"
         android:pivotY="54">
-    <path android:fillColor="#10243B" android:pathData="M54,5 A49,49 0,1 0,54 103 A49,49 0,1 0,54 5" />
-    <path android:fillColor="#1B3855" android:pathData="M54,11 A43,43 0,1 0,54 97 A43,43 0,1 0,54 11" />
     <path android:fillColor="#00000000" android:strokeColor="#DAB871" android:strokeWidth="1.5" android:pathData="M54,15 A39,39 0,1 0,54 93 A39,39 0,1 0,54 15" />
     <path android:fillColor="#B9873E" android:pathData="M24,72 L38,72 L38,84 L24,84 Z" />
     <path android:fillColor="#DAB871" android:pathData="M45,58 L59,58 L59,84 L45,84 Z" />
