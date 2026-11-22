@@ -1,8 +1,6 @@
 package com.footballmodel.app
 
 import android.app.Activity
-import android.animation.ValueAnimator
-import android.view.animation.DecelerateInterpolator
 import android.app.AlertDialog
 import android.text.InputType
 import android.text.SpannableString
@@ -427,7 +425,7 @@ class MainActivity : Activity() {
             SectionNotifications.markRead(this)
             tabViewCache.clear()
             renderedKey = null
-            if (data != null) render() else loadData()
+            if (data != null) animateContentRefresh { render() } else loadData()
         } else if (requestedTab == "desk") {
             currentTab = "desk"
             selectedTopTab = "ОЖИДАЮТ"
@@ -445,7 +443,7 @@ class MainActivity : Activity() {
             invalidateStatsBetCache()
             tabViewCache.clear()
             renderedKey = null
-            if (data != null) render()
+            if (data != null) animateContentRefresh { render() }
         }
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
         liveRefreshHandler.postDelayed(liveRefreshTask, 60 * 1000L)
@@ -906,7 +904,7 @@ class MainActivity : Activity() {
 
     private fun loadData() {
         if (!loadInProgress.compareAndSet(false, true)) return
-        statusView.text = if (data == null) "Загружаю данные…" else "Проверяю обновления…"
+        UiMotion.animateTextChange(statusView, if (data == null) "Загружаю данные…" else "Проверяю обновления…")
         thread(name = "iq-match-feed-refresh") {
             try {
                 val body = fetchFeed(dataUrl, "domestic_json", true)
@@ -978,29 +976,30 @@ class MainActivity : Activity() {
                     AiMatchNotifications.observe(this, openTopNotificationCandidates)
                     val changed = payload != lastPayload
                     if (changed) {
+                        val hadPreviousData = data != null
                         data = json
                         lastPayload = payload
                         tabViewCache.clear()
                         renderedKey = null
-                        render()
+                        if (hadPreviousData) animateContentRefresh { render() } else render()
                     }
                     // Refresh the history immediately when foreground or background settlement changes a bet.
                     val betsChanged = processAutoPaperBets(json)
                     if (betsChanged && currentTab == "history") {
                         // Do not cache the currently visible pre-settlement rows.
                         renderedKey = null
-                        render()
+                        animateContentRefresh { render() }
                     }
                     if (!changed) {
-                        statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
+                        UiMotion.animateTextChange(statusView, "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}")
                     }
                     loadInProgress.set(false)
                 }
             } catch (e: Exception) {
                 runOnUiThread {
                     val lastCheck = formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))
-                    statusView.text = (if (data != null) "Нет сети · показаны последние данные" else
-                        "Нет соединения · ${e.message ?: "проверьте интернет"}") + " · последняя успешная проверка: $lastCheck"
+                    UiMotion.animateTextChange(statusView, (if (data != null) "Нет сети · показаны последние данные" else
+                        "Нет соединения · ${e.message ?: "проверьте интернет"}") + " · последняя успешная проверка: $lastCheck")
                     loadInProgress.set(false)
                 }
             }
@@ -1009,29 +1008,14 @@ class MainActivity : Activity() {
 
     private var tabRenderGeneration = 0
 
-    private fun animateTabEntry(view: View, direction: Int) {
-        view.animate().cancel()
-        view.alpha = 0f
-        view.translationX = dp(22).toFloat() * direction.coerceIn(-1, 1)
-        view.visibility = View.VISIBLE
-        view.animate()
-            .alpha(1f)
-            .translationX(0f)
-            .setDuration(240L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator(1.7f))
-            .withLayer()
-            .start()
+    private fun animateTabEntry(view: View) {
+        UiMotion.animateEntry(view, dp(6).toFloat())
     }
 
     private fun selectTab(tab: String) {
         if (currentTab == tab) return
         if (tab == "matches" && !isLineSectionVisible()) return
         val availableTabs = navigationTabs()
-        val previousIndex = availableTabs.indexOf(currentTab)
-        val nextIndex = availableTabs.indexOf(tab)
-        val direction = if (previousIndex >= 0 && nextIndex >= 0) {
-            if (nextIndex > previousIndex) 1 else -1
-        } else 1
         currentTab = tab
         val generation = ++tabRenderGeneration
 
@@ -1039,10 +1023,9 @@ class MainActivity : Activity() {
         // synchronously from the view cache; only first-time screens need a frame
         // to construct their content.
         renderTabs()
-        matchesContainer.animate().cancel()
-        leagueScroll.animate().cancel()
-        lineHeadingView.visibility = if (tab == "matches") View.VISIBLE else View.GONE
-        leagueScroll.visibility = if (tab == "matches") View.VISIBLE else View.GONE
+        UiMotion.animateVisibility(lineHeadingView, tab == "matches", dp(6).toFloat())
+        UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
+        if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
@@ -1053,15 +1036,15 @@ class MainActivity : Activity() {
         if (tabViewCache.containsKey(targetKey) && data != null) {
             render()
             matchesContainer.visibility = View.VISIBLE
-            animateTabEntry(matchesContainer, direction)
-            if (tab == "matches") animateTabEntry(leagueScroll, direction)
+            animateTabEntry(matchesContainer)
+            if (tab == "matches") animateTabEntry(leagueScroll)
         } else {
             matchesContainer.visibility = View.INVISIBLE
             matchesContainer.postOnAnimation {
                 if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
                 render()
-                animateTabEntry(matchesContainer, direction)
-                if (tab == "matches") animateTabEntry(leagueScroll, direction)
+                animateTabEntry(matchesContainer)
+                if (tab == "matches") animateTabEntry(leagueScroll)
             }
         }
 
@@ -1151,7 +1134,7 @@ class MainActivity : Activity() {
                     if (selectedLeague == code) return@setOnClickListener
                     selectedLeague = code
                     tabViewCache.clear()
-                    render()
+                    animateContentRefresh { render() }
                 }
             }
             leagueBar.addView(chip, LinearLayout.LayoutParams(-2, -2).apply {
@@ -1205,8 +1188,8 @@ class MainActivity : Activity() {
             val tab = tabBar.getChildAt(index) as? LinearLayout ?: return@forEachIndexed
             val title = tab.getChildAt(0) as? TextView ?: return@forEachIndexed
             val active = currentTab == item.first
-            title.setTextColor(if (active) bg else Color.WHITE)
-            tab.background = if (active) {
+            UiMotion.animateTextColor(title, if (active) bg else Color.WHITE)
+            val nextBackground = if (active) {
                 GradientDrawable().apply {
                     setColor(Color.rgb(218, 184, 112))
                     cornerRadius = dp(16).toFloat()
@@ -1218,6 +1201,7 @@ class MainActivity : Activity() {
                     setStroke(dp(1), Color.rgb(39, 61, 82))
                 }
             }
+            UiMotion.transitionBackground(tab, nextBackground)
             tab.elevation = if (active) dp(3).toFloat() else 0f
         }
     }
@@ -1252,64 +1236,20 @@ class MainActivity : Activity() {
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
 
-    private fun animateStatsContentRefresh(refresh: () -> Unit) {
-        if (!::matchesContainer.isInitialized || currentTab != "stats") {
+    private fun animateContentRefresh(refresh: () -> Unit) {
+        if (!::matchesContainer.isInitialized) {
             refresh()
             return
         }
-        matchesContainer.animate().cancel()
-        matchesContainer.animate()
-            .alpha(0.42f)
-            .translationY(dp(5).toFloat())
-            .setDuration(105L)
-            .setInterpolator(DecelerateInterpolator())
-            .withEndAction {
-                refresh()
-                matchesContainer.alpha = 0.42f
-                matchesContainer.translationY = dp(5).toFloat()
-                matchesContainer.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setDuration(215L)
-                    .setInterpolator(DecelerateInterpolator())
-                    .start()
-            }
-            .start()
+        UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
     }
 
     private fun animateStakeModeVisibility(view: View, show: Boolean) {
-        view.animate().cancel()
-        if (show) {
-            if (view.visibility == View.VISIBLE) return
-            view.visibility = View.VISIBLE
-            view.alpha = 0f
-            view.translationY = dp(6).toFloat()
-            view.scaleY = 0.96f
-            view.animate().alpha(1f).translationY(0f).scaleY(1f)
-                .setDuration(220L).setInterpolator(DecelerateInterpolator()).start()
-        } else {
-            if (view.visibility != View.VISIBLE) return
-            view.animate().alpha(0f).translationY(dp(-4).toFloat()).scaleY(0.96f)
-                .setDuration(150L).setInterpolator(DecelerateInterpolator())
-                .withEndAction {
-                    view.visibility = View.GONE
-                    view.alpha = 1f
-                    view.translationY = 0f
-                    view.scaleY = 1f
-                }.start()
-        }
+        UiMotion.animateVisibility(view, show, dp(6).toFloat())
     }
 
     private fun animateStakeModeHint(view: TextView, text: String) {
-        if (view.text.toString() == text) return
-        view.animate().cancel()
-        view.animate().alpha(0.25f).setDuration(100L)
-            .setInterpolator(DecelerateInterpolator())
-            .withEndAction {
-                view.text = text
-                view.animate().alpha(1f).setDuration(180L)
-                    .setInterpolator(DecelerateInterpolator()).start()
-            }.start()
+        UiMotion.animateTextChange(view, text)
     }
 
     private fun invalidateStatsBetCache() {
@@ -1369,7 +1309,7 @@ class MainActivity : Activity() {
                 statsBetCalculationInProgress.set(false)
                 if (currentTab == "stats") {
                     tabViewCache.remove("stats|ALL")
-                    animateStatsContentRefresh { render() }
+                    animateContentRefresh { render() }
                 }
             }
         }
@@ -1578,7 +1518,7 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                     background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
-                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
+                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
@@ -1593,7 +1533,7 @@ class MainActivity : Activity() {
                 setPadding(dp(8), dp(10), dp(8), dp(10))
                 setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                 background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
-                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateStatsContentRefresh { render() } } }
+                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
@@ -1788,11 +1728,11 @@ class MainActivity : Activity() {
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
-                            lineHeadingView.visibility = View.GONE
+                            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
-                            animateStatsContentRefresh { render() }
+                            animateContentRefresh { render() }
                         }
                     }
                 }
@@ -2138,7 +2078,7 @@ class MainActivity : Activity() {
                         b.put("oddsEditedAt", System.currentTimeMillis())
                         saveBets()
                         dialog.dismiss()
-                        render()
+                        animateContentRefresh { render() }
                     }
                 }
             }.show()
@@ -2268,9 +2208,9 @@ class MainActivity : Activity() {
                     saveBets(preserveBackgroundAuto = false)
                     // The cached history view contains the deleted row; force a fresh render.
                     tabViewCache.remove("history|" + selectedHistoryTab)
-                    render()
-                    mainScrollView.post {
-                        mainScrollView.scrollTo(0, previousScrollY)
+                    animateContentRefresh {
+                        render()
+                        mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
                     }
                 }
                 box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
@@ -2300,12 +2240,9 @@ class MainActivity : Activity() {
                     // switching between Open and Completed history subtabs.
                     val previousScrollY = mainScrollView.scrollY
                     selectedHistoryTab = key
-                    matchesContainer.animate().cancel()
-                    render()
-                    mainScrollView.post {
-                        mainScrollView.scrollTo(0, previousScrollY)
-                        matchesContainer.alpha = 1f
-                        matchesContainer.translationX = 0f
+                    animateContentRefresh {
+                        render()
+                        mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
                     }
                 }
             }
@@ -2344,7 +2281,7 @@ class MainActivity : Activity() {
         lateinit var fixedStakeButton: Button
         lateinit var minimumStakeButton: Button
         fun styleStakeModeButton(button: Button, selected: Boolean) {
-            button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
+            UiMotion.animateTextColor(button, if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
             val nextBackground = GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
@@ -2353,13 +2290,7 @@ class MainActivity : Activity() {
                 cornerRadius = dp(12).toFloat()
                 setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
             }
-            if (button.isAttachedToWindow && button.background != null) {
-                val previous = button.background.constantState?.newDrawable()?.mutate() ?: button.background
-                button.background = android.graphics.drawable.TransitionDrawable(arrayOf(previous, nextBackground)).apply {
-                    isCrossFadeEnabled = true
-                    startTransition(220)
-                }
-            } else button.background = nextBackground
+            UiMotion.transitionBackground(button, nextBackground)
         }
         fun addStakeModeButton(title: String, mode: String) {
             val button = Button(this).apply {
@@ -2888,7 +2819,7 @@ class MainActivity : Activity() {
                     tabViewCache.clear()
                 }
                 dialog.dismiss()
-                render()
+                animateContentRefresh { render() }
             }
         }
         dialog.show()
@@ -2931,10 +2862,12 @@ class MainActivity : Activity() {
 
     private fun refreshHeaderFinancials() {
         if (!::headerBalanceView.isInitialized || !::headerAiRoiView.isInitialized) return
-        headerBalanceView.text = if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —"
+        UiMotion.animateTextChange(headerBalanceView,
+            if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —")
         val (roi, count) = aiPaperRoiPercent()
-        headerAiRoiView.text = if (roi == null) "ТОП ROI —" else String.format(Locale.US, "ТОП ROI %+.1f%% · %d", roi, count)
-        headerAiRoiView.setTextColor(if (roi == null) muted else if (roi >= 0.0) accent else gold)
+        UiMotion.animateTextChange(headerAiRoiView,
+            if (roi == null) "ТОП ROI —" else String.format(Locale.US, "ТОП ROI %+.1f%% · %d", roi, count))
+        UiMotion.animateTextColor(headerAiRoiView, if (roi == null) muted else if (roi >= 0.0) accent else gold)
     }
 
     private fun renderNotificationCenter(json: JSONObject) {
@@ -2956,7 +2889,7 @@ class MainActivity : Activity() {
                 settingsPrefs.edit().putBoolean(SectionNotifications.UNREAD_KEY, false).apply()
                 tabViewCache.clear()
                 renderedKey = null
-                render()
+                animateContentRefresh { render() }
             }
         }
         summary.addView(markAll)
@@ -2998,10 +2931,7 @@ class MainActivity : Activity() {
             item.setOnClickListener {
                 val destination = event.optString("targetTab", "notifications")
                 if (destination != "notifications" && destination in listOf("desk", "history", "matches", "stats")) {
-                    currentTab = destination
-                    tabViewCache.clear()
-                    renderedKey = null
-                    render()
+                    selectTab(destination)
                 }
             }
             matchesContainer.addView(item)
@@ -3364,25 +3294,25 @@ class MainActivity : Activity() {
                 recordButton = actionButton(box, if (notRecorded.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории") {
                     val remaining = available.filterNot { isAiBetRecorded(match, it) }
                     if (remaining.isEmpty()) {
-                        recordButton.text = "✓ Все сигналы записаны"
+                        UiMotion.animateTextChange(recordButton, "✓ Все сигналы записаны")
                         recordButton.isEnabled = false
                         return@actionButton
                     }
                     val onRecorded: (JSONObject) -> Unit = { signal ->
                         statusViews[signal]?.apply {
-                            text = "Ожидает расчёт"
-                            setTextColor(accent)
+                            UiMotion.animateTextChange(this, "Ожидает расчёт")
+                            UiMotion.animateTextColor(this, accent)
                         }
                         // Update the visible TOP lists and counters in place; avoid a full
                         // Activity render so the screen stays responsive after saving.
-                        recordButton.text = "✓ Ставка зафиксирована"
+                        UiMotion.animateTextChange(recordButton, "✓ Ставка зафиксирована")
                         recordButton.isEnabled = false
                         openSignalsCount = (openSignalsCount - 1).coerceAtLeast(0)
-                        openIntroCountView.text = "НОВЫЕ СИГНАЛЫ · $openSignalsCount"
+                        UiMotion.animateTextChange(openIntroCountView, "НОВЫЕ СИГНАЛЫ · $openSignalsCount")
                         val stillOpenInMatch = statusViews.keys.count { it !== signal && !isAiBetRecorded(match, it) }
-                        if (stillOpenInMatch == 0) box.visibility = View.GONE
+                        if (stillOpenInMatch == 0) UiMotion.animateVisibility(box, false, dp(6).toFloat())
                         if (openSignalsCount == 0) {
-                            emptyOpenCard?.visibility = View.VISIBLE
+                            emptyOpenCard?.let { UiMotion.animateVisibility(it, true, dp(6).toFloat()) }
                         }
                         tabViewCache.remove("desk|OPEN")
                     }
@@ -3519,17 +3449,17 @@ class MainActivity : Activity() {
         val state = json.optString("status", "unknown")
         val checkedAt = feedCache.getLong("last_successful_check_ms", 0L)
         val sourceUpdated = formatSourceTimestamp(json.optString("updatedAt"))
-        statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
+        UiMotion.animateTextChange(statusView, "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}")
         renderTabs()
         if (currentTab == "matches") renderLeagueTabs()
-        leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+        UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
         val cached = tabViewCache[targetKey]
         if (cached != null) {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
-            leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+            UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
             renderedKey = targetKey
             mainScrollView.post {
                 if (renderedKey == targetKey) {
@@ -3548,33 +3478,33 @@ class MainActivity : Activity() {
         }
 
         if (currentTab == "day") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderDay(json)
             return
         }
         if (currentTab == "notifications") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderNotificationCenter(json)
             renderDailyInsights(json)
             return
         }
         if (currentTab == "desk") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBetHistory(json)
             return
         }
         if (currentTab == "stats") {
-            leagueBar.visibility = View.GONE
-            lineHeadingView.visibility = View.GONE
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
             try {
                 renderStats(json)
             } catch (error: Throwable) {
@@ -3587,13 +3517,13 @@ class MainActivity : Activity() {
             }
             return
         } else if (currentTab == "help") {
-            lineHeadingView.visibility = View.GONE
-            leagueBar.visibility = View.GONE
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderHelp()
             return
         } else {
-            lineHeadingView.visibility = View.VISIBLE
-            leagueBar.visibility = View.VISIBLE
+            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
+            UiMotion.animateVisibility(leagueBar, true, dp(6).toFloat())
         }
 
         if (leagues == null || leagues.length() == 0) {
@@ -3658,8 +3588,8 @@ class MainActivity : Activity() {
                 val nextExpanded = !(expandedLeagues[leagueCode] ?: true)
                 expandedLeagues[leagueCode] = nextExpanded
                 // Toggle the existing list in place; avoid rebuilding every match card.
-                content.visibility = if (nextExpanded) View.VISIBLE else View.GONE
-                expandIcon.text = if (nextExpanded) "  ▾" else "  ▸"
+                UiMotion.animateVisibility(content, nextExpanded, dp(6).toFloat())
+                UiMotion.animateTextChange(expandIcon, if (nextExpanded) "  ▾" else "  ▸")
             }
             section.addView(heading)
             content.visibility = if (expanded) View.VISIBLE else View.GONE
