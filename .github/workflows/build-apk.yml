@@ -12,6 +12,7 @@ on:
       - main
     paths:
       - "android/**"
+      - "backend/**"
       - ".github/workflows/build-apk.yml"
 
 permissions:
