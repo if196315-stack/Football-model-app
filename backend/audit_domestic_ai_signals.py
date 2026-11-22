@@ -158,8 +158,11 @@ def strongest_display_signal(prediction, match, ai_eligible_only=False):
         if not math.isfinite(probability) or not 0 <= probability <= 1:
             continue
         side = template.format(home=text(match.get("home")), away=text(match.get("away")))
-        if not any(norm_side(item.get("side")) == norm_side(side) for item in candidates):
+        existing = next((item for item in candidates if norm_side(item.get("side")) == norm_side(side)), None)
+        if existing is None:
             candidates.append({"side": side, "modelProbability": probability})
+        elif not math.isfinite(number(existing.get("modelProbability"))):
+            existing["modelProbability"] = probability
 
     # Android falls back to paperSignals only when no full-model candidate exists.
     if not candidates and isinstance(match.get("paperSignals"), list):
