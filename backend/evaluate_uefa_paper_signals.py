@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ODDS_ARCHIVE = ROOT / "artifacts" / "uefa-betboom-odds-snapshots.jsonl"
+ODDS_ARCHIVE = ROOT / "artifacts" / "all-eight-competitions-melbet-snapshots.jsonl"
 SIGNAL_ARCHIVE = ROOT / "artifacts" / "uefa-paper-signals.jsonl"
 PAPER_BETS_ARCHIVE = ROOT / "artifacts" / "uefa-paper-bets.jsonl"
 MIN_PROBABILITY = 0.60
@@ -188,7 +188,7 @@ def build_signals(odds_rows: list[dict]) -> list[dict]:
         for row in snapshot:
             if row.get("candidate_market") is not True or row.get("reference_only") is True:
                 continue
-            if row.get("market_parser_version") != "betboom-fulltime-v2":
+            if row.get("market_parser_version") != "melbet-fulltime-v2":
                 continue
             if row.get("market") not in (
                 "double_chance", "match_total_over", "team_total_over", "btts", "handicap"
