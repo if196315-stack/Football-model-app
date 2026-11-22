@@ -12,8 +12,9 @@ class BetAnalyticsCalculatorTest {
         stake: Double = 10.0,
         odds: Double = 2.0,
         coupon: Boolean = false,
-        topSignal: Boolean = false
-    ) = AnalyticsBet(id, day, source, status, stake, odds, "Over 2.5", "League A", coupon, topSignal)
+        topSignal: Boolean = false,
+        marketKey: String = if (coupon) "COUPON" else "over25"
+    ) = AnalyticsBet(id, day, source, status, stake, odds, "Over 2.5", "League A", coupon, topSignal, marketKey)
 
     @Test fun overallAndMarketStatsIncludeManualAndAiManualSinglesOnce() {
         val report = BetAnalyticsCalculator.calculate(listOf(
@@ -145,6 +146,17 @@ class BetAnalyticsCalculatorTest {
         assertEquals(3.0, topOneX.averageOdds, 0.0001)
         assertEquals(-100.0, topOneX.roi, 0.0001)
         assertEquals(0, top.byMarket.first { it.label == "X2" }.count)
+    }
+ 
+    @Test fun reportsExcludeRetiredMarketsFromOverallWorkingMarketStatistics() {
+        val rows = listOf(
+            bet("active-market", source = "MANUAL", status = "WON", marketKey = "over25"),
+            bet("retired-market", source = "MANUAL", status = "WON", stake = 100.0, marketKey = "over15")
+        )
+        val report = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "ALL")
+        assertEquals(1, report.overall.settled)
+        assertEquals(10.0, report.overall.profit, 0.0001)
+        assertEquals(10.0, report.overall.turnover, 0.0001)
     }
 
 }
