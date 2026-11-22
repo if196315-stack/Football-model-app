@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "android/**"
+      - "backend/**"
       - ".github/workflows/build-apk.yml"
   push:
     branches:
