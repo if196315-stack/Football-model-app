@@ -22,8 +22,8 @@ on:
           - "250"
           - "5000"
 
-# PitchAPI/xG refresh is manual or code-change driven to avoid unnecessary
-# repeated history pulls. Odds refresh runs independently on its own schedule.
+# Scheduled runs refresh fixtures/results without spending the shot-level xG
+# backfill budget. Historical xG backfill remains manual and explicitly bounded.
 concurrency:
   group: football-domestic-data-write
   cancel-in-progress: false
