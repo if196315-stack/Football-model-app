@@ -2058,12 +2058,14 @@ class MainActivity : Activity() {
         rawMarkets.forEach { (field, side) ->
             val probability = prediction.optDouble(field, Double.NaN)
             if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
-            val exists = candidates.any {
+            val existing = candidates.firstOrNull {
                 it.optString("side").trim().replace(Regex("\\s+"), " ")
                     .equals(side.trim().replace(Regex("\\s+"), " "), ignoreCase = true)
             }
-            if (!exists) {
+            if (existing == null) {
                 candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
+            } else if (!existing.optDouble("modelProbability", Double.NaN).isFinite()) {
+                existing.put("modelProbability", probability)
             }
         }
 
@@ -2123,6 +2125,7 @@ class MainActivity : Activity() {
         if (odds.optString("freshnessStatus").equals("stale", ignoreCase = true)) return false
         val raw = odds.optString("updatedAt").trim()
         if (raw.isBlank()) return false
+        val normalizedTimestamp = raw.replace(Regex("\\.(\\d{3})\\d+(?=[+-]|Z$)"), ".$1")
         val patterns = listOf(
             "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
             "yyyy-MM-dd'T'HH:mm:ssXXX",
@@ -2134,7 +2137,7 @@ class MainActivity : Activity() {
                 SimpleDateFormat(pattern, Locale.US).apply {
                     isLenient = false
                     timeZone = java.util.TimeZone.getTimeZone("UTC")
-                }.parse(raw)?.time
+                }.parse(normalizedTimestamp)?.time
             } catch (_: Exception) { null }
         } ?: return false
         val age = System.currentTimeMillis() - timestamp
@@ -2604,8 +2607,8 @@ class MainActivity : Activity() {
                 }.format(Date())
                 if (matchDay < today) continue
                 val prediction = match.optJSONObject("prediction") ?: continue
-                // AI consumes exactly the one strongest signal already selected for Line.
-                // It must not promote a second-best market when the Line leader fails AI filters.
+                // Apply AI thresholds to every available market before ranking; the Line
+                // display leader is descriptive and may legitimately fail the AI filters.
                 val signal = strongestDisplaySignal(prediction, match, aiEligibleOnly = true) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
                 val odds = topSignalOdds(signal, match, minOdds = 1.50) ?: continue
