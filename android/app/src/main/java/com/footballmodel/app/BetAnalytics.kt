@@ -70,6 +70,15 @@ internal data class BetAnalyticsReport(
     val duplicateRecords: Int
 )
 
+internal object ActiveMarketRules {
+    private val activeKeys = setOf(
+        "1x", "x2", "bttsYes", "over25",
+        "homeOver05", "homeOver15", "awayOver05", "awayOver15"
+    )
+
+    fun contains(marketKey: String): Boolean = marketKey.trim() in activeKeys
+}
+
 internal object BetAnalyticsCalculator {
     fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "ALL"): BetAnalyticsReport {
         val ignoredAuto = records.count { it.source.equals("AI_AUTO", true) }
@@ -228,9 +237,7 @@ internal object BetAnalyticsCalculator {
         "<1.50" -> 0; "1.50–1.99" -> 1; "2.00–2.99" -> 2; "3.00–4.99" -> 3; else -> 4
     }
 
-    private fun isWorkingMarket(rawKey: String): Boolean = rawKey.trim() in setOf(
-        "1x", "x2", "bttsYes", "over25", "homeOver05", "homeOver15", "awayOver05", "awayOver15"
-    )
+    private fun isWorkingMarket(rawKey: String): Boolean = ActiveMarketRules.contains(rawKey)
 
     private fun AnalyticsBet.marketKeyFallback(): String = "Рынок не указан"
 }
