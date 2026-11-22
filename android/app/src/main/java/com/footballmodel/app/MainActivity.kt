@@ -1600,16 +1600,9 @@ class MainActivity : Activity() {
                 if (excludeDraws && h == aw) continue
                 val outcome = actual(h, aw)
                 val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
-                val confidence = maxOf(probability, 1.0 - probability)
-                // TOP admits model confidence from 60% only. Exclude any legacy
-                // below-threshold selections so the TOP summary matches current rules.
-                if (topOnly && confidence < 0.6) continue
-                val band = when {
-                    confidence < 0.6 -> 0
-                    confidence < 0.7 -> if (topOnly) 0 else 1
-                    confidence < 0.8 -> if (topOnly) 1 else 2
-                    else -> if (topOnly) 2 else 3
-                }
+                // TOP admits model confidence from 60% only. Keep the same
+                // threshold and band mapping covered by StatsPredictionScope tests.
+                val band = StatsPredictionScope.confidenceBand(source, probability) ?: continue
                 val correct = outcome == (probability >= 0.5)
                 val y = if (outcome) 1.0 else 0.0
                 n++
