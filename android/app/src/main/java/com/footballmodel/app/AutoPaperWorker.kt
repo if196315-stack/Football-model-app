@@ -259,16 +259,72 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
     private fun process(feed: JSONObject, bets: JSONArray): Boolean {
         var changed = false
-        // Settle every pending single from the latest official score feed.
+        // Settle every pending manual/AI single and coupon in the background.
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("status") != "PENDING" || bet.optString("marketKey") == "COUPON") continue
+            if (bet.optString("status") != "PENDING") continue
+            if (bet.optString("marketKey") == "COUPON") {
+                if (settleCoupon(bet, feed)) changed = true
+                continue
+            }
             val match = findMatch(feed, bet) ?: continue
             if (settle(bet, match)) changed = true
         }
-
         // Automatic creation is disabled; existing pending bets are still settled above.
         return changed
+    }
+
+    private fun settleCoupon(bet: JSONObject, feed: JSONObject): Boolean {
+        if (bet.optString("status") != "PENDING") return false
+        val selections = bet.optJSONArray("selections") ?: return false
+        val beforeStatus = bet.optString("status")
+        val beforeScores = bet.optString("couponScores")
+        val beforeMatchStatus = bet.optString("matchStatus")
+        val beforeOdds = bet.optDouble("odds", 1.0)
+        var allSettled = true
+        var lost = false
+        var effectiveOdds = 1.0
+        val scores = mutableListOf<String>()
+        for (i in 0 until selections.length()) {
+            val pick = selections.optJSONObject(i) ?: continue
+            val match = findMatch(feed, pick)
+            if (match == null || match.isNull("homeScore") || match.isNull("awayScore")) {
+                allSettled = false
+                continue
+            }
+            val matchStatus = match.optString("status")
+            val scoreLabel = pick.optString("home") + " " + match.optInt("homeScore") +
+                ":" + match.optInt("awayScore") + " " + pick.optString("away")
+            if (isFinishedMatch(match)) {
+                val leg = JSONObject().put("status", "PENDING")
+                    .put("marketKey", pick.optString("marketKey"))
+                if (!settle(leg, match)) {
+                    allSettled = false
+                    continue
+                }
+                val result = leg.optString("status")
+                scores.add(scoreLabel + " · ФИНАЛ")
+                if (result == "LOST") lost = true
+                if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
+            } else {
+                allSettled = false
+                if (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) {
+                    scores.add(scoreLabel + " · LIVE")
+                }
+            }
+        }
+        bet.put("couponScores", scores.joinToString(" · "))
+        val anyLive = scores.any { it.contains("LIVE") }
+        bet.put("matchStatus", if (anyLive) "IN_PLAY" else if (allSettled) "FINISHED" else "SCHEDULED")
+        if (lost) bet.put("status", "LOST")
+        else if (allSettled) {
+            bet.put("status", if (effectiveOdds > 1.0) "WON" else "PUSH")
+            bet.put("odds", effectiveOdds)
+        }
+        return beforeStatus != bet.optString("status") ||
+            beforeScores != bet.optString("couponScores") ||
+            beforeMatchStatus != bet.optString("matchStatus") ||
+            kotlin.math.abs(beforeOdds - bet.optDouble("odds", 1.0)) > 0.000001
     }
     private fun parseInstant(raw: String): Long? {
         return try {
