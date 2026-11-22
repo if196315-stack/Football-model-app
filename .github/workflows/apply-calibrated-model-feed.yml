@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: calibrated-production-model-feed
+  group: football-feed-write
   cancel-in-progress: false
 
 jobs:
