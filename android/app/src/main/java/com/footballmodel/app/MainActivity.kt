@@ -1178,9 +1178,11 @@ class MainActivity : Activity() {
                     maxLines = 1
                     setSingleLine(true)
                     setHorizontallyScrolling(false)
-                    setAutoSizeTextTypeUniformWithConfiguration(
-                        8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
-                    )
+                    if (android.os.Build.VERSION.SDK_INT >= 26) {
+                        setAutoSizeTextTypeUniformWithConfiguration(
+                            8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
+                        )
+                    }
                     // Keep a small inset around the long Statistics label without clipping its last character.
                     setPadding(if (item.first == "stats") dp(4) else 0, 0, if (item.first == "stats") dp(4) else 0, 0)
                 }
