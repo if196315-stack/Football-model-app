@@ -39,7 +39,7 @@ internal object AiMatchNotifications {
         newlyAdded.forEach { (id, title) ->
             NotificationCenter.add(context, "ai_match:$id", "ai_match", "🔥 Есть новинка! Сигнал уже в ТОП!", title, "desk", id)
         }
-        if (show(context, newlyAdded.map { it.second })) {
+        if (show(context, newlyAdded)) {
             candidates.forEach { (id, _) -> if (id.isNotBlank()) seen.add(id) }
             prefs.edit().putStringSet(SEEN_IDS_KEY, seen).apply()
             return false
@@ -56,47 +56,47 @@ internal object AiMatchNotifications {
         activity.requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7304)
     }
 
-    private fun show(context: Context, newMatches: List<String>): Boolean {
+    private fun show(context: Context, newSignals: List<Pair<String, String>>): Boolean {
         if (Build.VERSION.SDK_INT >= 33 &&
             context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return false
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager.getNotificationChannel(CHANNEL_ID) == null) {
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Новые матчи, прошедшие фильтры раздела ТОП"
+                description = "Новые рынки, прошедшие фильтры раздела ТОП"
                 enableVibration(true)
             }
             manager.createNotificationChannel(channel)
         }
 
-        val openAi = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("open_tab", "desk")
+        newSignals.forEach { (signalId, title) ->
+            val notificationId = (signalId.hashCode() and 0x7fffffff).coerceAtLeast(1)
+            val openAi = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra("open_tab", "desk")
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                context, notificationId, openAi,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Notification.Builder(context, CHANNEL_ID)
+            } else {
+                Notification.Builder(context)
+            }
+            val notification = builder
+                .setSmallIcon(R.drawable.ic_notification)
+                .setLargeIcon(NotificationIcon.large(context))
+                .setContentTitle("🔥 Новый сигнал в ТОП!")
+                .setContentText(title)
+                .setStyle(Notification.BigTextStyle().bigText(title))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setCategory(Notification.CATEGORY_RECOMMENDATION)
+                .setPriority(Notification.PRIORITY_DEFAULT)
+                .build()
+            manager.notify(notificationId, notification)
         }
-        val pendingIntent = PendingIntent.getActivity(
-            context, NOTIFICATION_ID, openAi,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val firstMatch = newMatches.firstOrNull().orEmpty()
-        val body = if (newMatches.size == 1) firstMatch
-            else "Добавлено матчей: ${newMatches.size}. Например: $firstMatch"
-        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(context, CHANNEL_ID)
-        } else {
-            Notification.Builder(context)
-        }
-        val notification = builder
-            .setSmallIcon(R.drawable.ic_notification)
-            .setLargeIcon(NotificationIcon.large(context))
-            .setContentTitle("🔥 Есть новинка! Сигнал уже в ТОП!")
-            .setContentText(body)
-            .setStyle(Notification.BigTextStyle().bigText(body))
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .setCategory(Notification.CATEGORY_RECOMMENDATION)
-            .setPriority(Notification.PRIORITY_DEFAULT)
-            .build()
-        manager.notify(NOTIFICATION_ID, notification)
         return true
     }
 }
