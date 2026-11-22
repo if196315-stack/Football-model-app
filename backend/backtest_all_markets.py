@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seven-competition chronological xG backtest for supported goal markets.
+"""Eight-competition chronological xG backtest for the eight active goal markets.
 
 Offline only. Same-calendar-day fixtures are scored before same-day results/xG
 enter history. Baselines are expanding, Laplace-smoothed competition outcome
@@ -11,11 +11,16 @@ import argparse, csv, json, math
 import numpy as np
 from collections import defaultdict
 from pathlib import Path
-from backtest_pitchapi import WINDOW, HALF_LIFE, SHRINKAGE, poisson, team_strength
+from backtest_pitchapi import WINDOW, HALF_LIFE, SHRINKAGE, poisson, probabilities, team_strength
 
 MATCH_LINES = (1.5, 2.5, 3.5)
 TEAM_LINES = (0.5, 1.5, 2.5, 3.5)
-EXPECTED_COMPETITIONS = {"ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL"}
+EXPECTED_COMPETITIONS = {"ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL"}
+# Exactly the eight markets currently enabled in the Android app.
+ACTIVE_MARKETS = (
+    "DC_1X", "DC_X2", "BTTS", "TOTAL_OVER_2.5",
+    "HOME_OVER_0.5", "HOME_OVER_1.5", "AWAY_OVER_0.5", "AWAY_OVER_1.5",
+)
 
 
 def domestic_rows(path):
@@ -75,9 +80,10 @@ def market_probs(home_lambda, away_lambda):
     joint = {(home, away): p_home * p_away
              for home, p_home in enumerate(home_pmf)
              for away, p_away in enumerate(away_pmf)}
-    p_home = sum(p for (h, a), p in joint.items() if h > a)
-    p_draw = sum(p for (h, a), p in joint.items() if h == a)
-    p_away = max(0.0, 1.0 - p_home - p_draw)
+    # Reuse the production 1X2 probability helper so double-chance markets
+    # share the exact same normalized outcome partition as Android forecasts.
+    outcome = probabilities(home_lambda, away_lambda)
+    p_home, p_draw, p_away = outcome["1"], outcome["x"], outcome["2"]
     result = {
         "1X2": {"1": p_home, "X": p_draw, "2": p_away},
         "DC_1X": p_home + p_draw, "DC_X2": p_away + p_draw,
@@ -258,10 +264,7 @@ def run(rows, holdout):
         by_date[row["date"]].append(row)
 
     predictions = []
-    markets = ["1X2", "DC_1X", "DC_X2", "BTTS",
-               *(f"TOTAL_OVER_{line}" for line in MATCH_LINES),
-               *(f"{side}_OVER_{line}" for side in ("HOME", "AWAY") for line in TEAM_LINES),
-               "DNB_HOME", "DNB_AWAY"]
+    markets = list(ACTIVE_MARKETS)
     for date in sorted(by_date):
         today = by_date[date]
         base = {}
@@ -325,18 +328,16 @@ def run(rows, holdout):
         },
         "competitions": sorted({row["league"] for row in rows}),
         "markets": {},
-        "independent_market_count": 15,
-        "market_relationships": {
-            "DNB_HOME": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
-            "DNB_AWAY": "Same W/P/L event partition as 1X2; calibration is a relabelled duplicate, not independent evidence.",
-        },
+        "independent_market_count": len(ACTIVE_MARKETS),
+        "active_markets": list(ACTIVE_MARKETS),
+        "market_relationships": {},
         "baseline_definition": "Expanding historical frequency within each competition, Laplace +1 smoothing; only results before the fixture date are used.",
         "model_definition": f"Independent Poisson using prior paired-xG team history; window={WINDOW}, half_life={HALF_LIFE}, shrinkage={SHRINKAGE}; same-calendar-day leakage prevented.",
         "limitations": [
             "No historical odds are present: edge, EV, bookmaker comparison and ROI are not measured.",
-            "This research backtest is not a claim that the Android production candidate engine uses identical probabilities.",
+            "This xG research model is not assumed to be numerically identical to the Android production candidate engine; production deployment requires a separate parity check.",
             "BTTS NO is the complement of BTTS YES and is not reported as a separate row.",
-            "DNB metrics include push as a third outcome class."
+            "The eight active markets are evaluated separately; no inactive market is included in the summary."
         ],
     }
     for market in markets:
@@ -395,7 +396,7 @@ def main():
     missing = EXPECTED_COMPETITIONS - found
     unexpected = found - EXPECTED_COMPETITIONS
     if missing or unexpected:
-        raise SystemExit(f"Archive must cover exactly seven competitions; missing={sorted(missing)}, unexpected={sorted(unexpected)}")
+        raise SystemExit(f"Archive must cover exactly eight competitions; missing={sorted(missing)}, unexpected={sorted(unexpected)}")
     report = run(rows, args.holdout_from)
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
