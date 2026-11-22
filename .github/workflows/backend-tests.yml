@@ -4,12 +4,14 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - "android/**"
       - "backend/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches:
       - main
     paths:
+      - "android/**"
       - "backend/**"
       - ".github/workflows/backend-tests.yml"
 

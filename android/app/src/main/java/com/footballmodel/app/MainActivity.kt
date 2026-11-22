@@ -1023,7 +1023,16 @@ class MainActivity : Activity() {
         // synchronously from the view cache; only first-time screens need a frame
         // to construct their content.
         renderTabs()
-        UiMotion.animateVisibility(lineHeadingView, tab == "matches", dp(6).toFloat())
+        if (tab == "matches") {
+            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
+        } else {
+            // Hide the Line heading synchronously so its temporary layout height
+            // cannot make the Statistics header/subtitle jump after the fade.
+            lineHeadingView.animate().cancel()
+            lineHeadingView.visibility = View.GONE
+            lineHeadingView.alpha = 1f
+            lineHeadingView.translationY = 0f
+        }
         UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
         if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
         val targetKey = tab + "|" + when (tab) {
@@ -1169,9 +1178,11 @@ class MainActivity : Activity() {
                     maxLines = 1
                     setSingleLine(true)
                     setHorizontallyScrolling(false)
-                    setAutoSizeTextTypeUniformWithConfiguration(
-                        8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
-                    )
+                    if (android.os.Build.VERSION.SDK_INT >= 26) {
+                        setAutoSizeTextTypeUniformWithConfiguration(
+                            8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP
+                        )
+                    }
                     // Keep a small inset around the long Statistics label without clipping its last character.
                     setPadding(if (item.first == "stats") dp(4) else 0, 0, if (item.first == "stats") dp(4) else 0, 0)
                 }
@@ -1188,20 +1199,25 @@ class MainActivity : Activity() {
             val tab = tabBar.getChildAt(index) as? LinearLayout ?: return@forEachIndexed
             val title = tab.getChildAt(0) as? TextView ?: return@forEachIndexed
             val active = currentTab == item.first
-            UiMotion.animateTextColor(title, if (active) bg else Color.WHITE)
-            val nextBackground = if (active) {
-                GradientDrawable().apply {
-                    setColor(Color.rgb(218, 184, 112))
-                    cornerRadius = dp(16).toFloat()
+            // Filter-driven renders must not replay the tab selection animation.
+            // Animate only when the selected tab actually changes.
+            if (tab.tag != active) {
+                tab.tag = active
+                UiMotion.animateTextColor(title, if (active) bg else Color.WHITE)
+                val nextBackground = if (active) {
+                    GradientDrawable().apply {
+                        setColor(Color.rgb(218, 184, 112))
+                        cornerRadius = dp(16).toFloat()
+                    }
+                } else {
+                    GradientDrawable().apply {
+                        setColor(Color.rgb(29, 48, 66))
+                        cornerRadius = dp(16).toFloat()
+                        setStroke(dp(1), Color.rgb(39, 61, 82))
+                    }
                 }
-            } else {
-                GradientDrawable().apply {
-                    setColor(Color.rgb(29, 48, 66))
-                    cornerRadius = dp(16).toFloat()
-                    setStroke(dp(1), Color.rgb(39, 61, 82))
-                }
+                UiMotion.transitionBackground(tab, nextBackground)
             }
-            UiMotion.transitionBackground(tab, nextBackground)
             tab.elevation = if (active) dp(3).toFloat() else 0f
         }
     }
@@ -1242,6 +1258,13 @@ class MainActivity : Activity() {
             return
         }
         UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
+    }
+
+    private fun hideLineHeadingImmediately() {
+        lineHeadingView.animate().cancel()
+        lineHeadingView.visibility = View.GONE
+        lineHeadingView.alpha = 1f
+        lineHeadingView.translationY = 0f
     }
 
     private fun animateStakeModeVisibility(view: View, show: Boolean) {
@@ -1446,50 +1469,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun csvEscape(value: String): String = "\"" + value.replace("\"", "\"\"") + "\""
-
-    private fun exportBetAnalyticsCsv() {
-        try {
-            val rows = mutableListOf("идентификатор,дата,источник,статус,тип,матч_или_экспресс,рынок,ставка,коэффициент,прибыль,чемпионат,исходы")
-            for (i in 0 until bets.length()) {
-                val bet = bets.optJSONObject(i) ?: continue
-                val source = bet.optString("source")
-                if (source.equals("AI_AUTO", true)) continue
-                val status = bet.optString("status")
-                val stake = bet.optDouble("stake", Double.NaN)
-                val odds = bet.optDouble("odds", Double.NaN)
-                val isCoupon = bet.optString("marketKey") == "COUPON"
-                val validFinancials = stake.isFinite() && stake > 0.0 && odds.isFinite() && odds > 1.0
-                val profit = if (!validFinancials) "" else when (status) {
-                    "WON" -> (stake * (odds - 1.0)).toString()
-                    "LOST" -> (-stake).toString()
-                    "PUSH" -> "0"
-                    else -> ""
-                }
-                val selections = bet.optJSONArray("selections")
-                val match = if (isCoupon) "Coupon" else bet.optString("home") + " - " + bet.optString("away")
-                val market = if (isCoupon) "Coupon" else bet.optString("market")
-                val day = bet.optString("betDay").ifBlank { bet.optString("date") }
-                val line = listOf(
-                    bet.optString("id"), day, source.ifBlank { "MANUAL" }, status,
-                    if (isCoupon) "COUPON" else "SINGLE", match, market,
-                    stake.toString(), odds.toString(), profit, bet.optString("league"),
-                    (selections?.length() ?: 0).toString()
-                ).joinToString(",") { csvEscape(it) }
-                rows.add(line)
-            }
-            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                type = "text/csv"
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "История ставок Football Model")
-                putExtra(android.content.Intent.EXTRA_TEXT, rows.joinToString("\n"))
-            }
-            startActivity(android.content.Intent.createChooser(intent, "Экспорт истории ставок"))
-        } catch (error: Exception) {
-            android.util.Log.e("IQMatchStats", "CSV export failed", error)
-            Toast.makeText(this, "Не удалось подготовить CSV", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun renderBetPerformanceStats() {
         val now = System.currentTimeMillis()
         // Keep the analytics cache key stable for the whole local calendar day.
@@ -1538,15 +1517,6 @@ class MainActivity : Activity() {
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
         controls.addView(sourceRow)
-        val export = TextView(this).apply {
-            text = "↓  ЭКСПОРТ ИСТОРИИ СТАВОК · CSV"; gravity = Gravity.CENTER; textSize = 10f
-            typeface = Typeface.MONOSPACE; setPadding(dp(8), dp(11), dp(8), dp(11))
-            setTextColor(accent)
-            background = rounded(Color.rgb(26, 35, 45), 12)
-            setOnClickListener { exportBetAnalyticsCsv() }
-        }
-        controls.addView(export, LinearLayout.LayoutParams(-1, -2).apply { setMargins(dp(3), dp(5), dp(3), dp(2)) })
-
         val report = cached.current
         statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
@@ -1597,12 +1567,6 @@ class MainActivity : Activity() {
         terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ДНЯМ НЕДЕЛИ", report.byWeekday, 7)
 
-        val quality = terminalSection(matchesContainer, "КАЧЕСТВО ДАННЫХ", "НЕРАССЧИТАННЫЕ СТАВКИ НЕ ВХОДЯТ В ПРИБЫЛЬ, ROI И ДОЛЮ ПОБЕД")
-        val integrity = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(integrity, "ПРОЧИТАНО", report.recordsRead.toString(), Color.WHITE)
-        terminalMetric(integrity, "ОШИБОЧНЫЕ", report.invalidRecords.toString(), if (report.invalidRecords > 0) gold else accent)
-        terminalMetric(integrity, "ДУБЛИ", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) gold else accent)
-        quality.addView(integrity)
         cached.previous?.let { previous ->
             val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
             val delta = report.overall.roi - previous.overall.roi
@@ -1636,16 +1600,9 @@ class MainActivity : Activity() {
                 if (excludeDraws && h == aw) continue
                 val outcome = actual(h, aw)
                 val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
-                val confidence = maxOf(probability, 1.0 - probability)
-                // TOP admits model confidence from 60% only. Exclude any legacy
-                // below-threshold selections so the TOP summary matches current rules.
-                if (topOnly && confidence < 0.6) continue
-                val band = when {
-                    confidence < 0.6 -> 0
-                    confidence < 0.7 -> if (topOnly) 0 else 1
-                    confidence < 0.8 -> if (topOnly) 1 else 2
-                    else -> if (topOnly) 2 else 3
-                }
+                // TOP admits model confidence from 60% only. Keep the same
+                // threshold and band mapping covered by StatsPredictionScope tests.
+                val band = StatsPredictionScope.confidenceBand(source, probability) ?: continue
                 val correct = outcome == (probability >= 0.5)
                 val y = if (outcome) 1.0 else 0.0
                 n++
@@ -1675,6 +1632,22 @@ class MainActivity : Activity() {
 
     private fun topPredictionSelections(): Set<String> {
         val selections = linkedSetOf<String>()
+        // Use the persisted TOP recommendation archive as the primary source.
+        // Manual TOP bets remain included for compatibility with older app data.
+        val archive = try {
+            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
+        } catch (_: Exception) {
+            JSONArray()
+        }
+        for (i in 0 until archive.length()) {
+            val row = archive.optJSONObject(i) ?: continue
+            val matchId = row.optString("matchId").trim()
+            if (matchId.isBlank()) continue
+            val marketKey = StatsPredictionScope.marketKey(
+                row.optString("side"), row.optString("home"), row.optString("away")
+            ) ?: continue
+            selections.add(StatsPredictionScope.key(matchId, marketKey))
+        }
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (!bet.optString("source").equals("AI_MANUAL", true)) continue
@@ -1733,11 +1706,10 @@ class MainActivity : Activity() {
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
-                            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
-                            animateContentRefresh { render() }
+                            render()
                         }
                     }
                 }
@@ -3483,33 +3455,33 @@ class MainActivity : Activity() {
         }
 
         if (currentTab == "day") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderDay(json)
             return
         }
         if (currentTab == "notifications") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderNotificationCenter(json)
             renderDailyInsights(json)
             return
         }
         if (currentTab == "desk") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBetHistory(json)
             return
         }
         if (currentTab == "stats") {
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             try {
                 renderStats(json)
             } catch (error: Throwable) {
@@ -3522,7 +3494,7 @@ class MainActivity : Activity() {
             }
             return
         } else if (currentTab == "help") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderHelp()
             return
