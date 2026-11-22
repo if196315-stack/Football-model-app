@@ -1303,7 +1303,7 @@ class MainActivity : Activity() {
         statsBetCalculationError = null
     }
 
-    private fun requestStatsBetCalculation(key: String, sourceBets: JSONArray, period: String, source: String, now: Long) {
+    private fun requestStatsBetCalculation(key: String, sourceBets: JSONArray, period: String, now: Long) {
         if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
         val generation = statsBetCacheGeneration.get()
         val snapshot = try {
@@ -1343,16 +1343,16 @@ class MainActivity : Activity() {
                     AnalyticsBet(item.id, day, item.source, item.status, item.stake, item.odds,
                         item.market.ifBlank { item.marketKey }, item.league, item.isCoupon, isTopSignal)
                 }
-                val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, "TOP")
+                val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second)
                 val previous = if (period == "ALL") null else {
                     val duration = (bounds.second - bounds.first).coerceAtLeast(1L)
-                    BetAnalyticsCalculator.calculate(records, bounds.first - duration, bounds.first - 1L, "TOP")
+                    BetAnalyticsCalculator.calculate(records, bounds.first - duration, bounds.first - 1L)
                 }
                 StatsBetViewCache(key, current, previous)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate terminal betting analytics", error)
                 calculationError = error.javaClass.simpleName
-                StatsBetViewCache(key, BetAnalyticsCalculator.calculate(emptyList(), 0L, Long.MAX_VALUE, source), null)
+                StatsBetViewCache(key, BetAnalyticsCalculator.calculate(emptyList(), 0L, Long.MAX_VALUE), null)
             }
             runOnUiThread {
                 if (generation == statsBetCacheGeneration.get()) {
@@ -1543,7 +1543,7 @@ class MainActivity : Activity() {
             val loading = terminalSection(matchesContainer, "СТАТИСТИКА ТОП", "ТОЛЬКО СТАВКИ, ЗАФИКСИРОВАННЫЕ ИЗ РАЗДЕЛА ТОП")
             loading.addView(label("Рассчитываем финансовые показатели…", 12, true, Color.WHITE))
             loading.addView(label("Прогнозы без зафиксированной ставки и автоматические записи в расчёт не входят.", 10, false, muted))
-            if (!statsBetCalculationInProgress.get()) requestStatsBetCalculation(key, bets, selectedStatsPeriod, "TOP", now)
+            if (!statsBetCalculationInProgress.get()) requestStatsBetCalculation(key, bets, selectedStatsPeriod, now)
             return
         }
 
