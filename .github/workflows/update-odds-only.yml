@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "backend/update_odds_api_sport.py"
+      - "backend/apply_melbet_snapshots.py"
       - "backend/collect_odds_snapshots.py"
       - ".github/workflows/update-odds-only.yml"
   workflow_dispatch:
@@ -41,6 +42,8 @@ jobs:
         run: python backend/collect_odds_snapshots.py --input docs/data.json --output artifacts/melbet-odds-snapshots.jsonl
       - name: Evaluate archived observations with available final scores
         run: python backend/evaluate_market_observations.py --snapshots artifacts/melbet-odds-snapshots.jsonl --data docs/data.json --output artifacts/melbet-market-observation-results.jsonl
+      - name: Apply unified fresh active MelBet snapshots to production feed
+        run: python backend/apply_melbet_snapshots.py
       - name: Commit refreshed odds and snapshot history
         run: |
           git config user.name "github-actions[bot]"
