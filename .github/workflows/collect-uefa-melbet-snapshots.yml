@@ -1,4 +1,4 @@
-name: Capture UEFA MelBet odds snapshots
+name: Capture unified MelBet odds snapshots
 
 on:
   push:
@@ -54,6 +54,13 @@ jobs:
           key: pitchapi-uefa-fixtures-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             pitchapi-uefa-fixtures-v1-${{ runner.os }}-
+      - name: Restore domestic PitchAPI xG cache
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-
       - name: Install dependencies
         run: python -m pip install requests
       - name: Backfill all available UEFA fixture seasons
@@ -85,7 +92,13 @@ jobs:
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
         run: python backend/update_uefa_xg_history.py
-      - name: Capture timestamped MelBet market quotes
+      - name: Migrate legacy UEFA snapshot archive to the shared archive
+        run: |
+          if [ -f artifacts/uefa-melbet-odds-snapshots.jsonl ]; then
+            cat artifacts/uefa-melbet-odds-snapshots.jsonl >> artifacts/melbet-odds-snapshots.jsonl
+            rm artifacts/uefa-melbet-odds-snapshots.jsonl
+          fi
+      - name: Capture MelBet snapshots for all eight competitions
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/collect_uefa_melbet_snapshots.py
@@ -95,13 +108,11 @@ jobs:
         run: python backend/settle_uefa_paper_bets.py
       - name: Build UEFA competitions for the Android match centre
         run: python backend/build_uefa_app_feed.py
-      - name: Commit immutable UEFA odds history
+      - name: Commit unified MelBet snapshot history and UEFA evaluation data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f artifacts/uefa-melbet-odds-snapshots.jsonl ]; then
-            git add artifacts/uefa-melbet-odds-snapshots.jsonl
-          fi
+          git add -A artifacts
           if [ -f artifacts/uefa-xg-history.json ]; then
             git add artifacts/uefa-xg-history.json
           fi
