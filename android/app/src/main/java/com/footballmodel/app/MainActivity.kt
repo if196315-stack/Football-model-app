@@ -1725,8 +1725,11 @@ class MainActivity : Activity() {
     private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>, period: String): String {
         // Prediction metrics depend on source, TOP archive, feed version and selected match-date period.
         val scopeSignature = if (source == "TOP") topSelections.sorted().joinToString(",") else "ALL"
+        val utcDay = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }.format(Date())
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
-            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + period + "|" + scopeSignature
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + period + "|" + utcDay + "|" + scopeSignature
     }
 
 
