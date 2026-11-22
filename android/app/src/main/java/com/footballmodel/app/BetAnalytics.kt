@@ -86,16 +86,14 @@ internal object BetAnalyticsCalculator {
             it.stake.isFinite() && it.stake > 0.0 &&
             it.odds.isFinite() && it.odds > 1.0 }
         val invalid = scoped.size - valid.size
-        // The overall report combines all real single bets (manual and AI-assisted).
-        // AI_AUTO rows are paper observations and are excluded above; coupons stay separate.
-        val singlesRecords = valid.filterNot { it.isCoupon }
+        // The report covers only the eight currently active working markets.
+        // Coupons remain a separate ALL-only category; AI_AUTO paper rows were excluded above.
+        val singlesRecords = valid.filter { !it.isCoupon && isWorkingMarket(it.marketKey) }
         val couponRecords = valid.filter { it.isCoupon }
         val manualRecords = singlesRecords.filter { !it.source.equals("AI_MANUAL", true) }
         val aiRecords = singlesRecords.filter { it.source.equals("AI_MANUAL", true) }
         val overall = summarize(singlesRecords)
-        val workingMarketRecords = singlesRecords.filter {
-            it.status != "PENDING" && isWorkingMarket(it.marketKey)
-        }
+        val workingMarketRecords = singlesRecords.filter { it.status != "PENDING" }
         val marketLabels = linkedMapOf(
             "1x" to "1X",
             "x2" to "X2",
@@ -153,8 +151,10 @@ internal object BetAnalyticsCalculator {
     }
 
     private fun sourceMatches(bet: AnalyticsBet, source: String): Boolean = when (source) {
-        "AI" -> bet.source.equals("AI_MANUAL", true)
-        "MANUAL" -> !bet.source.equals("AI_MANUAL", true)
+        // TOP contains only bets explicitly confirmed from the TOP signals section.
+        // ALL contains every real saved market bet; AI_AUTO paper observations are
+        // excluded before this filter is applied.
+        "TOP" -> bet.source.equals("AI_MANUAL", true)
         else -> true
     }
 
