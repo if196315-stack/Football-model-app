@@ -1133,7 +1133,7 @@ class MainActivity : Activity() {
                     }
                     if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
                         fixtureDate.isNotBlank() && fixtureDate >= today &&
-                        hasCompleteModelPrediction(match) && hasActiveMelBetPrematchLine(match)
+                        true
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
                         if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
@@ -1566,7 +1566,14 @@ class MainActivity : Activity() {
 
     private fun renderStats(json: JSONObject) {
         screenHeader("PERFORMANCE CENTER", "Статистика", "")
-        renderBetPerformanceStats()
+        try {
+            renderBetPerformanceStats()
+        } catch (error: Throwable) {
+            android.util.Log.e("IQMatchStats", "Unable to render bet performance section", error)
+            val failure = card()
+            addText(failure, "Не удалось построить статистику ставок. Сводка прогнозов будет доступна отдельно.", 12, true, gold)
+            matchesContainer.addView(failure)
+        }
         val statsKey = statsCacheKey(json)
         if (statsMetricsCacheKey != statsKey) {
             val loading = card()
@@ -1578,7 +1585,7 @@ class MainActivity : Activity() {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
                         calculateStatsMetrics(json).also { statsMetricsError = null }
-                    } catch (error: Exception) {
+                    } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
                         emptyList()
@@ -3272,7 +3279,7 @@ class MainActivity : Activity() {
             lineHeadingView.visibility = View.GONE
             try {
                 renderStats(json)
-            } catch (error: Exception) {
+            } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to render statistics screen", error)
                 matchesContainer.removeAllViews()
                 val failure = card()
@@ -3311,8 +3318,8 @@ class MainActivity : Activity() {
             val upcoming = mutableListOf<JSONObject>()
             for (j in 0 until matches.length()) {
                 val m = matches.getJSONObject(j)
-                // Do not show fixtures without a complete model prediction.
-                // A scheduled match with insufficient paired xG/history stays out of the app.
+                // Keep all upcoming domestic fixtures visible, even when xG or bookmaker odds are missing.
+                // The match card explains whether a model prediction or a MelBet quote is unavailable.
                 val matchStatus = m.optString("status")
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
@@ -3323,11 +3330,10 @@ class MainActivity : Activity() {
                 // Apply the same visibility rule to every competition, including UECL:
                 // show only upcoming fixtures with a complete model prediction and
                 // an active MelBet prematch line. Keep raw feeds intact for settlement.
-                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
-                    hasCompleteModelPrediction(m) && hasActiveMelBetPrematchLine(m)) {
+                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming) {
                     upcoming.add(m)
                     totalUpcoming++
-                    totalPredicted++
+                    if (hasCompleteModelPrediction(m)) totalPredicted++
                 }
             }
             val leagueCode = league.optString("code")
