@@ -381,7 +381,22 @@ def update_prediction_archive(payload):
             existing = archive["matches"].get(key_id)
 
             if existing:
-                # Only attach the result. Never replace the captured forecast.
+                # A not-yet-started fixture may receive a new model version.
+                # Replace its forecast only before kickoff; never rewrite a
+                # forecast after the event has started or finished.
+                if status in ("SCHEDULED", "TIMED") and match.get("prediction"):
+                    old_prediction = existing.get("prediction") or {}
+                    new_prediction = match.get("prediction") or {}
+                    if old_prediction.get("modelVersion") != new_prediction.get("modelVersion"):
+                        try:
+                            kickoff = datetime.fromisoformat(str(match.get("utcDate", "")).replace("Z", "+00:00"))
+                            if kickoff.tzinfo is None:
+                                kickoff = kickoff.replace(tzinfo=timezone.utc)
+                        except Exception:
+                            kickoff = now
+                        if kickoff > now:
+                            existing["prediction"] = new_prediction
+                            existing["predictionCapturedAt"] = now.isoformat()
                 if status == "FINISHED" and match.get("homeScore") is not None and match.get("awayScore") is not None:
                     existing["status"] = "FINISHED"
                     existing["homeScore"] = match["homeScore"]

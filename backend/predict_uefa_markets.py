@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create strict-date walk-forward Poisson market probabilities for upcoming UEFA fixtures."""
+"""Create strict-date walk-forward Poisson market probabilities for all supported competitions."""
 from __future__ import annotations
 
 import argparse
@@ -10,10 +10,10 @@ from pathlib import Path
 
 from backtest_pitchapi import WINDOW, probabilities, poisson, team_strength
 
-MODEL_VERSION = "uefa-xg-poisson-v1"
+MODEL_VERSION = "xg-poisson-v1"
 MATCH_TOTAL_LINES = (1.5, 2.5, 3.5)
 TEAM_TOTAL_LINES = (0.5, 1.5, 2.5, 3.5)
-SUPPORTED_LEAGUES = {"UCL", "UEL", "UECL"}
+SUPPORTED_LEAGUES = {"UCL", "UEL", "UECL", "ENG", "ESP", "ITA", "GER", "FRA"}
 
 
 def _state_before(history_rows: list[dict], cutoff_date: str) -> tuple[dict, dict, dict, str | None]:
