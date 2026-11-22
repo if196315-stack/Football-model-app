@@ -156,6 +156,8 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Request notification permission immediately on app launch, not after a signal appears.
+        AiMatchNotifications.requestPermissionIfNeeded(this)
         currentTab = intent.getStringExtra("open_tab")?.takeUnless { it == "notifications" } ?: "matches"
         if (currentTab == "matches" && !isLineSectionVisible()) currentTab = "desk"
         window.statusBarColor = bg
@@ -972,16 +974,16 @@ class MainActivity : Activity() {
                     val openTopNotificationCandidates = aiMatchCandidates.filterNot { item ->
                         val signal = item.third.optJSONObject("primary") ?: return@filterNot false
                         isAiBetRecorded(item.first, signal)
-                    }.map { item ->
+                    }.mapNotNull { item ->
                         val match = item.first
+                        val signal = item.third.optJSONObject("primary") ?: return@mapNotNull null
                         val matchId = match.optString("id").ifBlank {
                             listOf(match.optString("utcDate"), match.optString("home"), match.optString("away")).joinToString("|")
                         }
-                        matchId to "${match.optString("home")} — ${match.optString("away")}"
+                        val marketKey = marketKeyForAutoSignal(signal, match) ?: return@mapNotNull null
+                        "${matchId}::${marketKey}" to "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
                     }
-                    if (AiMatchNotifications.observe(this, openTopNotificationCandidates)) {
-                        AiMatchNotifications.requestPermissionIfNeeded(this)
-                    }
+                    AiMatchNotifications.observe(this, openTopNotificationCandidates)
                     val changed = payload != lastPayload
                     if (changed) {
                         data = json
