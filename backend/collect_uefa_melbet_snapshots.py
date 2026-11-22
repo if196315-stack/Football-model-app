@@ -23,7 +23,7 @@ from predict_uefa_markets import predict_upcoming
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
-ARCHIVE = ROOT / "artifacts" / "melbet-odds-snapshots.jsonl"
+ARCHIVE = ROOT / "artifacts" / "all-eight-competitions-melbet-snapshots.jsonl"
 DOMESTIC_CACHE = ROOT / "backend" / "cache" / "pitchapi_history.json"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
@@ -146,7 +146,8 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "market_parser_version": MARKET_PARSER_VERSION,
             "league_code": league,
             "season": match.get("season"),
-            "fixture_id": str(fixture_id),
+            "fixture_id": str(match.get("sourceFixtureId") or fixture_id),
+            "fixture_namespace": str(match.get("fixtureNamespace") or ("UEFA" if league in ("UCL", "UEL", "UECL") else "DOM")),
             "provider_event_id": str(source.get("id") or ""),
             "kickoff_utc": match.get("date"),
             "home_team": match.get("home"),
@@ -406,10 +407,10 @@ def combine_pitchapi_sources(uefa_cache: dict, domestic_cache: dict,
     combined_matches = {}
     history_rows = []
     for fixture_id, row in (uefa_cache.get("matches") or {}).items():
-        copied = {**row, "id": f"UEFA:{row.get('id', fixture_id)}"}
+        copied = {**row, "id": f"UEFA:{row.get('id', fixture_id)}", "sourceFixtureId": str(row.get("id", fixture_id)), "fixtureNamespace": "UEFA"}
         combined_matches[copied["id"]] = copied
     for fixture_id, row in (domestic_cache.get("matches") or {}).items():
-        copied = {**row, "id": f"DOM:{row.get('id', fixture_id)}"}
+        copied = {**row, "id": f"DOM:{row.get('id', fixture_id)}", "sourceFixtureId": str(row.get("id", fixture_id)), "fixtureNamespace": "DOM"}
         combined_matches[copied["id"]] = copied
         if (row.get("status") == "finished" and row.get("hasPlayoff") is not True
                 and row.get("homeScore") is not None and row.get("awayScore") is not None
