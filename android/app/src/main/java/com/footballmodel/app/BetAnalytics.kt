@@ -13,7 +13,8 @@ internal data class AnalyticsBet(
     val market: String,
     val league: String,
     val isCoupon: Boolean,
-    val isTopSignal: Boolean = false
+    val isTopSignal: Boolean = false,
+    val marketKey: String = ""
 )
 
 internal data class AnalyticsPoint(val dayMillis: Long, val profit: Double, val turnover: Double)
@@ -43,13 +44,18 @@ internal data class AnalyticsBreakdown(
     val wins: Int,
     val losses: Int,
     val profit: Double,
-    val turnover: Double
+    val turnover: Double,
+    val averageOdds: Double = 0.0
 ) {
     val roi: Double get() = if (turnover > 0.0) profit / turnover * 100.0 else 0.0
 }
 
 internal data class BetAnalyticsReport(
     val overall: AnalyticsSlice,
+    val singles: AnalyticsSlice,
+    val coupons: AnalyticsSlice,
+    val manual: AnalyticsSlice,
+    val ai: AnalyticsSlice,
     val byMarket: List<AnalyticsBreakdown>,
     val byLeague: List<AnalyticsBreakdown>,
     val byOdds: List<AnalyticsBreakdown>,
@@ -66,9 +72,9 @@ internal data class BetAnalyticsReport(
 )
 
 internal object BetAnalyticsCalculator {
-    fun calculate(records: List<AnalyticsBet>, from: Long, to: Long): BetAnalyticsReport {
+    fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "ALL"): BetAnalyticsReport {
         val ignoredAuto = records.count { it.source.equals("AI_AUTO", true) }
-        val inPeriod = records.filter { !it.source.equals("AI_AUTO", true) && it.dayMillis in from..to && isTopRecord(it) }
+        val inPeriod = records.filter { !it.source.equals("AI_AUTO", true) && it.dayMillis in from..to && sourceMatches(it, source) }
         val unique = LinkedHashMap<String, AnalyticsBet>()
         inPeriod.forEachIndexed { index, bet ->
             val key = bet.id.ifBlank { "${bet.dayMillis}|${bet.source}|${bet.status}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}|${bet.isCoupon}" }
@@ -80,14 +86,24 @@ internal object BetAnalyticsCalculator {
             it.stake.isFinite() && it.stake > 0.0 &&
             it.odds.isFinite() && it.odds > 1.0 }
         val invalid = scoped.size - valid.size
-        val overall = summarize(valid)
-        val market = breakdown(valid.filter { it.status != "PENDING" }) {
+        // Overall performance follows the current TOP-signal rule; coupons remain
+        // visible in their own section and never leak into the top-single market table.
+        val topRecords = valid.filter { isTopRecord(it) }
+        val singlesRecords = valid.filterNot { it.isCoupon }
+        val couponRecords = valid.filter { it.isCoupon }
+        val manualRecords = singlesRecords.filter { !it.source.equals("AI_MANUAL", true) }
+        val aiRecords = singlesRecords.filter { it.source.equals("AI_MANUAL", true) }
+        val overall = summarize(topRecords)
+        val workingMarketRecords = topRecords.filterNot { it.isCoupon }.filter {
+            it.status != "PENDING" && isWorkingMarket(it.marketKey)
+        }
+        val market = breakdown(workingMarketRecords) {
             it.market.ifBlank { it.marketKeyFallback() }
         }
-        val league = breakdown(valid.filter { it.status != "PENDING" }) {
+        val league = breakdown(topRecords.filter { it.status != "PENDING" }) {
             it.league.ifBlank { "Не указан" }
         }
-        val odds = breakdown(valid.filter { it.status != "PENDING" }) {
+        val odds = breakdown(topRecords.filter { it.status != "PENDING" }) {
             when {
                 it.odds < 1.50 -> "<1.50"
                 it.odds < 2.00 -> "1.50–1.99"
@@ -96,15 +112,19 @@ internal object BetAnalyticsCalculator {
                 else -> "5.00+"
             }
         }.sortedBy { oddsOrder(it.label) }
-        val weekdays = breakdown(valid.filter { it.status != "PENDING" }) {
+        val weekdays = breakdown(topRecords.filter { it.status != "PENDING" }) {
             val day = Calendar.getInstance().apply { timeInMillis = it.dayMillis }
                 .get(Calendar.DAY_OF_WEEK)
             listOf("Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб")[day - 1]
         }.sortedBy { listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс").indexOf(it.label) }
-        val streaks = streaks(valid)
+        val streaks = streaks(topRecords)
         val drawdown = drawdown(overall.points)
         return BetAnalyticsReport(
             overall = overall,
+            singles = summarize(singlesRecords),
+            coupons = summarize(couponRecords),
+            manual = summarize(manualRecords),
+            ai = summarize(aiRecords),
             byMarket = market,
             byLeague = league,
             byOdds = odds,
@@ -119,6 +139,12 @@ internal object BetAnalyticsCalculator {
             invalidRecords = invalid,
             duplicateRecords = duplicates
         )
+    }
+
+    private fun sourceMatches(bet: AnalyticsBet, source: String): Boolean = when (source) {
+        "AI" -> bet.source.equals("AI_MANUAL", true)
+        "MANUAL" -> !bet.source.equals("AI_MANUAL", true)
+        else -> true
     }
 
     private fun isTopRecord(bet: AnalyticsBet): Boolean =
@@ -161,7 +187,7 @@ internal object BetAnalyticsCalculator {
     private fun breakdown(records: List<AnalyticsBet>, key: (AnalyticsBet) -> String): List<AnalyticsBreakdown> {
         return records.groupBy(key).map { (label, group) ->
             val result = summarize(group)
-            AnalyticsBreakdown(label, result.settled, result.wins, result.losses, result.profit, result.turnover)
+            AnalyticsBreakdown(label, result.settled, result.wins, result.losses, result.profit, result.turnover, result.averageOdds)
         }.sortedWith(compareByDescending<AnalyticsBreakdown> { it.profit }.thenBy { it.label })
     }
 
@@ -194,6 +220,10 @@ internal object BetAnalyticsCalculator {
     private fun oddsOrder(label: String): Int = when (label) {
         "<1.50" -> 0; "1.50–1.99" -> 1; "2.00–2.99" -> 2; "3.00–4.99" -> 3; else -> 4
     }
+
+    private fun isWorkingMarket(rawKey: String): Boolean = rawKey.trim() in setOf(
+        "1x", "x2", "bttsYes", "over25", "homeOver05", "homeOver15", "awayOver05", "awayOver15"
+    )
 
     private fun AnalyticsBet.marketKeyFallback(): String = "Рынок не указан"
 }
