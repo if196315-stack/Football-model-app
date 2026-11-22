@@ -262,24 +262,37 @@ def fetch_provider_fixtures(api_key: str, session: Any = requests,
         "sort": "asc",
         "page": 1,
     }
-    response = session.get(URL, params=params, headers={"Authorization": api_key}, timeout=60)
-    response.raise_for_status()
-    payload = response.json()
-    fixtures = list(payload) if isinstance(payload, list) else list(payload.get("matches") or [])
-    total_pages = min(int(payload.get("totalPages") or 1), 100) if isinstance(payload, dict) else 1
-    for page in range(2, total_pages + 1):
-        page_params = {**params, "page": page}
-        page_response = session.get(URL, params=page_params,
-                                    headers={"Authorization": api_key}, timeout=60)
-        page_response.raise_for_status()
-        page_payload = page_response.json()
-        fixtures.extend(page_payload if isinstance(page_payload, list)
-                        else page_payload.get("matches") or [])
-    # UEFA competitions are fetched by tournament ID so the odds feed is not
-    # limited to the generic 30-day date window. API-Sport caps date ranges at 31 days.
-    # IDs: Champions League 7, Europa League 679, Conference League 17015.
-    tournament_ids = {"UCL": 7, "UEL": 679, "UECL": 17015}
+    # API-Sport caps date ranges at 31 inclusive days. Fetch the full 180-day
+    # domestic calendar in bounded windows, then add tournament-specific UEFA
+    # queries because some European fixtures are omitted by generic date search.
+    fixtures = []
     final_date = start + timedelta(days=180)
+    cursor = start
+    while cursor <= final_date:
+        window_end = min(cursor + timedelta(days=30), final_date)
+        window_params = {
+            **params,
+            "date_from": cursor.isoformat(),
+            "date_to": window_end.isoformat(),
+        }
+        response = session.get(URL, params=window_params,
+                               headers={"Authorization": api_key}, timeout=60)
+        response.raise_for_status()
+        payload = response.json()
+        fixtures.extend(list(payload) if isinstance(payload, list) else list(payload.get("matches") or []))
+        total_pages = min(int(payload.get("totalPages") or 1), 100) if isinstance(payload, dict) else 1
+        for page in range(2, total_pages + 1):
+            page_params = {**window_params, "page": page}
+            page_response = session.get(URL, params=page_params,
+                                        headers={"Authorization": api_key}, timeout=60)
+            page_response.raise_for_status()
+            page_payload = page_response.json()
+            fixtures.extend(page_payload if isinstance(page_payload, list)
+                            else page_payload.get("matches") or [])
+        cursor = window_end + timedelta(days=1)
+    # UEFA competitions are also fetched by tournament ID to cover fixtures
+    # omitted from generic date search. IDs: UCL 7, UEL 679, UECL 17015.
+    tournament_ids = {"UCL": 7, "UEL": 679, "UECL": 17015}
     cursor = start
     for tournament_id in tournament_ids.values():
         cursor = start
