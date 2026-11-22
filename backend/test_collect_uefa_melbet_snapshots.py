@@ -246,5 +246,39 @@ class UefaMelBetSnapshotTests(unittest.TestCase):
         self.assertEqual(merged["oddsBk"]["melbet"]["markets"]["btts"]["stakes"]["yes"]["factor"], 1.8)
 
 
+    def test_snapshot_collector_accepts_all_eight_competitions_and_requires_active_board(self):
+        leagues = ("ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL")
+        cache = {"matches": {}}
+        provider = []
+        for index, league in enumerate(leagues):
+            fixture_id = f"{league}-fixture"
+            cache["matches"][fixture_id] = {
+                "id": fixture_id, "leagueCode": league, "season": "2026/27",
+                "date": "2026-11-21T19:00:00Z", "status": "not_started",
+                "home": f"Home {index}", "away": f"Away {index}",
+            }
+            provider.append({
+                "id": 9000 + index,
+                "startTimestamp": 1795287600000,
+                "homeTeam": {"name": f"Home {index}"},
+                "awayTeam": {"name": f"Away {index}"},
+                "oddsBk": {"melbet": {
+                    "updatedAt": 1794311880000,
+                    "updatedAtByStage": {"prematch": 1794311880000},
+                    "isBettingActiveByStage": {"prematch": index != 0},
+                    "markets": {
+                        "double_chance": {"status": "open", "stage": "prematch",
+                                          "stakes": {"1x": {"factor": 1.8}}}
+                    }
+                }}
+            })
+        diagnostics = {}
+        rows = snapshot_rows(cache, provider, "2026-11-10T12:00:00+00:00", diagnostics, {})
+        self.assertEqual({row["league_code"] for row in rows}, set(leagues[1:]))
+        self.assertEqual(diagnostics["eligible_supported_upcoming_fixtures_in_cache"], 8)
+        self.assertEqual(diagnostics["matches_with_active_prematch_board"], 7)
+
+
+
 if __name__ == "__main__":
     unittest.main()
