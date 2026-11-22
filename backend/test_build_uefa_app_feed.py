@@ -10,7 +10,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
             {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T10:00:00+00:00", "freshness_status": "fresh",
              "bookmaker_update_age_seconds": 20, "market_parser_version": "melbet-fulltime-v2",
              "market": "team_total_over", "team": "home", "point": 1.5, "side": "over", "price": 1.9},
-            {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-09T21:00:00+00:00", "freshness_status": "stale",
+            {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-09T21:00:00+00:00", "freshness_status": "stale", "prematch_active": True,
              "bookmaker_update_age_seconds": 46800, "market_parser_version": "melbet-fulltime-v2",
              "market": "btts", "outcome": "yes", "price": 1.8},
             {"captured_at": "2026-11-10T09:00:20+00:00", "bookmaker_updated_at": "2026-11-10T09:00:00+00:00", "freshness_status": "fresh",
@@ -86,7 +86,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         odds_rows = [{
             "fixture_id": "uecl-1", "league_code": "UECL",
             "captured_at": captured_at, "bookmaker_updated_at": captured_at,
-            "freshness_status": "fresh", "market_parser_version": "melbet-fulltime-v2",
+            "freshness_status": "fresh", "prematch_active": True, "market_parser_version": "melbet-fulltime-v2",
             "market": "btts", "outcome": "yes", "price": 1.9,
         }]
 
