@@ -19,6 +19,7 @@ MIN_ODDS = 1.50
 MIN_PROBABILITY = 0.60
 MIN_EV = 0.05
 MIN_EDGE_PP = 5.0
+MAX_QUOTE_AGE_SECONDS = 12 * 60 * 60
 RAW_MARKETS = (
     ("1x", "1X"), ("x2", "X2"), ("bttsYes", "ОЗ ДА"),
     ("over25", "ТБ 2.5"),
@@ -45,10 +46,28 @@ def is_melbet(board):
     bookmaker = text(board.get("bookmaker"))
     return bookmaker.lower() == "melbet" if bookmaker else "melbet" in text(board.get("source")).lower()
 
-def odds_for(signal, match, min_odds=MIN_ODDS):
-    """Port of Android topSignalOdds: exact market, team and line; MelBet only."""
-    board = match.get("odds")
+def has_fresh_melbet_quote(board, now=None):
+    """Mirror Android hasFreshMelBetQuote: active MelBet prematch quote, at most 12h old."""
     if not is_melbet(board):
+        return False
+    if board.get("prematchActive") is not True or text(board.get("freshnessStatus")).lower() != "fresh":
+        return False
+    raw_updated = text(board.get("updatedAt"))
+    if not raw_updated:
+        return False
+    try:
+        updated = datetime.fromisoformat(raw_updated.replace("Z", "+00:00"))
+        updated = updated.replace(tzinfo=timezone.utc) if updated.tzinfo is None else updated.astimezone(timezone.utc)
+    except ValueError:
+        return False
+    current = now or datetime.now(timezone.utc)
+    age_seconds = (current - updated).total_seconds()
+    return -300 <= age_seconds <= MAX_QUOTE_AGE_SECONDS
+
+def odds_for(signal, match, min_odds=MIN_ODDS):
+    """Port of Android topSignalOdds: exact market, team, line and fresh MelBet quote."""
+    board = match.get("odds")
+    if not has_fresh_melbet_quote(board):
         return None
     best = board.get("best")
     if not isinstance(best, dict):
