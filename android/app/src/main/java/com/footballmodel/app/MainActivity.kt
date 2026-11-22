@@ -592,90 +592,66 @@ class MainActivity : Activity() {
         }
         val panelOdds = card(parent)
         panelOdds.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(39, 35, 29), Color.rgb(24, 29, 39))).apply { cornerRadius = dp(18).toFloat(); setStroke(dp(1), Color.rgb(105, 83, 52)) }
-        addText(panelOdds, "КОЭФФИЦИЕНТЫ БУКМЕКЕРОВ", 9, true, gold)
+        addText(panelOdds, "КОЭФФИЦИЕНТЫ MELBET · РАБОЧИЕ РЫНКИ", 9, true, gold)
         var shown = 0
-        fun validPrice(obj: JSONObject, key: String): Boolean {
-            if (!obj.has(key) || obj.isNull(key)) return false
-            val price = obj.optDouble(key, Double.NaN)
+        fun validPrice(obj: JSONObject?, key: String): Boolean {
+            val price = obj?.optDouble(key, Double.NaN) ?: Double.NaN
             return price.isFinite() && price > 1.0
         }
         val dc = best.optJSONObject("doubleChance")
-        if (dc != null) {
-            val items = listOf("1x" to "1X", "x2" to "X2", "12" to "12")
-                .filter { validPrice(dc, it.first) }
-                .map { Triple(it.second, oddsText(dc, it.first), gold) }
-            if (items.isNotEmpty()) {
-                addText(panelOdds, "ДВОЙНОЙ ШАНС · лучшие цены", 10, true, muted)
-                addMarketRow(panelOdds, items)
-                shown += items.size
-            }
+        val dcItems = listOf("1x" to "1X", "x2" to "X2")
+            .filter { validPrice(dc, it.first) }
+            .map { Triple(it.second, oddsText(dc!!, it.first), gold) }
+        if (dcItems.isNotEmpty()) {
+            addText(panelOdds, "ДВОЙНОЙ ШАНС", 10, true, muted)
+            addMarketRow(panelOdds, dcItems)
+            shown += dcItems.size
         }
         val btts = best.optJSONObject("btts")
-        if (btts != null) {
-            val items = listOf("yes" to "ОЗ — да")
-                .filter { validPrice(btts, it.first) }
-                .map { Triple(it.second, oddsText(btts, it.first), gold) }
-            if (items.isNotEmpty()) {
-                addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ · MELBET", 10, true, muted)
-                addMarketRow(panelOdds, items)
-                shown += items.size
-            }
+        if (validPrice(btts, "yes")) {
+            addText(panelOdds, "ОБЕ КОМАНДЫ ЗАБЬЮТ", 10, true, muted)
+            addMarketRow(panelOdds, listOf(Triple("ОЗ — да", oddsText(btts!!, "yes"), gold)))
+            shown++
         }
         val matchTotals = best.optJSONArray("totals")
-        if (matchTotals != null && matchTotals.length() > 0) {
-            addText(panelOdds, "ТОТАЛ МАТЧА · MELBET", 10, true, muted)
+        if (matchTotals != null) {
+            var headingShown = false
             for (i in 0 until matchTotals.length()) {
                 val line = matchTotals.optJSONObject(i) ?: continue
                 val point = line.optDouble("point", Double.NaN)
                 val price = line.optDouble("price", Double.NaN)
-                val side = line.optString("side")
-                // Показываем котировки тоталов только для БОЛЬШЕ; UNDER не выводим ни для матча, ни для команд.\n                if (!point.isFinite() || !side.equals("over", ignoreCase = true) || !price.isFinite() || price <= 1.0) continue
-                addMarketRow(panelOdds, listOf(Triple("БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
-                shown++
-            }
-        }
-        val spreads = best.optJSONArray("spreads")
-        if (spreads != null && spreads.length() > 0) {
-            var headingShown = false
-            for (i in 0 until spreads.length()) {
-                val line = spreads.optJSONObject(i) ?: continue
-                val point = line.optDouble("point", Double.NaN)
-                val price = line.optDouble("price", Double.NaN)
-                if (!point.isFinite() || !price.isFinite() || price <= 1.0) continue
+                if (!point.isFinite() || kotlin.math.abs(point - 2.5) >= 0.001 ||
+                    !line.optString("side").equals("over", true) || !price.isFinite() || price <= 1.0) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ФОРЫ · лучшие цены MELBET", 10, true, muted)
+                    addText(panelOdds, "ОБЩИЙ ТОТАЛ", 10, true, muted)
                     headingShown = true
                 }
-                val team = if (line.optString("team") == "home") "Фора 1" else "Фора 2"
-                val signedPoint = if (point > 0) "+${fmt(point)}" else fmt(point)
-                addMarketRow(panelOdds, listOf(Triple("$team ($signedPoint)", oddsText(line,"price"), gold)))
+                addMarketRow(panelOdds, listOf(Triple("ТБ 2.5", oddsText(line, "price"), gold)))
                 shown++
             }
         }
         val teamTotals = best.optJSONArray("teamTotals")
-        if (teamTotals != null && teamTotals.length() > 0) {
+        if (teamTotals != null) {
             var headingShown = false
             for (i in 0 until teamTotals.length()) {
                 val line = teamTotals.optJSONObject(i) ?: continue
                 val price = line.optDouble("price", Double.NaN)
                 val point = line.optDouble("point", Double.NaN)
                 val side = line.optString("side")
-                // Индивидуальные UNDER-котировки скрыты; в карточке остаются только OVER.\n                if (!side.equals("over", ignoreCase = true) || !price.isFinite() || price <= 1.0 || !point.isFinite()) continue
+                if (!side.equals("over", true) || !price.isFinite() || price <= 1.0 ||
+                    !point.isFinite() || (kotlin.math.abs(point - 0.5) >= 0.001 && kotlin.math.abs(point - 1.5) >= 0.001)) continue
                 if (!headingShown) {
-                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ · MELBET", 10, true, muted)
+                    addText(panelOdds, "ИНДИВИДУАЛЬНЫЕ ТОТАЛЫ", 10, true, muted)
                     headingShown = true
                 }
                 val team = if (line.optString("team") == "home") "Хозяева" else "Гости"
-                addMarketRow(panelOdds, listOf(Triple("$team БОЛЬШЕ ${fmt(point)}", oddsText(line, "price"), gold)))
+                addMarketRow(panelOdds, listOf(Triple("$team ИТБ ${fmt(point)}", oddsText(line, "price"), gold)))
                 shown++
             }
         }
-        if (shown == 0) {
-            addText(panelOdds, "Источник пока не вернул котировки по нужным рынкам", 11, false, muted)
-        }
+        if (shown == 0) addText(panelOdds, "Источник пока не вернул котировки по рабочим рынкам", 11, false, muted)
         addText(panelOdds, "Обновлено: " + formatSourceTimestamp(odds.optString("updatedAt")) + " · местное время", 9, false, muted)
     }
-
     private fun oddsText(obj: JSONObject, key: String): String =
         if (obj.isNull(key)) "—" else String.format(Locale.US, "%.2f", obj.optDouble(key))
 
@@ -1692,7 +1668,6 @@ class MainActivity : Activity() {
         collect("awayOver15", "ИТБ 1.5 · гости", { _, a -> a >= 2 })
         collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h, a -> h + a >= 3 })
         collect("bttsYes", "ОЗ — да", { h, a -> h >= 1 && a >= 1 })
-        collect("over15", "ТБ 1.5", { h, a -> h + a >= 2 })
         collect("homeOver05", "ИТБ 0.5 · хозяева", { h, _ -> h >= 1 })
         collect("awayOver05", "ИТБ 0.5 · гости", { _, a -> a >= 1 })
         return metrics
@@ -2419,7 +2394,8 @@ class MainActivity : Activity() {
         if (side.isBlank()) return null
         if (side.contains("ИТМ", ignoreCase = true) || side.startsWith("ТМ ", ignoreCase = true) ||
             side.contains("UNDER", ignoreCase = true) || side.equals("Не X2", ignoreCase = true)) return null
-        if (side.equals("ТБ 2.5", ignoreCase = true)) return side
+        if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true) ||
+            side.equals("ОЗ ДА", ignoreCase = true) || side.equals("ТБ 2.5", ignoreCase = true)) return side
         if (side.startsWith("ИТБ ", ignoreCase = true)) {
             val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE)
                 .find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
@@ -2456,6 +2432,9 @@ class MainActivity : Activity() {
         // candidates from those probabilities so the match card still ranks all
         // supported markets instead of depending on paperSignals.
         val rawMarkets = listOf(
+            "1x" to "1X",
+            "x2" to "X2",
+            "bttsYes" to "ОЗ ДА",
             "over25" to "ТБ 2.5",
             "homeOver05" to "ИТБ 0.5 · ${match.optString("home")}",
             "homeOver15" to "ИТБ 1.5 · ${match.optString("home")}",
@@ -2618,7 +2597,7 @@ class MainActivity : Activity() {
         // strategy. Missing probabilities for other strategy markets must not hide it.
         // Markets outside this list (1X2, handicaps, BTTS NO, higher totals) are ignored.
         val probabilityFields = listOf(
-            "1x", "x2", "over15", "over25",
+            "1x", "x2", "over25",
             "homeOver05", "homeOver15", "awayOver05", "awayOver15",
             "bttsYes"
         )
@@ -2661,7 +2640,7 @@ class MainActivity : Activity() {
             }
             return false
         }
-        if (hasTotal("totals", "over15", 1.5) || hasTotal("totals", "over25", 2.5)) return true
+        if (hasTotal("totals", "over25", 2.5)) return true
 
         val teamRows = best.optJSONArray("teamTotals")
         if (teamRows != null) {
@@ -2711,7 +2690,7 @@ class MainActivity : Activity() {
             }
             return false
         }
-        return hasOverQuote("totals", setOf(1.5, 2.5)) || hasOverQuote("teamTotals", setOf(0.5, 1.5))
+        return hasOverQuote("totals", setOf(2.5)) || hasOverQuote("teamTotals", setOf(0.5, 1.5))
     }
 
     private fun uefaPaperSignal(match: JSONObject): JSONObject? {
@@ -3724,6 +3703,10 @@ class MainActivity : Activity() {
                         }
                         return "—"
                     }
+                    fun scalarQuote(obj: JSONObject?, key: String): String {
+                        val price = obj?.optDouble(key, Double.NaN) ?: Double.NaN
+                        return if (price.isFinite() && price > 1.0) String.format(Locale.US, "%.2f", price) else "—"
+                    }
                     fun marketGroup(title: String, rows: List<String>): LinearLayout {
                         val group = LinearLayout(this).apply {
                             orientation = LinearLayout.VERTICAL
@@ -3746,6 +3729,17 @@ class MainActivity : Activity() {
                     fun marketLine(title: String, probability: String, price: String): String =
                         "$title · $probability · кэф $price"
 
+                    val doubleChance = bestOdds?.optJSONObject("doubleChance")
+                    val btts = bestOdds?.optJSONObject("btts")
+                    addMarketPair(
+                        marketGroup("ДВОЙНОЙ ШАНС", listOf(
+                            marketLine("1X", pct(pred, "1x"), scalarQuote(doubleChance, "1x")),
+                            marketLine("X2", pct(pred, "x2"), scalarQuote(doubleChance, "x2"))
+                        )),
+                        marketGroup("ОБЕ КОМАНДЫ ЗАБЬЮТ", listOf(
+                            marketLine("ОЗ — да", pct(pred, "bttsYes"), scalarQuote(btts, "yes"))
+                        ))
+                    )
                     addMarketPair(
                         marketGroup("ОБЩИЙ ТОТАЛ", listOf(
                             marketLine("ТБ 2.5", pct(pred, "over25"), totalQuote(2.5, "over"))
