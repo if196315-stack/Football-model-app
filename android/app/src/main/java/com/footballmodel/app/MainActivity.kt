@@ -2419,9 +2419,7 @@ class MainActivity : Activity() {
         if (side.isBlank()) return null
         if (side.contains("ИТМ", ignoreCase = true) || side.startsWith("ТМ ", ignoreCase = true) ||
             side.contains("UNDER", ignoreCase = true) || side.equals("Не X2", ignoreCase = true)) return null
-        if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true) ||
-            side.equals("ОЗ ДА", ignoreCase = true)) return side
-        if (listOf("ТБ 1.5", "ТБ 2.5").any { side.equals(it, ignoreCase = true) }) return side
+        if (side.equals("ТБ 2.5", ignoreCase = true)) return side
         if (side.startsWith("ИТБ ", ignoreCase = true)) {
             val point = Regex("ИТБ\\s+([0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE)
                 .find(side)?.groupValues?.get(1)?.toDoubleOrNull() ?: return null
@@ -2458,10 +2456,6 @@ class MainActivity : Activity() {
         // candidates from those probabilities so the match card still ranks all
         // supported markets instead of depending on paperSignals.
         val rawMarkets = listOf(
-            "1x" to "1X",
-            "x2" to "X2",
-            "bttsYes" to "ОЗ ДА",
-            "over15" to "ТБ 1.5",
             "over25" to "ТБ 2.5",
             "homeOver05" to "ИТБ 0.5 · ${match.optString("home")}",
             "homeOver15" to "ИТБ 1.5 · ${match.optString("home")}",
@@ -3717,17 +3711,6 @@ class MainActivity : Activity() {
                     mainMarkets.setPadding(dp(12), dp(12), dp(12), dp(12))
                     addMarketTitle(mainMarkets, "!", "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
-                    fun quote(key: String): String {
-                        val dc = bestOdds?.optJSONObject("doubleChance")
-                        val btts = bestOdds?.optJSONObject("btts")
-                        val value = when {
-                            key in listOf("1x", "x2", "12") -> dc?.optDouble(key, Double.NaN)
-                            key == "bttsYes" -> btts?.optDouble("yes", Double.NaN)
-                            key == "bttsNo" -> btts?.optDouble("no", Double.NaN)
-                            else -> null
-                        }
-                        return if (value != null && value.isFinite() && value > 1.0) String.format(Locale.US, "%.2f", value) else "—"
-                    }
                     fun totalQuote(point: Double, side: String, team: String? = null): String {
                         val rows = bestOdds?.optJSONArray(if (team == null) "totals" else "teamTotals") ?: return "—"
                         for (i in 0 until rows.length()) {
@@ -3764,17 +3747,7 @@ class MainActivity : Activity() {
                         "$title · $probability · кэф $price"
 
                     addMarketPair(
-                        marketGroup("ДВОЙНОЙ ШАНС", listOf(
-                            marketLine("1X", pct(pred, "1x"), quote("1x")),
-                            marketLine("X2", pct(pred, "x2"), quote("x2"))
-                        )),
-                        marketGroup("ОБЕ КОМАНДЫ ЗАБЬЮТ", listOf(
-                            marketLine("ОЗ ДА", pct(pred, "bttsYes"), quote("bttsYes"))
-                        ))
-                    )
-                    addMarketPair(
-                        marketGroup("ТОТАЛ МАТЧА", listOf(
-                            marketLine("ТБ 1.5", pct(pred, "over15"), totalQuote(1.5, "over")),
+                        marketGroup("ОБЩИЙ ТОТАЛ", listOf(
                             marketLine("ТБ 2.5", pct(pred, "over25"), totalQuote(2.5, "over"))
                         )),
                         marketGroup("ОЖИДАЕМЫЕ ГОЛЫ", listOf(
