@@ -1368,13 +1368,13 @@ class MainActivity : Activity() {
         val box = card(parent)
         box.setPadding(dp(14), dp(13), dp(14), dp(13))
         box.background = GradientDrawable().apply {
-            setColor(Color.rgb(12, 20, 27)); cornerRadius = dp(13).toFloat()
-            setStroke(dp(1), Color.rgb(39, 62, 72))
+            setColor(Color.rgb(14, 24, 38)); cornerRadius = dp(18).toFloat()
+            setStroke(dp(1), Color.rgb(91, 78, 55))
         }
-        box.addView(label(title.uppercase(Locale.ROOT), 10, true, Color.rgb(92, 205, 190)).apply {
+        box.addView(label(title.uppercase(Locale.ROOT), 10, true, gold).apply {
             typeface = Typeface.MONOSPACE; letterSpacing = 0.10f
         })
-        if (subtitle.isNotBlank()) box.addView(label(subtitle, 9, false, Color.rgb(133, 153, 164)).apply {
+        if (subtitle.isNotBlank()) box.addView(label(subtitle, 9, false, muted).apply {
             typeface = Typeface.MONOSPACE
         })
         return box
@@ -1382,7 +1382,7 @@ class MainActivity : Activity() {
 
     private fun terminalMetric(parent: LinearLayout, name: String, value: String, tint: Int) {
         val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(7), dp(7), dp(4), dp(7)) }
-        col.addView(label(name.uppercase(Locale.ROOT), 8, true, Color.rgb(119, 143, 153)).apply { typeface = Typeface.MONOSPACE })
+        col.addView(label(name.uppercase(Locale.ROOT), 8, true, muted).apply { typeface = Typeface.MONOSPACE })
         col.addView(label(value, 15, true, tint).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
         parent.addView(col, LinearLayout.LayoutParams(0, -2, 1f))
     }
@@ -1390,8 +1390,8 @@ class MainActivity : Activity() {
     private fun terminalSummary(parent: LinearLayout, title: String, summary: AnalyticsSlice) {
         val box = terminalSection(parent, title, "РАССЧИТАНО: " + summary.settled + " · ОЖИДАЮТ: " + summary.pending)
         val first = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(first, "ЧИСТАЯ ПРИБЫЛЬ", fmt(summary.profit), if (summary.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
-        terminalMetric(first, "ROI · ДОХОДНОСТЬ", String.format(Locale.US, "%.2f%%", summary.roi), if (summary.roi >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
+        terminalMetric(first, "ЧИСТАЯ ПРИБЫЛЬ", fmt(summary.profit), if (summary.profit >= 0) accent else Color.rgb(210, 112, 108))
+        terminalMetric(first, "ROI · ДОХОДНОСТЬ", String.format(Locale.US, "%.2f%%", summary.roi), if (summary.roi >= 0) accent else Color.rgb(210, 112, 108))
         terminalMetric(first, "ДОЛЯ ПОБЕД", String.format(Locale.US, "%.1f%%", summary.winRate), Color.WHITE)
         box.addView(first)
         val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -1410,7 +1410,7 @@ class MainActivity : Activity() {
         val chart = object : View(this) {
             private val line = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = dp(2).toFloat(); strokeCap = Paint.Cap.ROUND }
             private val grid = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(80, 105, 116); strokeWidth = dp(1).toFloat() }
-            private val txt = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(133, 153, 164); textSize = dp(9).toFloat(); typeface = Typeface.MONOSPACE }
+            private val txt = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = muted; textSize = dp(9).toFloat(); typeface = Typeface.MONOSPACE }
             override fun onDraw(canvas: Canvas) {
                 super.onDraw(canvas)
                 val left = dp(43).toFloat(); val right = width - dp(8).toFloat()
@@ -1432,7 +1432,7 @@ class MainActivity : Activity() {
                     val y = bottom - ((value - low) / span * (bottom - top)).toFloat()
                     if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
                 }
-                line.color = if ((values.lastOrNull() ?: 0.0) >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)
+                line.color = if ((values.lastOrNull() ?: 0.0) >= 0) accent else Color.rgb(210, 112, 108)
                 canvas.drawPath(path, line)
                 canvas.drawText("НАЧАЛО", left, height - dp(4).toFloat(), txt)
                 canvas.drawText("СЕЙЧАС", right - dp(38), height - dp(4).toFloat(), txt)
@@ -1451,8 +1451,8 @@ class MainActivity : Activity() {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(5), 0, dp(5)) }
             row.addView(label((index + 1).toString() + ". " + item.label, 10, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1.5f))
             row.addView(label(item.count.toString() + " · " + item.wins + "/" + item.losses, 9, false, muted).apply { typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.8f))
-            row.addView(label(String.format(Locale.US, "%.1f%%", item.roi), 9, true, if (item.roi >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
-            row.addView(label(fmt(item.profit), 9, true, if (item.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
+            row.addView(label(String.format(Locale.US, "%.1f%%", item.roi), 9, true, if (item.roi >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
+            row.addView(label(fmt(item.profit), 9, true, if (item.profit >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
             box.addView(row)
         }
     }
@@ -1526,12 +1526,12 @@ class MainActivity : Activity() {
                 val active = selectedStatsPeriod == option.first
                 val button = TextView(this).apply {
                     text = option.second; gravity = Gravity.CENTER; textSize = 11f; typeface = Typeface.MONOSPACE
-                    setPadding(dp(5), dp(9), dp(5), dp(9))
-                    setTextColor(if (active) Color.rgb(8, 18, 22) else Color.rgb(177, 196, 204))
-                    background = rounded(if (active) Color.rgb(73, 218, 163) else Color.rgb(22, 37, 46), 7)
+                    setPadding(dp(8), dp(10), dp(8), dp(10))
+                    setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
+                    background = rounded(if (active) accent else Color.rgb(23, 39, 61), 7)
                     setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); render() } }
                 }
-                row.addView(button, LinearLayout.LayoutParams(0, dp(37), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
+                row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
             controls.addView(row)
         }
@@ -1540,19 +1540,19 @@ class MainActivity : Activity() {
             val active = selectedStatsSource == option.first
             val button = TextView(this).apply {
                 text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
-                setPadding(dp(5), dp(9), dp(5), dp(9))
-                setTextColor(if (active) Color.rgb(8, 18, 22) else Color.rgb(177, 196, 204))
-                background = rounded(if (active) Color.rgb(91, 192, 213) else Color.rgb(22, 37, 46), 7)
+                setPadding(dp(8), dp(10), dp(8), dp(10))
+                setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
+                background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
                 setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); render() } }
             }
-            sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(36), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
+            sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
         controls.addView(sourceRow)
         val export = TextView(this).apply {
             text = "↓  ЭКСПОРТ ИСТОРИИ СТАВОК · CSV"; gravity = Gravity.CENTER; textSize = 10f
             typeface = Typeface.MONOSPACE; setPadding(dp(8), dp(11), dp(8), dp(11))
-            setTextColor(Color.rgb(73, 218, 163))
-            background = rounded(Color.rgb(17, 39, 43), 7)
+            setTextColor(accent)
+            background = rounded(Color.rgb(26, 35, 45), 7)
             setOnClickListener { exportBetAnalyticsCsv() }
         }
         controls.addView(export, LinearLayout.LayoutParams(-1, -2).apply { setMargins(dp(3), dp(5), dp(3), dp(2)) })
@@ -1560,10 +1560,10 @@ class MainActivity : Activity() {
         val report = cached.current
         statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
-            warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, Color.rgb(245, 190, 95)))
+            warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
         val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "РУЧНЫЕ + AI-РУЧНЫЕ + ЭКСПРЕССЫ · ЭКСПРЕССЫ УЧТЕНЫ ОДИН РАЗ")
-        val pnlColor = if (report.overall.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)
+        val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
         hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
         hero.addView(label("ЧИСТАЯ ПРИБЫЛЬ / УБЫТОК", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
         val heroRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -1574,7 +1574,7 @@ class MainActivity : Activity() {
         val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         terminalMetric(second, "ОБОРОТ", fmt(report.overall.turnover), Color.WHITE)
         terminalMetric(second, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
-        terminalMetric(second, "ОЖИДАЮТ", report.overall.pending.toString(), Color.rgb(245, 190, 95))
+        terminalMetric(second, "ОЖИДАЮТ", report.overall.pending.toString(), gold)
         hero.addView(second)
         val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
@@ -1582,29 +1582,29 @@ class MainActivity : Activity() {
         val allTimeBankEstimate = if (selectedStatsPeriod == "ALL" && selectedStatsSource == "ALL")
             initialBank?.let { it + report.overall.profit } else null
         terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
-        terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", allTimeBankEstimate?.let { fmt(it) } ?: "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", Color.rgb(91, 192, 213))
+        terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", allTimeBankEstimate?.let { fmt(it) } ?: "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", gold)
         hero.addView(bankRow)
         hero.addView(label("Расчётный банк показывается только для периода «Всё время» и всех источников; пополнения и снятия, не внесённые в историю, не учитываются.", 9, false, muted))
 
         addTerminalEquityChart(matchesContainer, report.overall.points)
         val risk = terminalSection(matchesContainer, "РИСКИ И СЕРИИ", "МАКСИМАЛЬНАЯ ПРОСАДКА ПРИБЫЛИ · НЕ ИЗМЕНЕНИЕ ДЕНЕЖНОГО БАЛАНСА")
         val riskRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(riskRow, "МАКС. ПРОСАДКА", fmt(report.maxDrawdown), Color.rgb(245, 105, 112))
-        terminalMetric(riskRow, "ПРОСАДКА, %", String.format(Locale.US, "%.1f%%", report.maxDrawdownPercent), Color.rgb(245, 105, 112))
+        terminalMetric(riskRow, "МАКС. ПРОСАДКА", fmt(report.maxDrawdown), Color.rgb(210, 112, 108))
+        terminalMetric(riskRow, "ПРОСАДКА, %", String.format(Locale.US, "%.1f%%", report.maxDrawdownPercent), Color.rgb(210, 112, 108))
         terminalMetric(riskRow, "ТЕКУЩАЯ СЕРИЯ", report.currentStreak, Color.WHITE)
         risk.addView(riskRow)
         val runRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(runRow, "ЛУЧШАЯ СЕРИЯ ПОБЕД", report.longestWinStreak.toString(), Color.rgb(73, 218, 163))
-        terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(245, 105, 112))
+        terminalMetric(runRow, "ЛУЧШАЯ СЕРИЯ ПОБЕД", report.longestWinStreak.toString(), accent)
+        terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
         risk.addView(runRow)
 
         val sourceBox = terminalSection(matchesContainer, "ОДИНОЧНЫЕ СТАВКИ · СРАВНЕНИЕ ИСТОЧНИКОВ", "ЭКСПРЕССЫ ПОКАЗАНЫ ОТДЕЛЬНО")
         val manualRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(manualRow, "РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.manual.profit), if (report.manual.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
+        terminalMetric(manualRow, "РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.manual.profit), if (report.manual.profit >= 0) accent else Color.rgb(210, 112, 108))
         terminalMetric(manualRow, "РУЧНЫЕ · ROI", String.format(Locale.US, "%.1f%%", report.manual.roi), Color.WHITE)
         sourceBox.addView(manualRow)
         val aiRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(aiRow, "AI-РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.ai.profit), if (report.ai.profit >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112))
+        terminalMetric(aiRow, "AI-РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.ai.profit), if (report.ai.profit >= 0) accent else Color.rgb(210, 112, 108))
         terminalMetric(aiRow, "AI-РУЧНЫЕ · ROI", String.format(Locale.US, "%.1f%%", report.ai.roi), Color.WHITE)
         sourceBox.addView(aiRow)
         sourceBox.addView(label("Ручные: " + report.manual.settled + " рассчитано · AI-ручные: " + report.ai.settled + " рассчитано", 10, false, muted))
@@ -1619,15 +1619,15 @@ class MainActivity : Activity() {
         val quality = terminalSection(matchesContainer, "КАЧЕСТВО ДАННЫХ", "НЕРАССЧИТАННЫЕ СТАВКИ НЕ ВХОДЯТ В ПРИБЫЛЬ, ROI И ДОЛЮ ПОБЕД")
         val integrity = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         terminalMetric(integrity, "ПРОЧИТАНО", report.recordsRead.toString(), Color.WHITE)
-        terminalMetric(integrity, "ОШИБОЧНЫЕ", report.invalidRecords.toString(), if (report.invalidRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
-        terminalMetric(integrity, "ДУБЛИ", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) Color.rgb(245, 190, 95) else Color.rgb(73, 218, 163))
+        terminalMetric(integrity, "ОШИБОЧНЫЕ", report.invalidRecords.toString(), if (report.invalidRecords > 0) gold else accent)
+        terminalMetric(integrity, "ДУБЛИ", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) gold else accent)
         quality.addView(integrity)
         quality.addView(label("Каждый экспресс учитывается одной записью; входящие в него исходы не добавляются как отдельные ставки.", 10, false, muted))
         cached.previous?.let { previous ->
             val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
             val delta = report.overall.roi - previous.overall.roi
             compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta) + " · изменение прибыли: " + fmt(report.overall.profit - previous.overall.profit), 12, true,
-                if (delta >= 0) Color.rgb(73, 218, 163) else Color.rgb(245, 105, 112)))
+                if (delta >= 0) accent else Color.rgb(210, 112, 108)))
             compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi) + " · прибыль: " + fmt(previous.overall.profit) + " · рассчитано: " + previous.overall.settled, 10, false, muted))
         }
     }
@@ -1752,7 +1752,7 @@ class MainActivity : Activity() {
             val summaryRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(summaryRow, "ПОПАДАНИЯ", "${metric.hits} / ${metric.n}", Color.WHITE)
             terminalMetric(summaryRow, "ТОЧНОСТЬ", String.format(Locale.US, "%.1f%%", hitRate),
-                if (hitRate >= 50.0) Color.rgb(73, 218, 163) else Color.rgb(245, 190, 95))
+                if (hitRate >= 50.0) accent else gold)
             box.addView(summaryRow)
             box.addView(label("ТОЧНОСТЬ ПО УРОВНЮ УВЕРЕННОСТИ", 9, true, cyan).apply {
                 typeface = Typeface.MONOSPACE
@@ -1929,7 +1929,7 @@ class MainActivity : Activity() {
             elevation = 0f
             setOnClickListener { action() }
         }
-        parent.addView(button, LinearLayout.LayoutParams(0, dp(36), 1f).apply {
+        parent.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply {
             marginEnd = dp(6)
         })
     }
