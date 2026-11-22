@@ -1132,8 +1132,7 @@ class MainActivity : Activity() {
                         }
                     }
                     if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
-                        fixtureDate.isNotBlank() && fixtureDate >= today &&
-                        true
+                        fixtureDate.isNotBlank() && fixtureDate >= today
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
                         if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
@@ -1286,7 +1285,7 @@ class MainActivity : Activity() {
                 val manual = if (source == "ALL") summarizeBets(snapshot, "MANUAL", bounds.first, bounds.second) else null
                 val ai = if (source == "ALL") summarizeBets(snapshot, "AI", bounds.first, bounds.second) else null
                 StatsBetViewCache(key, current, previous, manual, ai)
-            } catch (error: Exception) {
+            } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate bet history statistics", error)
                 null
             }
