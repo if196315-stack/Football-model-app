@@ -16,6 +16,13 @@ class BetAnalyticsCalculatorTest {
         marketKey: String = if (coupon) "COUPON" else "over25"
     ) = AnalyticsBet(id, day, source, status, stake, odds, "Over 2.5", "League A", coupon, topSignal, marketKey)
 
+    @Test fun activeMarketRulesMatchTheEightMarketsShownInTheApp() {
+        listOf("1x", "x2", "bttsYes", "over25", "homeOver05", "homeOver15", "awayOver05", "awayOver15")
+            .forEach { assertEquals(true, ActiveMarketRules.contains(it)) }
+        listOf("over15", "bttsNo", "over35", "spread:home:-0.5", "COUPON")
+            .forEach { assertEquals(false, ActiveMarketRules.contains(it)) }
+    }
+
     @Test fun overallAndMarketStatsIncludeManualAndAiManualSinglesOnce() {
         val report = BetAnalyticsCalculator.calculate(listOf(
             AnalyticsBet("manual-market", 1_000L, "MANUAL", "WON", 20.0, 2.0,
