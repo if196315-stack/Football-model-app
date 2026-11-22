@@ -3137,7 +3137,7 @@ class MainActivity : Activity() {
     private fun render() {
         val json = data ?: return
         refreshHeaderFinancials()
-        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab; "stats" -> selectedLeague; else -> "ALL" }
+        val targetKey = currentTab + "|" + when (currentTab) { "matches" -> selectedLeague; "history" -> selectedHistoryTab; "desk" -> selectedTopTab; else -> "ALL" }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
@@ -3173,7 +3173,7 @@ class MainActivity : Activity() {
         if (cached != null) {
             cached.first.forEach { matchesContainer.addView(it) }
             cached.second.forEach { leagueBar.addView(it) }
-            leagueBar.visibility = if (currentTab in listOf("matches", "stats")) View.VISIBLE else View.GONE
+            leagueBar.visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
             renderedKey = targetKey
             mainScrollView.post {
                 if (renderedKey == targetKey) {
