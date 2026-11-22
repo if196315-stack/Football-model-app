@@ -39,13 +39,26 @@ class BetAnalyticsCalculatorTest {
         val rows = listOf(
             bet("legacy-top", source = "MANUAL", topSignal = true, status = "WON"),
             bet("new-top", source = "AI_MANUAL", status = "LOST"),
-            bet("unrelated-manual", source = "MANUAL", status = "WON"),
-            bet("coupon", source = "MANUAL", status = "WON", stake = 5.0, odds = 3.0, coupon = true)
+            bet("unrelated-manual", source = "MANUAL", status = "WON")
         )
         val report = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L)
         assertEquals(3, report.overall.settled)
         assertEquals(10.0, report.overall.profit, 0.0001)
         assertEquals(30.0, report.overall.turnover, 0.0001)
+    }
+
+    @Test fun couponRecordsAreCompletelyExcludedFromStatistics() {
+        val rows = listOf(
+            bet("single", source = "MANUAL", status = "WON", stake = 10.0, odds = 2.0),
+            bet("coupon", source = "MANUAL", status = "WON", stake = 500.0, odds = 20.0, coupon = true)
+        )
+        val report = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L)
+        assertEquals(1, report.overall.settled)
+        assertEquals(10.0, report.overall.turnover, 0.0001)
+        assertEquals(10.0, report.overall.profit, 0.0001)
+        assertEquals(1, report.recordsRead)
+        assertEquals(0, report.invalidRecords)
+        assertEquals(0, report.duplicateRecords)
     }
 
     @Test fun pendingTopBetDoesNotAffectProfitTurnoverOrWinRate() {

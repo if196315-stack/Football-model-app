@@ -53,7 +53,6 @@ internal data class AnalyticsBreakdown(
 internal data class BetAnalyticsReport(
     val overall: AnalyticsSlice,
     val singles: AnalyticsSlice,
-    val coupons: AnalyticsSlice,
     val manual: AnalyticsSlice,
     val ai: AnalyticsSlice,
     val byMarket: List<AnalyticsBreakdown>,
@@ -74,7 +73,12 @@ internal data class BetAnalyticsReport(
 internal object BetAnalyticsCalculator {
     fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "ALL"): BetAnalyticsReport {
         val ignoredAuto = records.count { it.source.equals("AI_AUTO", true) }
-        val inPeriod = records.filter { !it.source.equals("AI_AUTO", true) && it.dayMillis in from..to && sourceMatches(it, source) }
+        // Statistics contain only real single bets from active markets. Exclude coupon records
+        // before deduplication and validation so they cannot affect any metric or data-quality count.
+        val inPeriod = records.filter {
+            !it.isCoupon && !it.source.equals("AI_AUTO", true) &&
+                it.dayMillis in from..to && sourceMatches(it, source)
+        }
         val unique = LinkedHashMap<String, AnalyticsBet>()
         inPeriod.forEachIndexed { index, bet ->
             val key = bet.id.ifBlank { "${bet.dayMillis}|${bet.source}|${bet.status}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}|${bet.isCoupon}" }
@@ -87,9 +91,7 @@ internal object BetAnalyticsCalculator {
             it.odds.isFinite() && it.odds > 1.0 }
         val invalid = scoped.size - valid.size
         // The report covers only the eight currently active working markets.
-        // Coupons remain a separate ALL-only category; AI_AUTO paper rows were excluded above.
-        val singlesRecords = valid.filter { !it.isCoupon && isWorkingMarket(it.marketKey) }
-        val couponRecords = valid.filter { it.isCoupon }
+        val singlesRecords = valid.filter { isWorkingMarket(it.marketKey) }
         val manualRecords = singlesRecords.filter { !it.source.equals("AI_MANUAL", true) }
         val aiRecords = singlesRecords.filter { it.source.equals("AI_MANUAL", true) }
         val overall = summarize(singlesRecords)
@@ -131,7 +133,6 @@ internal object BetAnalyticsCalculator {
         return BetAnalyticsReport(
             overall = overall,
             singles = overall,
-            coupons = summarize(couponRecords),
             manual = summarize(manualRecords),
             ai = summarize(aiRecords),
             byMarket = market,
