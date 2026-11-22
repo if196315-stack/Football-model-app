@@ -48,8 +48,8 @@ class ApplyMelBetSnapshotsTests(unittest.TestCase):
             self.snapshot("eligible"),
             self.snapshot("stale", age_seconds=13 * 60 * 60),
             self.snapshot("inactive", active=False),
-            self.snapshot("wrong-line", market="team_total_over", outcome="over",
-                          price=1.7),
+            {**self.snapshot("wrong-line", market="team_total_over", outcome="over",
+               price=1.7), "team": "home", "point": 3.5, "side": "over"},
         ]
         result = apply_snapshots(data, rows, self.now)
         matches = result["competitions"][0]["matches"]
