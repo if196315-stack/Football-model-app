@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-22T17:36:35.382516+00:00",
+  "updatedAt": "2026-11-22T19:34:42.597386+00:00",
   "source": "PitchAPI (fixtures, results and shot-level xG); API-Sport (bookmaker odds)",
   "modelVersion": "xg-poisson-v1",
   "modelConfig": {
@@ -8,20 +8,20 @@
     "shrinkage": 3.0
   },
   "xgProvider": "PitchAPI",
-  "resultHistoryMatches": 8683,
+  "resultHistoryMatches": 8689,
   "resultHistoryByCompetition": {
-    "PL": 2008,
-    "PD": 1645,
-    "SA": 1637,
-    "BL1": 1618,
-    "FL1": 1775
+    "PL": 2009,
+    "PD": 1647,
+    "SA": 1638,
+    "BL1": 1619,
+    "FL1": 1776
   },
   "xgHistoryMatches": 8678,
   "xgHistoryPairedMatches": 8678,
-  "xgHistoryPending": 5,
-  "xgUpdatedAt": "2026-11-22T17:36:31.057302+00:00",
+  "xgHistoryPending": 11,
+  "xgUpdatedAt": "2026-11-22T19:34:35.208323+00:00",
   "status": "ready",
-  "notice": "Прогнозы доступны для 1216 предстоящих матчей; в истории результатов 8683 матчей; парный xG есть у 8678, ожидают xG: 5.",
+  "notice": "Прогнозы доступны для 1210 предстоящих матчей; в истории результатов 8689 матчей; парный xG есть у 8678, ожидают xG: 11.",
   "dataWarning": "Прогнозы строятся только на завершённых матчах с парным xG PitchAPI. Отсутствующий xG не заменяется нулём.",
   "competitions": [
     {
@@ -22038,10 +22038,7 @@
           "homeScore": 1,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_19nSVX",
@@ -22052,10 +22049,7 @@
           "homeScore": 1,
           "awayScore": 4,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3IrTv6",
@@ -22066,10 +22060,7 @@
           "homeScore": 2,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_2PtCYr",
@@ -22080,10 +22071,7 @@
           "homeScore": 2,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_04ixCx",
@@ -22094,10 +22082,7 @@
           "homeScore": 0,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_0B6kF2",
@@ -22108,10 +22093,7 @@
           "homeScore": 3,
           "awayScore": 2,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3XXOvK",
@@ -22122,10 +22104,7 @@
           "homeScore": 2,
           "awayScore": 2,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_18ul5S",
@@ -22136,14 +22115,22 @@
           "homeScore": 2,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+        },
+        {
+          "id": "m_4Pdd0e",
+          "utcDate": "2026-11-22",
+          "status": "FINISHED",
+          "home": "Liverpool",
+          "away": "Manchester United",
+          "homeScore": 4,
+          "awayScore": 0,
+          "prediction": null,
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_2FVfvL",
-          "utcDate": "2026-11-23T20:00:00Z",
+          "utcDate": "2026-11-23",
           "status": "SCHEDULED",
           "home": "Brentford",
           "away": "Everton",
@@ -22226,12 +22213,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 385.13
+            "bookmakerUpdateAgeSeconds": 1282.969
           }
         },
         {
           "id": "m_3xkED2",
-          "utcDate": "2026-11-27T20:00:00Z",
+          "utcDate": "2026-11-27",
           "status": "SCHEDULED",
           "home": "Nottingham Forest",
           "away": "Chelsea",
@@ -22314,12 +22301,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_35NS0w",
-          "utcDate": "2026-11-28T15:00:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Leeds United",
           "away": "Coventry City",
@@ -22396,12 +22383,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_4AXxqK",
-          "utcDate": "2026-11-28T15:00:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Manchester United",
           "away": "Brentford",
@@ -22484,12 +22471,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2a6aiA",
-          "utcDate": "2026-11-28T17:30:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Ipswich Town",
           "away": "Aston Villa",
@@ -22572,12 +22559,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_30gNoT",
-          "utcDate": "2026-11-29T12:00:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Everton",
           "away": "Liverpool",
@@ -22660,12 +22647,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1EvjuD",
-          "utcDate": "2026-11-29T14:05:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Brighton & Hove Albion",
           "away": "Newcastle United",
@@ -22742,12 +22729,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_38YPw8",
-          "utcDate": "2026-11-29T14:05:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Sunderland",
           "away": "Tottenham Hotspur",
@@ -22830,12 +22817,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3ELOjU",
-          "utcDate": "2026-11-29T14:05:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Fulham",
           "away": "AFC Bournemouth",
@@ -22918,12 +22905,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1cmXYH",
-          "utcDate": "2026-11-29T14:05:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Crystal Palace",
           "away": "Hull City",
@@ -23006,12 +22993,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_000aNg",
-          "utcDate": "2026-11-29T16:30:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Arsenal",
           "away": "Manchester City",
@@ -23094,12 +23081,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2auuWk",
-          "utcDate": "2026-12-01T20:00:00Z",
+          "utcDate": "2026-12-01",
           "status": "SCHEDULED",
           "home": "Coventry City",
           "away": "Ipswich Town",
@@ -23182,12 +23169,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_45PBCV",
-          "utcDate": "2026-12-02T19:30:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "Manchester City",
           "away": "Leeds United",
@@ -23270,12 +23257,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 274.962
+            "bookmakerUpdateAgeSeconds": 1172.801
           }
         },
         {
           "id": "m_1mNrnL",
-          "utcDate": "2026-12-02T19:30:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "Hull City",
           "away": "Nottingham Forest",
@@ -23358,12 +23345,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_109S60",
-          "utcDate": "2026-12-02T19:30:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "Chelsea",
           "away": "Crystal Palace",
@@ -23446,12 +23433,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_2ca0e2",
-          "utcDate": "2026-12-02T19:30:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "Liverpool",
           "away": "Sunderland",
@@ -23534,12 +23521,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_32EZEH",
-          "utcDate": "2026-12-02T20:15:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "Brentford",
           "away": "Arsenal",
@@ -23622,12 +23609,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_2q2SV8",
-          "utcDate": "2026-12-02T20:15:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "AFC Bournemouth",
           "away": "Brighton & Hove Albion",
@@ -23710,12 +23697,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_1J5cPp",
-          "utcDate": "2026-12-02T20:15:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "Newcastle United",
           "away": "Manchester United",
@@ -23798,12 +23785,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_0clzxH",
-          "utcDate": "2026-12-02T20:15:00Z",
+          "utcDate": "2026-12-02",
           "status": "SCHEDULED",
           "home": "Aston Villa",
           "away": "Everton",
@@ -23886,12 +23873,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         },
         {
           "id": "m_1sGD9w",
-          "utcDate": "2026-12-03T20:00:00Z",
+          "utcDate": "2026-12-03",
           "status": "SCHEDULED",
           "home": "Tottenham Hotspur",
           "away": "Fulham",
@@ -23974,7 +23961,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 273.514
+            "bookmakerUpdateAgeSeconds": 1171.353
           }
         }
       ],
@@ -46192,10 +46179,7 @@
           "homeScore": 0,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_1MrgIP",
@@ -46206,10 +46190,7 @@
           "homeScore": 3,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3JKUH6",
@@ -46220,10 +46201,7 @@
           "homeScore": 0,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_4DeisY",
@@ -46234,10 +46212,7 @@
           "homeScore": 1,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_101pSt",
@@ -46248,10 +46223,7 @@
           "homeScore": 2,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_2xAkEu",
@@ -46262,14 +46234,33 @@
           "homeScore": 3,
           "awayScore": 2,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+        },
+        {
+          "id": "m_2WvtVu",
+          "utcDate": "2026-11-22",
+          "status": "FINISHED",
+          "home": "Racing Santander",
+          "away": "Real Sociedad",
+          "homeScore": 3,
+          "awayScore": 2,
+          "prediction": null,
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+        },
+        {
+          "id": "m_25yFU8",
+          "utcDate": "2026-11-22",
+          "status": "FINISHED",
+          "home": "Osasuna",
+          "away": "Málaga",
+          "homeScore": 1,
+          "awayScore": 0,
+          "prediction": null,
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3ZF56r",
-          "utcDate": "2026-11-22T20:00:00Z",
+          "utcDate": "2026-11-22",
           "status": "SCHEDULED",
           "home": "Getafe",
           "away": "Atlético Madrid",
@@ -46352,12 +46343,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 385.13
+            "bookmakerUpdateAgeSeconds": 1282.969
           }
         },
         {
           "id": "m_3jVoFq",
-          "utcDate": "2026-11-23T20:00:00Z",
+          "utcDate": "2026-11-23",
           "status": "SCHEDULED",
           "home": "Levante",
           "away": "Elche",
@@ -46440,12 +46431,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 385.13
+            "bookmakerUpdateAgeSeconds": 1282.969
           }
         },
         {
           "id": "m_3N7OsF",
-          "utcDate": "2026-11-27T20:00:00Z",
+          "utcDate": "2026-11-27",
           "status": "SCHEDULED",
           "home": "Levante",
           "away": "Racing Santander",
@@ -46528,12 +46519,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_08z59s",
-          "utcDate": "2026-11-28T13:00:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Real Betis",
           "away": "Rayo Vallecano",
@@ -46610,12 +46601,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_0Ug8cm",
-          "utcDate": "2026-11-28T17:30:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Elche",
           "away": "Atlético Madrid",
@@ -46692,12 +46683,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3rnAZg",
-          "utcDate": "2026-11-28T20:00:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Real Madrid",
           "away": "Deportivo Alavés",
@@ -46768,12 +46759,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_33dRGf",
-          "utcDate": "2026-11-29T13:00:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Valencia",
           "away": "Osasuna",
@@ -46856,12 +46847,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_4fVjJA",
-          "utcDate": "2026-11-29T15:15:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Deportivo A Coruña",
           "away": "Barcelona",
@@ -46927,12 +46918,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3WXB3J",
-          "utcDate": "2026-11-29T17:30:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Celta Vigo",
           "away": "Villarreal",
@@ -47015,12 +47006,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2Yqjou",
-          "utcDate": "2026-11-29T20:00:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Real Sociedad",
           "away": "Sevilla",
@@ -47103,12 +47094,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3iTvoj",
-          "utcDate": "2026-11-30T20:00:00Z",
+          "utcDate": "2026-11-30",
           "status": "SCHEDULED",
           "home": "Espanyol",
           "away": "Getafe",
@@ -47191,7 +47182,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 277.566
+            "bookmakerUpdateAgeSeconds": 1175.405
           }
         }
       ],
@@ -69332,10 +69323,7 @@
           "homeScore": 3,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_01qIw5",
@@ -69346,10 +69334,7 @@
           "homeScore": 2,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_2fNTjV",
@@ -69360,10 +69345,7 @@
           "homeScore": 1,
           "awayScore": 5,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_1jov2C",
@@ -69374,10 +69356,7 @@
           "homeScore": 1,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_0M5Pz1",
@@ -69388,10 +69367,7 @@
           "homeScore": 4,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_4TXXCg",
@@ -69402,10 +69378,7 @@
           "homeScore": 0,
           "awayScore": 2,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_1PKq2V",
@@ -69416,14 +69389,22 @@
           "homeScore": 1,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+        },
+        {
+          "id": "m_40elPe",
+          "utcDate": "2026-11-22",
+          "status": "FINISHED",
+          "home": "Milan",
+          "away": "Frosinone",
+          "homeScore": 5,
+          "awayScore": 1,
+          "prediction": null,
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_0ZgZVI",
-          "utcDate": "2026-11-22T19:45:00Z",
+          "utcDate": "2026-11-22",
           "status": "SCHEDULED",
           "home": "Atalanta",
           "away": "Inter",
@@ -69506,12 +69487,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 385.13
+            "bookmakerUpdateAgeSeconds": 1282.969
           }
         },
         {
           "id": "m_08lkfg",
-          "utcDate": "2026-11-23T19:45:00Z",
+          "utcDate": "2026-11-23",
           "status": "SCHEDULED",
           "home": "Monza",
           "away": "Fiorentina",
@@ -69594,12 +69575,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 385.13
+            "bookmakerUpdateAgeSeconds": 1282.969
           }
         },
         {
           "id": "m_398Ugm",
-          "utcDate": "2026-11-27T19:45:00Z",
+          "utcDate": "2026-11-27",
           "status": "SCHEDULED",
           "home": "Venezia",
           "away": "Bologna",
@@ -69682,12 +69663,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1Kxps6",
-          "utcDate": "2026-11-28T14:00:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Frosinone",
           "away": "Parma",
@@ -69764,12 +69745,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1LXkdY",
-          "utcDate": "2026-11-28T17:00:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Torino",
           "away": "Lazio",
@@ -69852,12 +69833,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1wivS8",
-          "utcDate": "2026-11-28T19:45:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Inter",
           "away": "Genoa",
@@ -69934,12 +69915,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1HNA3N",
-          "utcDate": "2026-11-29T11:30:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Udinese",
           "away": "Fiorentina",
@@ -70022,12 +70003,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2PpCtR",
-          "utcDate": "2026-11-29T14:00:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Sassuolo",
           "away": "Napoli",
@@ -70104,12 +70085,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2FQrRd",
-          "utcDate": "2026-11-29T17:00:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Roma",
           "away": "Monza",
@@ -70180,12 +70161,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_45OSSt",
-          "utcDate": "2026-11-29T19:45:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Como",
           "away": "Juventus",
@@ -70268,12 +70249,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_0fP1BP",
-          "utcDate": "2026-11-30T17:30:00Z",
+          "utcDate": "2026-11-30",
           "status": "SCHEDULED",
           "home": "Lecce",
           "away": "Atalanta",
@@ -70356,12 +70337,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2TYAqN",
-          "utcDate": "2026-11-30T19:45:00Z",
+          "utcDate": "2026-11-30",
           "status": "SCHEDULED",
           "home": "Cagliari",
           "away": "Milan",
@@ -70444,7 +70425,259 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
+          }
+        },
+        {
+          "id": "m_3cZRHv",
+          "utcDate": "2026-12-04",
+          "status": "SCHEDULED",
+          "home": "Bologna",
+          "away": "Roma",
+          "homeScore": null,
+          "awayScore": null,
+          "prediction": {
+            "1x": 0.49598131513248384,
+            "x2": 0.7203939560242936,
+            "over15": 0.8590198912576428,
+            "over25": 0.6703026427028769,
+            "over35": 0.45311225083218243,
+            "homeOver05": 0.7657924166676541,
+            "homeOver15": 0.4258289966354133,
+            "homeOver25": 0.17909247915037968,
+            "homeOver35": 0.05970922500523505,
+            "awayOver05": 0.8648113896929897,
+            "awayOver15": 0.5942875756582859,
+            "awayOver25": 0.323617088722716,
+            "awayOver35": 0.14307226248290822,
+            "bttsYes": 0.6622660040747068,
+            "bttsNo": 0.3377339959252932,
+            "expectedHomeGoals": 1.451547,
+            "expectedAwayGoals": 2.001084,
+            "strongestSignal": null,
+            "modelVersion": "xg-poisson-v1",
+            "historyMaxDate": "2026-11-22"
+          },
+          "predictionWarning": null,
+          "odds": {
+            "bookmaker": "MELBET",
+            "best": {
+              "doubleChance": {
+                "1x": 1.78,
+                "x2": 1.3
+              },
+              "totals": [
+                {
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.23
+                },
+                {
+                  "point": 2.5,
+                  "side": "over",
+                  "price": 1.74
+                }
+              ],
+              "teamTotals": [
+                {
+                  "team": "away",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.18
+                },
+                {
+                  "team": "away",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.86
+                },
+                {
+                  "team": "home",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.37
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 2.62
+                }
+              ],
+              "btts": {
+                "yes": 1.65
+              },
+              "spreads": []
+            },
+            "updatedAt": "2026-11-22T19:16:09.158000+00:00",
+            "source": "API-Sport / MelBet",
+            "freshnessStatus": "fresh",
+            "prematchActive": true,
+            "bookmakerUpdateAgeSeconds": 1167.775
+          }
+        },
+        {
+          "id": "m_2BX2E8",
+          "utcDate": "2026-12-05",
+          "status": "SCHEDULED",
+          "home": "Monza",
+          "away": "Como",
+          "homeScore": null,
+          "awayScore": null,
+          "prediction": {
+            "1x": 0.4799155150078055,
+            "x2": 0.7621203042343858,
+            "over15": 0.7577426427950017,
+            "over25": 0.5150765230892883,
+            "over35": 0.2937904068222166,
+            "homeOver05": 0.6517727147413095,
+            "homeOver15": 0.2844277884906609,
+            "homeOver25": 0.09067172663891852,
+            "homeOver35": 0.02254064361300554,
+            "awayOver05": 0.8137725086962441,
+            "awayOver15": 0.5007638961518217,
+            "awayOver25": 0.23771360523860172,
+            "awayOver35": 0.09033649850439127,
+            "bttsYes": 0.5303947171747969,
+            "bttsNo": 0.4696052828252031,
+            "expectedHomeGoals": 1.0549,
+            "expectedAwayGoals": 1.680786,
+            "strongestSignal": null,
+            "modelVersion": "xg-poisson-v1",
+            "historyMaxDate": "2026-11-22"
+          },
+          "predictionWarning": null,
+          "odds": {
+            "bookmaker": "MELBET",
+            "best": {
+              "doubleChance": {
+                "1x": 2.28,
+                "x2": 1.17
+              },
+              "totals": [
+                {
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.21
+                },
+                {
+                  "point": 2.5,
+                  "side": "over",
+                  "price": 1.67
+                }
+              ],
+              "teamTotals": [
+                {
+                  "team": "away",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.14
+                },
+                {
+                  "team": "home",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.5
+                }
+              ],
+              "btts": {
+                "yes": 1.72
+              },
+              "spreads": []
+            },
+            "updatedAt": "2026-11-22T19:16:09.158000+00:00",
+            "source": "API-Sport / MelBet",
+            "freshnessStatus": "fresh",
+            "prematchActive": true,
+            "bookmakerUpdateAgeSeconds": 1167.775
+          }
+        },
+        {
+          "id": "m_46PtPd",
+          "utcDate": "2026-12-05",
+          "status": "SCHEDULED",
+          "home": "Frosinone",
+          "away": "Inter",
+          "homeScore": null,
+          "awayScore": null,
+          "prediction": {
+            "1x": 0.3611368962683129,
+            "x2": 0.8178034374735451,
+            "over15": 0.8951439436521922,
+            "over25": 0.7359171225387249,
+            "over35": 0.532636662124982,
+            "homeOver05": 0.7291038971603873,
+            "homeOver15": 0.3753081916935534,
+            "homeOver25": 0.14427607293161626,
+            "homeOver35": 0.043698556821105856,
+            "awayOver05": 0.9198613297703795,
+            "awayOver15": 0.7175915851988466,
+            "awayOver25": 0.4623274945182463,
+            "awayOver35": 0.24756558131492665,
+            "bttsYes": 0.6706744803827199,
+            "bttsNo": 0.32932551961728007,
+            "expectedHomeGoals": 1.30602,
+            "expectedAwayGoals": 2.523997,
+            "strongestSignal": null,
+            "modelVersion": "xg-poisson-v1",
+            "historyMaxDate": "2026-11-22"
+          },
+          "predictionWarning": null,
+          "odds": {
+            "bookmaker": "MELBET",
+            "best": {
+              "doubleChance": {
+                "1x": 2.69,
+                "x2": 1.12
+              },
+              "totals": [
+                {
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.13
+                },
+                {
+                  "point": 2.5,
+                  "side": "over",
+                  "price": 1.39
+                }
+              ],
+              "teamTotals": [
+                {
+                  "team": "away",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.08
+                },
+                {
+                  "team": "away",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.38
+                },
+                {
+                  "team": "home",
+                  "point": 0.5,
+                  "side": "over",
+                  "price": 1.43
+                },
+                {
+                  "team": "home",
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 2.87
+                }
+              ],
+              "btts": {
+                "yes": 1.54
+              },
+              "spreads": []
+            },
+            "updatedAt": "2026-11-22T19:16:09.158000+00:00",
+            "source": "API-Sport / MelBet",
+            "freshnessStatus": "fresh",
+            "prematchActive": true,
+            "bookmakerUpdateAgeSeconds": 1167.775
           }
         }
       ],
@@ -88185,10 +88418,7 @@
           "homeScore": 1,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3vFZhn",
@@ -88199,10 +88429,7 @@
           "homeScore": 4,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_2mXps3",
@@ -88213,10 +88440,7 @@
           "homeScore": 0,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_0vvP0O",
@@ -88227,10 +88451,7 @@
           "homeScore": 1,
           "awayScore": 5,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_0aFyPg",
@@ -88241,10 +88462,7 @@
           "homeScore": 1,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_0k03w6",
@@ -88255,10 +88473,7 @@
           "homeScore": 0,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_38aXX1",
@@ -88269,10 +88484,7 @@
           "homeScore": 0,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_34jUwH",
@@ -88283,14 +88495,22 @@
           "homeScore": 3,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+        },
+        {
+          "id": "m_1FnTzR",
+          "utcDate": "2026-11-22",
+          "status": "FINISHED",
+          "home": "Werder Bremen",
+          "away": "Hamburger SV",
+          "homeScore": 4,
+          "awayScore": 0,
+          "prediction": null,
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_0toF5d",
-          "utcDate": "2026-11-27T19:30:00Z",
+          "utcDate": "2026-11-27",
           "status": "SCHEDULED",
           "home": "Werder Bremen",
           "away": "Borussia Mönchengladbach",
@@ -88373,12 +88593,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3VtobK",
-          "utcDate": "2026-11-28T14:30:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Mainz 05",
           "away": "Union Berlin",
@@ -88461,12 +88681,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_17iYnz",
-          "utcDate": "2026-11-28T14:30:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Paderborn",
           "away": "Schalke 04",
@@ -88549,12 +88769,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2u1O22",
-          "utcDate": "2026-11-28T14:30:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "1. FC Köln",
           "away": "Elversberg",
@@ -88637,12 +88857,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3Hzh67",
-          "utcDate": "2026-11-28T14:30:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Hamburger SV",
           "away": "Bayern München",
@@ -88714,12 +88934,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3PhJyQ",
-          "utcDate": "2026-11-28T17:30:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "VfB Stuttgart",
           "away": "Eintracht Frankfurt",
@@ -88797,12 +89017,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_4WDuqr",
-          "utcDate": "2026-11-29T14:30:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Freiburg",
           "away": "RB Leipzig",
@@ -88885,12 +89105,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_0MD4hY",
-          "utcDate": "2026-11-29T16:30:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Hoffenheim",
           "away": "Augsburg",
@@ -88973,12 +89193,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2EPZPi",
-          "utcDate": "2026-11-29T18:30:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Borussia Dortmund",
           "away": "Bayer Leverkusen",
@@ -89061,7 +89281,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         }
       ],
@@ -108540,10 +108760,7 @@
           "homeScore": 3,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3qap9x",
@@ -108554,10 +108771,7 @@
           "homeScore": 2,
           "awayScore": 3,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_1waD57",
@@ -108568,10 +108782,7 @@
           "homeScore": 0,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3vBvLr",
@@ -108582,10 +108793,7 @@
           "homeScore": 1,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_47p1ca",
@@ -108596,10 +108804,7 @@
           "homeScore": 0,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_39zXtJ",
@@ -108610,10 +108815,7 @@
           "homeScore": 1,
           "awayScore": 1,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_11vVyC",
@@ -108624,14 +108826,22 @@
           "homeScore": 4,
           "awayScore": 0,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-22T18:39:13.473612+00:00"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+        },
+        {
+          "id": "m_1AvzJo",
+          "utcDate": "2026-11-22",
+          "status": "FINISHED",
+          "home": "Lorient",
+          "away": "Rennes",
+          "homeScore": 1,
+          "awayScore": 1,
+          "prediction": null,
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
         },
         {
           "id": "m_3pvUaB",
-          "utcDate": "2026-11-22T19:45:00Z",
+          "utcDate": "2026-11-22",
           "status": "SCHEDULED",
           "home": "Marseille",
           "away": "Le Mans",
@@ -108714,12 +108924,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 385.13
+            "bookmakerUpdateAgeSeconds": 1282.969
           }
         },
         {
           "id": "m_1oxRzF",
-          "utcDate": "2026-11-27T19:45:00Z",
+          "utcDate": "2026-11-27",
           "status": "SCHEDULED",
           "home": "Brest",
           "away": "Paris FC",
@@ -108802,12 +109012,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2KbgcS",
-          "utcDate": "2026-11-28T16:15:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Angers",
           "away": "Lens",
@@ -108884,12 +109094,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1LWSAq",
-          "utcDate": "2026-11-28T19:45:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Paris Saint-Germain",
           "away": "Lorient",
@@ -108966,12 +109176,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1m7rKw",
-          "utcDate": "2026-11-28T19:45:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Nice",
           "away": "Troyes",
@@ -109048,12 +109258,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2UeyHL",
-          "utcDate": "2026-11-28T19:45:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Le Mans",
           "away": "Lille",
@@ -109136,12 +109346,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_4f73g7",
-          "utcDate": "2026-11-28T19:45:00Z",
+          "utcDate": "2026-11-28",
           "status": "SCHEDULED",
           "home": "Le Havre",
           "away": "Strasbourg",
@@ -109224,12 +109434,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_4g4g9c",
-          "utcDate": "2026-11-29T14:00:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Auxerre",
           "away": "Marseille",
@@ -109306,12 +109516,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_2M85c1",
-          "utcDate": "2026-11-29T16:15:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Toulouse",
           "away": "Rennes",
@@ -109394,12 +109604,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_1UrggI",
-          "utcDate": "2026-11-29T19:45:00Z",
+          "utcDate": "2026-11-29",
           "status": "SCHEDULED",
           "home": "Lyon",
           "away": "Monaco",
@@ -109482,12 +109692,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 279.636
+            "bookmakerUpdateAgeSeconds": 1177.475
           }
         },
         {
           "id": "m_3MY6tQ",
-          "utcDate": "2026-12-04T19:45:00Z",
+          "utcDate": "2026-12-04",
           "status": "SCHEDULED",
           "home": "Toulouse",
           "away": "Paris Saint-Germain",
@@ -109570,12 +109780,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_3v8yI3",
-          "utcDate": "2026-12-05T16:15:00Z",
+          "utcDate": "2026-12-05",
           "status": "SCHEDULED",
           "home": "Lille",
           "away": "Auxerre",
@@ -109658,12 +109868,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_2axaMF",
-          "utcDate": "2026-12-05T19:45:00Z",
+          "utcDate": "2026-12-05",
           "status": "SCHEDULED",
           "home": "Strasbourg",
           "away": "Lorient",
@@ -109746,12 +109956,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_0mOmWm",
-          "utcDate": "2026-12-05T19:45:00Z",
+          "utcDate": "2026-12-05",
           "status": "SCHEDULED",
           "home": "Lens",
           "away": "Le Havre",
@@ -109834,12 +110044,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_0ddwIc",
-          "utcDate": "2026-12-05T19:45:00Z",
+          "utcDate": "2026-12-05",
           "status": "SCHEDULED",
           "home": "Monaco",
           "away": "Angers",
@@ -109922,12 +110132,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_4BiPXT",
-          "utcDate": "2026-12-05T19:45:00Z",
+          "utcDate": "2026-12-05",
           "status": "SCHEDULED",
           "home": "Paris FC",
           "away": "Le Mans",
@@ -110010,12 +110220,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_4W2YYV",
-          "utcDate": "2026-12-06T14:00:00Z",
+          "utcDate": "2026-12-06",
           "status": "SCHEDULED",
           "home": "Troyes",
           "away": "Lyon",
@@ -110098,12 +110308,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_4bGNFs",
-          "utcDate": "2026-12-06T16:15:00Z",
+          "utcDate": "2026-12-06",
           "status": "SCHEDULED",
           "home": "Rennes",
           "away": "Brest",
@@ -110186,12 +110396,12 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         },
         {
           "id": "m_2QI0Cp",
-          "utcDate": "2026-12-06T19:45:00Z",
+          "utcDate": "2026-12-06",
           "status": "SCHEDULED",
           "home": "Marseille",
           "away": "Nice",
@@ -110274,7 +110484,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 270.926
+            "bookmakerUpdateAgeSeconds": 1168.765
           }
         }
       ],
@@ -125429,7 +125639,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3IrTv6": {
         "id": "m_3IrTv6",
@@ -125472,7 +125682,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_19nSVX": {
         "id": "m_19nSVX",
@@ -125515,7 +125725,7 @@
         },
         "homeScore": 1,
         "awayScore": 4,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3XXOvK": {
         "id": "m_3XXOvK",
@@ -125558,7 +125768,7 @@
         },
         "homeScore": 2,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_4Pdd0e": {
         "id": "m_4Pdd0e",
@@ -125567,7 +125777,7 @@
         "away": "Manchester United",
         "utcDate": "2026-11-22",
         "predictionCapturedAt": "2026-11-09T10:48:10.167030+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.7272087552928276,
           "x": 0.1452486457669242,
@@ -125599,8 +125809,9 @@
             "baselineMatches": 1051
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 4,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_2FVfvL": {
         "id": "m_2FVfvL",
@@ -131286,7 +131497,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3JKUH6": {
         "id": "m_3JKUH6",
@@ -131329,7 +131540,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_4DeisY": {
         "id": "m_4DeisY",
@@ -131372,7 +131583,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_101pSt": {
         "id": "m_101pSt",
@@ -131415,7 +131626,7 @@
         },
         "homeScore": 2,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_2xAkEu": {
         "id": "m_2xAkEu",
@@ -131458,7 +131669,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3ZF56r": {
         "id": "m_3ZF56r",
@@ -137483,7 +137694,7 @@
         },
         "homeScore": 3,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_1jov2C": {
         "id": "m_1jov2C",
@@ -137526,7 +137737,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_0M5Pz1": {
         "id": "m_0M5Pz1",
@@ -137569,7 +137780,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_1PKq2V": {
         "id": "m_1PKq2V",
@@ -137612,7 +137823,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_4TXXCg": {
         "id": "m_4TXXCg",
@@ -137655,7 +137866,7 @@
         },
         "homeScore": 0,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_40elPe": {
         "id": "m_40elPe",
@@ -137664,7 +137875,7 @@
         "away": "Frosinone",
         "utcDate": "2026-11-22",
         "predictionCapturedAt": "2026-11-09T10:48:10.167030+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.6455385062161353,
           "x": 0.19328621506693702,
@@ -137696,8 +137907,9 @@
             "baselineMatches": 668
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 5,
+        "awayScore": 1,
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_0ZgZVI": {
         "id": "m_0ZgZVI",
@@ -144712,7 +144924,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_0k03w6": {
         "id": "m_0k03w6",
@@ -144755,7 +144967,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_0aFyPg": {
         "id": "m_0aFyPg",
@@ -144798,7 +145010,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_0vvP0O": {
         "id": "m_0vvP0O",
@@ -144841,7 +145053,7 @@
         },
         "homeScore": 1,
         "awayScore": 5,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_38aXX1": {
         "id": "m_38aXX1",
@@ -144884,7 +145096,7 @@
         },
         "homeScore": 0,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_34jUwH": {
         "id": "m_34jUwH",
@@ -144927,7 +145139,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_0toF5d": {
         "id": "m_0toF5d",
@@ -149887,7 +150099,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3qap9x": {
         "id": "m_3qap9x",
@@ -149930,7 +150142,7 @@
         },
         "homeScore": 2,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3vBvLr": {
         "id": "m_3vBvLr",
@@ -149973,7 +150185,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_39zXtJ": {
         "id": "m_39zXtJ",
@@ -150016,7 +150228,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_47p1ca": {
         "id": "m_47p1ca",
@@ -150059,7 +150271,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_1waD57": {
         "id": "m_1waD57",
@@ -150102,7 +150314,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_1AvzJo": {
         "id": "m_1AvzJo",
@@ -150111,7 +150323,7 @@
         "away": "Rennes",
         "utcDate": "2026-11-22",
         "predictionCapturedAt": "2026-11-09T10:48:10.167030+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.28832185164819074,
           "x": 0.2568580742534144,
@@ -150143,8 +150355,9 @@
             "baselineMatches": 996
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 1,
+        "awayScore": 1,
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_2KbgcS": {
         "id": "m_2KbgcS",
@@ -155607,7 +155820,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_04ixCx": {
         "id": "m_04ixCx",
@@ -155691,7 +155904,7 @@
         },
         "homeScore": 0,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_2PtCYr": {
         "id": "m_2PtCYr",
@@ -155775,7 +155988,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_18ul5S": {
         "id": "m_18ul5S",
@@ -155859,7 +156072,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_35NS0w": {
         "id": "m_35NS0w",
@@ -159243,7 +159456,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_2WvtVu": {
         "id": "m_2WvtVu",
@@ -159252,7 +159465,7 @@
         "away": "Real Sociedad",
         "utcDate": "2026-11-22",
         "predictionCapturedAt": "2026-11-10T20:28:50.314684+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.3736116776841196,
           "x": 0.21037156954967023,
@@ -159325,8 +159538,9 @@
             "formContextUsed": true
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 3,
+        "awayScore": 2,
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_25yFU8": {
         "id": "m_25yFU8",
@@ -159335,7 +159549,7 @@
         "away": "Málaga",
         "utcDate": "2026-11-22",
         "predictionCapturedAt": "2026-11-10T20:28:50.314684+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.5896161443785608,
           "x": 0.21753282791734038,
@@ -159408,8 +159622,9 @@
             "formContextUsed": true
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 1,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3N7OsF": {
         "id": "m_3N7OsF",
@@ -161836,7 +162051,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_2fNTjV": {
         "id": "m_2fNTjV",
@@ -161920,7 +162135,7 @@
         },
         "homeScore": 1,
         "awayScore": 5,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_1Kxps6": {
         "id": "m_1Kxps6",
@@ -163687,7 +163902,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_2mXps3": {
         "id": "m_2mXps3",
@@ -163771,7 +163986,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_1FnTzR": {
         "id": "m_1FnTzR",
@@ -163780,7 +163995,7 @@
         "away": "Hamburger SV",
         "utcDate": "2026-11-22",
         "predictionCapturedAt": "2026-11-10T20:28:50.314684+00:00",
-        "status": "SCHEDULED",
+        "status": "FINISHED",
         "prediction": {
           "1": 0.5824253247809225,
           "x": 0.21203302471614477,
@@ -163853,8 +164068,9 @@
             "formContextUsed": false
           }
         },
-        "homeScore": null,
-        "awayScore": null
+        "homeScore": 4,
+        "awayScore": 0,
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3Hzh67": {
         "id": "m_3Hzh67",
@@ -166149,7 +166365,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+        "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
       },
       "m_3pvUaB": {
         "id": "m_3pvUaB",
@@ -168158,7 +168374,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_3IrTv6",
@@ -168201,7 +168417,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_19nSVX",
@@ -168244,7 +168460,7 @@
       },
       "homeScore": 1,
       "awayScore": 4,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_3XXOvK",
@@ -168287,7 +168503,50 @@
       },
       "homeScore": 2,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
+    },
+    {
+      "id": "m_4Pdd0e",
+      "league": "Англия · Премьер-лига",
+      "home": "Liverpool",
+      "away": "Manchester United",
+      "utcDate": "2026-11-22",
+      "predictionCapturedAt": "2026-11-09T10:48:10.167030+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.7272087552928276,
+        "x": 0.1452486457669242,
+        "2": 0.12754259894024825,
+        "1x": 0.8724574010597518,
+        "x2": 0.2727912447071724,
+        "over15": 0.9222264211587554,
+        "over25": 0.790189360679403,
+        "over35": 0.6051951474445518,
+        "under25": 0.20981063932059696,
+        "bttsYes": 0.6714301849677108,
+        "bttsNo": 0.3285698150322892,
+        "homeOver05": 0.9488807107877284,
+        "homeOver15": 0.7968727311379113,
+        "homeOver25": 0.5708677706496093,
+        "awayOver05": 0.7076023122129996,
+        "awayOver15": 0.34805828523796667,
+        "awayOver25": 0.1270033440860514,
+        "ahMinus05Home": 0.7272087552928276,
+        "ahPlus05Home": 0.8724574010597518,
+        "expectedHomeGoals": 2.9735933733078004,
+        "expectedAwayGoals": 1.2296404588429752,
+        "strongestSignal": {
+          "market": "Хозяева забьют 2+",
+          "side": "ИТБ 1.5 · Liverpool",
+          "modelProbability": 0.7968727311379113,
+          "baselineProbability": 0.4700854700854701,
+          "edgePp": 32.678726105244124,
+          "baselineMatches": 1051
+        }
+      },
+      "homeScore": 4,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_0iaTdE",
@@ -168330,7 +168589,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_3JKUH6",
@@ -168373,7 +168632,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_4DeisY",
@@ -168416,7 +168675,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_101pSt",
@@ -168459,7 +168718,7 @@
       },
       "homeScore": 2,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_2xAkEu",
@@ -168502,7 +168761,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_4MACO8",
@@ -168545,7 +168804,7 @@
       },
       "homeScore": 3,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_1jov2C",
@@ -168588,7 +168847,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_0M5Pz1",
@@ -168631,7 +168890,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_1PKq2V",
@@ -168674,7 +168933,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_4TXXCg",
@@ -168717,7 +168976,50 @@
       },
       "homeScore": 0,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
+    },
+    {
+      "id": "m_40elPe",
+      "league": "Италия · Серия A",
+      "home": "Milan",
+      "away": "Frosinone",
+      "utcDate": "2026-11-22",
+      "predictionCapturedAt": "2026-11-09T10:48:10.167030+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.6455385062161353,
+        "x": 0.19328621506693702,
+        "2": 0.16117527871692774,
+        "1x": 0.8388247212830723,
+        "x2": 0.35446149378386477,
+        "over15": 0.8311237001521679,
+        "over25": 0.6238265925633119,
+        "over35": 0.4014704357361266,
+        "under25": 0.37617340743668815,
+        "bttsYes": 0.5658337482794756,
+        "bttsNo": 0.43416625172052437,
+        "homeOver05": 0.8900973381738878,
+        "homeOver15": 0.6474146547380673,
+        "homeOver25": 0.3794735336540568,
+        "awayOver05": 0.6356987309279374,
+        "awayOver15": 0.267836747960997,
+        "awayOver25": 0.08210799815858917,
+        "ahMinus05Home": 0.6455385062161353,
+        "ahPlus05Home": 0.8388247212830723,
+        "expectedHomeGoals": 2.208160197428088,
+        "expectedAwayGoals": 1.0097740913830673,
+        "strongestSignal": {
+          "market": "Гости не проиграют",
+          "side": "Не X2",
+          "modelProbability": 0.6455385062161352,
+          "baselineProbability": 0.4104477611940298,
+          "edgePp": 23.509074502210538,
+          "baselineMatches": 668
+        }
+      },
+      "homeScore": 5,
+      "awayScore": 1,
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_4McNx8",
@@ -168760,7 +169062,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_0k03w6",
@@ -168803,7 +169105,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_0aFyPg",
@@ -168846,7 +169148,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_0vvP0O",
@@ -168889,7 +169191,7 @@
       },
       "homeScore": 1,
       "awayScore": 5,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_38aXX1",
@@ -168932,7 +169234,7 @@
       },
       "homeScore": 0,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_34jUwH",
@@ -168975,7 +169277,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_3rtQqb",
@@ -169018,7 +169320,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_3qap9x",
@@ -169061,7 +169363,7 @@
       },
       "homeScore": 2,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_3vBvLr",
@@ -169104,7 +169406,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_39zXtJ",
@@ -169147,7 +169449,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_47p1ca",
@@ -169190,7 +169492,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_1waD57",
@@ -169233,7 +169535,50 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
+    },
+    {
+      "id": "m_1AvzJo",
+      "league": "Франция · Лига 1",
+      "home": "Lorient",
+      "away": "Rennes",
+      "utcDate": "2026-11-22",
+      "predictionCapturedAt": "2026-11-09T10:48:10.167030+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.28832185164819074,
+        "x": 0.2568580742534144,
+        "2": 0.4548200740983949,
+        "1x": 0.5451799259016051,
+        "x2": 0.7116781483518093,
+        "over15": 0.7394314802435058,
+        "over25": 0.4904922859538305,
+        "over35": 0.271783628220887,
+        "under25": 0.5095077140461695,
+        "bttsYes": 0.5275769179033533,
+        "bttsNo": 0.47242308209664674,
+        "homeOver05": 0.6795845831025156,
+        "homeOver15": 0.31490795865080573,
+        "homeOver25": 0.10738198860042848,
+        "awayOver05": 0.7763226697915958,
+        "awayOver15": 0.4413545148890491,
+        "awayOver25": 0.19053860812220344,
+        "ahMinus05Home": 0.28832185164819074,
+        "ahPlus05Home": 0.5451799259016051,
+        "expectedHomeGoals": 1.1381369472879823,
+        "expectedAwayGoals": 1.4975507557714929,
+        "strongestSignal": {
+          "market": "Гости не проиграют",
+          "side": "X2",
+          "modelProbability": 0.7116781483518093,
+          "baselineProbability": 0.5801603206412825,
+          "edgePp": 13.151782771052678,
+          "baselineMatches": 996
+        }
+      },
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_0B6kF2",
@@ -169317,7 +169662,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_04ixCx",
@@ -169401,7 +169746,7 @@
       },
       "homeScore": 0,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_2PtCYr",
@@ -169485,7 +169830,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_18ul5S",
@@ -169569,7 +169914,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_1MrgIP",
@@ -169653,7 +169998,175 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
+    },
+    {
+      "id": "m_2WvtVu",
+      "league": "Испания · Ла Лига",
+      "home": "Racing Santander",
+      "away": "Real Sociedad",
+      "utcDate": "2026-11-22",
+      "predictionCapturedAt": "2026-11-10T20:28:50.314684+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.3736116776841196,
+        "x": 0.21037156954967023,
+        "2": 0.41601675276621025,
+        "1x": 0.5839832472337898,
+        "x2": 0.6263883223158805,
+        "bttsYes": 0.732133330248409,
+        "bttsNo": 0.267866669751591,
+        "ahMinus05Home": 0.3736116776841196,
+        "ahPlus05Home": 0.5839832472337898,
+        "expectedHomeGoals": 1.8830341393828331,
+        "expectedAwayGoals": 1.991393593383149,
+        "over15": 0.8987765696123754,
+        "under15": 0.1012234303876246,
+        "over25": 0.742913742706281,
+        "under25": 0.25708625729371903,
+        "over35": 0.5416206563488557,
+        "under35": 0.4583793436511443,
+        "homeOver05": 0.8478721722298568,
+        "homeUnder05": 0.15212782777014322,
+        "homeOver15": 0.5614102789885254,
+        "homeUnder15": 0.43858972101147464,
+        "homeOver25": 0.29170151668569144,
+        "homeUnder25": 0.7082984833143086,
+        "homeOver35": 0.12241124765004957,
+        "homeUnder35": 0.8775887523499504,
+        "awayOver05": 0.8634949397182584,
+        "awayUnder05": 0.13650506028174159,
+        "awayOver15": 0.5916596372088176,
+        "awayUnder15": 0.40834036279118235,
+        "awayOver25": 0.3209940972724821,
+        "awayUnder25": 0.6790059027275179,
+        "awayOver35": 0.14132688987954578,
+        "awayUnder35": 0.8586731101204542,
+        "teamForm": {
+          "source": "cached_results",
+          "window": 5,
+          "home": {
+            "matches": 5,
+            "form": "DLWLW",
+            "pointsPerGame": 1.4,
+            "goalsForAvg": 1.2,
+            "goalsAgainstAvg": 1.8,
+            "venueMatches": 5,
+            "venuePointsPerGame": 2.0,
+            "venueForm": "WWDWL"
+          },
+          "away": {
+            "matches": 5,
+            "form": "WWWLW",
+            "pointsPerGame": 2.4,
+            "goalsForAvg": 2.4,
+            "goalsAgainstAvg": 1.4,
+            "venueMatches": 5,
+            "venuePointsPerGame": 1.8,
+            "venueForm": "LWWWL"
+          }
+        },
+        "strongestSignal": {
+          "market": "Гости забьют 2+",
+          "side": "ИТБ 1.5 · Real Sociedad",
+          "modelProbability": 0.5916596372088176,
+          "baselineProbability": 0.3048780487804878,
+          "edgePp": 28.678158842832985,
+          "baselineMatches": 1638,
+          "homeTeam": "Racing Santander",
+          "awayTeam": "Real Sociedad",
+          "formAdjustmentPp": 0.27,
+          "selectionEdgePp": 28.95,
+          "formContextUsed": true
+        }
+      },
+      "homeScore": 3,
+      "awayScore": 2,
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
+    },
+    {
+      "id": "m_25yFU8",
+      "league": "Испания · Ла Лига",
+      "home": "Osasuna",
+      "away": "Málaga",
+      "utcDate": "2026-11-22",
+      "predictionCapturedAt": "2026-11-10T20:28:50.314684+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.5896161443785608,
+        "x": 0.21753282791734038,
+        "2": 0.19285102770409876,
+        "1x": 0.8071489722959012,
+        "x2": 0.41038385562143914,
+        "bttsYes": 0.5457886404690443,
+        "bttsNo": 0.4542113595309557,
+        "ahMinus05Home": 0.5896161443785608,
+        "ahPlus05Home": 0.8071489722959012,
+        "expectedHomeGoals": 1.9408125868175454,
+        "expectedAwayGoals": 1.0141688636310515,
+        "over15": 0.7940260427687759,
+        "under15": 0.20597395723122414,
+        "over25": 0.5666485966271494,
+        "under25": 0.4333514033728506,
+        "over35": 0.34268321809418917,
+        "under35": 0.6573167819058108,
+        "homeOver05": 0.8564127747266959,
+        "homeUnder05": 0.14358722527330414,
+        "homeOver15": 0.5777368806100616,
+        "homeUnder15": 0.42226311938993843,
+        "homeOver25": 0.30730803913796273,
+        "homeUnder25": 0.6926919608620372,
+        "homeOver35": 0.13235747268211734,
+        "homeUnder35": 0.8676425273178827,
+        "awayOver05": 0.6372962391216311,
+        "awayUnder05": 0.36270376087836886,
+        "awayOver15": 0.2694533781169073,
+        "awayUnder15": 0.7305466218830927,
+        "awayOver25": 0.08292598994692951,
+        "awayUnder25": 0.9170740100530705,
+        "awayOver35": 0.019869233514791355,
+        "awayUnder35": 0.9801307664852087,
+        "teamForm": {
+          "source": "cached_results",
+          "window": 5,
+          "home": {
+            "matches": 5,
+            "form": "LWLLD",
+            "pointsPerGame": 0.8,
+            "goalsForAvg": 1.2,
+            "goalsAgainstAvg": 2.0,
+            "venueMatches": 5,
+            "venuePointsPerGame": 1.6,
+            "venueForm": "WLDWD"
+          },
+          "away": {
+            "matches": 5,
+            "form": "DLDLL",
+            "pointsPerGame": 0.4,
+            "goalsForAvg": 1.2,
+            "goalsAgainstAvg": 2.2,
+            "venueMatches": 5,
+            "venuePointsPerGame": 0.4,
+            "venueForm": "LDLDL"
+          }
+        },
+        "strongestSignal": {
+          "market": "Хозяева забьют 2+",
+          "side": "ИТБ 1.5 · Osasuna",
+          "modelProbability": 0.5777368806100616,
+          "baselineProbability": 0.4176829268292683,
+          "edgePp": 16.005395378079328,
+          "baselineMatches": 1638,
+          "homeTeam": "Osasuna",
+          "awayTeam": "Málaga",
+          "formAdjustmentPp": -0.45,
+          "selectionEdgePp": 15.56,
+          "formContextUsed": true
+        }
+      },
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_01qIw5",
@@ -169737,7 +170250,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_2fNTjV",
@@ -169821,7 +170334,7 @@
       },
       "homeScore": 1,
       "awayScore": 5,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_3vFZhn",
@@ -169905,7 +170418,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_2mXps3",
@@ -169989,7 +170502,91 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
+    },
+    {
+      "id": "m_1FnTzR",
+      "league": "Германия · Бундеслига",
+      "home": "Werder Bremen",
+      "away": "Hamburger SV",
+      "utcDate": "2026-11-22",
+      "predictionCapturedAt": "2026-11-10T20:28:50.314684+00:00",
+      "status": "FINISHED",
+      "prediction": {
+        "1": 0.5824253247809225,
+        "x": 0.21203302471614477,
+        "2": 0.20554165050293285,
+        "1x": 0.7944583494970672,
+        "x2": 0.41757467521907765,
+        "bttsYes": 0.586572225125257,
+        "bttsNo": 0.413427774874743,
+        "ahMinus05Home": 0.5824253247809225,
+        "ahPlus05Home": 0.7944583494970672,
+        "expectedHomeGoals": 2.0287529676627885,
+        "expectedAwayGoals": 1.1251152347278808,
+        "over15": 0.8226851308951956,
+        "under15": 0.17731486910480443,
+        "over25": 0.610385358531027,
+        "under25": 0.38961464146897296,
+        "over35": 0.38719685805298415,
+        "under35": 0.6128031419470159,
+        "homeOver05": 0.8685005970478937,
+        "homeUnder05": 0.13149940295210627,
+        "homeOver15": 0.6017207930629227,
+        "homeUnder15": 0.3982792069370773,
+        "homeOver25": 0.3311056335394193,
+        "homeUnder25": 0.6688943664605806,
+        "homeOver35": 0.14810186421347055,
+        "homeUnder35": 0.8518981357865294,
+        "awayOver05": 0.6753849417249279,
+        "awayUnder05": 0.3246150582750721,
+        "awayOver15": 0.3101555942375656,
+        "awayUnder15": 0.6898444057624344,
+        "awayOver25": 0.10469304272368837,
+        "awayUnder25": 0.8953069572763116,
+        "awayOver35": 0.027636693765579957,
+        "awayUnder35": 0.97236330623442,
+        "teamForm": {
+          "source": "cached_results",
+          "window": 5,
+          "home": {
+            "matches": 5,
+            "form": "DDWWL",
+            "pointsPerGame": 1.6,
+            "goalsForAvg": 1.8,
+            "goalsAgainstAvg": 1.4,
+            "venueMatches": 5,
+            "venuePointsPerGame": 2.0,
+            "venueForm": "LWWDW"
+          },
+          "away": {
+            "matches": 5,
+            "form": "WWLLW",
+            "pointsPerGame": 1.8,
+            "goalsForAvg": 1.6,
+            "goalsAgainstAvg": 1.4,
+            "venueMatches": 5,
+            "venuePointsPerGame": 0.6,
+            "venueForm": "LLWLL"
+          }
+        },
+        "strongestSignal": {
+          "market": "Гости не проиграют",
+          "side": "Не X2",
+          "modelProbability": 0.5824253247809223,
+          "baselineProbability": 0.4444444444444444,
+          "edgePp": 13.798088033647794,
+          "baselineMatches": 1609,
+          "homeTeam": "Werder Bremen",
+          "awayTeam": "Hamburger SV",
+          "formAdjustmentPp": 0.0,
+          "selectionEdgePp": 13.8,
+          "formContextUsed": false
+        }
+      },
+      "homeScore": 4,
+      "awayScore": 0,
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     },
     {
       "id": "m_11vVyC",
@@ -170073,10 +170670,10 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-22T17:36:35.594987+00:00"
+      "resultUpdatedAt": "2026-11-22T19:34:42.927643+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-22T19:20:39.093640+00:00",
+  "oddsUpdatedAt": "2026-11-22T19:35:36.933481+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsErrors": [
@@ -170087,49 +170684,49 @@
     "FL1: 401 Client Error: Unauthorized for url: https://api.the-odds-api.com/v4/sports/soccer_france_ligue_one/odds?apiKey=ca07a7fbaf656cb545abae4fe6dbdf6c&regions=eu&markets=h2h&oddsForma"
   ],
   "oddsCoverage": {
-    "eligible": 72,
-    "visible": 72,
-    "excluded": 0,
+    "eligible": 1210,
+    "visible": 75,
+    "excluded": 1135,
     "byLeague": {
       "PL": {
-        "eligible": 21,
+        "eligible": 271,
         "visible": 21,
         "noCompletePrediction": 0,
-        "noFreshActiveMelBet": 0,
+        "noFreshActiveMelBet": 250,
         "noMatchingStrategyLine": 0
       },
       "PD": {
-        "eligible": 11,
+        "eligible": 253,
         "visible": 11,
         "noCompletePrediction": 0,
-        "noFreshActiveMelBet": 0,
+        "noFreshActiveMelBet": 242,
         "noMatchingStrategyLine": 0
       },
       "SA": {
-        "eligible": 12,
-        "visible": 12,
+        "eligible": 262,
+        "visible": 15,
         "noCompletePrediction": 0,
-        "noFreshActiveMelBet": 0,
+        "noFreshActiveMelBet": 247,
         "noMatchingStrategyLine": 0
       },
       "BL1": {
-        "eligible": 9,
+        "eligible": 216,
         "visible": 9,
         "noCompletePrediction": 0,
-        "noFreshActiveMelBet": 0,
+        "noFreshActiveMelBet": 207,
         "noMatchingStrategyLine": 0
       },
       "FL1": {
-        "eligible": 19,
+        "eligible": 208,
         "visible": 19,
         "noCompletePrediction": 0,
-        "noFreshActiveMelBet": 0,
+        "noFreshActiveMelBet": 189,
         "noMatchingStrategyLine": 0
       }
     }
   },
   "oddsStatus": "ready",
-  "oddsNotice": "В ленте 72 матчей с полным прогнозом и свежей активной линией MelBet.",
+  "oddsNotice": "В ленте 75 матчей с полным прогнозом и свежей активной линией MelBet.",
   "oddsProvider": "API-Sport / MelBet unified snapshots",
   "oddsBookmaker": "melbet"
 }
