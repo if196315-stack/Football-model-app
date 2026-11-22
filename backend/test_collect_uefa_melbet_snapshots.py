@@ -274,7 +274,11 @@ class UefaMelBetSnapshotTests(unittest.TestCase):
             })
         diagnostics = {}
         rows = snapshot_rows(cache, provider, "2026-11-10T12:00:00+00:00", diagnostics, {})
-        self.assertEqual({row["league_code"] for row in rows}, set(leagues[1:]))
+        priced_rows = [row for row in rows if row["market"] != "board_status"]
+        self.assertEqual({row["league_code"] for row in priced_rows}, set(leagues[1:]))
+        inactive_markers = [row for row in rows if row["market"] == "board_status"]
+        self.assertEqual(len(inactive_markers), 1)
+        self.assertFalse(inactive_markers[0]["prematch_active"])
         self.assertEqual(diagnostics["eligible_supported_upcoming_fixtures_in_cache"], 8)
         self.assertEqual(diagnostics["matches_with_active_prematch_board"], 7)
 
