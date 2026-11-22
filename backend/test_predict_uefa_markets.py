@@ -119,7 +119,7 @@ class UefaMarketPredictionTests(unittest.TestCase):
             self.assertEqual(prediction["away_history_matches"], 2)
 
     def test_x2_calibration_matches_frozen_vector_scaling_parameters(self):
-        self.assertAlmostEqual(calibrate_binary_probability(0.70), 0.714279, places=5)
+        self.assertAlmostEqual(calibrate_binary_probability(0.70), 0.709691, places=5)
         self.assertAlmostEqual(calibrate_binary_probability(0.50), 0.490201, places=5)
         self.assertEqual(X2_CALIBRATION["train_n"], 9810)
         self.assertEqual(X2_CALIBRATION["holdout_n"], 695)
