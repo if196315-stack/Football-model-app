@@ -58,7 +58,7 @@ class AllMarketBacktestTests(unittest.TestCase):
         self.assertEqual(report["market_relationships"], {})
         self.assertIn("calibration_global", report["markets"]["DC_1X"])
         self.assertEqual(report["markets"]["DC_1X"]["calibration_global"]["calibrator"]["train_n"], 4)
-        self.assertFalse(report["markets"]["1X2"]["calibration_global"]["calibrator"]["available"])
+        self.assertFalse(report["markets"]["DC_1X"]["calibration_global"]["calibrator"]["available"])
         self.assertIn("ENG", report["markets"]["DC_1X"]["calibration_by_competition"])
 
     def test_walk_forward_produces_predictions_only_after_history_exists(self):
