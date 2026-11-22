@@ -891,7 +891,12 @@ class MainActivity : Activity() {
     // Large feed bodies live in private files, not SharedPreferences. Preferences
     // retain only small metadata (ETags and timestamps).
     private fun readFeedCache(cacheKey: String): String? {
-        FeedCacheStore.read(filesDir, cacheKey)?.let { return it }
+        FeedCacheStore.read(filesDir, cacheKey)?.let { cached ->
+            // Also clean up a legacy SharedPreferences value if a previous process
+            // was interrupted after writing the file but before removing the old key.
+            if (feedCache.contains(cacheKey)) feedCache.edit().remove(cacheKey).apply()
+            return cached
+        }
         val legacy = feedCache.getString(cacheKey, null) ?: return null
         if (FeedCacheStore.write(filesDir, cacheKey, legacy)) {
             feedCache.edit().remove(cacheKey).apply()
