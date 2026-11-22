@@ -1620,6 +1620,67 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun calculateStatsMetrics(json: JSONObject): List<StatsMetricRow> {
+        val metrics = mutableListOf<StatsMetricRow>()
+        val evaluatedMatches = json.optJSONArray("evaluationMatches")
+        fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
+            var n = 0
+            var hits = 0
+            var brier = 0.0
+            var logLoss = 0.0
+            val bandCounts = IntArray(4)
+            val bandHits = IntArray(4)
+            if (evaluatedMatches != null) for (i in 0 until evaluatedMatches.length()) {
+                val m = evaluatedMatches.optJSONObject(i) ?: continue
+                if (m.optString("status") != "FINISHED" || m.isNull("homeScore") || m.isNull("awayScore")) continue
+                val p = m.optJSONObject("prediction") ?: continue
+                if (!p.has(key) || p.isNull(key)) continue
+                val h = m.optInt("homeScore")
+                val aw = m.optInt("awayScore")
+                if (excludeDraws && h == aw) continue
+                val outcome = actual(h, aw)
+                val probability = p.optDouble(key).coerceIn(0.000000000001, 0.999999999999)
+                val confidence = maxOf(probability, 1.0 - probability)
+                val band = when {
+                    confidence < 0.6 -> 0
+                    confidence < 0.7 -> 1
+                    confidence < 0.8 -> 2
+                    else -> 3
+                }
+                val correct = outcome == (probability >= 0.5)
+                val y = if (outcome) 1.0 else 0.0
+                n++
+                if (correct) hits++
+                bandCounts[band]++
+                if (correct) bandHits[band]++
+                brier += (probability - y) * (probability - y)
+                logLoss += -(y * kotlin.math.ln(probability) + (1.0 - y) * kotlin.math.ln(1.0 - probability))
+            }
+            if (n > 0) {
+                val labels = listOf("50–59%", "60–69%", "70–79%", "80%+")
+                val bands = labels.indices.map { StatsBandRow(labels[it], bandCounts[it], bandHits[it]) }
+                metrics.add(StatsMetricRow(title, n, hits, brier / n, logLoss / n, bands))
+            }
+        }
+        collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h, a -> h >= a })
+        collect("x2", "X2 · гости победят ИЛИ будет ничья", { h, a -> a >= h })
+        collect("homeOver15", "ИТБ 1.5 · хозяева", { h, _ -> h >= 2 })
+        collect("awayOver15", "ИТБ 1.5 · гости", { _, a -> a >= 2 })
+        collect("over25", "ТБ 2.5 · всего минимум 3 гола", { h, a -> h + a >= 3 })
+        collect("bttsYes", "ОЗ — да", { h, a -> h >= 1 && a >= 1 })
+        collect("over15", "ТБ 1.5", { h, a -> h + a >= 2 })
+        collect("homeOver05", "ИТБ 0.5 · хозяева", { h, _ -> h >= 1 })
+        collect("awayOver05", "ИТБ 0.5 · гости", { _, a -> a >= 1 })
+        return metrics
+    }
+
+    private fun statsCacheKey(json: JSONObject): String {
+        // A cheap feed signature avoids serializing the entire match archive on the UI thread.
+        return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
+            (json.optJSONArray("evaluationMatches")?.length() ?: 0)
+    }
+
+
     private fun renderStats(json: JSONObject) {
         screenHeader("PRO TERMINAL · BETTING ANALYTICS", "Статистика", "Профессиональная аналитика ставок")
         try {
