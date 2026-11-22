@@ -37,6 +37,7 @@ import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.GZIPInputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -1267,13 +1268,16 @@ class MainActivity : Activity() {
     )
     @Volatile private var statsBetViewCache: StatsBetViewCache? = null
     private val statsBetCalculationInProgress = AtomicBoolean(false)
+    private val statsBetCacheGeneration = AtomicLong(0L)
 
     private fun invalidateStatsBetCache() {
+        statsBetCacheGeneration.incrementAndGet()
         statsBetViewCache = null
     }
 
     private fun requestStatsBetCalculation(key: String, snapshot: List<JSONObject>, period: String, source: String, now: Long) {
         if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
+        val generation = statsBetCacheGeneration.get()
         thread(name = "stats-bet-history-calculation") {
             val calculated = try {
                 val bounds = statsPeriodBounds(period, now)
@@ -1290,7 +1294,7 @@ class MainActivity : Activity() {
                 null
             }
             runOnUiThread {
-                if (calculated != null) statsBetViewCache = calculated
+                if (calculated != null && generation == statsBetCacheGeneration.get()) statsBetViewCache = calculated
                 statsBetCalculationInProgress.set(false)
                 if (currentTab == "stats") {
                     tabViewCache.remove("stats|ALL")
@@ -1541,7 +1545,10 @@ class MainActivity : Activity() {
             addText(loading, "Подготавливаем статистику ставок…", 13, true, Color.WHITE)
             addText(loading, "История рассчитывается в фоне, интерфейс остаётся доступным.", 11, false, muted)
             if (!statsBetCalculationInProgress.get()) {
-                val snapshot = (0 until bets.length()).mapNotNull { bets.optJSONObject(it) }
+                // Copy each JSON object before the worker starts; settlement may mutate the live bet array concurrently.
+                val snapshot = (0 until bets.length()).mapNotNull { index ->
+                    bets.optJSONObject(index)?.let { bet -> runCatching { JSONObject(bet.toString()) }.getOrNull() }
+                }
                 requestStatsBetCalculation(key, snapshot, selectedStatsPeriod, selectedStatsSource, now)
             }
             return
@@ -3326,9 +3333,7 @@ class MainActivity : Activity() {
                     }
                 }
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
-                // Apply the same visibility rule to every competition, including UECL:
-                // show only upcoming fixtures with a complete model prediction and
-                // an active MelBet prematch line. Keep raw feeds intact for settlement.
+                // Show every upcoming fixture; prediction and quote availability are reported on the card.
                 if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming) {
                     upcoming.add(m)
                     totalUpcoming++
@@ -3373,7 +3378,7 @@ class MainActivity : Activity() {
             })
             if (upcoming.isEmpty()) {
                 val empty = card(content)
-                addText(empty, "Нет матчей с одновременно подтверждённой линией MelBet и прогнозом модели", 12, false, muted)
+                addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
             upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
                 val box = card(content)
