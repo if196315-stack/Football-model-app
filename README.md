@@ -56,6 +56,7 @@ UECL входит в активную модель, сбор коэффицие�
 ## Обновление данных
 
 - `.github/workflows/update-data.yml` обновляет матчи, результаты и xG из PitchAPI, затем запускает обновление коэффициентов через API-Sport.
+- `.github/workflows/refresh-match-results.yml` каждые 5 минут обновляет статусы и счёт недавних/текущих матчей из API-Sport; для расчёта ставок использует только `scoreStatus.final=true`.
 - `.github/workflows/update-odds-only.yml` обновляет MelBet odds через API-Sport и добавляет неизменяемые временные снимки котировок каждые шесть часов.
 - `.github/workflows/collect-uefa-melbet-snapshots.yml` обновляет еврокубковый контур, снимки MelBet, paper-сигналы, расчёт результатов и feed каждые три часа.
 - Секреты GitHub Actions: `PITCHAPI_API_KEY` и `API_SPORT_KEY`.
@@ -68,6 +69,7 @@ UECL входит в активную модель, сбор коэффицие�
 - `artifacts/market-observation-results.jsonl` и UEFA paper-архивы — результаты наблюдений и paper-сигналов.
 - Архивы наблюдений собираются и рассчитываются GitHub Actions на стороне backend; Android-клиент их не загружает и не показывает. Историю можно отдельно анализировать по архивным JSONL-файлам.
 - `backend/diagnose_api_sport.py` — read-only диагностика доступности API-Sport, квоты и MelBet-рынков.
+- `backend/refresh_match_results_api_sport.py` — отдельный канал обновления статуса и счёта API-Sport для двух Android feed; не меняет прогнозы и правила допуска по MelBet.
 - `backend/diagnose_uecl_api_sport_coverage.py` — read-only сравнение полного предстоящего календаря UECL с API-Sport; отдельно считает сопоставленные матчи, любые букмекерские доски и MelBet. Низкое покрытие odds не трактуется как неполнота календаря.
 - `backend/backtest_pitchapi.py` — воспроизводимый хронологический backtest национального xG-контура.
 - `backend/backtest_all_markets.py` — offline walk-forward оценка 15 независимых рынков для всех семи соревнований, сравнение с expanding-frequency baseline и paired bootstrap CI для калибровки; DNB labels помечены как дублирующие 1X2.
