@@ -107,7 +107,7 @@ jobs:
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/collect_uefa_melbet_snapshots.py
-      - name: Evaluate paper-only BET WAIT REJECT signals
+      - name: Evaluate paper-only BET WAIT REJECT signals from MelBet snapshots
         run: python backend/evaluate_uefa_paper_signals.py
       - name: Settle paper bets whose matches have finished
         run: python backend/settle_uefa_paper_bets.py
