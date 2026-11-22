@@ -71,10 +71,10 @@ internal data class BetAnalyticsReport(
 internal object BetAnalyticsCalculator {
     fun calculate(records: List<AnalyticsBet>, from: Long, to: Long, source: String = "ALL"): BetAnalyticsReport {
         val ignoredAuto = records.count { it.source.equals("AI_AUTO", true) }
-        val inPeriod = records.filter { it.source != "AI_AUTO" && it.dayMillis in from..to && sourceMatches(it, source) }
+        val inPeriod = records.filter { !it.source.equals("AI_AUTO", true) && it.dayMillis in from..to && sourceMatches(it, source) }
         val unique = LinkedHashMap<String, AnalyticsBet>()
         inPeriod.forEachIndexed { index, bet ->
-            val key = bet.id.ifBlank { "${bet.dayMillis}|${bet.source}|${bet.status}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}|$index" }
+            val key = bet.id.ifBlank { "${bet.dayMillis}|${bet.source}|${bet.status}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}|${bet.isCoupon}" }
             if (!unique.containsKey(key)) unique[key] = bet
         }
         val scoped = unique.values.toList()
