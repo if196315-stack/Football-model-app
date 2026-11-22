@@ -1264,8 +1264,8 @@ class MainActivity : Activity() {
     private var selectedStatsPeriod = "MONTH"
     private var selectedStatsSource = "ALL"
     private data class StatsBetInput(
-        val day: Long, val source: String, val status: String,
-        val stake: Double, val odds: Double
+        val betDay: String, val date: String, val createdAt: Long,
+        val source: String, val status: String, val stake: Double, val odds: Double
     )
     private data class StatsBetViewCache(
         val key: String, val current: BetStatsSummary, val previous: BetStatsSummary?,
@@ -1291,8 +1291,8 @@ class MainActivity : Activity() {
             buildList {
                 for (index in 0 until sourceBets.length()) {
                     val bet = sourceBets.optJSONObject(index) ?: continue
-                    val day = betStatsDate(bet) ?: continue
-                    add(StatsBetInput(day, bet.optString("source"), bet.optString("status"),
+                    add(StatsBetInput(bet.optString("betDay"), bet.optString("date"),
+                        bet.optLong("createdAt", 0L), bet.optString("source"), bet.optString("status"),
                         bet.optDouble("stake", 0.0), bet.optDouble("odds", 0.0)))
                 }
             }
@@ -1434,6 +1434,19 @@ class MainActivity : Activity() {
         return cal.timeInMillis to end
     }
 
+    private fun betStatsDate(bet: StatsBetInput): Long? {
+        val rawDay = bet.betDay.takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
+        val raw = rawDay ?: bet.date.takeIf { it.isNotBlank() }
+            ?: return bet.createdAt.takeIf { it > 0L }
+        return try {
+            val fmt = if (raw.length == 10) SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                else SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+            fmt.isLenient = false
+            if (raw.length != 10) fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            fmt.parse(raw.take(if (raw.length == 10) 10 else 19))?.time
+        } catch (_: Exception) { bet.createdAt.takeIf { it > 0L } }
+    }
+
     private fun summarizeBets(sourceBets: List<StatsBetInput>, source: String, from: Long, to: Long): BetStatsSummary {
         var wins = 0; var losses = 0; var pushes = 0
         var turnover = 0.0; var profit = 0.0; var oddsTotal = 0.0; var oddsCount = 0
@@ -1441,7 +1454,8 @@ class MainActivity : Activity() {
         for (bet in sourceBets) {
             val isAi = bet.source in listOf("AI_MANUAL", "AI_AUTO")
             if (source == "AI" && !isAi || source == "MANUAL" && isAi) continue
-            if (bet.day < from || bet.day > to) continue
+            val day = betStatsDate(bet) ?: continue
+            if (day < from || day > to) continue
             val stake = bet.stake
             val odds = bet.odds
             val delta = when (bet.status) {
