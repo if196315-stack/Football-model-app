@@ -1407,7 +1407,10 @@ class MainActivity : Activity() {
                     canvas.drawText(String.format(Locale.US, "%.0f%%", low), 0f, b, textPaint)
                     val path = android.graphics.Path()
                     values.forEachIndexed { i, v ->
-                        val x = if (values.size == 1) (l + r) / 2f else l + i.toFloat() / (values.size - 1) * (r - l)
+                        val firstDay = points.first().day
+                        val lastDay = points.last().day
+                        val daySpan = (lastDay - firstDay).coerceAtLeast(1L).toFloat()
+                        val x = if (values.size == 1) (l + r) / 2f else l + ((points[i].day - firstDay).toFloat() / daySpan) * (r - l)
                         val y = b - (v - low) / span * (b - t)
                         if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
                     }
