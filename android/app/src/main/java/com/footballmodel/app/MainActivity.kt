@@ -1197,20 +1197,25 @@ class MainActivity : Activity() {
             val tab = tabBar.getChildAt(index) as? LinearLayout ?: return@forEachIndexed
             val title = tab.getChildAt(0) as? TextView ?: return@forEachIndexed
             val active = currentTab == item.first
-            UiMotion.animateTextColor(title, if (active) bg else Color.WHITE)
-            val nextBackground = if (active) {
-                GradientDrawable().apply {
-                    setColor(Color.rgb(218, 184, 112))
-                    cornerRadius = dp(16).toFloat()
+            // Filter-driven renders must not replay the tab selection animation.
+            // Animate only when the selected tab actually changes.
+            if (tab.isSelected != active) {
+                tab.isSelected = active
+                UiMotion.animateTextColor(title, if (active) bg else Color.WHITE)
+                val nextBackground = if (active) {
+                    GradientDrawable().apply {
+                        setColor(Color.rgb(218, 184, 112))
+                        cornerRadius = dp(16).toFloat()
+                    }
+                } else {
+                    GradientDrawable().apply {
+                        setColor(Color.rgb(29, 48, 66))
+                        cornerRadius = dp(16).toFloat()
+                        setStroke(dp(1), Color.rgb(39, 61, 82))
+                    }
                 }
-            } else {
-                GradientDrawable().apply {
-                    setColor(Color.rgb(29, 48, 66))
-                    cornerRadius = dp(16).toFloat()
-                    setStroke(dp(1), Color.rgb(39, 61, 82))
-                }
+                UiMotion.transitionBackground(tab, nextBackground)
             }
-            UiMotion.transitionBackground(tab, nextBackground)
             tab.elevation = if (active) dp(3).toFloat() else 0f
         }
     }
