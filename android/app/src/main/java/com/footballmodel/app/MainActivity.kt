@@ -1446,50 +1446,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun csvEscape(value: String): String = "\"" + value.replace("\"", "\"\"") + "\""
-
-    private fun exportBetAnalyticsCsv() {
-        try {
-            val rows = mutableListOf("идентификатор,дата,источник,статус,тип,матч_или_экспресс,рынок,ставка,коэффициент,прибыль,чемпионат,исходы")
-            for (i in 0 until bets.length()) {
-                val bet = bets.optJSONObject(i) ?: continue
-                val source = bet.optString("source")
-                if (source.equals("AI_AUTO", true)) continue
-                val status = bet.optString("status")
-                val stake = bet.optDouble("stake", Double.NaN)
-                val odds = bet.optDouble("odds", Double.NaN)
-                val isCoupon = bet.optString("marketKey") == "COUPON"
-                val validFinancials = stake.isFinite() && stake > 0.0 && odds.isFinite() && odds > 1.0
-                val profit = if (!validFinancials) "" else when (status) {
-                    "WON" -> (stake * (odds - 1.0)).toString()
-                    "LOST" -> (-stake).toString()
-                    "PUSH" -> "0"
-                    else -> ""
-                }
-                val selections = bet.optJSONArray("selections")
-                val match = if (isCoupon) "Coupon" else bet.optString("home") + " - " + bet.optString("away")
-                val market = if (isCoupon) "Coupon" else bet.optString("market")
-                val day = bet.optString("betDay").ifBlank { bet.optString("date") }
-                val line = listOf(
-                    bet.optString("id"), day, source.ifBlank { "MANUAL" }, status,
-                    if (isCoupon) "COUPON" else "SINGLE", match, market,
-                    stake.toString(), odds.toString(), profit, bet.optString("league"),
-                    (selections?.length() ?: 0).toString()
-                ).joinToString(",") { csvEscape(it) }
-                rows.add(line)
-            }
-            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                type = "text/csv"
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "История ставок Football Model")
-                putExtra(android.content.Intent.EXTRA_TEXT, rows.joinToString("\n"))
-            }
-            startActivity(android.content.Intent.createChooser(intent, "Экспорт истории ставок"))
-        } catch (error: Exception) {
-            android.util.Log.e("IQMatchStats", "CSV export failed", error)
-            Toast.makeText(this, "Не удалось подготовить CSV", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun renderBetPerformanceStats() {
         val now = System.currentTimeMillis()
         // Keep the analytics cache key stable for the whole local calendar day.
@@ -1538,15 +1494,6 @@ class MainActivity : Activity() {
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
         controls.addView(sourceRow)
-        val export = TextView(this).apply {
-            text = "↓  ЭКСПОРТ ИСТОРИИ СТАВОК · CSV"; gravity = Gravity.CENTER; textSize = 10f
-            typeface = Typeface.MONOSPACE; setPadding(dp(8), dp(11), dp(8), dp(11))
-            setTextColor(accent)
-            background = rounded(Color.rgb(26, 35, 45), 12)
-            setOnClickListener { exportBetAnalyticsCsv() }
-        }
-        controls.addView(export, LinearLayout.LayoutParams(-1, -2).apply { setMargins(dp(3), dp(5), dp(3), dp(2)) })
-
         val report = cached.current
         statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
@@ -1597,12 +1544,6 @@ class MainActivity : Activity() {
         terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ДНЯМ НЕДЕЛИ", report.byWeekday, 7)
 
-        val quality = terminalSection(matchesContainer, "КАЧЕСТВО ДАННЫХ", "НЕРАССЧИТАННЫЕ СТАВКИ НЕ ВХОДЯТ В ПРИБЫЛЬ, ROI И ДОЛЮ ПОБЕД")
-        val integrity = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(integrity, "ПРОЧИТАНО", report.recordsRead.toString(), Color.WHITE)
-        terminalMetric(integrity, "ОШИБОЧНЫЕ", report.invalidRecords.toString(), if (report.invalidRecords > 0) gold else accent)
-        terminalMetric(integrity, "ДУБЛИ", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) gold else accent)
-        quality.addView(integrity)
         cached.previous?.let { previous ->
             val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
             val delta = report.overall.roi - previous.overall.roi
@@ -1733,11 +1674,10 @@ class MainActivity : Activity() {
                         statsMetricsCacheKey = statsKey
                         statsCalculationInProgress.set(false)
                         if (currentTab == "stats") {
-                            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
                             // Rebuild even when this result became stale while calculating;
                             // renderStats will immediately schedule a calculation for the new feed.
                             tabViewCache.remove("stats|ALL")
-                            animateContentRefresh { render() }
+                            render()
                         }
                     }
                 }
