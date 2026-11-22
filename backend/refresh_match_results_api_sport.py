@@ -114,10 +114,6 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
         values["homeScore"] = home_score
         values["awayScore"] = away_score
 
-    # Once final is confirmed, do not downgrade it on a transient stale response.
-    if final_status is True and final is not True:
-        values["scoreStatusFinal"] = True
-
     for key, value in values.items():
         if target.get(key) != value:
             target[key] = value
