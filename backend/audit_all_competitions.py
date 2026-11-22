@@ -72,7 +72,7 @@ def build_all(domestic, uefa, today=None):
 
 def render(report):
     body = audit.markdown(report)
-    rows = ["", "## Покрытие 14 рынков точной ценой MelBet", "",
+    rows = ["", "## Покрытие 8 активных рынков точной ценой MelBet", "",
             "| Турнир | Совпадений рынок + линия + команда + цена ≥ 1.50 |",
             "|---|---:|"]
     for code, league in report["leagues"].items():
