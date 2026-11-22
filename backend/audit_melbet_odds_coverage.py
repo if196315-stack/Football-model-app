@@ -114,6 +114,7 @@ def main():
  by_comp={}
  overall={"eligible":len(targets),"matched":0,"with_any_market":0,"marketCoverage":{k:{"label":v,"fixtures":0} for k,v in MARKETS}}
  matched_rows=[]
+ unparsed_market_samples=[]
  for code,name,match in targets:
   stats=by_comp.setdefault(code,{"competition":name,"eligible":0,"matched":0,"with_any_market":0,"marketCoverage":{k:{"label":v,"fixtures":0} for k,v in MARKETS}})
   stats["eligible"]+=1
@@ -124,20 +125,34 @@ def main():
   present=[k for k,v in prices.items() if v is not None]
   if present: overall["with_any_market"]+=1; stats["with_any_market"]+=1
   for k in present: overall["marketCoverage"][k]["fixtures"]+=1; stats["marketCoverage"][k]["fixtures"]+=1
-  matched_rows.append({"competition":code,"date":kickoff(source).isoformat() if kickoff(source) else None,"home":(source.get("homeTeam") or {}).get("name"),"away":(source.get("awayTeam") or {}).get("name"),"providerFixtureId":source.get("id"),"markets":{k:prices[k] for k in present}})
+  source_row={"competition":code,"date":kickoff(source).isoformat() if kickoff(source) else None,"home":(source.get("homeTeam") or {}).get("name"),"away":(source.get("awayTeam") or {}).get("name"),"providerFixtureId":source.get("id"),"markets":{k:prices[k] for k in present}}
+  matched_rows.append(source_row)
+  if not present and len(unparsed_market_samples)<40:
+   board=((source.get("oddsBk") or {}).get(BOOKMAKER) or {})
+   raw_markets=[]
+   for slug,market in (board.get("markets") or {}).items():
+    if not isinstance(market,dict): continue
+    stakes=[]
+    for outcome,stake in (market.get("stakes") or {}).items():
+     if not isinstance(stake,dict): continue
+     values=list(stake.get("lines") or [])
+     if not values and stake.get("factor") is not None: values=[{"argument":None,"factor":stake.get("factor")}]
+     stakes.append({"outcome":str(outcome),"lines":[{"argument":line.get("argument"),"factor":line.get("factor"),"suspended":bool(line.get("suspended") or stake.get("suspended"))} for line in values[:4] if isinstance(line,dict)]})
+    raw_markets.append({"slug":str(slug),"name":market_label(market),"kind":market_kind(slug,market),"status":market.get("status"),"stage":market.get("stage"),"stakes":stakes[:12]})
+   unparsed_market_samples.append({**source_row,"raw_melbet_markets":raw_markets[:35]})
  baseline={"eligible":len(targets),"with_any_market":0,"marketCoverage":{k:{"label":v,"fixtures":0} for k,v in MARKETS}}
  for _,_,match in targets:
   prices=model_market_set(match); present=[k for k,v in prices.items() if v is not None]
   if present: baseline["with_any_market"]+=1
   for k in present: baseline["marketCoverage"][k]["fixtures"]+=1
- report={"generatedAt":datetime.now(timezone.utc).isoformat(),"provider":"API-Sport / MelBet","providerFixtureCount":len(fixtures),"melbet":overall,"betboomStoredBaseline":baseline,"byCompetition":by_comp,"matchedFixtures":matched_rows,"notes":["Read-only: does not change model feeds, app, production bookmaker, or filters.","Counts exact active full-time prematch prices for the 14 approved selections.","Fixture matching uses existing team-name and kickoff matching rules.","BetBoom baseline is the currently stored feed snapshot; its timestamp may differ from live MelBet pull."]}
+ report={"generatedAt":datetime.now(timezone.utc).isoformat(),"provider":"API-Sport / MelBet","providerFixtureCount":len(fixtures),"melbet":overall,"betboomStoredBaseline":baseline,"byCompetition":by_comp,"matchedFixtures":matched_rows,"unparsedMarketSamples":unparsed_market_samples,"notes":["Read-only: does not change model feeds, app, production bookmaker, or filters.","Counts exact active full-time prematch prices for the 14 approved selections.","Fixture matching uses existing team-name and kickoff matching rules.","BetBoom baseline is the currently stored feed snapshot; its timestamp may differ from live MelBet pull."]}
  out=ROOT/"artifacts"; out.mkdir(exist_ok=True)
  (out/"melbet-odds-coverage.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
  md=render(report); (out/"melbet-odds-coverage.md").write_text(md,encoding="utf-8")
  summary=os.getenv("GITHUB_STEP_SUMMARY")
  if summary:
   with open(summary,"a",encoding="utf-8") as f: f.write(md)
- print(json.dumps({"provider":report["provider"],"providerFixtures":len(fixtures),"eligible":overall["eligible"],"matched":overall["matched"],"withAnyMarket":overall["with_any_market"],"betboomStoredWithAnyMarket":baseline["with_any_market"],"byCompetition":{k:{x:y for x,y in v.items() if x!="marketCoverage"} for k,v in by_comp.items()}},ensure_ascii=False))
+ print(json.dumps({"provider":report["provider"],"providerFixtures":len(fixtures),"eligible":overall["eligible"],"matched":overall["matched"],"withAnyMarket":overall["with_any_market"],"unparsedSamples":len(unparsed_market_samples),"betboomStoredWithAnyMarket":baseline["with_any_market"],"byCompetition":{k:{x:y for x,y in v.items() if x!="marketCoverage"} for k,v in by_comp.items()}},ensure_ascii=False))
 
 def render(r):
  rows=["# MelBet — покрытие коэффициентами","",f"Сформирован: {r['generatedAt']}","","| Турнир | Матчей в выборке | Сопоставлено с MelBet | Есть нужный рынок |","|---|---:|---:|---:|"]
