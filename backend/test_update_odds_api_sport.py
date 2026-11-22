@@ -334,6 +334,11 @@ class ApiSportOddsTests(unittest.TestCase):
         }}}
         unknown = {"id": 701, "oddsBk": {"melbet": {
             "updatedAtByStage": {"prematch": 1794311880000},
+            "markets": {}
+        }}}
+        inactive = {"id": 702, "oddsBk": {"melbet": {
+            "updatedAtByStage": {"prematch": 1794311880000},
+            "isBettingActiveByStage": {"prematch": False},
             "markets": {"double_chance": {
                 "status": "open", "stage": "prematch",
                 "stakes": {"1x": {"factor": 1.8}}
@@ -341,6 +346,7 @@ class ApiSportOddsTests(unittest.TestCase):
         }}}
         self.assertTrue(parse_odds(active)["prematchActive"])
         self.assertFalse(parse_odds(unknown)["prematchActive"])
+        self.assertFalse(parse_odds(inactive)["prematchActive"])
 
 
 
