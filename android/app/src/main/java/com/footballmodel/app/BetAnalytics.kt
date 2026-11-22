@@ -135,10 +135,8 @@ internal object BetAnalyticsCalculator {
 
     private fun sourceMatches(bet: AnalyticsBet, source: String): Boolean = when (source) {
         "TOP" -> !bet.isCoupon && (
-            bet.source.equals("AI_MANUAL", true) ||
-                bet.source.equals("AI_MANUAL", true) && bet.isTopSignal ||
-                bet.isTopSignal
-            )
+            bet.source.equals("AI_MANUAL", true) || bet.isTopSignal
+        )
         "AI" -> bet.source.equals("AI_MANUAL", true)
         "MANUAL" -> bet.source.equals("MANUAL", true) && bet.isTopSignal
         else -> true
