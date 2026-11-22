@@ -25,7 +25,7 @@ from update_data import (
     COMPS, MAP, WINDOW, HALF_LIFE, SHRINKAGE, _similarity, key,
     update_prediction_archive,
 )
-from predict_uefa_markets import MODEL_VERSION, predict_upcoming
+from predict_uefa_markets import MODEL_VERSION, X2_CALIBRATION, predict_upcoming
 
 OUT = ROOT / "docs" / "data.json"
 # Cohorts with known fixture/season integrity defects are not model training data.
@@ -395,6 +395,15 @@ def run() -> dict:
         "updatedAt": datetime.now(timezone.utc).isoformat(),
         "source": "PitchAPI (fixtures, results and shot-level xG); API-Sport (bookmaker odds)",
         "modelVersion": MODEL_VERSION,
+        "probabilityCalibration": {
+            "x2": {
+                "method": X2_CALIBRATION["method"],
+                "trainedThrough": X2_CALIBRATION["trained_through"],
+                "holdoutFrom": X2_CALIBRATION["holdout_from"],
+                "trainingMatches": X2_CALIBRATION["train_n"],
+                "holdoutMatches": X2_CALIBRATION["holdout_n"],
+            }
+        },
         "modelConfig": {"window": WINDOW, "halfLife": HALF_LIFE, "shrinkage": SHRINKAGE},
         "xgProvider": "PitchAPI",
         "resultHistoryMatches": int(len(results)),
