@@ -118,9 +118,33 @@ class BetAnalyticsCalculatorTest {
         val all = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "ALL")
         val top = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "TOP")
         assertEquals(3, all.overall.settled)
-        assertEquals(2, top.overall.settled)
+        assertEquals(1, top.overall.settled)
         assertEquals(40.0, all.overall.turnover, 0.0001)
-        assertEquals(20.0, top.overall.turnover, 0.0001)
+        assertEquals(10.0, top.overall.turnover, 0.0001)
         assertEquals(1, all.ignoredAuto)
+    } 
+    @Test fun allAndTopReportsCalculateAverageOddsAndRoiForEachWorkingMarket() {
+        val rows = listOf(
+            AnalyticsBet("all-1x-win", 1_000L, "MANUAL", "WON", 20.0, 2.0,
+                "1X", "League A", false, marketKey = "1x"),
+            AnalyticsBet("top-1x-loss", 1_000L, "AI_MANUAL", "LOST", 10.0, 3.0,
+                "1X", "League A", false, marketKey = "1x"),
+            AnalyticsBet("all-x2-win", 1_000L, "MANUAL", "WON", 10.0, 1.5,
+                "X2", "League A", false, marketKey = "x2")
+        )
+        val all = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "ALL")
+        val top = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "TOP")
+        assertEquals(3, all.overall.settled)
+        assertEquals(15.0, all.overall.profit, 0.0001)
+        assertEquals(37.5, all.overall.roi, 0.0001)
+        assertEquals(2.1666667, all.overall.averageOdds, 0.0001)
+        val allOneX = all.byMarket.first { it.label == "1X" }
+        assertEquals(2.5, allOneX.averageOdds, 0.0001)
+        assertEquals(33.333333, allOneX.roi, 0.0001)
+        val topOneX = top.byMarket.first { it.label == "1X" }
+        assertEquals(3.0, topOneX.averageOdds, 0.0001)
+        assertEquals(-100.0, topOneX.roi, 0.0001)
+        assertEquals(0, top.byMarket.first { it.label == "X2" }.count)
     }
+
 }
