@@ -206,8 +206,12 @@ def parse_odds(m):
     # usable even if stale/open market objects remain in the provider payload.
     if isinstance(melbet, dict):
         active_by_stage = melbet.get("isBettingActiveByStage") or {}
+        # An unknown board state is not proof that prematch betting is active.
+        prematch_active = active_by_stage.get("prematch") is True
         if active_by_stage.get("prematch") is False:
             melbet = None
+    else:
+        prematch_active = False
     if isinstance(melbet,dict):
         bk="melbet"; board=melbet
         row={"key":bk,"title":"MELBET","doubleChance":{},"spreads":[],"teamTotals":[],"totals":[],"btts":{}}
@@ -311,7 +315,7 @@ def parse_odds(m):
     return {"eventId":str(m.get("id") or ""),"bookmaker":"MELBET",
             "updatedAt":board_updated_at or datetime.now(timezone.utc).isoformat(),
             "bookmakerUpdatedAt":board_updated_at,"bookmakerUpdateAgeSeconds":round(board_age_seconds,3) if board_age_seconds is not None else None,
-            "freshnessStatus":freshness,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
+            "freshnessStatus":freshness,"prematchActive":prematch_active,"bookmakers":book_rows,"best":best,"bestBookmakers":books_best}
 
 
 def melbet_market_diagnostics(fixtures, window_start=None, window_end=None):
