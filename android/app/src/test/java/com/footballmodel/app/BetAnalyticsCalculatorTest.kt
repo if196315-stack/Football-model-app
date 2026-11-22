@@ -34,7 +34,7 @@ class BetAnalyticsCalculatorTest {
         assertEquals(2.5, oneX.averageOdds, 0.0001)
     }
 
-    @Test fun topStatsIncludeOnlyConfirmedTopSingles() {
+    @Test fun overallStatsIncludeAllManualAndAiManualSingles() {
         val rows = listOf(
             bet("legacy-top", source = "MANUAL", topSignal = true, status = "WON"),
             bet("new-top", source = "AI_MANUAL", status = "LOST"),
@@ -42,9 +42,9 @@ class BetAnalyticsCalculatorTest {
             bet("coupon", source = "MANUAL", status = "WON", stake = 5.0, odds = 3.0, coupon = true)
         )
         val report = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L)
-        assertEquals(2, report.overall.settled)
-        assertEquals(0.0, report.overall.profit, 0.0001)
-        assertEquals(20.0, report.overall.turnover, 0.0001)
+        assertEquals(3, report.overall.settled)
+        assertEquals(10.0, report.overall.profit, 0.0001)
+        assertEquals(30.0, report.overall.turnover, 0.0001)
     }
 
     @Test fun pendingTopBetDoesNotAffectProfitTurnoverOrWinRate() {
