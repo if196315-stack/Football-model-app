@@ -35,6 +35,19 @@ internal object StatsPredictionScope {
         return null
     }
 
+    fun confidenceBand(source: String, probability: Double): Int? {
+        if (!probability.isFinite() || probability < 0.0 || probability > 1.0) return null
+        val topOnly = source == "TOP"
+        val confidence = maxOf(probability, 1.0 - probability)
+        if (topOnly && confidence < 0.6) return null
+        return when {
+            confidence < 0.6 -> 0
+            confidence < 0.7 -> if (topOnly) 0 else 1
+            confidence < 0.8 -> if (topOnly) 1 else 2
+            else -> if (topOnly) 2 else 3
+        }
+    }
+
     fun includes(source: String, matchId: String, marketKey: String, topSelections: Set<String>): Boolean {
         if (source != "TOP") return true
         if (matchId.isBlank() || marketKey.isBlank()) return false
