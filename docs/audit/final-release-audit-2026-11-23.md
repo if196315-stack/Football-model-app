@@ -76,3 +76,21 @@ Do not label the current build as the final production release until:
 3. Device QA covers all tabs, match cards, filters, paper bet create/edit/settle, analytics, notifications, cache restore, network loss and recovery.
 4. MelBet coverage is improved or the app clearly communicates unavailable odds without implying full live coverage.
 5. The one-leader/no-fallback selection policy is explicitly accepted or changed and regression-tested.
+
+
+## Post-merge verification addendum
+
+The hardening changes were squash-merged in PR #273 as commit `0a01705b9dc36c05018aac7fbf47da42014a6df8`. Post-merge checks on that commit:
+
+- Android unit tests + debug APK build: run 45068783667 — success.
+- Backend regression suite: run 45068783669 — success.
+- Eight-competition model/data audit: run 45068783611 — success.
+- Eight-competition Android-parity AI/Line audit: run 45068783787 — success.
+- Unified MelBet collector, paper evaluator, settlement and feed publication: run 45068783629 — success.
+- Calibrated production model feed refresh: run 45068783680 — success.
+
+The successful MelBet collector run reported 1,408 upcoming fixtures in its cache, 1,269 matched PitchAPI fixtures, 125 active prematch MelBet boards with supported markets, and zero missing model predictions among matched fixtures. Domestic feed publication reported 79 visible MelBet-priced matches out of 1,207 eligible upcoming domestic fixtures; 1,128 had no fresh active MelBet quote. This remains a material odds-coverage limitation.
+
+The corrected MelBet paper evaluator processed 30,851 archived MelBet signal observations: 547 BET, 7,890 REJECT and 22,414 WAIT; it added 10 paper-bet entries (37 total). These are paper-only outcomes, not executed bets or proof of profitability.
+
+The final APK was built from the merged application source on commit `0a01705b9dc36c05018aac7fbf47da42014a6df8`, artifact run 45068783667. It is still a **debug APK**, not a signed production release.
