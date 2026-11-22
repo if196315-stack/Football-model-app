@@ -2023,7 +2023,7 @@ class MainActivity : Activity() {
 
     // Choose the strongest model forecast with an exact MelBet quote in this match.
     // This is descriptive match-line ranking, not the stricter AI betting filter.
-    private fun strongestDisplaySignal(prediction: JSONObject, match: JSONObject): JSONObject? {
+    private fun strongestDisplaySignal(prediction: JSONObject, match: JSONObject, aiEligibleOnly: Boolean = false): JSONObject? {
         val candidates = mutableListOf<JSONObject>()
         prediction.optJSONObject("strongestSignal")?.let { candidates.add(it) }
         val signals = prediction.optJSONArray("signals")
@@ -2088,14 +2088,57 @@ class MainActivity : Activity() {
             candidate.put("lineKellyFraction", kellyFraction)
             candidate
         }
-        val positiveValue = available.filter { it.optDouble("lineExpectedValue", -1.0) > 0.0 }
+        // AI filtering must happen before ranking. Otherwise a high-Kelly market
+        // below the probability/edge thresholds can hide another valid market.
+        val eligible = if (aiEligibleOnly) available.filter { candidate ->
+            val probability = candidate.optDouble("modelProbability", Double.NaN)
+            val odds = candidate.optDouble("lineOdds", Double.NaN)
+            val ev = candidate.optDouble("lineExpectedValue", Double.NaN)
+            val edgePp = if (candidate.optBoolean("paperOnly")) {
+                candidate.optDouble("edgePp", Double.NaN)
+            } else {
+                (probability - 1.0 / odds) * 100.0 + candidate.optDouble("formAdjustmentPp", 0.0)
+            }
+            probability.isFinite() && probability >= 0.60 &&
+                odds.isFinite() && odds >= 1.50 &&
+                ev.isFinite() && ev >= 0.05 &&
+                edgePp.isFinite() && edgePp >= 5.0
+        } else available
+        val positiveValue = eligible.filter { it.optDouble("lineExpectedValue", -1.0) > 0.0 }
         return if (positiveValue.isNotEmpty()) {
             positiveValue.maxByOrNull { it.optDouble("lineKellyFraction", Double.NEGATIVE_INFINITY) }
         } else {
-            // Do not disguise a negative-EV quote as value: retain the most
-            // probable qualifying market, with its negative EV shown explicitly.
-            available.maxByOrNull { it.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }
+            eligible.maxByOrNull { it.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }
         }
+    }
+
+    // Quotes older than the strategy's 12-hour limit are never eligible.
+    // The timestamp is generated with the bookmaker odds snapshot, not the feed refresh time.
+    private fun hasFreshMelBetQuote(match: JSONObject): Boolean {
+        val odds = match.optJSONObject("odds") ?: return false
+        val bookmaker = odds.optString("bookmaker")
+        val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
+            else odds.optString("source").contains("MelBet", ignoreCase = true)
+        if (!isMelBet) return false
+        if (odds.optString("freshnessStatus").equals("stale", ignoreCase = true)) return false
+        val raw = odds.optString("updatedAt").trim()
+        if (raw.isBlank()) return false
+        val patterns = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+            "yyyy-MM-dd'T'HH:mm:ssX"
+        )
+        val timestamp = patterns.firstNotNullOfOrNull { pattern ->
+            try {
+                SimpleDateFormat(pattern, Locale.US).apply {
+                    isLenient = false
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }.parse(raw)?.time
+            } catch (_: Exception) { null }
+        } ?: return false
+        val age = System.currentTimeMillis() - timestamp
+        return age >= -5 * 60 * 1000L && age <= 12 * 60 * 60 * 1000L
     }
 
     private fun topSignalOdds(signal: JSONObject, match: JSONObject, minOdds: Double = 1.50): Double? {
@@ -2103,7 +2146,7 @@ class MainActivity : Activity() {
         val oddsBoard = match.optJSONObject("odds") ?: return null
         val bookmaker = oddsBoard.optString("bookmaker")
         val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true) else oddsBoard.optString("source").contains("MelBet", ignoreCase = true)
-        if (!isMelBet) return null
+        if (!isMelBet || !hasFreshMelBetQuote(match)) return null
         val best = oddsBoard.optJSONObject("best") ?: return null
         fun acceptable(value: Double) = value.isFinite() && value >= minOdds
         if (side.equals("1X", ignoreCase = true) || side.equals("X2", ignoreCase = true)) {
@@ -2179,7 +2222,7 @@ class MainActivity : Activity() {
         val odds = match.optJSONObject("odds") ?: return false
         val bookmaker = odds.optString("bookmaker")
         val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true) else odds.optString("source").contains("MelBet", ignoreCase = true)
-        if (!isMelBet) return false
+        if (!isMelBet || !hasFreshMelBetQuote(match)) return false
 
         val best = odds.optJSONObject("best") ?: return false
         fun validPrice(value: Double): Boolean = value.isFinite() && value > 1.0
@@ -2563,7 +2606,7 @@ class MainActivity : Activity() {
                 val prediction = match.optJSONObject("prediction") ?: continue
                 // AI consumes exactly the one strongest signal already selected for Line.
                 // It must not promote a second-best market when the Line leader fails AI filters.
-                val signal = strongestDisplaySignal(prediction, match) ?: continue
+                val signal = strongestDisplaySignal(prediction, match, aiEligibleOnly = true) ?: continue
                 val probability = signal.optDouble("modelProbability", Double.NaN)
                 val odds = topSignalOdds(signal, match, minOdds = 1.50) ?: continue
                 if (!probability.isFinite() || probability < 0.60) continue
