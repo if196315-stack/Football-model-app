@@ -23,8 +23,9 @@ from pitchapi_data_source import CACHE_PATH, model_history_rows, result_history_
 from update_odds import BASE_URL as ODDS_BASE_URL, LEAGUES as ODDS_LEAGUES, convert_event as convert_odds_event, similarity as odds_similarity
 from update_data import (
     COMPS, MAP, WINDOW, HALF_LIFE, SHRINKAGE, _similarity, key,
-    match_name, strengths, predict, update_prediction_archive,
+    update_prediction_archive,
 )
+from predict_uefa_markets import MODEL_VERSION, predict_upcoming
 
 OUT = ROOT / "docs" / "data.json"
 # Cohorts with known fixture/season integrity defects are not model training data.
@@ -341,14 +342,59 @@ def run() -> dict:
     refreshed = refresh_history(api_key, max_shot_requests=shot_limit)
     cache = refreshed["cache"]
     s, base, results = build_model_frames(cache)
-    st = strengths(s, base) if not s.empty else {}
-    names = {code: sorted(s.loc[s.comp == code, "team"].dropna().unique().tolist())
-             for code in MAP} if not s.empty else {}
+    # Use the exact same date-frozen, competition-local UEFA xG/Poisson engine
+    # for domestic leagues. Only paired, non-null shot-level xG is admitted.
+    model_rows = []
+    for row in model_history_rows(cache):
+        if row.get("id") in EXCLUDED_MATCH_IDS:
+            continue
+        if (row.get("leagueCode"), row.get("season")) in EXCLUDED_SEASONS:
+            continue
+        if row.get("leagueCode") not in ("ENG", "ESP", "ITA", "GER", "FRA"):
+            continue
+        try:
+            home_xg, away_xg = float(row["homeXg"]), float(row["awayXg"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+        model_rows.append({**row, "pairedXg": True,
+                           "homeXg": home_xg, "awayXg": away_xg})
+    model_fixture_cache = {
+        "matches": {
+            str(row.get("id")): row for row in cache.get("matches", {}).values()
+            if row.get("leagueCode") in ("ENG", "ESP", "ITA", "GER", "FRA")
+        }
+    }
+    model_predictions = predict_upcoming({"matches": model_rows}, model_fixture_cache)
+
+    def app_prediction(model):
+        markets = model["markets"]
+        return {
+            "1x": markets["double_chance"]["1x"],
+            "x2": markets["double_chance"]["x2"],
+            "over15": markets["match_total"]["over"]["1.5"],
+            "over25": markets["match_total"]["over"]["2.5"],
+            "over35": markets["match_total"]["over"]["3.5"],
+            "homeOver05": markets["team_total"]["home"]["over"]["0.5"],
+            "homeOver15": markets["team_total"]["home"]["over"]["1.5"],
+            "homeOver25": markets["team_total"]["home"]["over"]["2.5"],
+            "homeOver35": markets["team_total"]["home"]["over"]["3.5"],
+            "awayOver05": markets["team_total"]["away"]["over"]["0.5"],
+            "awayOver15": markets["team_total"]["away"]["over"]["1.5"],
+            "awayOver25": markets["team_total"]["away"]["over"]["2.5"],
+            "awayOver35": markets["team_total"]["away"]["over"]["3.5"],
+            "bttsYes": markets["btts"]["yes"],
+            "bttsNo": markets["btts"]["no"],
+            "expectedHomeGoals": model["home_lambda"],
+            "expectedAwayGoals": model["away_lambda"],
+            "strongestSignal": None,
+            "modelVersion": model["model_version"],
+            "historyMaxDate": model.get("history_max_date"),
+        }
 
     payload = {
         "updatedAt": datetime.now(timezone.utc).isoformat(),
         "source": "PitchAPI (fixtures, results and shot-level xG); API-Sport (bookmaker odds)",
-        "modelVersion": "PitchAPI shot xG · incremental migration",
+        "modelVersion": MODEL_VERSION,
         "modelConfig": {"window": WINDOW, "halfLife": HALF_LIFE, "shrinkage": SHRINKAGE},
         "xgProvider": "PitchAPI",
         "resultHistoryMatches": int(len(results)),
@@ -374,22 +420,11 @@ def run() -> dict:
             date = str(row.get("date") or "")
             status = app_status(row.get("status"), date)
             home, away = row.get("home") or "TBD", row.get("away") or "TBD"
-            pred, warning = None, None
-            if status in ("SCHEDULED", "TIMED"):
-                hn = match_name(home, names.get(league, []), league)
-                an = match_name(away, names.get(league, []), league)
-                if not hn or not an:
-                    warning = "Не удалось надёжно сопоставить команды с историей PitchAPI"
-                elif not st.get((league, hn)) or not st.get((league, an)):
-                    warning = "Недостаточно парной истории xG PitchAPI"
-                elif min(st[(league, hn)]["matches"], st[(league, an)]["matches"]) < 5:
-                    warning = "Для прогноза требуется не менее 5 матчей истории каждой команды"
-                else:
-                    pred, warning = predict(
-                        league, home, away, st, base, names, results, date[:10],
-                    )
-            # Keep the production feed limited to fixtures with a complete model forecast.
-            # The Android app applies the additional fresh-MelBet-quote eligibility check.
+            model = model_predictions.get(str(row.get("id")))
+            pred = app_prediction(model) if model else None
+            warning = None if pred else "Недостаточно предматчевой парной истории shot-level xG"
+            # Keep only complete model forecasts in the upcoming feed. Android
+            # independently applies the strict fresh active MelBet eligibility rule.
             if status in ("SCHEDULED", "TIMED") and pred is None:
                 continue
             item["matches"].append({
@@ -422,7 +457,7 @@ def run() -> dict:
     tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(OUT)
     return {"competitions": len(payload["competitions"]), "matches": sum(len(c["matches"]) for c in payload["competitions"]),
-            "pairedHistory": len(results), "predictions": len(upcoming),
+            "pairedHistory": len(model_rows), "predictions": len(upcoming),
             "pendingXg": payload["xgHistoryPending"], "retainedOdds": retained, "updatedOdds": odds_updated}
 
 
