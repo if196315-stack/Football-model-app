@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Capture timestamped MelBet odds for UEFA Champions League, Europa League and Conference League.
+"""Capture timestamped MelBet odds for all five domestic leagues and three UEFA club competitions.
 
 The archive stores only the strategy's supported markets and exact line values.
 It records both capture time and the bookmaker board's source-side prematch update
 timestamp and attaches pre-match probabilities from the UEFA xG/Poisson model
-when a paired-xG history is available.
+when the competition-local paired shot-xG history is available.
 """
 from __future__ import annotations
 
@@ -23,7 +23,8 @@ from predict_uefa_markets import predict_upcoming
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
-ARCHIVE = ROOT / "artifacts" / "uefa-melbet-odds-snapshots.jsonl"
+ARCHIVE = ROOT / "artifacts" / "melbet-odds-snapshots.jsonl"
+DOMESTIC_CACHE = ROOT / "backend" / "cache" / "pitchapi_history.json"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
 ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
 LOOKAHEAD_DAYS = 30
@@ -82,7 +83,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
     model_predictions_by_league = Counter()
     for fixture_id, match in (cache.get("matches") or {}).items():
         league = str(match.get("leagueCode") or "").upper()
-        if league not in ("UCL", "UEL", "UECL"):
+        if league not in ("UCL", "UEL", "UECL", "ENG", "ESP", "ITA", "GER", "FRA"):
             continue
         if str(match.get("status") or "").casefold() not in ("not_started", "scheduled", "timed"):
             continue
@@ -113,9 +114,10 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         if bookmaker_board:
             melbet_boards += 1
         active_by_stage = bookmaker_board.get("isBettingActiveByStage") or {}
-        if active_by_stage.get("prematch") is False:
+        # Unknown is not active: only an explicit active prematch board is eligible.
+        if active_by_stage.get("prematch") is not True:
             continue
-        if bookmaker_board and active_by_stage.get("prematch") is True:
+        if bookmaker_board:
             active_prematch_boards += 1
         board_updated_at = _board_timestamp(bookmaker_board)
         try:
@@ -229,6 +231,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
 
     if diagnostics is not None:
         diagnostics.update({
+            "eligible_supported_upcoming_fixtures_in_cache": eligible_fixtures,
             "eligible_uefa_upcoming_fixtures_in_cache": eligible_fixtures,
             "api_sport_provider_fixtures": len(provider_fixtures),
             "matched_pitchapi_fixtures": matched_fixtures,
@@ -389,19 +392,43 @@ def main() -> int:
     parser.add_argument("--fixture-cache", default=str(FIXTURE_CACHE))
     parser.add_argument("--output", default=str(ARCHIVE))
     parser.add_argument("--xg-history", default="artifacts/uefa-xg-history.json")
+    parser.add_argument("--domestic-cache", default=str(DOMESTIC_CACHE))
     args = parser.parse_args()
     cache_path = Path(args.fixture_cache)
     if not cache_path.exists():
         raise RuntimeError(f"UEFA fixture cache is missing: {cache_path}")
-    cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    uefa_cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    domestic_path = Path(args.domestic_cache)
+    domestic_cache = json.loads(domestic_path.read_text(encoding="utf-8")) if domestic_path.exists() else {"matches": {}}
+
+    # Namespace IDs in the combined, read-only snapshot view to prevent collisions
+    # between the independent UEFA and domestic PitchAPI caches.
+    combined_matches = {}
+    history_rows = []
+    for fixture_id, row in (uefa_cache.get("matches") or {}).items():
+        copied = {**row, "id": f"UEFA:{row.get('id', fixture_id)}"}
+        combined_matches[copied["id"]] = copied
+    for fixture_id, row in (domestic_cache.get("matches") or {}).items():
+        copied = {**row, "id": f"DOM:{row.get('id', fixture_id)}"}
+        combined_matches[copied["id"]] = copied
+        if (row.get("status") == "finished" and row.get("hasPlayoff") is not True
+                and row.get("homeScore") is not None and row.get("awayScore") is not None
+                and row.get("homeXg") is not None and row.get("awayXg") is not None):
+            try:
+                hx, ax = float(row["homeXg"]), float(row["awayXg"])
+            except (TypeError, ValueError, OverflowError):
+                continue
+            history_rows.append({**row, "id": f"DOM:{row.get('id', fixture_id)}",
+                                 "pairedXg": True, "homeXg": hx, "awayXg": ax})
+    history_path = ROOT / args.xg_history
+    if history_path.exists():
+        uefa_history = json.loads(history_path.read_text(encoding="utf-8"))
+        history_rows.extend(uefa_history.get("matches") or [])
+    cache = {"matches": combined_matches}
     provider_fixtures = fetch_provider_fixtures(os.environ.get("API_SPORT_KEY", "").strip())
     captured_at = datetime.now(timezone.utc).isoformat()
     diagnostics = {}
-    history_path = ROOT / args.xg_history
-    predictions = {}
-    if history_path.exists():
-        history = json.loads(history_path.read_text(encoding="utf-8"))
-        predictions = predict_upcoming(history, cache, predicted_at=captured_at)
+    predictions = predict_upcoming({"matches": history_rows}, cache, predicted_at=captured_at)
     diagnostics["predicted_upcoming_fixtures"] = len(predictions)
     rows = snapshot_rows(cache, provider_fixtures, captured_at, diagnostics, predictions)
     append_rows(rows, args.output, diagnostics)
