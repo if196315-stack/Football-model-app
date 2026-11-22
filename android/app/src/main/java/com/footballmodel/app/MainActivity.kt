@@ -1600,6 +1600,25 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun emptyPredictionMetrics(source: String): List<StatsMetricRow> {
+        val labels = listOf(
+            "1X · хозяева победят ИЛИ будет ничья",
+            "X2 · гости победят ИЛИ будет ничья",
+            "ИТБ 1.5 · хозяева",
+            "ИТБ 1.5 · гости",
+            "ТБ 2.5 · всего минимум 3 гола",
+            "ОЗ — да",
+            "ИТБ 0.5 · хозяева",
+            "ИТБ 0.5 · гости"
+        )
+        val bands = if (source == "TOP") listOf("60–69%", "70–79%", "80%+")
+            else listOf("50–59%", "60–69%", "70–79%", "80%+")
+        return labels.map { name ->
+            StatsMetricRow(name, 0, 0, Double.NaN, Double.NaN,
+                bands.map { StatsBandRow(it, 0, 0) })
+        }
+    }
+
     private fun evaluationMatchDayMillis(match: JSONObject): Long? {
         val raw = match.optString("utcDate").ifBlank {
             match.optString("dateEvent").ifBlank { match.optString("date") }
@@ -1743,7 +1762,7 @@ class MainActivity : Activity() {
                     } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
-                        emptyList()
+                        emptyPredictionMetrics(source)
                     }
                     runOnUiThread {
                         statsMetricsCache = calculated
@@ -1760,7 +1779,7 @@ class MainActivity : Activity() {
             }
             return
         }
-        val metrics = statsMetricsCache
+        val metrics = statsMetricsCache.ifEmpty { emptyPredictionMetrics(source) }
         val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
         val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
         if (metrics.isEmpty()) {
@@ -1813,6 +1832,17 @@ class MainActivity : Activity() {
             terminalMetric(scoreRow, "ОЦЕНКА БРАЙЕРА", if (metric.brier.isFinite()) String.format(Locale.US, "%.4f", metric.brier) else "—", if (metric.brier.isFinite()) Color.WHITE else muted)
             terminalMetric(scoreRow, "ЛОГ. ПОТЕРЯ", if (metric.logLoss.isFinite()) String.format(Locale.US, "%.4f", metric.logLoss) else "—", if (metric.logLoss.isFinite()) Color.WHITE else muted)
             box.addView(scoreRow)
+            }
+        }
+        if (metrics.isNotEmpty()) {
+            val archive = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
+            val calculationError = statsMetricsError
+            if (calculationError != null) {
+                archive.addView(label("Сводка рассчитана с ошибкой; строки рынков сохранены, но показатели временно нулевые. Код: $calculationError", 11, true, gold))
+            } else if (metrics.none { it.n > 0 }) {
+                archive.addView(label("За выбранный период нет завершённых прогнозов, подходящих под выбранный источник. Матч учитывается по дате матча после подтверждения итогового счёта.", 11, false, muted))
+            } else {
+                archive.addView(label("В статистику включены завершённые прогнозы за выбранный период по дате матча.", 11, false, muted))
             }
         }
     }
