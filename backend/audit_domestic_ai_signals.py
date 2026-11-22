@@ -138,8 +138,8 @@ def display_label(signal, match):
             return side
     return None
 
-def strongest_display_signal(prediction, match):
-    """Mirror Android strongestDisplaySignal including UEFA probability fallbacks."""
+def strongest_display_signal(prediction, match, ai_eligible_only=False):
+    """Mirror Android strongestDisplaySignal, including its pre-ranking AI gate."""
     candidates = []
     strongest = prediction.get("strongestSignal")
     if isinstance(strongest, dict):
@@ -174,6 +174,13 @@ def strongest_display_signal(prediction, match):
         if not math.isfinite(probability) or not 0 <= probability <= 1 or odds is None:
             continue
         ev = probability * odds - 1.0
+        edge_pp = (number(candidate.get("edgePp")) if candidate.get("paperOnly") is True
+                   else (probability - 1.0 / odds) * 100.0 + number(candidate.get("formAdjustmentPp"), 0.0))
+        if ai_eligible_only and (
+            probability < MIN_PROBABILITY or ev < MIN_EV or
+            not math.isfinite(edge_pp) or edge_pp < MIN_EDGE_PP
+        ):
+            continue
         kelly = ev / (odds - 1.0) if odds > 1 else float("-inf")
         available.append((candidate, probability, odds, ev, kelly))
     positive = [item for item in available if item[3] > 0]
@@ -258,7 +265,7 @@ def build(data, today=None):
         "android_rules": {"min_odds": MIN_ODDS, "min_probability": MIN_PROBABILITY,
                           "min_ev_pct": MIN_EV * 100, "min_edge_pp": MIN_EDGE_PP,
                           "line_selection": "max full-Kelly among positive-EV exact MelBet prices; otherwise max probability",
-                          "ai_candidate": "only the single Line leader; no second-best fallback"},
+                          "ai_candidate": "apply probability, EV and edge gates before ranking; show one highest-ranked eligible market"},
         "leagues": {},
     }
     comps = data.get("competitions", [])
@@ -281,7 +288,7 @@ def build(data, today=None):
                 counts["without_melbet_board"] += 1
                 continue
             counts["with_melbet_board"] += 1
-            leader = strongest_display_signal(prediction, match)
+            leader = strongest_display_signal(prediction, match, ai_eligible_only=True)
             if leader is None:
                 counts["without_line_leader"] += 1
                 continue
@@ -337,7 +344,7 @@ def markdown(report):
             lines.append("- **" + code + ":** " + "; ".join(f"{key.replace('_',' ')} — {value}" for key, value in sorted(reasons.items())))
     lines += ["", "## Ограничения", "",
               "- Это аудит текущего среза, не бэктест и не оценка доходности.",
-              "- В одном матче учитывается ровно один Line-лидер; второй рынок не подставляется, если лидер не проходит AI.",
+              "- В TOP показывается один рынок на матч. Ранжирование выполняется только после проверки AI-порогов для каждого поддерживаемого рынка.",
               "- Скрипт только читает feed и не меняет прогнозы, коэффициенты, пороги или ставки.", ""]
     return "\n".join(lines)
 
