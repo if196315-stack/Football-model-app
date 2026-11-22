@@ -2822,7 +2822,6 @@ class MainActivity : Activity() {
                     }
                 }
             }
-        }
         val footer = card()
         addText(footer, "ПРАВИЛА ТОП", 10, true, accent)
         addText(footer, "В TOP попадают сильнейшие сигналы из раздела Линия: MelBet ≥1.50, вероятность модели ≥60%, edge ≥5 п.п. и EV ≥5%. Фиксация в TOP сохраняет бумажную ставку в истории.", 11, false, muted)
