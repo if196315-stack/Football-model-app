@@ -65,6 +65,14 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertEqual(match["odds"]["bookmaker"], "MELBET")
         self.assertEqual(match["prediction"]["1x"], 0.8)
 
+    def test_uses_regulation_score_not_extra_time_score(self):
+        fixture = source(home=3, away=2)
+        fixture["homeScore"].update({"period1": 1, "period2": 1})
+        fixture["awayScore"].update({"period1": 0, "period2": 1})
+        target = {"status": "IN_PLAY"}
+        apply_provider_match(target, fixture, "now")
+        self.assertEqual((target["homeScore"], target["awayScore"]), (2, 1))
+
     def test_finished_but_not_final_remains_unconfirmed(self):
         target = {"status": "IN_PLAY", "homeScore": 0, "awayScore": 0}
         changed = apply_provider_match(target, source(final=False), "now")
