@@ -904,7 +904,7 @@ class MainActivity : Activity() {
 
     private fun loadData() {
         if (!loadInProgress.compareAndSet(false, true)) return
-        statusView.text = if (data == null) "Загружаю данные…" else "Проверяю обновления…"
+        UiMotion.animateTextChange(statusView, if (data == null) "Загружаю данные…" else "Проверяю обновления…")
         thread(name = "iq-match-feed-refresh") {
             try {
                 val body = fetchFeed(dataUrl, "domestic_json", true)
@@ -991,15 +991,15 @@ class MainActivity : Activity() {
                         animateContentRefresh { render() }
                     }
                     if (!changed) {
-                        statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
+                        UiMotion.animateTextChange(statusView, "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}")
                     }
                     loadInProgress.set(false)
                 }
             } catch (e: Exception) {
                 runOnUiThread {
                     val lastCheck = formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))
-                    statusView.text = (if (data != null) "Нет сети · показаны последние данные" else
-                        "Нет соединения · ${e.message ?: "проверьте интернет"}") + " · последняя успешная проверка: $lastCheck"
+                    UiMotion.animateTextChange(statusView, (if (data != null) "Нет сети · показаны последние данные" else
+                        "Нет соединения · ${e.message ?: "проверьте интернет"}") + " · последняя успешная проверка: $lastCheck")
                     loadInProgress.set(false)
                 }
             }
@@ -3294,21 +3294,21 @@ class MainActivity : Activity() {
                 recordButton = actionButton(box, if (notRecorded.size == 1) "Выбрать и зафиксировать" else "Выбрать исход для истории") {
                     val remaining = available.filterNot { isAiBetRecorded(match, it) }
                     if (remaining.isEmpty()) {
-                        recordButton.text = "✓ Все сигналы записаны"
+                        UiMotion.animateTextChange(recordButton, "✓ Все сигналы записаны")
                         recordButton.isEnabled = false
                         return@actionButton
                     }
                     val onRecorded: (JSONObject) -> Unit = { signal ->
                         statusViews[signal]?.apply {
-                            text = "Ожидает расчёт"
-                            setTextColor(accent)
+                            UiMotion.animateTextChange(this, "Ожидает расчёт")
+                            UiMotion.animateTextColor(this, accent)
                         }
                         // Update the visible TOP lists and counters in place; avoid a full
                         // Activity render so the screen stays responsive after saving.
-                        recordButton.text = "✓ Ставка зафиксирована"
+                        UiMotion.animateTextChange(recordButton, "✓ Ставка зафиксирована")
                         recordButton.isEnabled = false
                         openSignalsCount = (openSignalsCount - 1).coerceAtLeast(0)
-                        openIntroCountView.text = "НОВЫЕ СИГНАЛЫ · $openSignalsCount"
+                        UiMotion.animateTextChange(openIntroCountView, "НОВЫЕ СИГНАЛЫ · $openSignalsCount")
                         val stillOpenInMatch = statusViews.keys.count { it !== signal && !isAiBetRecorded(match, it) }
                         if (stillOpenInMatch == 0) UiMotion.animateVisibility(box, false, dp(6).toFloat())
                         if (openSignalsCount == 0) {
@@ -3449,7 +3449,7 @@ class MainActivity : Activity() {
         val state = json.optString("status", "unknown")
         val checkedAt = feedCache.getLong("last_successful_check_ms", 0L)
         val sourceUpdated = formatSourceTimestamp(json.optString("updatedAt"))
-        statusView.text = "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}"
+        UiMotion.animateTextChange(statusView, "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}")
         renderTabs()
         if (currentTab == "matches") renderLeagueTabs()
         UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
