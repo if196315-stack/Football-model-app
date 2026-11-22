@@ -990,8 +990,13 @@ class MainActivity : Activity() {
                         renderedKey = null
                         render()
                     }
-                    // Keep existing paper-bet processing and settlement behavior unchanged.
-                    processAutoPaperBets(json)
+                    // Refresh the history immediately when foreground or background settlement changes a bet.
+                    val betsChanged = processAutoPaperBets(json)
+                    if (betsChanged && currentTab == "history") {
+                        // Do not cache the currently visible pre-settlement rows.
+                        renderedKey = null
+                        render()
+                    }
                     if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
                     }
@@ -1425,29 +1430,43 @@ class MainActivity : Activity() {
 
     // Lock a paper bet as soon as the visible AI candidate qualifies.
     // The stored odds and quote timestamp remain fixed through settlement.
-    private fun processAutoPaperBets(json: JSONObject): List<JSONObject> {
+    private fun processAutoPaperBets(json: JSONObject): Boolean {
         return synchronized(AutoPaperExecutionLock) { processAutoPaperBetsUnlocked(json) }
     }
 
-    private fun processAutoPaperBetsUnlocked(json: JSONObject): List<JSONObject> {
-        // Reload persisted worker changes before foreground processing.
-        bets = try { JSONArray(betPrefs.getString("bets", bets.toString())) } catch (_: Exception) { bets }
-        val now = System.currentTimeMillis()
-        val localDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now))
+    private fun processAutoPaperBetsUnlocked(json: JSONObject): Boolean {
+        // Detect status changes made by the background worker before reloading its persisted snapshot.
+        val previousStatuses = mutableMapOf<String, String>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val key = bet.optString("id").ifBlank {
+                "local:${bet.optString("matchId")}:${bet.optString("marketKey")}:${bet.optString("date")}:$i"
+            }
+            previousStatuses[key] = bet.optString("status")
+        }
+
+        val persistedBets = try { JSONArray(betPrefs.getString("bets", bets.toString())) } catch (_: Exception) { bets }
         var changed = false
-        val newAutoBets = mutableListOf<JSONObject>()
+        for (i in 0 until persistedBets.length()) {
+            val bet = persistedBets.optJSONObject(i) ?: continue
+            val key = bet.optString("id").ifBlank {
+                "local:${bet.optString("matchId")}:${bet.optString("marketKey")}:${bet.optString("date")}:$i"
+            }
+            val previousStatus = previousStatuses[key]
+            if (previousStatus != null && previousStatus != bet.optString("status")) changed = true
+        }
+        bets = persistedBets
+
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("status") == "PENDING" && existing.optString("marketKey") != "COUPON") {
                 val match = findMatch(json, existing) ?: continue
-                val before = existing.optString("status")
-                settleBet(existing, match)
-                if (before != existing.optString("status")) changed = true
+                if (settleBet(existing, match)) changed = true
             }
         }
         // Automatic paper-bet creation is disabled. Keep settlement of existing bets above.
         if (changed) saveBets()
-        return emptyList()
+        return changed
     }
 
     private fun saveBets(preserveBackgroundAuto: Boolean = true) {
