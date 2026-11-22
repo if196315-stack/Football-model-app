@@ -977,18 +977,19 @@ class MainActivity : Activity() {
                     AiMatchNotifications.observe(this, openTopNotificationCandidates)
                     val changed = payload != lastPayload
                     if (changed) {
+                        val hadPreviousData = data != null
                         data = json
                         lastPayload = payload
                         tabViewCache.clear()
                         renderedKey = null
-                        render()
+                        if (hadPreviousData) animateContentRefresh { render() } else render()
                     }
                     // Refresh the history immediately when foreground or background settlement changes a bet.
                     val betsChanged = processAutoPaperBets(json)
                     if (betsChanged && currentTab == "history") {
                         // Do not cache the currently visible pre-settlement rows.
                         renderedKey = null
-                        render()
+                        animateContentRefresh { render() }
                     }
                     if (!changed) {
                         statusView.text = "●  Данные актуальны · источник: ${formatSourceTimestamp(json.optString("updatedAt"))} · проверено: ${formatLocalTimestamp(feedCache.getLong("last_successful_check_ms", 0L))}"
@@ -2082,7 +2083,7 @@ class MainActivity : Activity() {
                         b.put("oddsEditedAt", System.currentTimeMillis())
                         saveBets()
                         dialog.dismiss()
-                        render()
+                        animateContentRefresh { render() }
                     }
                 }
             }.show()
@@ -2212,9 +2213,9 @@ class MainActivity : Activity() {
                     saveBets(preserveBackgroundAuto = false)
                     // The cached history view contains the deleted row; force a fresh render.
                     tabViewCache.remove("history|" + selectedHistoryTab)
-                    render()
-                    mainScrollView.post {
-                        mainScrollView.scrollTo(0, previousScrollY)
+                    animateContentRefresh {
+                        render()
+                        mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
                     }
                 }
                 box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
@@ -2823,7 +2824,7 @@ class MainActivity : Activity() {
                     tabViewCache.clear()
                 }
                 dialog.dismiss()
-                render()
+                animateContentRefresh { render() }
             }
         }
         dialog.show()
@@ -2893,7 +2894,7 @@ class MainActivity : Activity() {
                 settingsPrefs.edit().putBoolean(SectionNotifications.UNREAD_KEY, false).apply()
                 tabViewCache.clear()
                 renderedKey = null
-                render()
+                animateContentRefresh { render() }
             }
         }
         summary.addView(markAll)
@@ -2935,10 +2936,7 @@ class MainActivity : Activity() {
             item.setOnClickListener {
                 val destination = event.optString("targetTab", "notifications")
                 if (destination != "notifications" && destination in listOf("desk", "history", "matches", "stats")) {
-                    currentTab = destination
-                    tabViewCache.clear()
-                    renderedKey = null
-                    render()
+                    selectTab(destination)
                 }
             }
             matchesContainer.addView(item)
@@ -3595,8 +3593,8 @@ class MainActivity : Activity() {
                 val nextExpanded = !(expandedLeagues[leagueCode] ?: true)
                 expandedLeagues[leagueCode] = nextExpanded
                 // Toggle the existing list in place; avoid rebuilding every match card.
-                content.visibility = if (nextExpanded) View.VISIBLE else View.GONE
-                expandIcon.text = if (nextExpanded) "  ▾" else "  ▸"
+                UiMotion.animateVisibility(content, nextExpanded, dp(6).toFloat())
+                UiMotion.animateTextChange(expandIcon, if (nextExpanded) "  ▾" else "  ▸")
             }
             section.addView(heading)
             content.visibility = if (expanded) View.VISIBLE else View.GONE
