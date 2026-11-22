@@ -1258,6 +1258,13 @@ class MainActivity : Activity() {
         UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
     }
 
+    private fun hideLineHeadingImmediately() {
+        lineHeadingView.animate().cancel()
+        lineHeadingView.visibility = View.GONE
+        lineHeadingView.alpha = 1f
+        lineHeadingView.translationY = 0f
+    }
+
     private fun animateStakeModeVisibility(view: View, show: Boolean) {
         UiMotion.animateVisibility(view, show, dp(6).toFloat())
     }
@@ -3453,33 +3460,33 @@ class MainActivity : Activity() {
         }
 
         if (currentTab == "day") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderDay(json)
             return
         }
         if (currentTab == "notifications") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderNotificationCenter(json)
             renderDailyInsights(json)
             return
         }
         if (currentTab == "desk") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBettingDesk(json)
             return
         }
         if (currentTab == "history") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderBetHistory(json)
             return
         }
         if (currentTab == "stats") {
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             try {
                 renderStats(json)
             } catch (error: Throwable) {
@@ -3492,7 +3499,7 @@ class MainActivity : Activity() {
             }
             return
         } else if (currentTab == "help") {
-            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+            hideLineHeadingImmediately()
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
             renderHelp()
             return
