@@ -1500,7 +1500,9 @@ class MainActivity : Activity() {
         // Including bounds.first (which contains the current time down to milliseconds)
         // caused every render to invalidate a calculation that had just completed.
         val key = listOf(selectedStatsPeriod, selectedStatsSource,
-            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(now))).joinToString("|")
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }.format(Date(now))).joinToString("|")
         val cached = statsBetViewCache
         if (cached?.key != key) {
             val loading = terminalSection(matchesContainer, "РАСЧЁТ АНАЛИТИКИ", "СБОР ДАННЫХ → ПРОВЕРКА → РАСЧЁТ")
