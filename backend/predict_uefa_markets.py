@@ -10,7 +10,7 @@ from pathlib import Path
 
 from backtest_pitchapi import WINDOW, probabilities, poisson, team_strength
 
-MODEL_VERSION = "xg-poisson-v2-x2-calibrated"
+MODEL_VERSION = "xg-poisson-v2-x2-calibrated"  # Production X2 calibration is active
 
 # Frozen global X2 vector-scaling calibrator trained on 9,810 chronological
 # pre-holdout predictions (through 2026-06-30), evaluated on 695 fixtures
