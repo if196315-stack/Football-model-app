@@ -166,7 +166,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val bookmaker = odds.optString("bookmaker")
                 val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
                     else odds.optString("source").contains("MelBet", ignoreCase = true)
-                if (!isMelBet) continue
+                if (!isMelBet || !hasFreshMelBetQuote(match)) continue
                 val matchDay = match.optString("utcDate").take(10).ifBlank {
                     match.optString("dateEvent").take(10).ifBlank {
                         val timestamp = match.optLong("startTimestamp", 0L)
@@ -238,8 +238,13 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         rawMarkets.forEach { (field, side) ->
             val probability = prediction.optDouble(field, Double.NaN)
             if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
-            if (candidates.none { it.optString("side").trim().equals(side.trim(), ignoreCase = true) }) {
+            val existing = candidates.firstOrNull {
+                it.optString("side").trim().equals(side.trim(), ignoreCase = true)
+            }
+            if (existing == null) {
                 candidates.add(JSONObject().put("side", side).put("modelProbability", probability))
+            } else if (!existing.optDouble("modelProbability", Double.NaN).isFinite()) {
+                existing.put("modelProbability", probability)
             }
         }
         val available = candidates.mapNotNull { candidate ->
@@ -250,9 +255,22 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val expectedValue = probability * odds - 1.0
             Triple(candidate, expectedValue, expectedValue / (odds - 1.0))
         }
-        val positiveValue = available.filter { it.second > 0.0 }
-        return if (positiveValue.isNotEmpty()) positiveValue.maxByOrNull { it.third }?.first
-        else available.maxByOrNull { it.first.optDouble("modelProbability", Double.NEGATIVE_INFINITY) }?.first
+        // Derive edge for raw UEFA probabilities as well as prebuilt domestic signals,
+        // then apply all strict AI thresholds before choosing the best Kelly candidate.
+        val eligible = available.filter { (candidate, expectedValue, _) ->
+            val probability = candidate.optDouble("modelProbability", Double.NaN)
+            val odds = priceFor(candidate, match) ?: return@filter false
+            val edgePp = if (candidate.optBoolean("paperOnly")) {
+                candidate.optDouble("edgePp", Double.NaN)
+            } else {
+                (probability - 1.0 / odds) * 100.0 + candidate.optDouble("formAdjustmentPp", 0.0)
+            }
+            if (edgePp.isFinite()) candidate.put("edgePp", edgePp)
+            probability.isFinite() && probability >= 0.60 &&
+                expectedValue.isFinite() && expectedValue >= 0.05 &&
+                edgePp.isFinite() && edgePp >= 5.0
+        }
+        return eligible.maxByOrNull { it.third }?.first
     }
 
     private fun process(feed: JSONObject, bets: JSONArray): Boolean {
@@ -362,8 +380,21 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         return null
     }
 
+    private fun hasFreshMelBetQuote(match: JSONObject): Boolean {
+        val odds = match.optJSONObject("odds") ?: return false
+        val bookmaker = odds.optString("bookmaker")
+        val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", ignoreCase = true)
+            else odds.optString("source").contains("MelBet", ignoreCase = true)
+        if (!isMelBet || odds.optString("freshnessStatus").equals("stale", ignoreCase = true)) return false
+        val updatedAt = parseInstant(odds.optString("updatedAt"))
+            ?: return false
+        val age = System.currentTimeMillis() - updatedAt
+        return age >= -5 * 60 * 1000L && age <= 12 * 60 * 60 * 1000L
+    }
+
     private fun priceFor(signal: JSONObject, match: JSONObject): Double? {
         val side = signal.optString("side")
+        if (!hasFreshMelBetQuote(match)) return null
         val best = match.optJSONObject("odds")?.optJSONObject("best") ?: return null
         fun valid(v: Double) = v.isFinite() && v >= 1.50
         if (side == "1X" || side == "X2") {
