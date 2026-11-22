@@ -1,0 +1,56 @@
+name: Apply calibrated production model feed
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/predict_uefa_markets.py"
+      - "backend/update_data_pitchapi.py"
+      - ".github/workflows/apply-calibrated-model-feed.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: calibrated-production-model-feed
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install production updater dependencies
+        run: python -m pip install requests pandas numpy
+      - name: Restore PitchAPI history cache
+        uses: actions/cache@v4
+        with:
+          path: backend/cache/pitchapi_history.json
+          key: pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            pitchapi-history-${{ runner.os }}-${{ github.ref_name }}-
+      - name: Regenerate production forecasts with calibrated X2
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+          PITCHAPI_MAX_SHOT_REQUESTS: "0"
+          PITCHAPI_REFRESH_ODDS_API: "false"
+        run: python backend/update_data_pitchapi.py
+      - name: Commit refreshed production feed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json
+          git diff --cached --quiet || git commit -m "Refresh production forecasts with calibrated X2"
+          git pull --rebase origin main
+          git push
