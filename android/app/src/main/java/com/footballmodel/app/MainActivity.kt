@@ -1592,9 +1592,6 @@ class MainActivity : Activity() {
         terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
         risk.addView(runRow)
 
-        if (selectedStatsSource == "ALL") {
-            terminalSummary(matchesContainer, "ЭКСПРЕССЫ · ОТДЕЛЬНЫЙ УЧЁТ", report.coupons)
-        }
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
         terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
@@ -1606,7 +1603,6 @@ class MainActivity : Activity() {
         terminalMetric(integrity, "ОШИБОЧНЫЕ", report.invalidRecords.toString(), if (report.invalidRecords > 0) gold else accent)
         terminalMetric(integrity, "ДУБЛИ", report.duplicateRecords.toString(), if (report.duplicateRecords > 0) gold else accent)
         quality.addView(integrity)
-        quality.addView(label("Каждый экспресс учитывается одной записью; входящие в него исходы не добавляются как отдельные ставки.", 10, false, muted))
         cached.previous?.let { previous ->
             val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
             val delta = report.overall.roi - previous.overall.roi
