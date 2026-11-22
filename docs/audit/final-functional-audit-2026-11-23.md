@@ -2,7 +2,7 @@
 
 Дата: 23 ноября 2026  
 Основной baseline: `main` / `d9bc8a8eb297fe1a527e153ab79d4a6a38f0735d`  
-Кандидат исправлений: PR [#284](https://github.com/if196315-stack/Football-model-app/pull/284), ветка `audit/final-functional-hardening`, кодовый HEAD `1411a39b138006a68127032cff61fe51cc3f480a` (после него добавлен только этот audit report).
+Кандидат исправлений: PR [#284](https://github.com/if196315-stack/Football-model-app/pull/284), ветка `audit/final-functional-hardening`, кодовый HEAD `18fb9c9ecc51440600a4f5cc111afcef25e49350`.
 
 ## Объём проверки
 
@@ -31,10 +31,10 @@
 
 ## CI и данные
 
-- Backend odds regression: **success**, run [45081805307](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805307). В полном backend-наборе выполнено 228 тестов.
-- Аудит восьми турниров: **success**, run [45081805430](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805430).
+- Backend odds regression: **success**, 228 тестов, run [45082312092](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312092).
+- Аудит восьми турниров: **success**, run [45082312190](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312190).
 - На срезе аудита: 277 будущих матчей с прогнозом, 125 матчей с котировкой MelBet, 34 сигнала прошли AI-пороги, 563 точные цены по активным рынкам.
-- До добавления общего FeedMerger прошёл Android debug workflow на предыдущем Android-кандидате. В текущем кодовом кандидате определено 35 Android JVM-тестов (включая 3 новых теста FeedMerger); итоговые debug/release workflows на HEAD `1411a39` ещё выполняются: [unsigned release workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805301), [debug workflow](https://github.com/if196315-stack/Football-model-app/actions/runs/45081805312).
+- Android debug: **success** на HEAD `18fb9c9`; все 35 JVM-тестов и debug APK прошли — [run 45082312074](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312074). Release candidate на том же HEAD: unit tests и release lint — **success**, `assembleRelease` ещё выполняется — [run 45082312062](https://github.com/if196315-stack/Football-model-app/actions/runs/45082312062).
 
 ## Открытые блокеры перед заявлением «готово к подписи»
 
@@ -42,6 +42,9 @@
 2. **Спецификация стратегии расходится сама с собой.** Markdown называет BetBoom и допускает более широкий набор рынков, JSON и runtime используют MelBet и восемь активных рынков. Лимиты просадки/дневной и матчевой экспозиции в Markdown и JSON различаются. В Android-коде не обнаружено автоматического применения таких стопов/лимитов; просадка рассчитывается для отчёта. Финансовые правила не менялись без отдельного согласования.
 3. **Разная свежесть UEFA paper-выборки.** Android/feed builders допускают до 12 часов, а `evaluate_uefa_paper_signals.py` ограничивает возраст котировки пятью минутами. Это может менять историческую выборку и parity. Не менялось без подтверждения, какой порог является утверждённым.
 4. **Исторический TOP-архив локальный.** Прогнозы, которые не были сохранены в архив TOP на устройстве, нельзя достоверно восстановить задним числом из текущего фида.
+
+5. **Архитектурный долг.** Основная UI-логика и часть orchestration остаются сосредоточены в крупном `MainActivity`. Сетевые операции и расчёты вынесены с UI-потока, но дальнейшее разделение Activity на отдельные UI/data/domain-компоненты упростит поддержку; большой рефакторинг перед подписью не проводился.
+6. **Резервное копирование.** В manifest не задана явная политика Android Auto Backup; локальная история и настройки могут подпадать под стандартное поведение Android backup. Нужно решить, должно ли это сохраняться в резервной копии.
 
 ## Вердикт
 
