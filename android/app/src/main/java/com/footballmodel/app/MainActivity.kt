@@ -1660,12 +1660,17 @@ class MainActivity : Activity() {
                 brier += (probability - y) * (probability - y)
                 logLoss += -(y * kotlin.math.ln(probability) + (1.0 - y) * kotlin.math.ln(1.0 - probability))
             }
-            if (n > 0) {
-                val labels = if (topOnly) listOf("60–69%", "70–79%", "80%+") else
-                    listOf("50–59%", "60–69%", "70–79%", "80%+")
-                val bands = labels.indices.map { StatsBandRow(labels[it], bandCounts[it], bandHits[it]) }
-                metrics.add(StatsMetricRow(title, n, hits, brier / n, logLoss / n, bands))
-            }
+            // Keep every active market visible in both ALL and TOP, even when
+            // the selected TOP archive has no observations for a particular market.
+            val labels = if (topOnly) listOf("60–69%", "70–79%", "80%+") else
+                listOf("50–59%", "60–69%", "70–79%", "80%+")
+            val bands = labels.indices.map { StatsBandRow(labels[it], bandCounts[it], bandHits[it]) }
+            metrics.add(StatsMetricRow(
+                title, n, hits,
+                if (n > 0) brier / n else Double.NaN,
+                if (n > 0) logLoss / n else Double.NaN,
+                bands
+            ))
         }
         collect("1x", "1X · хозяева победят ИЛИ будет ничья", { h, a -> h >= a })
         collect("x2", "X2 · гости победят ИЛИ будет ничья", { h, a -> a >= h })
@@ -1776,13 +1781,17 @@ class MainActivity : Activity() {
             } else {
                 empty.addView(label("Архив проверенных прогнозов пока формируется. Матч попадёт в статистику после фиксации прогноза до начала игры и получения подтверждённого итогового счёта.", 11, false, muted))
             }
-        } else metrics.forEach { metric ->
+        } else {
+            if (metrics.none { it.n > 0 }) {
+                addText(overallHeading, "Пока нет завершённых прогнозов в выбранной выборке. Все восемь активных рынков показаны ниже и начнут заполняться после подтверждения результатов.", 11, false, muted)
+            }
+            metrics.forEach { metric ->
             val box = terminalSection(matchesContainer, metric.name, "ВЫБОРКА: ${metric.n} ЗАВЕРШЁННЫХ МАТЧЕЙ")
-            val hitRate = metric.hits * 100.0 / metric.n
+            val hitRate = if (metric.n > 0) metric.hits * 100.0 / metric.n else Double.NaN
             val summaryRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(summaryRow, "ПОПАДАНИЯ", "${metric.hits} / ${metric.n}", Color.WHITE)
-            terminalMetric(summaryRow, "ТОЧНОСТЬ", String.format(Locale.US, "%.1f%%", hitRate),
-                if (hitRate >= 50.0) accent else gold)
+            terminalMetric(summaryRow, "ТОЧНОСТЬ", if (hitRate.isFinite()) String.format(Locale.US, "%.1f%%", hitRate) else "—",
+                if (hitRate.isFinite() && hitRate >= 50.0) accent else muted)
             box.addView(summaryRow)
             box.addView(label("ТОЧНОСТЬ ПО УРОВНЮ УВЕРЕННОСТИ", 9, true, cyan).apply {
                 typeface = Typeface.MONOSPACE
@@ -1809,10 +1818,11 @@ class MainActivity : Activity() {
                     bottomMargin = dp(5)
                 })
             }
-            val qualityRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            terminalMetric(qualityRow, "ОЦЕНКА БРАЙЕРА", String.format(Locale.US, "%.4f", metric.brier), Color.WHITE)
-            terminalMetric(qualityRow, "ЛОГ. ПОТЕРЯ", String.format(Locale.US, "%.4f", metric.logLoss), Color.WHITE)
-            box.addView(qualityRow)
+            val scoreRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(scoreRow, "ОЦЕНКА БРАЙЕРА", if (metric.brier.isFinite()) String.format(Locale.US, "%.4f", metric.brier) else "—", if (metric.brier.isFinite()) Color.WHITE else muted)
+            terminalMetric(scoreRow, "ЛОГ. ПОТЕРЯ", if (metric.logLoss.isFinite()) String.format(Locale.US, "%.4f", metric.logLoss) else "—", if (metric.logLoss.isFinite()) Color.WHITE else muted)
+            box.addView(scoreRow)
+            }
         }
     }
 
