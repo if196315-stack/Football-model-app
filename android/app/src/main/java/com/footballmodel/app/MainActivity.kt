@@ -1438,9 +1438,9 @@ class MainActivity : Activity() {
             row.addView(label((index + 1).toString() + ". " + item.label, 10, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1.5f))
             row.addView(label(item.count.toString() + " · " + item.wins + "/" + item.losses, 9, false, muted).apply { typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.8f))
             if (showAverageOdds) {
-                row.addView(label(String.format(Locale.US, "%.2f", item.averageOdds), 9, true, Color.WHITE).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.55f))
+                row.addView(label(if (item.count > 0) String.format(Locale.US, "%.2f", item.averageOdds) else "—", 9, true, Color.WHITE).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.55f))
             }
-            row.addView(label(String.format(Locale.US, "%.1f%%", item.roi), 9, true, if (item.roi >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
+            row.addView(label(if (item.count > 0) String.format(Locale.US, "%+.1f%%", item.roi) else "—", 9, true, when { item.count == 0 -> muted; item.roi > 0 -> accent; item.roi < 0 -> Color.rgb(210, 112, 108); else -> Color.WHITE }).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.7f))
             row.addView(label(fmt(item.profit), 9, true, if (item.profit >= 0) accent else Color.rgb(210, 112, 108)).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.65f))
             box.addView(row)
         }
@@ -1551,7 +1551,7 @@ class MainActivity : Activity() {
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
-        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "РУЧНЫЕ + AI-РУЧНЫЕ + ЭКСПРЕССЫ · ЭКСПРЕССЫ УЧТЕНЫ ОДИН РАЗ")
+        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ВСЕ РУЧНЫЕ И AI-РУЧНЫЕ ОДИНОЧНЫЕ СТАВКИ · БЕЗ ДУБЛИРОВАНИЯ")
         val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
         hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
         hero.addView(label("ЧИСТАЯ ПРИБЫЛЬ / УБЫТОК", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
@@ -1586,17 +1586,6 @@ class MainActivity : Activity() {
         terminalMetric(runRow, "ЛУЧШАЯ СЕРИЯ ПОБЕД", report.longestWinStreak.toString(), accent)
         terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
         risk.addView(runRow)
-
-        val sourceBox = terminalSection(matchesContainer, "ОДИНОЧНЫЕ СТАВКИ · СРАВНЕНИЕ ИСТОЧНИКОВ", "ЭКСПРЕССЫ ПОКАЗАНЫ ОТДЕЛЬНО")
-        val manualRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(manualRow, "РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.manual.profit), if (report.manual.profit >= 0) accent else Color.rgb(210, 112, 108))
-        terminalMetric(manualRow, "РУЧНЫЕ · ROI", String.format(Locale.US, "%.1f%%", report.manual.roi), Color.WHITE)
-        sourceBox.addView(manualRow)
-        val aiRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(aiRow, "AI-РУЧНЫЕ · ПРИБЫЛЬ", fmt(report.ai.profit), if (report.ai.profit >= 0) accent else Color.rgb(210, 112, 108))
-        terminalMetric(aiRow, "AI-РУЧНЫЕ · ROI", String.format(Locale.US, "%.1f%%", report.ai.roi), Color.WHITE)
-        sourceBox.addView(aiRow)
-        sourceBox.addView(label("Ручные: " + report.manual.settled + " рассчитано · AI-ручные: " + report.ai.settled + " рассчитано", 10, false, muted))
 
         terminalSummary(matchesContainer, "ОДИНОЧНЫЕ СТАВКИ · БЕЗ ЭКСПРЕССОВ", report.singles)
         terminalSummary(matchesContainer, "ЭКСПРЕССЫ · ОТДЕЛЬНЫЙ УЧЁТ", report.coupons)
@@ -2178,7 +2167,6 @@ class MainActivity : Activity() {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
                 }
-                if (state == "PENDING") compactHistoryButton(actions, "Кэф") { showEditBetOddsDialog(bet) }
                 compactHistoryButton(actions, "Удалить", destructive = true) {
                     val id = bet.optString("id")
                     val next = JSONArray()
@@ -2265,6 +2253,8 @@ class MainActivity : Activity() {
         val stakeModeButtons = linkedMapOf<String, Button>()
         lateinit var fixedStakeHint: TextView
         lateinit var minimumStakeHint: TextView
+        lateinit var fixedStakeSection: LinearLayout
+        lateinit var minimumStakeSection: LinearLayout
         fun styleStakeModeButton(button: Button, selected: Boolean) {
             button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
             button.background = GradientDrawable(
@@ -2292,6 +2282,8 @@ class MainActivity : Activity() {
                         return@setOnClickListener
                     }
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
+                    minimumStakeSection.visibility = if (mode == "MINIMUM") View.VISIBLE else View.GONE
+                    fixedStakeSection.visibility = if (mode == "FIXED") View.VISIBLE else View.GONE
                     fixedStakeHint.text = if (mode == "FIXED") {
                         if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
                         else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
@@ -2319,21 +2311,25 @@ class MainActivity : Activity() {
         minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
             else "Сохранённое значение не применяется, пока выбран режим «Фиксированная».", 11, false, muted)
         settings.addView(stakeModeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        settings.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) })
-        addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
-        addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
-        settings.addView(minimumStakeHint)
-        actionButton(settings, "Изменить минимальную сумму ставки") {
+        minimumStakeSection = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        addText(minimumStakeSection, "Минимальная сумма ставки", 12, true, Color.WHITE)
+        addText(minimumStakeSection, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
+        minimumStakeSection.addView(minimumStakeHint)
+        actionButton(minimumStakeSection, "Изменить минимальную сумму ставки") {
             showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум.")
         }
-        val settingsSectionGap = View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) }
-        settings.addView(settingsSectionGap)
-        addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
-        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
-        settings.addView(fixedStakeHint)
-        actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
+        fixedStakeSection = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        addText(fixedStakeSection, "Фиксированная сумма ставки", 12, true, Color.WHITE)
+        addText(fixedStakeSection, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
+        fixedStakeSection.addView(fixedStakeHint)
+        actionButton(fixedStakeSection, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
             showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы очистить значение.")
         }
+        val selectedStakeMode = stakeMode()
+        minimumStakeSection.visibility = if (selectedStakeMode == "MINIMUM") View.VISIBLE else View.GONE
+        fixedStakeSection.visibility = if (selectedStakeMode == "FIXED") View.VISIBLE else View.GONE
+        settings.addView(minimumStakeSection)
+        settings.addView(fixedStakeSection)
 
         val displaySettings = card()
         addText(displaySettings, "ОТОБРАЖЕНИЕ РАЗДЕЛОВ", 10, true, accent)
