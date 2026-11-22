@@ -72,6 +72,15 @@ def fetch_recent_matches(session: Any, today: date | None = None) -> list[dict]:
 def score_value(match: dict, side: str) -> int | None:
     score = match.get(f"{side}Score")
     if isinstance(score, dict):
+        # Model markets are full-time (90 minutes), not extra-time markets.
+        # API-Sport exposes each football half separately; summing period1+2
+        # excludes extra time while current may include it.
+        first_half = score.get("period1")
+        second_half = score.get("period2")
+        if (not isinstance(first_half, bool) and isinstance(first_half, int)
+                and not isinstance(second_half, bool) and isinstance(second_half, int)
+                and first_half >= 0 and second_half >= 0):
+            return first_half + second_half
         score = score.get("current")
     if isinstance(score, bool):
         return None
