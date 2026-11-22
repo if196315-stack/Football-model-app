@@ -114,10 +114,9 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
         if bookmaker_board:
             melbet_boards += 1
         quote = parse_odds(source)
-        # If the board flag is missing, open supported prematch lines are evidence of activity.
-        if not quote.get("prematchActive"):
-            continue
-        active_prematch_boards += 1
+        prematch_active = quote.get("prematchActive") is True
+        if prematch_active:
+            active_prematch_boards += 1
         board_updated_at = _board_timestamp(bookmaker_board)
         try:
             board_age_seconds = (
@@ -142,7 +141,7 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "freshness_status": freshness_status,
             "source": "API-Sport",
             "bookmaker": "MELBET",
-            "prematch_active": True,
+            "prematch_active": prematch_active,
             "market_parser_version": MARKET_PARSER_VERSION,
             "league_code": league,
             "season": match.get("season"),
@@ -156,7 +155,11 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
             "model_prediction_time": (prediction or {}).get("predicted_at"),
             "model_history_max_date": (prediction or {}).get("history_max_date"),
         }
-
+        # A status-only row supersedes older active quotes if the board becomes
+        # inactive, has no supported lines, or no longer has a fresh timestamp.
+        if not prematch_active or not best:
+            rows.append({**common, "market": "board_status", "price": None})
+            continue
         for outcome in ("1x", "x2", "12"):
             price = (best.get("doubleChance") or {}).get(outcome)
             is_reference = outcome == "12"
