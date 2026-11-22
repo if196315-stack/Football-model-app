@@ -8,6 +8,8 @@ on:
       - "backend/collect_uefa_melbet_snapshots.py"
       - "backend/refresh_pitchapi_uefa_fixtures.py"
       - "backend/build_uefa_app_feed.py"
+      - "backend/predict_uefa_markets.py"
+      - "backend/update_odds_api_sport.py"
       - ".github/workflows/collect-uefa-melbet-snapshots.yml"
   workflow_dispatch:
     inputs:
