@@ -1267,18 +1267,21 @@ class MainActivity : Activity() {
         val manual: BetStatsSummary?, val ai: BetStatsSummary?
     )
     @Volatile private var statsBetViewCache: StatsBetViewCache? = null
+    @Volatile private var statsBetCalculationError: String? = null
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
 
     private fun invalidateStatsBetCache() {
         statsBetCacheGeneration.incrementAndGet()
         statsBetViewCache = null
+        statsBetCalculationError = null
     }
 
     private fun requestStatsBetCalculation(key: String, snapshot: List<JSONObject>, period: String, source: String, now: Long) {
         if (!statsBetCalculationInProgress.compareAndSet(false, true)) return
         val generation = statsBetCacheGeneration.get()
         thread(name = "stats-bet-history-calculation") {
+            var calculationError: String? = null
             val calculated = try {
                 val bounds = statsPeriodBounds(period, now)
                 val current = summarizeBets(snapshot, source, bounds.first, bounds.second)
@@ -1291,10 +1294,17 @@ class MainActivity : Activity() {
                 StatsBetViewCache(key, current, previous, manual, ai)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate bet history statistics", error)
-                null
+                calculationError = error.javaClass.simpleName
+                val empty = BetStatsSummary(0, 0, 0, 0.0, 0.0, 0.0, emptyList())
+                StatsBetViewCache(key, empty, null,
+                    if (source == "ALL") empty else null,
+                    if (source == "ALL") empty else null)
             }
             runOnUiThread {
-                if (calculated != null && generation == statsBetCacheGeneration.get()) statsBetViewCache = calculated
+                if (generation == statsBetCacheGeneration.get()) {
+                    statsBetViewCache = calculated
+                    statsBetCalculationError = calculationError
+                }
                 statsBetCalculationInProgress.set(false)
                 if (currentTab == "stats") {
                     tabViewCache.remove("stats|ALL")
@@ -1555,6 +1565,12 @@ class MainActivity : Activity() {
         }
         val current = cached.current
         val previous = cached.previous
+        statsBetCalculationError?.let { errorCode ->
+            val warning = card()
+            addText(warning, "Часть истории ставок не удалось обработать; расчёт показан без повреждённых записей.", 11, true, gold)
+            addText(warning, "Код ошибки: $errorCode", 10, false, muted)
+            matchesContainer.addView(warning)
+        }
         addStatsSummary(matchesContainer, "РЕЗУЛЬТАТЫ ЗА ПЕРИОД", current)
         if (previous != null) {
             val comparison = card()
