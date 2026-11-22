@@ -1,0 +1,75 @@
+# Final release audit — 2026-11-23
+
+Repository: `if196315-stack/Football-model-app`
+Audit baseline: `main` at `80d5ecf18fa114b5377576961e8f5f7fa82c35e7`
+Audit scope: Android app, data feeds, backend model/odds pipelines, AI signal selection, analytics/settlement, GitHub Actions, build and release path.
+
+## Executive result
+
+**Release status: NOT READY for a production/final release.** The project builds as a debug APK and the baseline backend and Android unit-test workflows passed, but the audit found production-feed and release-process defects. A physical-device visual/interaction pass and signed release build have not been completed; they cannot be inferred from a successful debug build.
+
+## Verified architecture
+
+- Native Android application in Kotlin; one `MainActivity` hosts the match centre and five primary tabs (matches, desk, history, stats, help).
+- Match data is static JSON published from GitHub Pages/raw GitHub: `docs/data.json` for domestic competitions and `docs/uefa-data.json` for UCL/UEL/UECL. `AutoPaperWorker` fetches and merges UEFA into domestic data, caches the merged payload locally, and runs periodically with WorkManager.
+- Python backend refreshes PitchAPI fixtures/results/xG, collects API-Sport/MelBet snapshots, builds feeds, evaluates paper signals and settles paper bets.
+- Android settlement and analytics have focused JVM unit tests. Backend has a broad unittest suite.
+- No live/automatic bookmaker bet placement is configured; paper automation is local tracking only.
+
+## Findings
+
+### Blocker — production release artifact is not available
+The configured workflow assembles `assembleDebug` and uploads `Football-Model-debug-apk`. The checked app module has no verified signed release build/signing configuration in the audited release workflow. Therefore a successful APK workflow is not proof that a distributable production release is ready.
+
+### High — MelBet availability is sparse
+The latest eight-competition signal audit (2026-11-22 20:34 UTC) counted 1,405 future fixtures with model predictions, but only 118 had a MelBet board/line leader. 1,287 (91.6%) had no board. The model forecast coverage was 1,405/1,405 in that snapshot, but usable live bookmaker pricing was only 8.4%. This materially limits signal availability and user-visible odds coverage.
+
+### High — stale market whitelist in domestic feed eligibility (fixed in PR #273)
+The domestic MelBet feed gate still treated full-match Over 1.5 as a strategy market, even though the active Android display/strategy is the eight-market set and the UI does not render Over 1.5. That could retain a fixture on a quote the user cannot see. The PR removes Over 1.5 from feed eligibility and the Android-parity audit, and adds regression tests.
+
+The active set is now explicitly: 1X, X2, BTTS Yes, match Over 2.5, home Over 0.5/1.5, away Over 0.5/1.5.
+
+### High — concurrent feed writers caused a real workflow failure (fixed in PR #273)
+Run 45066678942 completed data generation but failed at `git pull --rebase` with a content conflict in `docs/uefa-data.json`. The log shows the calibrated-feed workflow updated the same feed while the MelBet collector was committing under a different concurrency group. The PR unifies these writers under one concurrency group to serialize shared-feed writes.
+
+### High — signal selection can suppress a valid alternative
+The app/audit selects one Line leader per match (maximum full-Kelly among positive-EV priced candidates; otherwise highest probability), then applies AI gates to that leader only: probability ≥60%, EV ≥5%, edge ≥5 pp, odds ≥1.50, BTTS No excluded. There is no fallback to the next eligible market if the leader fails an AI gate. This is deterministic and tested, but can hide a second market that passes all gates. It is a strategy-design decision and was not changed in this hardening PR.
+
+### Medium — UI is not covered by instrumentation tests
+The repository contains focused unit tests for settlement and analytics, but no Espresso/UIAutomator instrumentation suite was found. Navigation, taps, swipe gestures, rendering on small screens/tablets, notification permission flows and offline recovery have not been exercised on a physical device/emulator during this audit.
+
+### Medium — debug build is not device QA
+Main-branch workflow 45066678966 successfully ran Android unit tests and assembled a 2.69 MB debug APK. This verifies compilation and the current JVM test suite only. It does not verify installation/startup on a real device, runtime network behaviour, notification delivery, background-work restrictions or visual layout.
+
+### Medium — duplicate Gradle DSL files
+The Android tree contains both Groovy and Kotlin DSL variants for app build, root build and settings. The successful CI run proves one configuration path builds, but keeping parallel build scripts is an avoidable source of ambiguity and drift. Consolidate to one DSL in a separate controlled change after confirming which files Gradle selects.
+
+### Model validation limitation
+The X2 vector-scaling calibrator is active in the model code. Its holdout comparison is against an expanding historical-frequency baseline, not bookmaker closing odds. Only X2 showed a globally positive 95% paired-bootstrap interval in the recorded calibration analysis. No profitability, ROI, EV realization or CLV claim is established by that analysis.
+
+## CI evidence
+
+- Android debug build + JVM unit tests: run 45066678966 — success (baseline commit `eba965b3`).
+- Backend odds tests: run 45066678965 — success (baseline commit `eba965b3`).
+- Eight-competition data audit: run 45067179208 — success (main commit `80d5ecf`).
+- Eight-competition AI/Line audit: run 45067179259 — success (main commit `80d5ecf`).
+- MelBet snapshot collector: run 45066678942 — failed at concurrent rebase conflict (details above).
+- Calibrated production feed refresh: run 45066379456 — success.
+
+## What is not certified
+
+- Signed release APK / Play-ready bundle.
+- Installation and end-to-end operation on a physical Android device.
+- Pixel-level layout audit across screen sizes and Android versions.
+- Real push/notification delivery under battery saver/background restrictions.
+- Live MelBet coverage beyond the audited snapshot.
+- Betting profitability or real-world expected value.
+
+## Release gate
+
+Do not label the current build as the final production release until:
+1. PR #273 hardening changes pass their own backend regression, Android build/unit tests and eight-competition audit.
+2. A signed release artifact is produced and install-tested.
+3. Device QA covers all tabs, match cards, filters, paper bet create/edit/settle, analytics, notifications, cache restore, network loss and recovery.
+4. MelBet coverage is improved or the app clearly communicates unavailable odds without implying full live coverage.
+5. The one-leader/no-fallback selection policy is explicitly accepted or changed and regression-tested.
