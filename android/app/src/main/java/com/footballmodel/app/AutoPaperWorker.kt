@@ -189,8 +189,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val ranked = allTopSignals(prediction, match, code).mapNotNull { signal ->
                     val price = priceFor(signal, match) ?: return@mapNotNull null
                     val probability = signal.optDouble("modelProbability", Double.NaN)
-                    signal to price to probability
-                }.map { triple -> Triple(triple.first.first, triple.first.second, triple.second) }
+                    Triple(signal, price, probability)
+                }
                 val selectedIndex = TopSignalRanking.bestIndex(ranked.map { it.third to it.second }) ?: continue
                 val signal = ranked[selectedIndex].first
                 val price = ranked[selectedIndex].second
