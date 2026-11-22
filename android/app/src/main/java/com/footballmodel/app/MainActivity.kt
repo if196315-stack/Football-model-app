@@ -1023,7 +1023,16 @@ class MainActivity : Activity() {
         // synchronously from the view cache; only first-time screens need a frame
         // to construct their content.
         renderTabs()
-        UiMotion.animateVisibility(lineHeadingView, tab == "matches", dp(6).toFloat())
+        if (tab == "matches") {
+            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
+        } else {
+            // Hide the Line heading synchronously so its temporary layout height
+            // cannot make the Statistics header/subtitle jump after the fade.
+            lineHeadingView.animate().cancel()
+            lineHeadingView.visibility = View.GONE
+            lineHeadingView.alpha = 1f
+            lineHeadingView.translationY = 0f
+        }
         UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
         if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
         val targetKey = tab + "|" + when (tab) {
@@ -1616,6 +1625,24 @@ class MainActivity : Activity() {
 
     private fun topPredictionSelections(): Set<String> {
         val selections = linkedSetOf<String>()
+        // Use the persisted TOP recommendation archive as the primary source.
+        // Manual TOP bets remain included for compatibility with older app data.
+        val archive = try {
+            JSONArray(aiSignalPrefs.getString("signals", "[]") ?: "[]")
+        } catch (_: Exception) {
+            JSONArray()
+        }
+        for (i in 0 until archive.length()) {
+            val row = archive.optJSONObject(i) ?: continue
+            val matchId = row.optString("matchId").trim()
+            if (matchId.isBlank()) continue
+            val match = JSONObject()
+                .put("home", row.optString("home"))
+                .put("away", row.optString("away"))
+            val signal = JSONObject().put("side", row.optString("side"))
+            val marketKey = marketKeyForAutoSignal(signal, match) ?: continue
+            selections.add(StatsPredictionScope.key(matchId, marketKey))
+        }
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (!bet.optString("source").equals("AI_MANUAL", true)) continue
