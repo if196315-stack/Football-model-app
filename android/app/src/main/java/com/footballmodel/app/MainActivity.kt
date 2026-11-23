@@ -1295,12 +1295,13 @@ class MainActivity : Activity() {
         val market: String, val marketKey: String, val league: String, val isCoupon: Boolean
     )
     private data class StatsBetViewCache(
-        val key: String, val current: BetAnalyticsReport, val previous: BetAnalyticsReport?
+        val key: String, val current: BetAnalyticsReport
     )
     @Volatile private var statsBetViewCache: StatsBetViewCache? = null
     @Volatile private var statsBetCalculationError: String? = null
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
+    private val statsFilterButtons = linkedMapOf<String, TextView>()
     // Keep the intended stats scroll offset while a newly selected filter is calculated.
     private var pendingStatsScrollRestore: Int? = null
 
@@ -1328,15 +1329,41 @@ class MainActivity : Activity() {
         UiMotion.animateTextChange(view, text)
     }
 
+    private fun styleStatsFilterButton(button: TextView, selected: Boolean) {
+        button.setTextColor(if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
+        button.background = GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
+            else intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
+        ).apply {
+            cornerRadius = dp(12).toFloat()
+            setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
+        }
+    }
+
+    private fun updateStatsFilterButtonStyles() {
+        statsFilterButtons.forEach { (key, button) ->
+            val selected = if (key.startsWith("source:")) {
+                selectedStatsSource == key.substringAfter("source:")
+            } else {
+                selectedStatsPeriod == key.substringAfter("period:")
+            }
+            styleStatsFilterButton(button, selected)
+        }
+    }
+
     private fun changeStatsFilter(update: () -> Unit) {
-        // A second quick filter tap must not replace the original position with a
-        // temporarily clamped offset while the report is recalculated.
-        val scrollY = pendingStatsScrollRestore ?: mainScrollView.scrollY
-        pendingStatsScrollRestore = scrollY
-        tabScrollPositions["stats|ALL"] = scrollY
+        // Keep the current report and layout visible while the next filter is calculated.
+        tabScrollPositions["stats|ALL"] = mainScrollView.scrollY
         update()
-        tabViewCache.remove("stats|ALL")
-        render()
+        statsBetCacheGeneration.incrementAndGet()
+        updateStatsFilterButtonStyles()
+        val now = System.currentTimeMillis()
+        val key = listOf(selectedStatsPeriod, selectedStatsSource,
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }.format(Date(now))).joinToString("|")
+        requestStatsBetCalculation(key, bets, selectedStatsPeriod, selectedStatsSource, now)
     }
 
     private fun restorePendingStatsScrollPosition() {
@@ -1395,25 +1422,36 @@ class MainActivity : Activity() {
                         marketKey = item.marketKey)
                 }
                 val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, source)
-                val previous = if (period == "ALL") null else {
-                    val duration = (bounds.second - bounds.first + 1L).coerceAtLeast(1L)
-                    BetAnalyticsCalculator.calculate(records, bounds.first - duration, bounds.first - 1L, source)
-                }
-                StatsBetViewCache(key, current, previous)
+                StatsBetViewCache(key, current)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate terminal betting analytics", error)
                 calculationError = error.javaClass.simpleName
-                StatsBetViewCache(key, BetAnalyticsCalculator.calculate(emptyList(), 0L, Long.MAX_VALUE, source), null)
+                StatsBetViewCache(key, BetAnalyticsCalculator.calculate(emptyList(), 0L, Long.MAX_VALUE, source))
             }
             runOnUiThread {
-                if (generation == statsBetCacheGeneration.get()) {
-                    statsBetViewCache = calculated
-                    statsBetCalculationError = calculationError
-                }
+                val isLatestRequest = generation == statsBetCacheGeneration.get()
                 statsBetCalculationInProgress.set(false)
+                if (!isLatestRequest) {
+                    // A newer filter or history change arrived during this calculation.
+                    // Discard the stale snapshot and calculate only the latest selection.
+                    if (currentTab == "stats") {
+                        val latestNow = System.currentTimeMillis()
+                        val latestKey = listOf(selectedStatsPeriod, selectedStatsSource,
+                            SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                                timeZone = java.util.TimeZone.getTimeZone("UTC")
+                            }.format(Date(latestNow))).joinToString("|")
+                        requestStatsBetCalculation(latestKey, bets, selectedStatsPeriod, selectedStatsSource, latestNow)
+                    }
+                    return@runOnUiThread
+                }
+                statsBetViewCache = calculated
+                statsBetCalculationError = calculationError
+                // A cached stats screen may have been detached while this calculation
+                // ran. Always invalidate it, even if the user is on another tab now.
+                tabViewCache.remove("stats|ALL")
                 if (currentTab == "stats") {
-                    tabViewCache.remove("stats|ALL")
-                    animateContentRefresh { render() }
+                    // Rebuild without a fade; keep the existing scroll position.
+                    render()
                 }
             }
         }
@@ -1673,19 +1711,7 @@ class MainActivity : Activity() {
         }
 
         val controls = terminalSection(matchesContainer, "ФИЛЬТРЫ ОТЧЁТА", "ПЕРИОД / ИСТОЧНИК")
-        // Match the settings screen's selected/unselected gradient treatment.
-        fun styleStatsFilterButton(button: TextView, selected: Boolean) {
-            UiMotion.animateTextColor(button, if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
-            val nextBackground = GradientDrawable(
-                GradientDrawable.Orientation.LEFT_RIGHT,
-                if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
-                else intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
-            ).apply {
-                cornerRadius = dp(12).toFloat()
-                setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
-            }
-            UiMotion.transitionBackground(button, nextBackground)
-        }
+        statsFilterButtons.clear()
         // Keep the report source selector at the top; time periods follow beneath it.
         val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         listOf("TOP" to "ТОП", "ALL" to "ВСЕ").forEach { option ->
@@ -1696,6 +1722,7 @@ class MainActivity : Activity() {
                 styleStatsFilterButton(this, active)
                 setOnClickListener { if (selectedStatsSource != option.first) changeStatsFilter { selectedStatsSource = option.first } }
             }
+            statsFilterButtons["source:${option.first}"] = button
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
         controls.addView(sourceRow)
@@ -1711,6 +1738,7 @@ class MainActivity : Activity() {
                     styleStatsFilterButton(this, active)
                     setOnClickListener { if (selectedStatsPeriod != option.first) changeStatsFilter { selectedStatsPeriod = option.first } }
                 }
+                statsFilterButtons["period:${option.first}"] = button
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
             controls.addView(row)
@@ -1851,17 +1879,8 @@ class MainActivity : Activity() {
             terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
             risk.addView(runRow)
 
+            terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ", report.byMarket, 12, true)
             renderMarketProbabilityRoi(matchesContainer, "ROI ПО РЫНКАМ И ВЕРОЯТНОСТЯМ", topRoiRows, "TOP")
-            terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
-            terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
-
-            cached.previous?.let { previous ->
-                val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
-                val delta = report.overall.roi - previous.overall.roi
-                compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta), 12, true,
-                    if (delta >= 0) accent else Color.rgb(210, 112, 108)))
-                compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi), 10, false, muted))
-            }
         }
         restorePendingStatsScrollPosition()
     }
@@ -2298,14 +2317,14 @@ class MainActivity : Activity() {
         val hasFinalFlag = m.has("scoreStatusFinal")
         val finalFlag = if (hasFinalFlag && !m.isNull("scoreStatusFinal"))
             m.optBoolean("scoreStatusFinal") else null
-        if (b.optString("status") != "PENDING" ||
-            !BetSettlement.isConfirmedFinal(m.optString("status"), hasFinalFlag, finalFlag) ||
-            m.isNull("homeScore") || m.isNull("awayScore")) return false
-        val h = m.optInt("homeScore")
-        val a = m.optInt("awayScore")
-        val result = BetSettlement.result(b.optString("marketKey"), h, a) ?: return false
+        val homeScore = if (m.isNull("homeScore")) null else m.optInt("homeScore")
+        val awayScore = if (m.isNull("awayScore")) null else m.optInt("awayScore")
+        val result = BetSettlement.settledResult(
+            b.optString("status"), m.optString("status"),
+            hasFinalFlag, finalFlag, homeScore, awayScore, b.optString("marketKey")
+        ) ?: return false
         b.put("status", result)
-            .put("score", "$h:$a")
+            .put("score", "$homeScore:$awayScore")
             .put("matchStatus", "FINISHED")
         return true
     }
@@ -2391,7 +2410,7 @@ class MainActivity : Activity() {
         val completedBets = mutableListOf<JSONObject>()
         for (i in bets.length() - 1 downTo 0) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("status") == "PENDING") openBets.add(bet) else completedBets.add(bet)
+            if (BetSettlement.isSettledStatus(bet.optString("status"))) completedBets.add(bet) else openBets.add(bet)
         }
 
         fun renderBetSection(title: String, items: List<JSONObject>, emptyText: String) {
@@ -2701,23 +2720,21 @@ class MainActivity : Activity() {
 
         val glossary = card()
         addText(glossary, "СЛОВАРЬ ПОКАЗАТЕЛЕЙ", 10, true, cyan)
-        addText(glossary, "Вероятность модели", 13, true, Color.WHITE)
-        addText(glossary, "Оценка модели, что выбранный исход наступит. Например, 65% означает оценочную вероятность 65 из 100 аналогичных случаев, а не гарантию конкретного результата.", 11, false, muted)
-        addText(glossary, "Коэффициент", 13, true, Color.WHITE)
-        addText(glossary, "Коэффициент MelBet показывает выплату вместе с возвращаемой суммой ставки. Чем выше коэффициент, тем ниже заложенная букмекером вероятность исхода.", 11, false, muted)
-        addText(glossary, "Вероятность по коэффициенту", 13, true, Color.WHITE)
-        addText(glossary, "Обратная величина коэффициента: 1 / коэффициент. Например, при 2.00 это 50% до учёта маржи букмекера.", 11, false, muted)
-        addText(glossary, "EV — ожидаемая доходность", 13, true, Color.WHITE)
-        addText(glossary, "Формула модели: вероятность × коэффициент − 1. EV +5% означает математическое ожидание прибыли 5 копеек на каждый рубль ставки на большой дистанции; это не прогноз прибыли в одном матче.", 11, false, muted)
-        addText(glossary, "EDGE — преимущество модели", 13, true, Color.WHITE)
-        addText(glossary, "Разница между вероятностью модели и вероятностью, заложенной в коэффициенте, в процентных пунктах. Например, 65% против 55% — EDGE около +10 п.п. В ТОП дополнительно учитывается корректировка формы там, где она предусмотрена.", 11, false, muted)
-        addText(glossary, "Kelly — критерий размера/ранжирования", 13, true, Color.WHITE)
-        addText(glossary, "Доля полного банка по формуле Келли: EV / (коэффициент − 1). В нашей Линии и ТОП этот показатель используется для ранжирования сигналов. Это доля полного Kelly, а не указание автоматически ставить весь рассчитанный процент банка.", 11, false, muted)
-        addText(glossary, "xG — ожидаемые голы", 13, true, Color.WHITE)
-        addText(glossary, "Оценка качества созданных голевых моментов и ожидаемого количества голов. Это модельная метрика, а не фактический счёт.", 11, false, muted)
-        addText(glossary, "Порог отбора ТОП", 13, true, Color.WHITE)
-        addText(glossary, "Для попадания сигнала в ТОП нужны одновременно: вероятность от 60%, EV от +5%, EDGE от +5 п.п. и коэффициент MelBet от 1.50. Также действуют ограничения по допустимым рынкам.", 11, false, muted)
-        addText(glossary, "Важно: вероятность, EV, EDGE, xG и Kelly — расчётные оценки. Они помогают сравнивать варианты, но не гарантируют выигрыш.", 11, true, gold)
+        addText(glossary, "Вероятность модели", 12, true, Color.WHITE)
+        addText(glossary, "Оценка шанса выбранного исхода. 65% — оценка модели, а не гарантия результата.", 10, false, muted)
+        addText(glossary, "Коэффициент MelBet", 12, true, Color.WHITE)
+        addText(glossary, "Выплата вместе с возвращаемой ставкой. При коэффициенте 2.00 выигрыш возвращает 2 ₽ на каждый поставленный 1 ₽.", 10, false, muted)
+        addText(glossary, "Историческая база", 12, true, Color.WHITE)
+        addText(glossary, "Доля таких исходов в похожих матчах до даты игры; рядом указано число матчей в выборке. Это сравнение с историей, не обещание результата.", 10, false, muted)
+        addText(glossary, "Edge — преимущество", 12, true, Color.WHITE)
+        addText(glossary, "Разница между вероятностью модели и вероятностью безубыточности по коэффициенту, в процентных пунктах. В ТОП может учитываться поправка на форму.", 10, false, muted)
+        addText(glossary, "EV — ожидаемая ценность", 12, true, Color.WHITE)
+        addText(glossary, "Вероятность модели × коэффициент − 1. EV +5% — расчётное ожидание +5 копеек на 1 ₽ ставки на длинной дистанции, а не прибыль в конкретном матче.", 10, false, muted)
+        addText(glossary, "ROI — доходность", 12, true, Color.WHITE)
+        addText(glossary, "Чистая прибыль или убыток, делённые на оборот рассчитанных ставок или прогнозов. Ожидающие расчёта позиции в ROI не входят.", 10, false, muted)
+        addText(glossary, "Отбор ТОП", 12, true, Color.WHITE)
+        addText(glossary, "Сигнал проходит отбор при вероятности от 60%, EV от +5%, Edge от +5 п.п. и коэффициенте MelBet от 1.50, если рынок поддерживается приложением.", 10, false, muted)
+        addText(glossary, "Показатели помогают сравнивать варианты, но не гарантируют выигрыш.", 10, true, gold)
 
         val info = card()
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
