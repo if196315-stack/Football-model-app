@@ -1878,28 +1878,21 @@ class MainActivity : Activity() {
             hero.addView(heroRow)
             val periodBounds = statsPeriodBounds(selectedStatsPeriod, now)
             val topRoiRows = mutableListOf<JSONObject>()
-            var topPendingBetCount = 0
-            var potentialPayout = 0.0
-            var pendingStake = 0.0
+            val topPendingRecords = mutableListOf<AnalyticsBet>()
             for (index in 0 until bets.length()) {
                 val bet = bets.optJSONObject(index) ?: continue
                 if (!bet.optString("source").equals("AI_MANUAL", ignoreCase = true)) continue
                 val status = bet.optString("status").uppercase(Locale.ROOT)
-                // Open TOP bets are a global outstanding count, independent of the selected report period.
-                if (BetAnalyticsCalculator.isTopPending(status, bet.optString("marketKey") == "COUPON")) {
-                    topPendingBetCount++
-                }
-                // Potential payout is a global open-position figure, not a period metric.
-                // Keep it independent from the selected report period just like the pending count.
-                if (bet.optString("marketKey") in statsRoiMarketLabels.keys &&
-                    bet.optString("marketKey") != "COUPON") {
-                    val openOdds = bet.optDouble("odds", Double.NaN)
-                    val openStake = bet.optDouble("stake", Double.NaN)
-                    if (status == "PENDING" && openOdds.isFinite() && openOdds > 1.0 &&
-                        openStake.isFinite() && openStake > 0.0) {
-                        pendingStake += openStake
-                        potentialPayout += openStake * openOdds
-                    }
+                // Pending totals are global (not period-scoped) and are calculated
+                // from the same validated active-market records for count and payout.
+                if (status == "PENDING") {
+                    topPendingRecords.add(AnalyticsBet(
+                        bet.optString("id"), 0L, bet.optString("source"), status,
+                        bet.optDouble("stake", Double.NaN), bet.optDouble("odds", Double.NaN),
+                        bet.optString("market"), bet.optString("league"),
+                        bet.optString("marketKey") == "COUPON",
+                        marketKey = bet.optString("marketKey")
+                    ))
                 }
                 val periodDate = if (status == "PENDING") {
                     StatsPredictionScope.matchDateMillis(bet.optString("betDay"))
@@ -1922,14 +1915,15 @@ class MainActivity : Activity() {
                     .put("odds", odds).put("stake", stake).put("status", status)
                     .put("result", when (status) { "WON" -> "WIN"; "LOST" -> "LOSS"; "PUSH" -> "PUSH"; else -> "" }))
             }
+            val pendingSummary = BetAnalyticsCalculator.summarizePendingTop(topPendingRecords)
             val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(second, "ОБОРОТ", fmt(report.overall.turnover), Color.WHITE)
             terminalMetric(second, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
-            terminalMetric(second, "ОТКРЫТЫЕ СТАВКИ", topPendingBetCount.toString(), gold)
+            terminalMetric(second, "ОТКРЫТЫЕ СТАВКИ", pendingSummary.count.toString(), gold)
             hero.addView(second)
             val pendingPotential = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ВЫПЛАТА", if (topPendingBetCount > 0) fmt(potentialPayout) else "—", accent)
-            terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ЧИСТАЯ ПРИБЫЛЬ", if (topPendingBetCount > 0) fmt(potentialPayout - pendingStake) else "—", accent)
+            terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ВЫПЛАТА", if (pendingSummary.count > 0) fmt(pendingSummary.payout) else "—", accent)
+            terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ЧИСТАЯ ПРИБЫЛЬ", if (pendingSummary.count > 0) fmt(pendingSummary.netProfit) else "—", accent)
             hero.addView(pendingPotential)
             hero.addView(label("Ожидают расчёта только бумажные ставки, подтверждённые из раздела ТОП.", 9, false, muted))
             val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
