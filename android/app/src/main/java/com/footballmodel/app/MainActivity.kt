@@ -1986,10 +1986,11 @@ class MainActivity : Activity() {
         bets = persistedBets
         invalidateStatsBetCache()
 
+        val findIndexedMatch = buildMatchLookup(json)
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("status") == "PENDING" && existing.optString("marketKey") != "COUPON") {
-                val match = findMatch(json, existing) ?: continue
+                val match = findIndexedMatch(existing) ?: continue
                 if (settleBet(existing, match)) changed = true
             }
         }
@@ -2021,7 +2022,7 @@ class MainActivity : Activity() {
                 }
             }
             bets = JSONArray(merged.values.toList())
-            betPrefs.edit().putString("bets", bets.toString()).commit()
+            betPrefs.edit().putString("bets", bets.toString()).apply()
         }
         tabViewCache.remove("history|ALL")
         tabViewCache.remove("history|OPEN")
@@ -2133,6 +2134,47 @@ class MainActivity : Activity() {
     private fun normalizedTeamName(value: String): String =
         value.trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
 
+    // Build once per feed snapshot instead of scanning every competition for each bet.
+    private fun buildMatchLookup(feed: JSONObject): (JSONObject) -> JSONObject? {
+        val byId = HashMap<String, JSONObject>()
+        val byTeamsAndDate = HashMap<String, JSONObject>()
+        val byTeams = HashMap<String, MutableList<JSONObject>>()
+        val competitions = feed.optJSONArray("competitions")
+        if (competitions != null) for (i in 0 until competitions.length()) {
+            val matches = competitions.optJSONObject(i)?.optJSONArray("matches") ?: continue
+            for (k in 0 until matches.length()) {
+                val match = matches.optJSONObject(k) ?: continue
+                val matchId = match.optString("id").trim().ifBlank {
+                    match.optString("utcDate") + match.optString("home") + match.optString("away")
+                }
+                if (matchId.isNotBlank()) byId[matchId] = match
+                val home = normalizedTeamName(match.optString("home"))
+                val away = normalizedTeamName(match.optString("away"))
+                if (home.isBlank() || away.isBlank()) continue
+                val teamsKey = "$home|$away"
+                byTeams.getOrPut(teamsKey) { mutableListOf() }.add(match)
+                val matchDate = match.optString("utcDate").take(10).ifBlank {
+                    match.optString("dateEvent").take(10)
+                }
+                if (matchDate.isNotBlank()) byTeamsAndDate["$teamsKey|$matchDate"] = match
+            }
+        }
+        return { bet ->
+            val targetId = bet.optString("matchId").trim()
+            val exact = if (targetId.isNotBlank()) byId[targetId] else null
+            if (exact != null) exact else {
+                val home = normalizedTeamName(bet.optString("home"))
+                val away = normalizedTeamName(bet.optString("away"))
+                if (home.isBlank() || away.isBlank()) null else {
+                    val teamsKey = "$home|$away"
+                    val targetDate = bet.optString("date").take(10)
+                    val byDate = if (targetDate.isNotBlank()) byTeamsAndDate["$teamsKey|$targetDate"] else null
+                    byDate ?: byTeams[teamsKey]?.singleOrNull()
+                }
+            }
+        }
+    }
+
     private fun findMatch(j: JSONObject, b: JSONObject): JSONObject? {
         val competitions = j.optJSONArray("competitions") ?: return null
         val targetId = b.optString("matchId").trim()
@@ -2229,47 +2271,7 @@ class MainActivity : Activity() {
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
 
-        // Build a single feed index for the whole history render. The previous
-        // implementation scanned every competition for every saved bet, making
-        // the screen O(bets × matches) and potentially triggering Android's ANR.
-        val matchesById = HashMap<String, JSONObject>()
-        val matchesByTeamsAndDate = HashMap<String, JSONObject>()
-        val matchesByTeams = HashMap<String, MutableList<JSONObject>>()
-        val competitions = j.optJSONArray("competitions")
-        if (competitions != null) for (i in 0 until competitions.length()) {
-            val matches = competitions.optJSONObject(i)?.optJSONArray("matches") ?: continue
-            for (k in 0 until matches.length()) {
-                val match = matches.optJSONObject(k) ?: continue
-                val matchId = match.optString("id").trim().ifBlank {
-                    match.optString("utcDate") + match.optString("home") + match.optString("away")
-                }
-                if (matchId.isNotBlank()) matchesById[matchId] = match
-                val home = normalizedTeamName(match.optString("home"))
-                val away = normalizedTeamName(match.optString("away"))
-                if (home.isBlank() || away.isBlank()) continue
-                val teamsKey = "$home|$away"
-                matchesByTeams.getOrPut(teamsKey) { mutableListOf() }.add(match)
-                val matchDate = match.optString("utcDate").take(10).ifBlank {
-                    match.optString("dateEvent").take(10)
-                }
-                if (matchDate.isNotBlank()) matchesByTeamsAndDate["$teamsKey|$matchDate"] = match
-            }
-        }
-        val findIndexedMatch: (JSONObject) -> JSONObject? = { bet ->
-            val targetId = bet.optString("matchId").trim()
-            val byId = if (targetId.isNotBlank()) matchesById[targetId] else null
-            if (byId != null) byId else {
-                val home = normalizedTeamName(bet.optString("home"))
-                val away = normalizedTeamName(bet.optString("away"))
-                if (home.isBlank() || away.isBlank()) null else {
-                    val teamsKey = "$home|$away"
-                    val targetDate = bet.optString("date").take(10)
-                    val byDate = if (targetDate.isNotBlank())
-                        matchesByTeamsAndDate["$teamsKey|$targetDate"] else null
-                    byDate ?: matchesByTeams[teamsKey]?.singleOrNull()
-                }
-            }
-        }
+        val findIndexedMatch = buildMatchLookup(j)
         var changed = false
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
