@@ -14,7 +14,7 @@ on:
       - ".github/workflows/android-release-candidate.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-release-candidate
@@ -140,6 +140,29 @@ jobs:
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish GitHub Release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION_NAME="$(sed -n "s/^[[:space:]]*versionName '\([^']*\)'.*/\1/p" android/app/build.gradle | head -n 1)"
+          test -n "$VERSION_NAME"
+          TAG="v$VERSION_NAME"
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          NOTES="IQ Match $VERSION_NAME
+
+          Подписанная Android-версия приложения.
+          Установка: скачайте app-release.apk и откройте файл на Android.
+          Если Android запросит разрешение на установку приложений из этого источника, разрешите его и повторите установку."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+          else
+            gh release create "$TAG" "$APK" --title "IQ Match $VERSION_NAME" --notes "$NOTES" --target "$GITHUB_SHA" --latest
+          fi
 
       - name: Upload unsigned PR candidate
         if: github.event_name == 'pull_request'
