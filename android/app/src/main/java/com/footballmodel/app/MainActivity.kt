@@ -1503,7 +1503,7 @@ class MainActivity : Activity() {
             header.addView(label("СТАВКИ", 8, true, muted), LinearLayout.LayoutParams(0, -2, 0.8f))
             header.addView(label("СР.КЭФ", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.55f))
             header.addView(label("ROI", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
-            header.addView(label("П/У", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
+            header.addView(label("W/L", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
             box.addView(header)
         }
         if (rows.isEmpty()) {
