@@ -7,7 +7,6 @@ import android.content.Intent
 import android.widget.Toast
 import android.os.Handler
 import android.os.Looper
-import android.os.SystemClock
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -81,17 +80,17 @@ internal object CrashDiagnostics {
                 if (!responsive) {
                     val detectedAt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date())
                     val report = buildString {
-                        append("IQ Match main-thread stall report\\n")
-                        append("Detected: ").append(detectedAt).append('\\n')
-                        append("Threshold: at least ").append(STALL_THRESHOLD_MS).append(" ms\\n")
+                        append("IQ Match main-thread stall report\n")
+                        append("Detected: ").append(detectedAt).append('\n')
+                        append("Threshold: at least ").append(STALL_THRESHOLD_MS).append(" ms\n")
                         append("Android: ").append(android.os.Build.VERSION.RELEASE).append(" (SDK ")
-                            .append(android.os.Build.VERSION.SDK_INT).append(")\\n")
+                            .append(android.os.Build.VERSION.SDK_INT).append(")\n")
                         append("Device: ").append(android.os.Build.MANUFACTURER).append(' ')
-                            .append(android.os.Build.MODEL).append('\\n')
-                        append("Main thread state: ").append(mainThread.state).append("\\n\\n")
-                        append("Main thread stack (captured by watchdog):\\n")
+                            .append(android.os.Build.MODEL).append('\n')
+                        append("Main thread state: ").append(mainThread.state).append("\n\n")
+                        append("Main thread stack (captured by watchdog):\n")
                         mainThread.stackTrace.take(100).forEach { frame ->
-                            append("  at ").append(frame.toString()).append('\\n')
+                            append("  at ").append(frame.toString()).append('\n')
                         }
                     }
                     try {
