@@ -12,23 +12,34 @@ import android.widget.TextView
 import java.util.WeakHashMap
 
 /**
- * Shared motion language for all equivalent screen, filter and setting transitions.
- * Keep timings and easing centralized so the UI never mixes unrelated effects.
+ * Shared, restrained motion language for the whole app.
+ *
+ * Transitions are opacity/color only: no vertical movement, scaling, bounce or overshoot.
+ * Keeping the same gentle timing everywhere avoids visual jumps between screens.
  */
 internal object UiMotion {
-    const val DURATION_MS = 220L
-    private const val CONTENT_ALPHA = 0.45f
+    const val DURATION_MS = 260L
+    private const val CONTENT_ALPHA = 0.94f
+    private const val TEXT_ALPHA = 0.88f
     private val textColorAnimations = WeakHashMap<TextView, ValueAnimator>()
 
-    private fun easing() = DecelerateInterpolator(1.7f)
+    private fun easing() = DecelerateInterpolator(1.2f)
 
-    private fun animateToRest(view: View) {
+    private fun resetMotion(view: View) {
+        view.alpha = 1f
+        view.translationY = 0f
+        view.scaleX = 1f
+        view.scaleY = 1f
+    }
+
+    private fun animateToRest(view: View, duration: Long = DURATION_MS) {
         view.animate()
             .alpha(1f)
             .translationY(0f)
-            .setDuration(DURATION_MS)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(duration)
             .setInterpolator(easing())
-            .withLayer()
             .start()
     }
 
@@ -36,12 +47,14 @@ internal object UiMotion {
         view.animate().cancel()
         if (!view.isAttachedToWindow || view.visibility != View.VISIBLE) {
             update()
-            view.alpha = 1f
-            view.translationY = 0f
+            resetMotion(view)
             return
         }
+        // A very small opacity dip is enough to soften a redraw without flashing or shifting.
         view.alpha = CONTENT_ALPHA
-        view.translationY = offsetPx
+        view.translationY = 0f
+        view.scaleX = 1f
+        view.scaleY = 1f
         update()
         animateToRest(view)
     }
@@ -49,8 +62,10 @@ internal object UiMotion {
     fun animateEntry(view: View, offsetPx: Float) {
         view.animate().cancel()
         view.visibility = View.VISIBLE
-        view.alpha = 0f
-        view.translationY = offsetPx
+        view.alpha = CONTENT_ALPHA
+        view.translationY = 0f
+        view.scaleX = 1f
+        view.scaleY = 1f
         animateToRest(view)
     }
 
@@ -58,26 +73,27 @@ internal object UiMotion {
         view.animate().cancel()
         if (visible) {
             if (view.visibility == View.VISIBLE) {
-                if (view.alpha < 0.999f || kotlin.math.abs(view.translationY) > 0.5f) {
-                    animateToRest(view)
-                }
+                if (view.alpha < 0.999f) animateToRest(view, 200L)
                 return
             }
             view.visibility = View.VISIBLE
+            view.translationY = 0f
+            view.scaleX = 1f
+            view.scaleY = 1f
             view.alpha = 0f
-            view.translationY = offsetPx
-            animateToRest(view)
+            animateToRest(view, DURATION_MS)
         } else {
             if (view.visibility != View.VISIBLE) return
             view.animate()
                 .alpha(0f)
-                .translationY(offsetPx)
-                .setDuration(DURATION_MS)
+                .translationY(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(200L)
                 .setInterpolator(easing())
                 .withEndAction {
                     view.visibility = View.GONE
-                    view.alpha = 1f
-                    view.translationY = 0f
+                    resetMotion(view)
                 }
                 .start()
         }
@@ -86,11 +102,11 @@ internal object UiMotion {
     fun animateTextChange(view: TextView, nextText: CharSequence) {
         if (view.text == nextText) return
         view.animate().cancel()
-        view.alpha = CONTENT_ALPHA
+        view.alpha = TEXT_ALPHA
         view.text = nextText
         view.animate()
             .alpha(1f)
-            .setDuration(DURATION_MS)
+            .setDuration(200L)
             .setInterpolator(easing())
             .start()
     }
