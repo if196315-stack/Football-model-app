@@ -1531,8 +1531,9 @@ class MainActivity : Activity() {
         box.addView(second)
     }
 
-    private fun addTerminalEquityChart(parent: LinearLayout, points: List<AnalyticsPoint>) {
-        val box = terminalSection(parent, "ДИНАМИКА ПРИБЫЛИ", "ТОЛЬКО РАССЧИТАННЫЕ СТАВКИ · НЕ БАЛАНС СЧЁТА")
+    private fun addTerminalEquityChart(parent: LinearLayout, points: List<AnalyticsPoint>, showRoi: Boolean = false) {
+        val box = if (showRoi) terminalSection(parent, "ДИНАМИКА ROI", "НАКОПИТЕЛЬНАЯ ДОХОДНОСТЬ · ПРИБЫЛЬ / ОБОРОТ × 100%")
+            else terminalSection(parent, "ДИНАМИКА ПРИБЫЛИ", "ТОЛЬКО РАССЧИТАННЫЕ СТАВКИ · НЕ БАЛАНС СЧЁТА")
         if (points.isEmpty()) {
             box.addView(label("Нет рассчитанных ставок за выбранный период.", 11, false, muted))
             return
@@ -1546,8 +1547,14 @@ class MainActivity : Activity() {
                 val left = dp(43).toFloat(); val right = width - dp(8).toFloat()
                 val top = dp(12).toFloat(); val bottom = height - dp(22).toFloat()
                 if (right <= left || bottom <= top) return
-                var total = 0.0
-                val values = points.map { total += it.profit; total }
+                var totalProfit = 0.0
+                var totalTurnover = 0.0
+                val values = points.map {
+                    totalProfit += it.profit
+                    totalTurnover += it.turnover
+                    if (showRoi) if (totalTurnover > 0.0) totalProfit / totalTurnover * 100.0 else 0.0
+                    else totalProfit
+                }
                 val rawLow = minOf(0.0, values.minOrNull() ?: 0.0)
                 val rawHigh = maxOf(0.0, values.maxOrNull() ?: 0.0)
                 val rawSpan = (rawHigh - rawLow).coerceAtLeast(1.0)
@@ -1570,7 +1577,8 @@ class MainActivity : Activity() {
                     val value = high - step * i
                     val y = chartY(value)
                     canvas.drawLine(left, y, right, y, grid)
-                    val axisLabel = if (step < 1.0) String.format(Locale.US, "%.1f", value)
+                    val axisLabel = if (showRoi) String.format(Locale.US, "%.1f%%", value)
+                        else if (step < 1.0) String.format(Locale.US, "%.1f", value)
                         else String.format(Locale.US, "%.0f", value)
                     canvas.drawText(axisLabel, 0f, y + dp(3), txt)
                 }
@@ -1855,7 +1863,7 @@ class MainActivity : Activity() {
             }
             // Build the ALL-filter equity curve from the same settled historical MelBet
             // records and eligibility rules used by the market ROI breakdown below.
-            val dailyRoiProfit = sortedMapOf<Long, Double>()
+            val dailyRoiTotals = sortedMapOf<Long, Pair<Double, Double>>()
             roiRows.forEach { row ->
                 val probability = row.optDouble("model_probability", Double.NaN)
                 val price = row.optDouble("price", Double.NaN)
@@ -1863,11 +1871,13 @@ class MainActivity : Activity() {
                 val day = StatsPredictionScope.matchDateMillis(row.optString("kickoff_utc"))
                 if (day != null && StatsPredictionScope.confidenceBand("ALL", probability) != null &&
                     price.isFinite() && price > 1.0 && profitUnits.isFinite()) {
-                    dailyRoiProfit[day] = (dailyRoiProfit[day] ?: 0.0) + profitUnits
+                    val previous = dailyRoiTotals[day] ?: (0.0 to 0.0)
+                    dailyRoiTotals[day] = (previous.first + profitUnits) to (previous.second + 1.0)
                 }
             }
             addTerminalEquityChart(matchesContainer,
-                dailyRoiProfit.map { (day, profit) -> AnalyticsPoint(day, profit, 1.0) })
+                dailyRoiTotals.map { (day, totals) -> AnalyticsPoint(day, totals.first, totals.second) },
+                showRoi = true)
             renderMarketProbabilityRoi(matchesContainer, "ROI ПО РЫНКАМ И ВЕРОЯТНОСТЯМ", roiRows, "ALL")
         } else {
             val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП")
