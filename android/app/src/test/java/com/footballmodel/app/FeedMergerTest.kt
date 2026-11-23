@@ -91,7 +91,8 @@ class FeedMergerTest {
         assertEquals(1, resolved?.getJSONArray("evaluationMatches")?.length())
     }
 
-    @Test fun rejectsPayloadWithoutUefaFeedSections() {
+    @Test fun rejectsPayloadWithoutValidUefaFeedArrays() {
         assertEquals(null, FeedMerger.resolveUefaFeed("{\"error\":\"temporary\"}", null, null))
+        assertEquals(null, FeedMerger.resolveUefaFeed("{\"competitions\":null}", null, null))
     }
 }
