@@ -227,9 +227,15 @@ def settled_records(quotes, domestic, uefa):
     return output
 
 
-def build(domestic, uefa, snapshots, quotes):
-    selected = select_quotes(snapshots, domestic, uefa, quotes)
-    records = settled_records(selected, domestic, uefa)
+def _subtract_months(day, months):
+    import calendar
+    month_index = day.year * 12 + day.month - 1 - months
+    year, month_zero = divmod(month_index, 12)
+    month = month_zero + 1
+    return day.replace(year=year, month=month, day=min(day.day, calendar.monthrange(year, month)[1]))
+
+
+def _summary(records):
     settled = [row for row in records if row.get("status") == "SETTLED"]
     wins = sum(row.get("result") == "WIN" for row in settled)
     losses = sum(row.get("result") == "LOSS" for row in settled)
@@ -237,20 +243,50 @@ def build(domestic, uefa, snapshots, quotes):
     profit = sum(float(row.get("profit_units") or 0.0) for row in settled)
     turnover = len(settled)
     return {
+        "settled": turnover, "pending": sum(row.get("status") == "PENDING" for row in records),
+        "wins": wins, "losses": losses, "pushes": pushes,
+        "profitUnits": round(profit, 6), "turnoverUnits": turnover,
+        "roi": round(profit / turnover * 100.0, 6) if turnover else None,
+        "averageOdds": round(sum(float(row["price"]) for row in settled) / turnover, 6)
+            if turnover else None,
+    }
+
+
+def _period_records(records, period, today):
+    if period == "ALL":
+        return records
+    months = {"MONTH": 1, "QUARTER": 3, "HALF": 6, "YEAR": 12}
+    if period == "WEEK":
+        start = today - __import__("datetime").timedelta(days=6)
+    elif period in months:
+        start = _subtract_months(today, months[period])
+    else:
+        return records
+    selected = []
+    for row in records:
+        match_day = _time(row.get("kickoff_utc"))
+        if match_day and start <= match_day.date() <= today:
+            selected.append(row)
+    return selected
+
+
+def build(domestic, uefa, snapshots, quotes, today=None):
+    selected = select_quotes(snapshots, domestic, uefa, quotes)
+    records = settled_records(selected, domestic, uefa)
+    today = today or datetime.now(timezone.utc).date()
+    periods = {
+        period: _summary(_period_records(records, period, today))
+        for period in ("WEEK", "MONTH", "QUARTER", "HALF", "YEAR", "ALL")
+    }
+    return {
         "schemaVersion": 1,
         "updatedAt": datetime.now(timezone.utc).isoformat(),
         "stakeUnitsPerForecast": 1,
         "minimumModelProbability": 0.5,
         "bookmaker": "MELBET",
         "records": records,
-        "summary": {
-            "settled": turnover, "pending": len(records) - turnover,
-            "wins": wins, "losses": losses, "pushes": pushes,
-            "profitUnits": round(profit, 6), "turnoverUnits": turnover,
-            "roi": round(profit / turnover * 100.0, 6) if turnover else None,
-            "averageOdds": round(sum(float(row["price"]) for row in settled) / turnover, 6)
-                if turnover else None,
-        },
+        "summary": periods["ALL"],
+        "periods": periods,
     }, selected
 
 
