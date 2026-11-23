@@ -1056,52 +1056,25 @@ class MainActivity : Activity() {
             "stats" -> "ALL"
             else -> "ALL"
         }
-        if (tab == "stats") {
-            // Statistics is intentionally rendered synchronously without view animations.
-            // This isolates the screen from delayed animator end-actions during navigation.
-            lineHeadingView.animate().cancel()
-            lineHeadingView.visibility = View.GONE
-            lineHeadingView.alpha = 1f
-            lineHeadingView.translationY = 0f
-            leagueBar.animate().cancel()
-            leagueBar.visibility = View.GONE
-            leagueBar.alpha = 1f
-            leagueBar.translationY = 0f
-            leagueScroll.animate().cancel()
-            leagueScroll.visibility = View.GONE
-            leagueScroll.alpha = 1f
-            leagueScroll.translationY = 0f
-            matchesContainer.animate().cancel()
-            matchesContainer.visibility = View.VISIBLE
-            render()
-            matchesContainer.alpha = 1f
-            matchesContainer.translationY = 0f
-            matchesContainer.scaleX = 1f
-            matchesContainer.scaleY = 1f
+        if (tab == "matches") {
+            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
         } else {
-            if (tab == "matches") {
-                UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
-            } else {
-                lineHeadingView.animate().cancel()
-                lineHeadingView.visibility = View.GONE
-                lineHeadingView.alpha = 1f
-                lineHeadingView.translationY = 0f
-            }
-            UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
-            if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
-            if (tabViewCache.containsKey(targetKey) && data != null) {
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+        }
+        UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
+        UiMotion.animateVisibility(leagueScroll, tab == "matches", dp(6).toFloat())
+        if (tabViewCache.containsKey(targetKey) && data != null) {
+            render()
+            matchesContainer.visibility = View.VISIBLE
+            animateTabEntry(matchesContainer)
+            if (tab == "matches") animateTabEntry(leagueScroll)
+        } else {
+            matchesContainer.visibility = View.INVISIBLE
+            matchesContainer.postOnAnimation {
+                if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
                 render()
-                matchesContainer.visibility = View.VISIBLE
                 animateTabEntry(matchesContainer)
                 if (tab == "matches") animateTabEntry(leagueScroll)
-            } else {
-                matchesContainer.visibility = View.INVISIBLE
-                matchesContainer.postOnAnimation {
-                    if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
-                    render()
-                    animateTabEntry(matchesContainer)
-                    if (tab == "matches") animateTabEntry(leagueScroll)
-                }
             }
         }
 
@@ -1307,15 +1280,7 @@ class MainActivity : Activity() {
             refresh()
             return
         }
-        if (currentTab == "stats") {
-            // Avoid overlapping content animators while asynchronous statistics reports finish.
-            matchesContainer.animate().cancel()
-            matchesContainer.alpha = 1f
-            matchesContainer.translationY = 0f
-            refresh()
-        } else {
-            UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
-        }
+        UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
     }
 
     private fun hideLineHeadingImmediately() {
@@ -3656,11 +3621,8 @@ class MainActivity : Activity() {
             return
         }
         if (currentTab == "stats") {
-            leagueBar.animate().cancel()
-            leagueBar.visibility = View.GONE
-            leagueBar.alpha = 1f
-            leagueBar.translationY = 0f
-            hideLineHeadingImmediately()
+            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
             try {
                 renderStats(json)
             } catch (error: Throwable) {
