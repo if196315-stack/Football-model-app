@@ -18,6 +18,9 @@ internal data class AnalyticsBet(
 )
 
 internal data class AnalyticsPoint(val dayMillis: Long, val profit: Double, val turnover: Double)
+internal data class PendingTopSummary(val count: Int, val stake: Double, val payout: Double) {
+    val netProfit: Double get() = payout - stake
+}
 internal data class AnalyticsSlice(
     val count: Int,
     val wins: Int,
@@ -169,9 +172,31 @@ internal object BetAnalyticsCalculator {
         else -> true
     }
 
-    /** Pending TOP singles are counted independently of ROI data validity. */
-    fun isTopPending(status: String, isCoupon: Boolean): Boolean =
-        status.equals("PENDING", ignoreCase = true) && !isCoupon
+    /**
+     * Summarize only valid, unique, open TOP singles from active markets.
+     * Count, gross payout and net profit deliberately share one eligibility rule.
+     */
+    fun summarizePendingTop(records: List<AnalyticsBet>): PendingTopSummary {
+        val unique = LinkedHashMap<String, AnalyticsBet>()
+        records.forEach { bet ->
+            if (!bet.source.equals("AI_MANUAL", true) ||
+                !bet.status.equals("PENDING", true) ||
+                bet.isCoupon ||
+                !ActiveMarketRules.contains(bet.marketKey) ||
+                !bet.stake.isFinite() || bet.stake <= 0.0 ||
+                !bet.odds.isFinite() || bet.odds <= 1.0) return@forEach
+            val key = bet.id.ifBlank {
+                "${bet.dayMillis}|${bet.marketKey}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}"
+            }
+            if (!unique.containsKey(key)) unique[key] = bet
+        }
+        val valid = unique.values
+        return PendingTopSummary(
+            count = unique.size,
+            stake = valid.sumOf { it.stake },
+            payout = valid.sumOf { it.stake * it.odds }
+        )
+    }
 
     private fun summarize(records: List<AnalyticsBet>): AnalyticsSlice {
         var wins = 0; var losses = 0; var pushes = 0; var pending = 0
