@@ -28,6 +28,8 @@ object PrivateHistorySync {
 
     fun hasToken(context: Context): Boolean = !readToken(context).isNullOrBlank()
 
+    fun authorizationToken(context: Context): String? = readToken(context)
+
     fun saveToken(context: Context, token: String) {
         val normalized = token.trim()
         require(normalized.startsWith("github_pat_") || normalized.startsWith("ghp_")) {
