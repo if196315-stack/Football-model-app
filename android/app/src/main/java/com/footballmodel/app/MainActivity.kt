@@ -1548,6 +1548,19 @@ class MainActivity : Activity() {
         }
 
         val controls = terminalSection(matchesContainer, "ФИЛЬТРЫ ОТЧЁТА", "ПЕРИОД / ИСТОЧНИК")
+        // Match the settings screen's selected/unselected gradient treatment.
+        fun styleStatsFilterButton(button: TextView, selected: Boolean) {
+            UiMotion.animateTextColor(button, if (selected) Color.rgb(28, 22, 13) else Color.WHITE)
+            val nextBackground = GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                if (selected) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
+                else intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
+            ).apply {
+                cornerRadius = dp(12).toFloat()
+                setStroke(dp(1), if (selected) accent else Color.rgb(55, 72, 93))
+            }
+            UiMotion.transitionBackground(button, nextBackground)
+        }
         val periods = listOf(listOf("WEEK" to "7 ДН", "MONTH" to "1 МЕС", "QUARTER" to "3 МЕС"),
             listOf("HALF" to "6 МЕС", "YEAR" to "1 ГОД", "ALL" to "ВСЁ ВРЕМЯ"))
         periods.forEach { options ->
@@ -1557,8 +1570,7 @@ class MainActivity : Activity() {
                 val button = TextView(this).apply {
                     text = option.second; gravity = Gravity.CENTER; textSize = 11f; typeface = Typeface.MONOSPACE
                     setPadding(dp(8), dp(10), dp(8), dp(10))
-                    setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
-                    background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
+                    styleStatsFilterButton(this, active)
                     setOnClickListener { if (selectedStatsPeriod != option.first) changeStatsFilter { selectedStatsPeriod = option.first } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
@@ -1572,8 +1584,7 @@ class MainActivity : Activity() {
             val button = TextView(this).apply {
                 text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
                 setPadding(dp(8), dp(10), dp(8), dp(10))
-                setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
-                background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
+                styleStatsFilterButton(this, active)
                 setOnClickListener { if (selectedStatsSource != option.first) changeStatsFilter { selectedStatsSource = option.first } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
