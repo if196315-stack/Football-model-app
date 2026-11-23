@@ -169,8 +169,18 @@ jobs:
           git add -u
           git diff --cached --quiet || git commit -m "Include generated tracked feed updates"
           git status --short
-          git pull --rebase origin main
-          git push
+          # The app's private-history sync may push to main concurrently.
+          # Rebase and retry instead of losing an otherwise successful feed refresh.
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push; then
+              exit 0
+            fi
+            echo "Concurrent main update detected; retrying push ($attempt/3)."
+            sleep $((attempt * 2))
+          done
+          echo "Unable to publish feed after three rebased push attempts." >&2
+          exit 1
       - name: Upload eight-competition AI signal audit
         uses: actions/upload-artifact@v4
         with:
