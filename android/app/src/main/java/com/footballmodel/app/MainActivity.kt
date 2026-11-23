@@ -2247,12 +2247,12 @@ class MainActivity : Activity() {
                 val home = normalizedTeamName(match.optString("home"))
                 val away = normalizedTeamName(match.optString("away"))
                 if (home.isBlank() || away.isBlank()) continue
-                val teamsKey = "$home\\u0000$away"
+                val teamsKey = "$home|$away"
                 matchesByTeams.getOrPut(teamsKey) { mutableListOf() }.add(match)
                 val matchDate = match.optString("utcDate").take(10).ifBlank {
                     match.optString("dateEvent").take(10)
                 }
-                if (matchDate.isNotBlank()) matchesByTeamsAndDate["$teamsKey\\u0000$matchDate"] = match
+                if (matchDate.isNotBlank()) matchesByTeamsAndDate["$teamsKey|$matchDate"] = match
             }
         }
         val findIndexedMatch: (JSONObject) -> JSONObject? = { bet ->
@@ -2262,10 +2262,10 @@ class MainActivity : Activity() {
                 val home = normalizedTeamName(bet.optString("home"))
                 val away = normalizedTeamName(bet.optString("away"))
                 if (home.isBlank() || away.isBlank()) null else {
-                    val teamsKey = "$home\\u0000$away"
+                    val teamsKey = "$home|$away"
                     val targetDate = bet.optString("date").take(10)
                     val byDate = if (targetDate.isNotBlank())
-                        matchesByTeamsAndDate["$teamsKey\\u0000$targetDate"] else null
+                        matchesByTeamsAndDate["$teamsKey|$targetDate"] else null
                     byDate ?: matchesByTeams[teamsKey]?.singleOrNull()
                 }
             }
