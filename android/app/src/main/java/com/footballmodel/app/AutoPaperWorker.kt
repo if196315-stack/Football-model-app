@@ -387,14 +387,14 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         val hasFinalFlag = match.has("scoreStatusFinal")
         val finalFlag = if (hasFinalFlag && !match.isNull("scoreStatusFinal"))
             match.optBoolean("scoreStatusFinal") else null
-        if (bet.optString("status") != "PENDING" ||
-            !BetSettlement.isConfirmedFinal(match.optString("status"), hasFinalFlag, finalFlag) ||
-            match.isNull("homeScore") || match.isNull("awayScore")) return false
-        val h = match.optInt("homeScore")
-        val a = match.optInt("awayScore")
-        val result = BetSettlement.result(bet.optString("marketKey"), h, a) ?: return false
+        val homeScore = if (match.isNull("homeScore")) null else match.optInt("homeScore")
+        val awayScore = if (match.isNull("awayScore")) null else match.optInt("awayScore")
+        val result = BetSettlement.settledResult(
+            bet.optString("status"), match.optString("status"),
+            hasFinalFlag, finalFlag, homeScore, awayScore, bet.optString("marketKey")
+        ) ?: return false
         bet.put("status", result)
-            .put("score", "$h:$a")
+            .put("score", "$homeScore:$awayScore")
             .put("matchStatus", "FINISHED")
         return true
     }
