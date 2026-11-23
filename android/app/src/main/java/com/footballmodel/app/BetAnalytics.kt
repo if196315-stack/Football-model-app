@@ -176,7 +176,7 @@ internal object BetAnalyticsCalculator {
      * Summarize only valid, unique, open TOP singles from active markets.
      * Count, gross payout and net profit deliberately share one eligibility rule.
      */
-    fun summarizePendingTop(records: List<AnalyticsBet>): PendingTopSummary {
+    fun summarizePendingTop(records: List<AnalyticsBet>, from: Long = Long.MIN_VALUE, to: Long = Long.MAX_VALUE): PendingTopSummary {
         val unique = LinkedHashMap<String, AnalyticsBet>()
         records.forEach { bet ->
             if (!bet.source.equals("AI_MANUAL", true) ||
@@ -184,7 +184,8 @@ internal object BetAnalyticsCalculator {
                 bet.isCoupon ||
                 !ActiveMarketRules.contains(bet.marketKey) ||
                 !bet.stake.isFinite() || bet.stake <= 0.0 ||
-                !bet.odds.isFinite() || bet.odds <= 1.0) return@forEach
+                !bet.odds.isFinite() || bet.odds <= 1.0 ||
+                bet.dayMillis !in from..to) return@forEach
             val key = bet.id.ifBlank {
                 "${bet.dayMillis}|${bet.marketKey}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}"
             }
