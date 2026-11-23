@@ -1778,7 +1778,6 @@ class MainActivity : Activity() {
             android.util.Log.e("IQMatchStats", "Unable to render bet performance section", error)
             val failure = card()
             addText(failure, "Не удалось построить статистику ставок. Сводка прогнозов будет доступна отдельно.", 12, true, gold)
-            matchesContainer.addView(failure)
         }
         val source = selectedStatsSource
         val topSelections = topPredictionSelections()
@@ -1818,7 +1817,6 @@ class MainActivity : Activity() {
                 val loading = card()
                 addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
                 addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
-                matchesContainer.addView(loading)
                 return
             }
         }
