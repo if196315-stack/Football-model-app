@@ -116,6 +116,13 @@ jobs:
         run: python backend/apply_melbet_snapshots.py
       - name: Build UEFA competitions for the Android match centre
         run: python backend/build_uefa_app_feed.py
+      - name: Audit Android strongest AI signal across all eight competitions
+        run: |
+          python backend/audit_all_competitions.py \
+            --input docs/data.json \
+            --uefa-input docs/uefa-data.json \
+            --json-out artifacts/eight-competition-ai-signal-audit.json \
+            --markdown-out artifacts/eight-competition-ai-signal-audit.md
       - name: Freeze one historical MelBet quote per ALL forecast and publish settled ROI data
         run: python backend/build_market_roi.py
       - name: Commit compact historical ROI archive and evaluation data
@@ -157,3 +164,12 @@ jobs:
           git status --short
           git pull --rebase origin main
           git push
+      - name: Upload eight-competition AI signal audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: eight-competition-ai-signal-audit-${{ github.run_number }}
+          path: |
+            artifacts/eight-competition-ai-signal-audit.json
+            artifacts/eight-competition-ai-signal-audit.md
+          if-no-files-found: error
+          retention-days: 30
