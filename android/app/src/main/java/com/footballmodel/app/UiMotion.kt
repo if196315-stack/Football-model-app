@@ -16,7 +16,7 @@ import java.util.WeakHashMap
 /**
  * Shared, restrained motion language for the whole app.
  *
- * Transitions are opacity/color only: no vertical movement, scaling, bounce or overshoot.
+ * Transitions use opacity/color and a tiny press compression; no vertical movement, bounce or overshoot.
  * Keeping the same gentle timing everywhere avoids visual jumps between screens.
  */
 internal object UiMotion {
@@ -37,7 +37,7 @@ internal object UiMotion {
     }
 
     private fun installPressFeedbackTree(view: View) {
-        if ((view.isClickable || view.isFocusable) && pressFeedbackInstalled.put(view, true) == null) {
+        if (view.isClickable && pressFeedbackInstalled.put(view, true) == null) {
             view.setOnTouchListener { touched, event ->
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
