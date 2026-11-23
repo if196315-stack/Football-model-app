@@ -1,6 +1,13 @@
 name: Refresh API-Sport match results
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/refresh_match_results_api_sport.py"
+      - "backend/update_odds_api_sport.py"
+      - ".github/workflows/refresh-match-results.yml"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
