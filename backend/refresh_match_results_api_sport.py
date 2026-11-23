@@ -110,7 +110,7 @@ def score_value(match: dict, side: str) -> int | None:
 
 
 def provider_status(match: dict) -> str:
-    return str(match.get("status") or "").strip().casefold()
+    return normalized_status(match)
 
 
 def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
@@ -125,8 +125,6 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
 
     home_score = score_value(source, "home")
     away_score = score_value(source, "away")
-    score_status = source.get("scoreStatus")
-    final = score_status.get("final") if isinstance(score_status, dict) else None
     # A top-level finished status is authoritative even when the optional nested
     # scoreStatus.final field is absent or null. A live status must never settle.
     final = True if is_finished_status(status) else False
