@@ -49,8 +49,8 @@ jobs:
 
       - name: Install Gradle 8.9
         run: |
-          curl --fail --location --retry 3 --retry-delay 2 \\
-            https://services.gradle.org/distributions/gradle-8.9-bin.zip \\
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://services.gradle.org/distributions/gradle-8.9-bin.zip \
             --output "$RUNNER_TEMP/gradle-8.9-bin.zip"
           unzip -q "$RUNNER_TEMP/gradle-8.9-bin.zip" -d "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/gradle-8.9/bin" >> "$GITHUB_PATH"
