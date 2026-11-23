@@ -1883,17 +1883,6 @@ class MainActivity : Activity() {
                 val bet = bets.optJSONObject(index) ?: continue
                 if (!bet.optString("source").equals("AI_MANUAL", ignoreCase = true)) continue
                 val status = bet.optString("status").uppercase(Locale.ROOT)
-                // Pending totals are global (not period-scoped) and are calculated
-                // from the same validated active-market records for count and payout.
-                if (status == "PENDING") {
-                    topPendingRecords.add(AnalyticsBet(
-                        bet.optString("id"), 0L, bet.optString("source"), status,
-                        bet.optDouble("stake", Double.NaN), bet.optDouble("odds", Double.NaN),
-                        bet.optString("market"), bet.optString("league"),
-                        bet.optString("marketKey") == "COUPON",
-                        marketKey = bet.optString("marketKey")
-                    ))
-                }
                 val periodDate = if (status == "PENDING") {
                     StatsPredictionScope.matchDateMillis(bet.optString("betDay"))
                         ?: bet.optLong("createdAt", 0L).takeIf { it > 0L }?.let {
@@ -1904,6 +1893,15 @@ class MainActivity : Activity() {
                 } else StatsPredictionScope.matchDateMillis(bet.optString("date"))
                 val day = periodDate ?: continue
                 if (day !in periodBounds.first..periodBounds.second) continue
+                if (status == "PENDING") {
+                    topPendingRecords.add(AnalyticsBet(
+                        bet.optString("id"), day, bet.optString("source"), status,
+                        bet.optDouble("stake", Double.NaN), bet.optDouble("odds", Double.NaN),
+                        bet.optString("market"), bet.optString("league"),
+                        bet.optString("marketKey") == "COUPON",
+                        marketKey = bet.optString("marketKey")
+                    ))
+                }
                 if (bet.optString("marketKey") !in statsRoiMarketLabels.keys) continue
                 if (bet.optString("marketKey") == "COUPON") continue
                 val odds = bet.optDouble("odds", Double.NaN)
@@ -1925,7 +1923,7 @@ class MainActivity : Activity() {
             terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ВЫПЛАТА", if (pendingSummary.count > 0) fmt(pendingSummary.payout) else "—", accent)
             terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ЧИСТАЯ ПРИБЫЛЬ", if (pendingSummary.count > 0) fmt(pendingSummary.netProfit) else "—", accent)
             hero.addView(pendingPotential)
-            hero.addView(label("Ожидают расчёта только бумажные ставки, подтверждённые из раздела ТОП.", 9, false, muted))
+            hero.addView(label("Открытые ставки и возможная выплата рассчитаны за выбранный период по тем же правилам отбора, что и статистика ТОП.", 9, false, muted))
             val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
             terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", gold)
