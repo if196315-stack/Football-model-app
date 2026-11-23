@@ -2496,7 +2496,7 @@ class MainActivity : Activity() {
                 }
                 val color = when (state) {
                     "WON" -> Color.rgb(0, 230, 118)
-                    "LOST" -> Color.RED
+                    "LOST" -> Color.rgb(169, 130, 135) // Muted grey-red for a calmer loss indicator.
                     else -> Color.YELLOW
                 }
                 addText(box, displayLeagueName(bet.optString("league")) + " · " + date(bet.optString("date")), 10, false, muted)
