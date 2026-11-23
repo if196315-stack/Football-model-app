@@ -10,6 +10,7 @@ on:
     paths:
       - "backend/predict_uefa_markets.py"
       - "backend/update_data_pitchapi.py"
+      - "backend/build_market_roi.py"
       - ".github/workflows/update-data.yml"
   workflow_dispatch:
     inputs:
@@ -61,11 +62,13 @@ jobs:
         run: python backend/update_data_pitchapi.py
       - name: Apply latest fresh active MelBet snapshots
         run: python backend/apply_melbet_snapshots.py
-      - name: Commit updated data
+      - name: Refresh settled ALL-market ROI from the durable quote archive
+        run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl
+      - name: Commit updated data and ROI
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json
-          git diff --cached --quiet || git commit -m "Update PitchAPI fixtures and model forecasts"
+          git add docs/data.json docs/market-roi.json
+          git diff --cached --quiet || git commit -m "Update PitchAPI data and settled market ROI"
           git pull --rebase origin main
           git push

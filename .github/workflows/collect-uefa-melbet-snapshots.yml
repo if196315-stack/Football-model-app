@@ -8,6 +8,7 @@ on:
       - "backend/collect_uefa_melbet_snapshots.py"
       - "backend/refresh_pitchapi_uefa_fixtures.py"
       - "backend/build_uefa_app_feed.py"
+      - "backend/build_market_roi.py"
       - "backend/apply_melbet_snapshots.py"
       - "backend/predict_uefa_markets.py"
       - "backend/update_odds_api_sport.py"
@@ -17,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       full_history:
-        description: "Refresh all available PitchAPI UEFA seasons (higher API usage)"
+        description: "Refresh all available UEFA fixture seasons (higher API usage)"
         required: false
         default: false
         type: boolean
@@ -115,14 +116,17 @@ jobs:
         run: python backend/apply_melbet_snapshots.py
       - name: Build UEFA competitions for the Android match centre
         run: python backend/build_uefa_app_feed.py
-      - name: Commit unified MelBet snapshot history and UEFA evaluation data
+      - name: Freeze one historical MelBet quote per ALL forecast and publish settled ROI data
+        run: python backend/build_market_roi.py
+      - name: Commit compact historical ROI archive and evaluation data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f artifacts/all-eight-competitions-melbet-snapshots.jsonl ]; then
-            git add artifacts/all-eight-competitions-melbet-snapshots.jsonl
+          # The full rolling quote stream is runner-local. Only one compact quote
+          # per frozen forecast/market is retained in Git, avoiding the 100 MB limit.
+          if [ -f artifacts/market-roi-quotes.jsonl ]; then
+            git add artifacts/market-roi-quotes.jsonl
           fi
-          git add -u artifacts/uefa-melbet-odds-snapshots.jsonl 2>/dev/null || true
           if [ -f artifacts/uefa-xg-history.json ]; then
             git add artifacts/uefa-xg-history.json
           fi
@@ -135,12 +139,15 @@ jobs:
           if [ -f artifacts/uefa-paper-settlements.jsonl ]; then
             git add artifacts/uefa-paper-settlements.jsonl
           fi
+          if [ -f docs/market-roi.json ]; then
+            git add docs/market-roi.json
+          fi
           if [ -f docs/uefa-data.json ]; then
             git add docs/uefa-data.json
           fi
           if [ -f docs/data.json ]; then
             git add docs/data.json
           fi
-          git diff --cached --quiet || git commit -m "Capture UEFA MelBet odds snapshots"
+          git diff --cached --quiet || git commit -m "Capture frozen MelBet forecast ROI quotes"
           git pull --rebase origin main
           git push
