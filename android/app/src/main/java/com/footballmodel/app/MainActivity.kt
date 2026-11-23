@@ -2447,8 +2447,8 @@ class MainActivity : Activity() {
                     else bet.optString("home") + " — " + bet.optString("away"), 15, true)
                 addText(box, bet.optString("market") + " · кэф " + fmt(bet.optDouble("odds")), 12, true, accent)
                 if (bet.has("couponScores")) addText(box, bet.optString("couponScores"), 10, false, muted)
+                addText(box, "СУММА СТАВКИ: " + fmt(bet.optDouble("stake")) + " ₽", 12, true, Color.WHITE)
                 if (bet.optString("marketKey") == "COUPON") {
-                    addText(box, "Сумма купона: " + fmt(bet.optDouble("stake")), 11, false, muted)
                     val legs = bet.optJSONArray("selections")
                     for (legIndex in 0 until (legs?.length() ?: 0)) {
                         val leg = legs?.optJSONObject(legIndex) ?: continue
@@ -2456,7 +2456,7 @@ class MainActivity : Activity() {
                             leg.optString("away") + " · " + leg.optString("market") + " · " + fmt(leg.optDouble("odds")), 10, false, muted)
                     }
                 } else {
-                    addText(box, "Ставка: " + fmt(bet.optDouble("stake")) + " · модель: " +
+                    addText(box, "Модель: " +
                         String.format(Locale.getDefault(), "%.1f%%", bet.optDouble("probability") * 100), 11, false, muted)
                 }
                 val liveStatus = when (bet.optString("matchStatus")) {
