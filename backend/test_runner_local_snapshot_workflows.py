@@ -29,39 +29,44 @@ class RunnerLocalSnapshotWorkflowTests(unittest.TestCase):
         self.assertIn("Capture MelBet snapshots for all eight competitions", workflow)
         self.assertIn("Apply fresh MelBet snapshots to domestic competitions", workflow)
 
-    def test_strongest_bet_signal_can_pass_for_each_of_the_eight_leagues(self):
-        from evaluate_uefa_paper_signals import build_signals
+    def test_android_strongest_ai_signal_is_audited_for_all_eight_leagues(self):
+        from datetime import date, datetime, timezone
+        from audit_domestic_ai_signals import build
         from predict_uefa_markets import SUPPORTED_LEAGUES
 
         leagues = {"ENG", "ESP", "ITA", "GER", "FRA", "UCL", "UEL", "UECL"}
         self.assertEqual(SUPPORTED_LEAGUES, leagues)
-        rows = []
-        for league in sorted(leagues):
-            rows.append({
-                "fixture_id": f"{league}:fixture-1",
-                "captured_at": "2026-11-23T12:00:00+00:00",
-                "league_code": league,
-                "kickoff_utc": "2026-11-24T18:00:00+00:00",
-                "home_team": "Home FC",
-                "away_team": "Away FC",
-                "market": "double_chance",
-                "outcome": "1x",
-                "price": 1.60,
-                "model_probability": 0.75,
-                "bookmaker_update_age_seconds": 60,
-                "freshness_status": "fresh",
-                "model_history_max_date": "2026-11-20",
-                "candidate_market": True,
-                "reference_only": False,
-                "market_parser_version": "melbet-fulltime-v2",
+        feed_codes = {"ENG": "PL", "ESP": "PD", "ITA": "SA", "GER": "BL1", "FRA": "FL1",
+                      "UCL": "UCL", "UEL": "UEL", "UECL": "UECL"}
+        competitions = []
+        for league, feed_code in feed_codes.items():
+            competitions.append({
+                "code": feed_code,
+                "matches": [{
+                    "id": f"{league}-fixture",
+                    "status": "SCHEDULED",
+                    "utcDate": "2026-11-24T18:00:00Z",
+                    "home": "Home FC",
+                    "away": "Away FC",
+                    "prediction": {"1x": 0.70},
+                    "odds": {
+                        "bookmaker": "MELBET",
+                        "prematchActive": True,
+                        "freshnessStatus": "fresh",
+                        "updatedAt": datetime.now(timezone.utc).isoformat(),
+                        "best": {"doubleChance": {"1x": 2.0}},
+                    },
+                }],
             })
 
-        signals = build_signals(rows)
-        self.assertEqual({row["league_code"] for row in signals}, leagues)
-        self.assertEqual({row["decision"] for row in signals}, {"BET"})
-        self.assertTrue(all(row["edge"] >= 0.05 for row in signals))
-        self.assertTrue(all(row["expected_value"] >= 0.05 for row in signals))
-        self.assertTrue(all(row["model_probability"] >= 0.60 for row in signals))
+        report = build({"competitions": competitions}, today=date(2026, 11, 23))
+        self.assertEqual(set(report["leagues"]), leagues)
+        for league in leagues:
+            with self.subTest(league=league):
+                result = report["leagues"][league]
+                self.assertEqual(result["counts"].get("qualifying_signals"), 1)
+                self.assertEqual(result["qualifying_matches"][0]["line_leader"], "1X")
+                self.assertEqual(result["qualifying_matches"][0]["ai_signal"]["side"], "1X")
 
 
 if __name__ == "__main__":
