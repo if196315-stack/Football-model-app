@@ -1608,7 +1608,7 @@ class MainActivity : Activity() {
                 canvas.drawPath(area, fill)
                 line.color = strokeColor
                 canvas.drawPath(linePath, line)
-                val firstPointDate = points.minOfOrNull { it.day }?.let { day ->
+                val firstPointDate = points.minOfOrNull { it.dayMillis }?.let { day ->
                     SimpleDateFormat("dd.MM.yyyy", Locale.US).format(Date(day))
                 } ?: "—"
                 canvas.drawText(firstPointDate, left, height - dp(4).toFloat(), txt)
