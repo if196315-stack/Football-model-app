@@ -2079,7 +2079,7 @@ class MainActivity : Activity() {
                 bet.optString("source") in listOf("AI_AUTO", "AI_MANUAL")
         }
     }
-    private fun settleCoupon(j: JSONObject, bet: JSONObject) {
+    private fun settleCoupon(j: JSONObject, bet: JSONObject, findIndexedMatch: (JSONObject) -> JSONObject?) {
         if (bet.optString("status") != "PENDING") return
         val selections = bet.optJSONArray("selections") ?: return
         var allSettled = true
@@ -2088,7 +2088,7 @@ class MainActivity : Activity() {
         val scores = mutableListOf<String>()
         for (i in 0 until selections.length()) {
             val pick = selections.optJSONObject(i) ?: continue
-            val match = findMatch(j, pick)
+            val match = findIndexedMatch(pick)
             if (match == null || match.isNull("homeScore") || match.isNull("awayScore")) {
                 allSettled = false
                 continue
@@ -2228,6 +2228,48 @@ class MainActivity : Activity() {
 
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
+
+        // Build a single feed index for the whole history render. The previous
+        // implementation scanned every competition for every saved bet, making
+        // the screen O(bets × matches) and potentially triggering Android's ANR.
+        val matchesById = HashMap<String, JSONObject>()
+        val matchesByTeamsAndDate = HashMap<String, JSONObject>()
+        val matchesByTeams = HashMap<String, MutableList<JSONObject>>()
+        val competitions = j.optJSONArray("competitions")
+        if (competitions != null) for (i in 0 until competitions.length()) {
+            val matches = competitions.optJSONObject(i)?.optJSONArray("matches") ?: continue
+            for (k in 0 until matches.length()) {
+                val match = matches.optJSONObject(k) ?: continue
+                val matchId = match.optString("id").trim().ifBlank {
+                    match.optString("utcDate") + match.optString("home") + match.optString("away")
+                }
+                if (matchId.isNotBlank()) matchesById[matchId] = match
+                val home = normalizedTeamName(match.optString("home"))
+                val away = normalizedTeamName(match.optString("away"))
+                if (home.isBlank() || away.isBlank()) continue
+                val teamsKey = "$home\\u0000$away"
+                matchesByTeams.getOrPut(teamsKey) { mutableListOf() }.add(match)
+                val matchDate = match.optString("utcDate").take(10).ifBlank {
+                    match.optString("dateEvent").take(10)
+                }
+                if (matchDate.isNotBlank()) matchesByTeamsAndDate["$teamsKey\\u0000$matchDate"] = match
+            }
+        }
+        val findIndexedMatch: (JSONObject) -> JSONObject? = { bet ->
+            val targetId = bet.optString("matchId").trim()
+            val byId = if (targetId.isNotBlank()) matchesById[targetId] else null
+            if (byId != null) byId else {
+                val home = normalizedTeamName(bet.optString("home"))
+                val away = normalizedTeamName(bet.optString("away"))
+                if (home.isBlank() || away.isBlank()) null else {
+                    val teamsKey = "$home\\u0000$away"
+                    val targetDate = bet.optString("date").take(10)
+                    val byDate = if (targetDate.isNotBlank())
+                        matchesByTeamsAndDate["$teamsKey\\u0000$targetDate"] else null
+                    byDate ?: matchesByTeams[teamsKey]?.singleOrNull()
+                }
+            }
+        }
         var changed = false
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
@@ -2235,12 +2277,12 @@ class MainActivity : Activity() {
                 val before = bet.optString("status")
                 val beforeScores = bet.optString("couponScores")
                 val beforeMatchStatus = bet.optString("matchStatus")
-                settleCoupon(j, bet)
+                settleCoupon(j, bet, findIndexedMatch)
                 if (bet.optString("status") != before || bet.optString("couponScores") != beforeScores ||
                     bet.optString("matchStatus") != beforeMatchStatus) changed = true
                 continue
             }
-            val match = findMatch(j, bet)
+            val match = findIndexedMatch(bet)
             if (match != null) {
                 val matchStatus = match.optString("status")
                 val score = if (!match.isNull("homeScore") && !match.isNull("awayScore"))
