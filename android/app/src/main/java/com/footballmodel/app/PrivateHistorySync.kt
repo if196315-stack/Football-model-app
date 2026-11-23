@@ -16,6 +16,7 @@ object PrivateHistorySync {
     private const val BACKUP_PATH = "private-data/history-v1.json"
     private const val PREFS = "private_history_auth"
     private const val TOKEN_KEY = "github_token"
+    private val syncLock = Any()
 
     fun hasToken(context: Context): Boolean =
         !context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(TOKEN_KEY, null).isNullOrBlank()
@@ -47,7 +48,7 @@ object PrivateHistorySync {
         }, "iq-match-history-sync").start()
     }
 
-    private fun syncNow(context: Context) {
+    private fun syncNow(context: Context) = synchronized(syncLock) {
         val accessToken = token(context)
             ?: throw IllegalStateException("Сначала подключи GitHub token в настройках.")
         val betsPrefs = context.getSharedPreferences("bet_history", Context.MODE_PRIVATE)
@@ -64,11 +65,17 @@ object PrivateHistorySync {
         }
 
         val remoteFile = request(accessToken, "GET", null)
-        val remotePayload = remoteFile?.optString("content")?.takeIf { it.isNotBlank() }?.let { encoded ->
+        val remotePayload = if (remoteFile == null) {
+            null
+        } else {
+            val encoded = remoteFile.optString("content")
+            if (encoded.isBlank()) throw IllegalStateException("GitHub вернул существующий архив без содержимого; остановил запись, чтобы не затереть историю.")
             try {
                 val decoded = Base64.decode(encoded.replace("\\n", ""), Base64.DEFAULT)
                 JSONObject(String(decoded, StandardCharsets.UTF_8))
-            } catch (_: Exception) { null }
+            } catch (error: Exception) {
+                throw IllegalStateException("Не удалось прочитать существующий архив; остановил запись, чтобы не потерять историю.", error)
+            }
         }
         val bets = mergeRows(remotePayload?.optJSONArray("bets") ?: JSONArray(), localBets, "id",
             listOf("matchId", "marketKey", "createdAt"))
