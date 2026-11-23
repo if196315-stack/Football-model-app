@@ -1671,6 +1671,19 @@ class MainActivity : Activity() {
             }
             UiMotion.transitionBackground(button, nextBackground)
         }
+        // Source tabs are the primary report selector; time periods sit directly below.
+        val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        listOf("TOP" to "ТОП", "ALL" to "ВСЕ").forEach { option ->
+            val active = selectedStatsSource == option.first
+            val button = TextView(this).apply {
+                text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
+                setPadding(dp(8), dp(10), dp(8), dp(10))
+                styleStatsFilterButton(this, active)
+                setOnClickListener { if (selectedStatsSource != option.first) changeStatsFilter { selectedStatsSource = option.first } }
+            }
+            sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
+        }
+        controls.addView(sourceRow)
         val periods = listOf(listOf("WEEK" to "7 ДН", "MONTH" to "1 МЕС", "QUARTER" to "3 МЕС"),
             listOf("HALF" to "6 МЕС", "YEAR" to "1 ГОД", "ALL" to "ВСЁ ВРЕМЯ"))
         periods.forEach { options ->
@@ -1687,19 +1700,6 @@ class MainActivity : Activity() {
             }
             controls.addView(row)
         }
-        // The source toggle scopes the complete betting report, not just one summary card.
-        val sourceRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf("TOP" to "ТОП", "ALL" to "ВСЕ").forEach { option ->
-            val active = selectedStatsSource == option.first
-            val button = TextView(this).apply {
-                text = option.second; gravity = Gravity.CENTER; textSize = 10f; typeface = Typeface.MONOSPACE
-                setPadding(dp(8), dp(10), dp(8), dp(10))
-                styleStatsFilterButton(this, active)
-                setOnClickListener { if (selectedStatsSource != option.first) changeStatsFilter { selectedStatsSource = option.first } }
-            }
-            sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
-        }
-        controls.addView(sourceRow)
         val report = cached!!.current
         if (selectedStatsSource == "TOP") statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
@@ -2026,71 +2026,8 @@ class MainActivity : Activity() {
             }
         }
         val metrics = statsMetricsCache.ifEmpty { emptyPredictionMetrics(source) }
-        val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
-        val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
-        if (metrics.isEmpty()) {
-            val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
-            val calculationError = statsMetricsError
-            if (calculationError != null) {
-                empty.addView(label("Не удалось рассчитать сводку прогнозов. Остальная статистика доступна.", 12, true, gold))
-                empty.addView(label("Код ошибки: $calculationError", 10, false, muted))
-            } else {
-                empty.addView(label("Архив проверенных прогнозов пока формируется. Матч попадёт в статистику после фиксации прогноза до начала игры и получения подтверждённого итогового счёта.", 11, false, muted))
-            }
-        } else {
-            if (metrics.none { it.n > 0 }) {
-                addText(overallHeading, "Пока нет завершённых прогнозов в выбранной выборке. Все восемь активных рынков показаны ниже и начнут заполняться после подтверждения результатов.", 11, false, muted)
-            }
-            metrics.forEach { metric ->
-            val box = terminalSection(matchesContainer, metric.name, "ВЫБОРКА: ${metric.n} ЗАВЕРШЁННЫХ МАТЧЕЙ")
-            val hitRate = if (metric.n > 0) metric.hits * 100.0 / metric.n else Double.NaN
-            val summaryRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            terminalMetric(summaryRow, "ПОПАДАНИЯ", "${metric.hits} / ${metric.n}", Color.WHITE)
-            terminalMetric(summaryRow, "ТОЧНОСТЬ", if (hitRate.isFinite()) String.format(Locale.US, "%.1f%%", hitRate) else "—",
-                if (hitRate.isFinite() && hitRate >= 50.0) accent else muted)
-            box.addView(summaryRow)
-            box.addView(label("ТОЧНОСТЬ ПО УРОВНЮ УВЕРЕННОСТИ", 9, true, cyan).apply {
-                typeface = Typeface.MONOSPACE
-                setPadding(0, dp(7), 0, dp(3))
-            })
-            metric.bands.forEach { band ->
-                val rate = if (band.n > 0) String.format(Locale.US, "%.1f%%", band.hits * 100.0 / band.n) else "—"
-                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-                row.addView(label("${band.label}", 10, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
-                row.addView(label("${band.hits} / ${band.n}", 10, false, muted).apply { typeface = Typeface.MONOSPACE })
-                row.addView(label(rate, 10, true, if (band.n > 0) accent else muted).apply {
-                    typeface = Typeface.MONOSPACE
-                    gravity = Gravity.END
-                }, LinearLayout.LayoutParams(dp(58), -2))
-                box.addView(row)
-                val progress = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-                    max = 1000
-                    progress = if (band.n > 0) (band.hits * 1000 / band.n) else 0
-                    progressTintList = android.content.res.ColorStateList.valueOf(if (band.n > 0) accent else Color.rgb(47, 61, 72))
-                    progressBackgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(27, 39, 50))
-                }
-                box.addView(progress, LinearLayout.LayoutParams(-1, dp(4)).apply {
-                    topMargin = dp(3)
-                    bottomMargin = dp(5)
-                })
-            }
-            val scoreRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            terminalMetric(scoreRow, "ОЦЕНКА БРАЙЕРА", if (metric.brier.isFinite()) String.format(Locale.US, "%.4f", metric.brier) else "—", if (metric.brier.isFinite()) Color.WHITE else muted)
-            terminalMetric(scoreRow, "ЛОГ. ПОТЕРЯ", if (metric.logLoss.isFinite()) String.format(Locale.US, "%.4f", metric.logLoss) else "—", if (metric.logLoss.isFinite()) Color.WHITE else muted)
-            box.addView(scoreRow)
-            }
-        }
-        if (metrics.isNotEmpty()) {
-            val archive = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
-            val calculationError = statsMetricsError
-            if (calculationError != null) {
-                archive.addView(label("Сводка рассчитана с ошибкой; строки рынков сохранены, но показатели временно нулевые. Код: $calculationError", 11, true, gold))
-            } else if (metrics.none { it.n > 0 }) {
-                archive.addView(label("За выбранный период нет завершённых прогнозов, подходящих под выбранный источник. Матч учитывается по дате матча после подтверждения итогового счёта.", 11, false, muted))
-            } else {
-                archive.addView(label("В статистику включены завершённые прогнозы за выбранный период по дате матча.", 11, false, muted))
-            }
-        }
+        // Prediction summary cards were removed from both report sources because they
+        // duplicated the market/probability breakdown and did not include ROI.
     }
 
 
