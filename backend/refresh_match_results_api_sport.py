@@ -31,7 +31,7 @@ LIVE = {"inprogress", "in progress", "live", "1h", "2h", "halftime", "half time"
 
 
 def normalized_status(match: dict) -> str:
-    return normalized_status(match).replace("_", " ")
+    return str(match.get("status") or "").strip().casefold().replace("_", " ")
 
 
 def is_finished_status(status: str) -> bool:
