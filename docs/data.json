@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-23T15:47:55.310516+00:00",
+  "updatedAt": "2026-11-23T16:26:38.682095+00:00",
   "source": "PitchAPI (fixtures, results and shot-level xG); API-Sport (bookmaker odds)",
   "modelVersion": "xg-poisson-v2-x2-calibrated",
   "probabilityCalibration": {
@@ -28,7 +28,7 @@
   "xgHistoryMatches": 8678,
   "xgHistoryPairedMatches": 8678,
   "xgHistoryPending": 14,
-  "xgUpdatedAt": "2026-11-23T15:47:47.640702+00:00",
+  "xgUpdatedAt": "2026-11-23T16:26:30.110813+00:00",
   "status": "ready",
   "notice": "Прогнозы доступны для 1207 предстоящих матчей; в истории результатов 8692 матчей; парный xG есть у 8678, ожидают xG: 14.",
   "dataWarning": "Прогнозы строятся только на завершённых матчах с парным xG PitchAPI. Отсутствующий xG не заменяется нулём.",
@@ -22218,11 +22218,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22306,11 +22306,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22394,11 +22394,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22482,11 +22482,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22570,11 +22570,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22658,11 +22658,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22746,11 +22746,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22834,11 +22834,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -22922,11 +22922,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -23010,11 +23010,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -23098,11 +23098,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -23186,11 +23186,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23268,11 +23268,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:30.790000+00:00",
+            "updatedAt": "2026-11-23T16:26:51.586000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 706.687
+            "bookmakerUpdateAgeSeconds": 340.008
           }
         },
         {
@@ -23356,11 +23356,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23438,11 +23438,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23520,11 +23520,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23608,11 +23608,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23696,11 +23696,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23784,11 +23784,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23872,11 +23872,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         },
         {
@@ -23960,11 +23960,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:32.735000+00:00",
+            "updatedAt": "2026-11-23T16:26:53.187000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 704.742
+            "bookmakerUpdateAgeSeconds": 338.407
           }
         }
       ],
@@ -46353,11 +46353,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -46441,11 +46441,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -46529,11 +46529,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -46617,11 +46617,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -46699,11 +46699,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -46787,11 +46787,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -46864,11 +46864,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -46952,11 +46952,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -47040,11 +47040,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -47128,11 +47128,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -47205,11 +47205,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47287,11 +47287,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47375,11 +47375,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47463,11 +47463,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47551,11 +47551,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47633,11 +47633,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47704,11 +47704,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47792,11 +47792,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47880,11 +47880,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -47962,11 +47962,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -48044,11 +48044,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         }
       ],
@@ -70315,18 +70315,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.9,
-                "x2": 1.26
+                "x2": 1.27
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.21
+                  "price": 1.2
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.7
+                  "price": 1.66
                 }
               ],
               "teamTotals": [
@@ -70340,31 +70340,31 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.79
+                  "price": 1.76
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.36
+                  "price": 1.34
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.87
+                  "price": 2.78
                 }
               ],
               "btts": {
-                "yes": 1.63
+                "yes": 1.6
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -70403,18 +70403,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.7,
-                "x2": 1.32
+                "x2": 1.31
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.31
+                  "price": 1.32
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.99
+                  "price": 2.02
                 }
               ],
               "teamTotals": [
@@ -70428,31 +70428,31 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.17
+                  "price": 2.2
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.4
+                  "price": 1.41
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.08
+                  "price": 3.13
                 }
               ],
               "btts": {
-                "yes": 1.79
+                "yes": 1.81
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -70536,11 +70536,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -70624,11 +70624,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -70712,11 +70712,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -70800,11 +70800,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -70888,11 +70888,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -70970,11 +70970,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -71058,11 +71058,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -71146,11 +71146,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -71234,11 +71234,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -71322,11 +71322,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.171000+00:00",
+            "updatedAt": "2026-11-23T16:26:55.639000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 702.306
+            "bookmakerUpdateAgeSeconds": 335.955
           }
         },
         {
@@ -71404,11 +71404,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.171000+00:00",
+            "updatedAt": "2026-11-23T16:26:55.639000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 702.306
+            "bookmakerUpdateAgeSeconds": 335.955
           }
         },
         {
@@ -71481,11 +71481,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.171000+00:00",
+            "updatedAt": "2026-11-23T16:26:55.639000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 702.306
+            "bookmakerUpdateAgeSeconds": 335.955
           }
         },
         {
@@ -71563,11 +71563,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.171000+00:00",
+            "updatedAt": "2026-11-23T16:26:55.639000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 702.306
+            "bookmakerUpdateAgeSeconds": 335.955
           }
         },
         {
@@ -71651,11 +71651,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.171000+00:00",
+            "updatedAt": "2026-11-23T16:26:55.639000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 702.306
+            "bookmakerUpdateAgeSeconds": 335.955
           }
         },
         {
@@ -71733,11 +71733,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.171000+00:00",
+            "updatedAt": "2026-11-23T16:26:55.639000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 702.306
+            "bookmakerUpdateAgeSeconds": 335.955
           }
         },
         {
@@ -71815,11 +71815,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.171000+00:00",
+            "updatedAt": "2026-11-23T16:26:55.639000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 702.306
+            "bookmakerUpdateAgeSeconds": 335.955
           }
         },
         {
@@ -71897,11 +71897,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -71985,11 +71985,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -72067,11 +72067,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         }
       ],
@@ -89983,11 +89983,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90071,11 +90071,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90159,11 +90159,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90247,11 +90247,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90324,11 +90324,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90407,11 +90407,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90495,11 +90495,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90583,11 +90583,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90671,11 +90671,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -90742,11 +90742,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -90830,11 +90830,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -90918,11 +90918,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -90995,11 +90995,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -91083,11 +91083,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -91165,11 +91165,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -91247,11 +91247,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -91329,11 +91329,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         },
         {
@@ -91411,11 +91411,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:35.979000+00:00",
+            "updatedAt": "2026-11-23T16:26:56.295000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 701.498
+            "bookmakerUpdateAgeSeconds": 335.299
           }
         }
       ],
@@ -111065,11 +111065,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111153,11 +111153,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111235,11 +111235,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111277,19 +111277,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.17,
+                "1x": 1.18,
                 "x2": 2.21
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.22
+                  "price": 1.19
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.71
+                  "price": 1.64
                 }
               ],
               "teamTotals": [
@@ -111297,37 +111297,37 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.47
+                  "price": 1.43
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.45
+                  "price": 3.2
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.11
+                  "price": 1.1
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.68
+                  "price": 1.63
                 }
               ],
               "btts": {
-                "yes": 1.71
+                "yes": 1.65
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111411,11 +111411,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111499,11 +111499,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111587,11 +111587,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111675,11 +111675,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111763,11 +111763,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:27.048000+00:00",
+            "updatedAt": "2026-11-23T16:26:48.157000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 710.429
+            "bookmakerUpdateAgeSeconds": 343.437
           }
         },
         {
@@ -111845,11 +111845,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -111927,11 +111927,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -112015,11 +112015,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -112097,11 +112097,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -112179,11 +112179,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -112261,11 +112261,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -112349,11 +112349,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -112431,11 +112431,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         },
         {
@@ -112519,11 +112519,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-23T15:40:34.106000+00:00",
+            "updatedAt": "2026-11-23T16:26:54.359000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 703.371
+            "bookmakerUpdateAgeSeconds": 337.235
           }
         }
       ],
@@ -127678,7 +127678,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3IrTv6": {
         "id": "m_3IrTv6",
@@ -127721,7 +127721,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_19nSVX": {
         "id": "m_19nSVX",
@@ -127764,7 +127764,7 @@
         },
         "homeScore": 1,
         "awayScore": 4,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3XXOvK": {
         "id": "m_3XXOvK",
@@ -127807,7 +127807,7 @@
         },
         "homeScore": 2,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_4Pdd0e": {
         "id": "m_4Pdd0e",
@@ -127850,7 +127850,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_2FVfvL": {
         "id": "m_2FVfvL",
@@ -133536,7 +133536,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3JKUH6": {
         "id": "m_3JKUH6",
@@ -133579,7 +133579,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_4DeisY": {
         "id": "m_4DeisY",
@@ -133622,7 +133622,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_101pSt": {
         "id": "m_101pSt",
@@ -133665,7 +133665,7 @@
         },
         "homeScore": 2,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_2xAkEu": {
         "id": "m_2xAkEu",
@@ -133708,7 +133708,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3ZF56r": {
         "id": "m_3ZF56r",
@@ -133751,7 +133751,7 @@
         },
         "homeScore": 0,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3jVoFq": {
         "id": "m_3jVoFq",
@@ -139734,7 +139734,7 @@
         },
         "homeScore": 3,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_1jov2C": {
         "id": "m_1jov2C",
@@ -139777,7 +139777,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_0M5Pz1": {
         "id": "m_0M5Pz1",
@@ -139820,7 +139820,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_1PKq2V": {
         "id": "m_1PKq2V",
@@ -139863,7 +139863,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_4TXXCg": {
         "id": "m_4TXXCg",
@@ -139906,7 +139906,7 @@
         },
         "homeScore": 0,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_40elPe": {
         "id": "m_40elPe",
@@ -139949,7 +139949,7 @@
         },
         "homeScore": 5,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_0ZgZVI": {
         "id": "m_0ZgZVI",
@@ -139992,7 +139992,7 @@
         },
         "homeScore": 4,
         "awayScore": 4,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_08lkfg": {
         "id": "m_08lkfg",
@@ -146965,7 +146965,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_0k03w6": {
         "id": "m_0k03w6",
@@ -147008,7 +147008,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_0aFyPg": {
         "id": "m_0aFyPg",
@@ -147051,7 +147051,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_0vvP0O": {
         "id": "m_0vvP0O",
@@ -147094,7 +147094,7 @@
         },
         "homeScore": 1,
         "awayScore": 5,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_38aXX1": {
         "id": "m_38aXX1",
@@ -147137,7 +147137,7 @@
         },
         "homeScore": 0,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_34jUwH": {
         "id": "m_34jUwH",
@@ -147180,7 +147180,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_0toF5d": {
         "id": "m_0toF5d",
@@ -152140,7 +152140,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3qap9x": {
         "id": "m_3qap9x",
@@ -152183,7 +152183,7 @@
         },
         "homeScore": 2,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3vBvLr": {
         "id": "m_3vBvLr",
@@ -152226,7 +152226,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_39zXtJ": {
         "id": "m_39zXtJ",
@@ -152269,7 +152269,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_47p1ca": {
         "id": "m_47p1ca",
@@ -152312,7 +152312,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_1waD57": {
         "id": "m_1waD57",
@@ -152355,7 +152355,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_1AvzJo": {
         "id": "m_1AvzJo",
@@ -152398,7 +152398,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_2KbgcS": {
         "id": "m_2KbgcS",
@@ -157861,7 +157861,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_04ixCx": {
         "id": "m_04ixCx",
@@ -157945,7 +157945,7 @@
         },
         "homeScore": 0,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_2PtCYr": {
         "id": "m_2PtCYr",
@@ -158029,7 +158029,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_18ul5S": {
         "id": "m_18ul5S",
@@ -158113,7 +158113,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_35NS0w": {
         "id": "m_35NS0w",
@@ -161497,7 +161497,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_2WvtVu": {
         "id": "m_2WvtVu",
@@ -161581,7 +161581,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_25yFU8": {
         "id": "m_25yFU8",
@@ -161665,7 +161665,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3N7OsF": {
         "id": "m_3N7OsF",
@@ -164092,7 +164092,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_2fNTjV": {
         "id": "m_2fNTjV",
@@ -164176,7 +164176,7 @@
         },
         "homeScore": 1,
         "awayScore": 5,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_1Kxps6": {
         "id": "m_1Kxps6",
@@ -165943,7 +165943,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_2mXps3": {
         "id": "m_2mXps3",
@@ -166027,7 +166027,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_1FnTzR": {
         "id": "m_1FnTzR",
@@ -166111,7 +166111,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3Hzh67": {
         "id": "m_3Hzh67",
@@ -168406,7 +168406,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_3pvUaB": {
         "id": "m_3pvUaB",
@@ -168490,7 +168490,7 @@
         },
         "homeScore": 2,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+        "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
       },
       "m_1oxRzF": {
         "id": "m_1oxRzF",
@@ -170416,7 +170416,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3IrTv6",
@@ -170459,7 +170459,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_19nSVX",
@@ -170502,7 +170502,7 @@
       },
       "homeScore": 1,
       "awayScore": 4,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3XXOvK",
@@ -170545,7 +170545,7 @@
       },
       "homeScore": 2,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_4Pdd0e",
@@ -170588,7 +170588,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_0iaTdE",
@@ -170631,7 +170631,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3JKUH6",
@@ -170674,7 +170674,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_4DeisY",
@@ -170717,7 +170717,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_101pSt",
@@ -170760,7 +170760,7 @@
       },
       "homeScore": 2,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_2xAkEu",
@@ -170803,7 +170803,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3ZF56r",
@@ -170846,7 +170846,7 @@
       },
       "homeScore": 0,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_4MACO8",
@@ -170889,7 +170889,7 @@
       },
       "homeScore": 3,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_1jov2C",
@@ -170932,7 +170932,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_0M5Pz1",
@@ -170975,7 +170975,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_1PKq2V",
@@ -171018,7 +171018,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_4TXXCg",
@@ -171061,7 +171061,7 @@
       },
       "homeScore": 0,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_40elPe",
@@ -171104,7 +171104,7 @@
       },
       "homeScore": 5,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_0ZgZVI",
@@ -171147,7 +171147,7 @@
       },
       "homeScore": 4,
       "awayScore": 4,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_4McNx8",
@@ -171190,7 +171190,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_0k03w6",
@@ -171233,7 +171233,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_0aFyPg",
@@ -171276,7 +171276,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_0vvP0O",
@@ -171319,7 +171319,7 @@
       },
       "homeScore": 1,
       "awayScore": 5,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_38aXX1",
@@ -171362,7 +171362,7 @@
       },
       "homeScore": 0,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_34jUwH",
@@ -171405,7 +171405,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3rtQqb",
@@ -171448,7 +171448,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3qap9x",
@@ -171491,7 +171491,7 @@
       },
       "homeScore": 2,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3vBvLr",
@@ -171534,7 +171534,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_39zXtJ",
@@ -171577,7 +171577,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_47p1ca",
@@ -171620,7 +171620,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_1waD57",
@@ -171663,7 +171663,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_1AvzJo",
@@ -171706,7 +171706,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_0B6kF2",
@@ -171790,7 +171790,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_04ixCx",
@@ -171874,7 +171874,7 @@
       },
       "homeScore": 0,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_2PtCYr",
@@ -171958,7 +171958,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_18ul5S",
@@ -172042,7 +172042,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_1MrgIP",
@@ -172126,7 +172126,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_2WvtVu",
@@ -172210,7 +172210,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_25yFU8",
@@ -172294,7 +172294,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_01qIw5",
@@ -172378,7 +172378,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_2fNTjV",
@@ -172462,7 +172462,7 @@
       },
       "homeScore": 1,
       "awayScore": 5,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3vFZhn",
@@ -172546,7 +172546,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_2mXps3",
@@ -172630,7 +172630,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_1FnTzR",
@@ -172714,7 +172714,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_11vVyC",
@@ -172798,7 +172798,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     },
     {
       "id": "m_3pvUaB",
@@ -172882,10 +172882,10 @@
       },
       "homeScore": 2,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-23T15:47:55.602085+00:00"
+      "resultUpdatedAt": "2026-11-23T16:26:39.088359+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-23T15:52:17.477164+00:00",
+  "oddsUpdatedAt": "2026-11-23T16:32:31.594393+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsErrors": [
