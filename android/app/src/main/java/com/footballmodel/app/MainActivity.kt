@@ -1825,8 +1825,6 @@ class MainActivity : Activity() {
             for (index in 0 until bets.length()) {
                 val bet = bets.optJSONObject(index) ?: continue
                 if (!bet.optString("source").equals("AI_MANUAL", ignoreCase = true)) continue
-                if (bet.optString("marketKey") !in statsRoiMarketLabels.keys) continue
-                if (bet.optString("marketKey") == "COUPON") continue
                 val status = bet.optString("status").uppercase(Locale.ROOT)
                 val periodDate = if (status == "PENDING") {
                     StatsPredictionScope.matchDateMillis(bet.optString("betDay"))
@@ -1838,11 +1836,17 @@ class MainActivity : Activity() {
                 } else StatsPredictionScope.matchDateMillis(bet.optString("date"))
                 val day = periodDate ?: continue
                 if (day !in periodBounds.first..periodBounds.second) continue
+                // Count every open TOP single before ROI validation: incomplete legacy
+                // odds/stake fields must not make an existing pending bet disappear.
+                if (BetAnalyticsCalculator.isTopPending(status, bet.optString("marketKey") == "COUPON")) {
+                    topPendingBetCount++
+                }
+                if (bet.optString("marketKey") !in statsRoiMarketLabels.keys) continue
+                if (bet.optString("marketKey") == "COUPON") continue
                 val odds = bet.optDouble("odds", Double.NaN)
                 val stake = bet.optDouble("stake", Double.NaN)
                 if (!odds.isFinite() || odds <= 1.0 || !stake.isFinite() || stake <= 0.0) continue
                 if (status == "PENDING") {
-                    topPendingBetCount++
                     pendingStake += stake
                     potentialPayout += stake * odds
                 }
@@ -2113,11 +2117,12 @@ class MainActivity : Activity() {
             }
             for (i in 0 until persisted.length()) {
                 val item = persisted.optJSONObject(i) ?: continue
-                if (item.optString("source") != "AI_AUTO") continue
                 val key = item.optString("id")
                 if (key.isBlank()) continue
                 val local = merged[key]
-                if (local == null && preserveBackgroundAuto) {
+                // Keep background-only automatic rows, and never overwrite a settled
+                // persisted result with a stale PENDING copy from the foreground.
+                if (local == null && preserveBackgroundAuto && item.optString("source") == "AI_AUTO") {
                     merged[key] = item
                 } else if (local != null && local.optString("status") == "PENDING" &&
                     item.optString("status") in listOf("WON", "LOST", "PUSH")) {

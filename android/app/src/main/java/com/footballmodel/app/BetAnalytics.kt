@@ -169,6 +169,10 @@ internal object BetAnalyticsCalculator {
         else -> true
     }
 
+    /** Pending TOP singles are counted independently of ROI data validity. */
+    fun isTopPending(status: String, isCoupon: Boolean): Boolean =
+        status.equals("PENDING", ignoreCase = true) && !isCoupon
+
     private fun summarize(records: List<AnalyticsBet>): AnalyticsSlice {
         var wins = 0; var losses = 0; var pushes = 0; var pending = 0
         var turnover = 0.0; var profit = 0.0; var oddsTotal = 0.0; var stakeTotal = 0.0

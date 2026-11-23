@@ -81,6 +81,19 @@ class BetAnalyticsCalculatorTest {
         assertEquals(0, report.duplicateRecords)
     }
 
+    @Test fun allPendingTopSinglesAreCountedEvenWhenRoiFieldsAreInvalid() {
+        val pending = List(39) { index ->
+            bet("pending-$index", source = "AI_MANUAL", status = "PENDING",
+                stake = if (index % 2 == 0) 0.0 else 10.0,
+                odds = if (index % 3 == 0) 1.0 else 2.0)
+        }
+        assertEquals(39, pending.count {
+            BetAnalyticsCalculator.isTopPending(it.status, it.isCoupon)
+        })
+        assertEquals(false, BetAnalyticsCalculator.isTopPending("PENDING", true))
+        assertEquals(false, BetAnalyticsCalculator.isTopPending("WON", false))
+    }
+
     @Test fun pendingTopBetDoesNotAffectProfitTurnoverOrWinRate() {
         val report = BetAnalyticsCalculator.calculate(listOf(
             bet("w", source = "AI_MANUAL", status = "WON"),
