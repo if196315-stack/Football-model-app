@@ -47,4 +47,65 @@ internal object FeedMerger {
         target.put("evaluationMatches", combinedEvaluations)
         target.put("uefaEvaluationUpdatedAt", uefa.optString("updatedAt"))
     }
+
+    /**
+     * Resolve the UEFA payload for the background worker. A transient download
+     * failure must not replace a previously complete merged cache with domestic
+     * data only. Prefer a valid fresh response, then the dedicated UEFA cache,
+     * then the UEFA subset of the previous merged cache.
+     */
+    fun parseUefaFeed(payload: String?): JSONObject? {
+        if (payload.isNullOrBlank()) return null
+        return try {
+            JSONObject(payload).takeIf {
+                it.has("competitions") || it.has("evaluationMatches")
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun resolveUefaFeed(
+        downloaded: String?,
+        cachedUefa: String?,
+        cachedMerged: String?
+    ): JSONObject? {
+        parseUefaFeed(downloaded)?.let { return it }
+        parseUefaFeed(cachedUefa)?.let { return it }
+
+        val previous = try {
+            cachedMerged?.takeIf { it.isNotBlank() }?.let { JSONObject(it) }
+        } catch (_: Exception) {
+            null
+        } ?: return null
+
+        val competitions = JSONArray()
+        val previousCompetitions = previous.optJSONArray("competitions")
+        if (previousCompetitions != null) {
+            for (i in 0 until previousCompetitions.length()) {
+                val competition = previousCompetitions.optJSONObject(i) ?: continue
+                if (competition.optString("code") in setOf("UCL", "UEL", "UECL")) {
+                    competitions.put(competition)
+                }
+            }
+        }
+
+        val evaluations = JSONArray()
+        val previousEvaluations = previous.optJSONArray("evaluationMatches")
+        if (previousEvaluations != null) {
+            for (i in 0 until previousEvaluations.length()) {
+                val row = previousEvaluations.optJSONObject(i) ?: continue
+                if (row.optString("leagueCode") in setOf("UCL", "UEL", "UECL")) {
+                    evaluations.put(row)
+                }
+            }
+        }
+
+        if (competitions.length() == 0 && evaluations.length() == 0) return null
+        return JSONObject()
+            .put("updatedAt", previous.optString("uefaEvaluationUpdatedAt")
+                .ifBlank { previous.optString("updatedAt") })
+            .put("competitions", competitions)
+            .put("evaluationMatches", evaluations)
+    }
 }
