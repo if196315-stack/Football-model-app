@@ -20,6 +20,22 @@ internal object BetSettlement {
         return if (scoreStatusFinalPresent) scoreStatusFinal == true else true
     }
 
+    fun isSettledStatus(status: String): Boolean = status in setOf("WON", "LOST", "PUSH")
+
+    fun settledResult(
+        currentStatus: String,
+        matchStatus: String,
+        scoreStatusFinalPresent: Boolean,
+        scoreStatusFinal: Boolean?,
+        homeGoals: Int?,
+        awayGoals: Int?,
+        marketKey: String
+    ): String? {
+        if (currentStatus != "PENDING" || homeGoals == null || awayGoals == null ||
+            !isConfirmedFinal(matchStatus, scoreStatusFinalPresent, scoreStatusFinal)) return null
+        return result(marketKey, homeGoals, awayGoals)
+    }
+
     fun result(marketKey: String, homeGoals: Int, awayGoals: Int): String? {
         if (homeGoals < 0 || awayGoals < 0) return null
         val total = homeGoals + awayGoals
