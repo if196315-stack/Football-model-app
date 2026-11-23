@@ -28,7 +28,7 @@ jobs:
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -49,8 +49,8 @@ jobs:
 
       - name: Install Gradle 8.9
         run: |
-          curl --fail --location --retry 3 --retry-delay 2 \
-            https://services.gradle.org/distributions/gradle-8.9-bin.zip \
+          curl --fail --location --retry 3 --retry-delay 2 \\
+            https://services.gradle.org/distributions/gradle-8.9-bin.zip \\
             --output "$RUNNER_TEMP/gradle-8.9-bin.zip"
           unzip -q "$RUNNER_TEMP/gradle-8.9-bin.zip" -d "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/gradle-8.9/bin" >> "$GITHUB_PATH"
@@ -63,6 +63,7 @@ jobs:
           test -n "$KEYSTORE_B64" || { echo "ANDROID_KEYSTORE_BASE64 is missing"; exit 1; }
           test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "ANDROID_KEYSTORE_PASSWORD is missing"; exit 1; }
           test -n "$ANDROID_KEY_ALIAS" || { echo "ANDROID_KEY_ALIAS is missing"; exit 1; }
+          test -n "$ANDROID_KEY_PASSWORD" || { echo "ANDROID_KEY_PASSWORD is missing"; exit 1; }
           echo "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/football-model-upload-key.jks"
           test -s "$RUNNER_TEMP/football-model-upload-key.jks"
           echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/football-model-upload-key.jks" >> "$GITHUB_ENV"
