@@ -41,5 +41,12 @@ class RunnerLocalSnapshotWorkflowTests(unittest.TestCase):
         self.assertIn('PITCHAPI_MAX_SHOT_REQUESTS: "0"', workflow)
         self.assertIn("PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}", workflow)
 
+    def test_unified_collector_retries_push_after_concurrent_main_updates(self):
+        workflow = self.read("collect-uefa-melbet-snapshots.yml")
+        self.assertIn("for attempt in 1 2 3; do", workflow)
+        self.assertIn("git pull --rebase origin main", workflow)
+        self.assertIn("if git push; then", workflow)
+        self.assertIn("Unable to publish feed after three rebased push attempts.", workflow)
+
 if __name__ == "__main__":
     unittest.main()
