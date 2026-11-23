@@ -1555,29 +1555,29 @@ class MainActivity : Activity() {
             val marketRows = rows.filter { it.optString("market_key", it.optString("marketKey")) == marketKey }
             val total = StatsRoiAggregate()
             val bands = bandLabels.map { StatsRoiAggregate() }
-            marketRows.forEach { row ->
+            marketRows.forEach rowLoop@ { row ->
                 val status = row.optString("status").uppercase(Locale.ROOT)
-                if (status != "SETTLED" && status !in setOf("WON", "LOST", "PUSH")) return@forEach
+                if (status != "SETTLED" && status !in setOf("WON", "LOST", "PUSH")) return@rowLoop
                 val odds = row.optDouble(if (source == "TOP") "odds" else "price", Double.NaN)
-                if (!odds.isFinite() || odds <= 1.0) return@forEach
+                if (!odds.isFinite() || odds <= 1.0) return@rowLoop
                 val stake = if (source == "TOP") row.optDouble("stake", Double.NaN) else 1.0
-                if (!stake.isFinite() || stake <= 0.0) return@forEach
+                if (!stake.isFinite() || stake <= 0.0) return@rowLoop
                 val profit = if (source == "TOP") when (status) {
                     "WON" -> stake * (odds - 1.0)
                     "LOST" -> -stake
                     "PUSH" -> 0.0
                     else -> 0.0
                 } else row.optDouble("profit_units", Double.NaN)
-                if (!profit.isFinite()) return@forEach
+                if (!profit.isFinite()) return@rowLoop
                 total.count++
                 total.turnover += stake
                 total.profit += profit
                 total.oddsTotal += odds
                 total.oddsCount++
-                when (status) {
-                    "WON", "SETTLED" -> if (row.optString("result").equals("WIN", true) || status == "WON") total.wins++
-                    "LOST" -> total.losses++
-                    "PUSH" -> total.pushes++
+                when {
+                    status == "WON" || (status == "SETTLED" && row.optString("result").equals("WIN", true)) -> total.wins++
+                    status == "LOST" || (status == "SETTLED" && row.optString("result").equals("LOSS", true)) -> total.losses++
+                    status == "PUSH" || (status == "SETTLED" && row.optString("result").equals("PUSH", true)) -> total.pushes++
                 }
                 val probability = row.optDouble(if (source == "TOP") "probability" else "model_probability", Double.NaN)
                 val bandIndex = if (probability.isFinite()) StatsPredictionScope.confidenceBand(source, probability) else null
@@ -1588,10 +1588,10 @@ class MainActivity : Activity() {
                     band.profit += profit
                     band.oddsTotal += odds
                     band.oddsCount++
-                    when (status) {
-                        "WON", "SETTLED" -> if (row.optString("result").equals("WIN", true) || status == "WON") band.wins++
-                        "LOST" -> band.losses++
-                        "PUSH" -> band.pushes++
+                    when {
+                        status == "WON" || (status == "SETTLED" && row.optString("result").equals("WIN", true)) -> band.wins++
+                        status == "LOST" || (status == "SETTLED" && row.optString("result").equals("LOSS", true)) -> band.losses++
+                        status == "PUSH" || (status == "SETTLED" && row.optString("result").equals("PUSH", true)) -> band.pushes++
                     }
                 }
             }
