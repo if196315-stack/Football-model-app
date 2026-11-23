@@ -94,5 +94,6 @@ class FeedMergerTest {
     @Test fun rejectsPayloadWithoutValidUefaFeedArrays() {
         assertEquals(null, FeedMerger.resolveUefaFeed("{\"error\":\"temporary\"}", null, null))
         assertEquals(null, FeedMerger.resolveUefaFeed("{\"competitions\":null}", null, null))
+        assertEquals(null, FeedMerger.resolveUefaFeed("{\"competitions\":[]}", null, null))
     }
 }
