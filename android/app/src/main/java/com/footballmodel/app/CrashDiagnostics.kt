@@ -52,6 +52,29 @@ internal object CrashDiagnostics {
         }
     }
 
+    fun recordHandledException(context: Context, label: String, error: Throwable) {
+        try {
+            val appContext = context.applicationContext
+            val writer = StringWriter()
+            error.printStackTrace(PrintWriter(writer))
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date())
+            val report = buildString {
+                append("IQ Match handled error report\\n")
+                append("Time: ").append(timestamp).append('\\n')
+                append("Context: ").append(label).append('\\n')
+                append("Thread: ").append(Thread.currentThread().name).append('\\n')
+                append("Android: ").append(android.os.Build.VERSION.RELEASE).append(" (SDK ")
+                    .append(android.os.Build.VERSION.SDK_INT).append(")\\n")
+                append("Device: ").append(android.os.Build.MANUFACTURER).append(' ')
+                    .append(android.os.Build.MODEL).append('\\n')
+                append("\\n").append(writer.toString())
+            }
+            File(appContext.filesDir, REPORT_FILE).writeText(report.take(60_000), Charsets.UTF_8)
+        } catch (_: Throwable) {
+            // Diagnostics must never interfere with normal UI error handling.
+        }
+    }
+
     fun showPendingReport(activity: Activity) {
         val reportFile = File(activity.filesDir, REPORT_FILE)
         if (!reportFile.isFile) return
