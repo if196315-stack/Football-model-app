@@ -1647,7 +1647,6 @@ class MainActivity : Activity() {
 
             terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
             terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
-            terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
 
             cached.previous?.let { previous ->
                 val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
