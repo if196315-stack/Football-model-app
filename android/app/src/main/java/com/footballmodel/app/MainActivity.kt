@@ -47,6 +47,7 @@ import kotlin.math.abs
 class MainActivity : Activity() {
     private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
     private val uefaDataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json"
+    private val marketRoiUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/market-roi.json"
     private val bg = Color.rgb(7, 13, 25)
     private val panel = Color.rgb(17, 29, 47)
     private val surface = Color.rgb(23, 39, 61)
@@ -974,6 +975,13 @@ class MainActivity : Activity() {
                         // Keep the valid domestic feed if UEFA data is malformed.
                     }
                 }
+                // Historical MelBet ROI is a separate compact feed. Its outage must
+                // never block match data, predictions or navigation.
+                val marketRoiBody = fetchFeed(marketRoiUrl, "market_roi_json", false)
+                if (!marketRoiBody.isNullOrBlank()) {
+                    try { json.put("marketRoi", JSONObject(marketRoiBody)) }
+                    catch (_: Exception) { /* Keep the last valid market ROI cache if present. */ }
+                }
                 // Prepare expensive navigation summaries and TOP candidates off the main thread.
                 prepareAvailableMatchCounts(json)
                 val aiMatchCandidates = collectAiCandidates(json)
@@ -1523,7 +1531,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun renderBetPerformanceStats() {
+    private fun renderBetPerformanceStats(json: JSONObject) {
         val now = System.currentTimeMillis()
         // Keep the analytics cache key stable for the whole local calendar day.
         // Including bounds.first (which contains the current time down to milliseconds)
@@ -1596,32 +1604,52 @@ class MainActivity : Activity() {
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
         if (selectedStatsSource == "ALL") {
-            // ALL shows percentage performance and average odds, without monetary totals
-            // or bet-history counters.
-            val summaryCard = terminalSection(matchesContainer, "ДОХОДНОСТЬ И СРЕДНИЙ КЭФФИЦИЕНТ")
+            // ALL is based on the settled archive of the eight prediction markets,
+            // never on saved paper bets. TOP retains its existing AI_MANUAL calculation.
+            val roiData = json.optJSONObject("marketRoi")
+            val periodReport = roiData?.optJSONObject("periods")?.optJSONObject(selectedStatsPeriod)
+            val settledCount = periodReport?.optInt("settled", 0) ?: 0
+            val roi = periodReport?.optDouble("roi", Double.NaN) ?: Double.NaN
+            val averageOdds = periodReport?.optDouble("averageOdds", Double.NaN) ?: Double.NaN
             val roiColor = when {
-                report.overall.roi > 0.0 -> accent
-                report.overall.roi < 0.0 -> Color.rgb(210, 112, 108)
+                roi.isFinite() && roi > 0.0 -> accent
+                roi.isFinite() && roi < 0.0 -> Color.rgb(210, 112, 108)
                 else -> Color.WHITE
             }
+            val summaryCard = terminalSection(matchesContainer, "ДОХОДНОСТЬ И СРЕДНИЙ КЭФФИЦИЕНТ")
             val metricsRow = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
             val roiMetric = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             roiMetric.addView(label("ROI", 9, true, muted))
-            roiMetric.addView(label(String.format(Locale.US, "%.2f%%", report.overall.roi), 25, true, roiColor)
-                .apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
+            roiMetric.addView(label(
+                if (settledCount > 0 && roi.isFinite()) String.format(Locale.US, "%.2f%%", roi) else "—",
+                25, true, roiColor
+            ).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
             metricsRow.addView(roiMetric, LinearLayout.LayoutParams(0, -2, 1f))
             val oddsMetric = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            oddsMetric.addView(label("СРЕДНИЙ КЭФФИЦИЕНТ", 9, true, muted))
+            oddsMetric.addView(label("СРЕДНИЙ КОЭФФИЦИЕНТ", 9, true, muted))
             oddsMetric.addView(label(
-                if (report.overall.averageOdds > 0.0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—",
+                if (settledCount > 0 && averageOdds.isFinite() && averageOdds > 0.0)
+                    String.format(Locale.US, "%.2f", averageOdds) else "—",
                 25, true, Color.WHITE
             ).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
             metricsRow.addView(oddsMetric, LinearLayout.LayoutParams(0, -2, 1f))
             summaryCard.addView(metricsRow)
-            summaryCard.addView(label("Показатели рассчитаны по всем сохранённым бумажным ставкам. Денежные суммы и история ставок здесь не отображаются.", 9, false, muted))
+            val countsRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(countsRow, "РАССЧИТАНО", settledCount.toString(), Color.WHITE)
+            terminalMetric(countsRow, "ПОБЕДЫ", (periodReport?.optInt("wins", 0) ?: 0).toString(), accent)
+            terminalMetric(countsRow, "ПОРАЖЕНИЯ", (periodReport?.optInt("losses", 0) ?: 0).toString(), Color.rgb(210, 112, 108))
+            terminalMetric(countsRow, "ВОЗВРАТЫ", (periodReport?.optInt("pushes", 0) ?: 0).toString(), Color.WHITE)
+            summaryCard.addView(countsRow)
+            summaryCard.addView(label(
+                "Все восемь рынков общей сводки · вероятность модели от 50% · только исторические коэффициенты MelBet · 1 условная единица на прогноз. Прогнозы без исторической котировки в ROI не входят.",
+                9, false, muted
+            ))
+            if (roiData == null) {
+                summaryCard.addView(label("Архив исторических коэффициентов пока недоступен. Текущие коэффициенты вместо исторических не используются.", 9, true, gold))
+            }
         } else {
             val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП")
             val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
@@ -1665,15 +1693,6 @@ class MainActivity : Activity() {
 
             cached.previous?.let { previous ->
                 val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
-                val delta = report.overall.roi - previous.overall.roi
-                compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta), 12, true,
-                    if (delta >= 0) accent else Color.rgb(210, 112, 108)))
-                compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi), 10, false, muted))
-            }
-        }
-        if (selectedStatsSource == "ALL") {
-            cached.previous?.let { previous ->
-                val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ROI")
                 val delta = report.overall.roi - previous.overall.roi
                 compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta), 12, true,
                     if (delta >= 0) accent else Color.rgb(210, 112, 108)))
@@ -1818,7 +1837,7 @@ class MainActivity : Activity() {
     private fun renderStats(json: JSONObject) {
         screenHeader("PRO TERMINAL · АНАЛИТИКА СТАВОК", "Статистика", "Профессиональная аналитика ставок")
         try {
-            renderBetPerformanceStats()
+            renderBetPerformanceStats(json)
         } catch (error: Throwable) {
             android.util.Log.e("IQMatchStats", "Unable to render bet performance section", error)
             val failure = card()
