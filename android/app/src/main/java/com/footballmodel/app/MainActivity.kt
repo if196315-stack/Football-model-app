@@ -1584,9 +1584,6 @@ class MainActivity : Activity() {
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
         controls.addView(sourceRow)
-        if (cached?.key != key) {
-            controls.addView(label("Обновляем показатели для выбранного фильтра…", 10, true, gold))
-        }
         val report = cached!!.current
         statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
@@ -1833,9 +1830,6 @@ class MainActivity : Activity() {
         val metrics = statsMetricsCache.ifEmpty { emptyPredictionMetrics(source) }
         val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
         val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
-        if (statsMetricsCacheKey != statsKey) {
-            addText(overallHeading, "Обновляем показатели для выбранного фильтра…", 10, true, gold)
-        }
         if (metrics.isEmpty()) {
             val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
             val calculationError = statsMetricsError
