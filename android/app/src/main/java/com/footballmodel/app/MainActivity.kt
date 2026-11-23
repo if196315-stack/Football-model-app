@@ -1577,7 +1577,7 @@ class MainActivity : Activity() {
                 val zeroY = chartY(0.0)
                 val zeroLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                     color = Color.rgb(145, 157, 168)
-                    strokeWidth = dp(1.5f).toFloat()
+                    strokeWidth = dp(1).toFloat()
                 }
                 canvas.drawLine(left, zeroY, right, zeroY, zeroLine)
                 val strokeColor = if ((values.lastOrNull() ?: 0.0) >= 0) accent else Color.rgb(230, 105, 101)
