@@ -115,7 +115,7 @@ def provider_status(match: dict) -> str:
 
 def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
     status = provider_status(source)
-    if status not in FINISHED | LIVE:
+    if not is_finished_status(status) and not is_live_status(status):
         return False
 
     final_status = target.get("scoreStatusFinal")
