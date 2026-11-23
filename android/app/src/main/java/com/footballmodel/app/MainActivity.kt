@@ -45,9 +45,9 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 
 class MainActivity : Activity() {
-    private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
-    private val uefaDataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json"
-    private val marketRoiUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/market-roi.json"
+    private val dataUrl = "https://api.github.com/repos/if196315-stack/Football-model-app/contents/docs/data.json"
+    private val uefaDataUrl = "https://api.github.com/repos/if196315-stack/Football-model-app/contents/docs/uefa-data.json"
+    private val marketRoiUrl = "https://api.github.com/repos/if196315-stack/Football-model-app/contents/docs/market-roi.json"
     private val bg = Color.rgb(7, 13, 25)
     private val panel = Color.rgb(17, 29, 47)
     private val surface = Color.rgb(23, 39, 61)
@@ -422,6 +422,11 @@ class MainActivity : Activity() {
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
         CrashDiagnostics.showPendingReport(this)
+        if (!PrivateHistorySync.hasToken(this)) {
+            mainScrollView.post {
+                if (!isFinishing && !PrivateHistorySync.hasToken(this)) showPrivateHistoryTokenDialog()
+            }
+        }
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
@@ -923,7 +928,11 @@ class MainActivity : Activity() {
                 instanceFollowRedirects = true
                 useCaches = true
                 setRequestProperty("Accept-Encoding", "gzip")
+                setRequestProperty("Accept", "application/vnd.github.raw+json")
                 setRequestProperty("User-Agent", "IQMatch-Android")
+                val githubToken = PrivateHistorySync.authorizationToken(this@MainActivity)
+                    ?: throw IllegalStateException("Подключи GitHub token в настройках, чтобы загрузить приватные данные.")
+                setRequestProperty("Authorization", "Bearer $githubToken")
                 // A conditional request is valid only when its matching body is cached.
                 if (cached != null && !etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
             }
@@ -2547,7 +2556,13 @@ class MainActivity : Activity() {
                 bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
                 invalidateStatsBetCache()
                 tabViewCache.clear()
-                if (currentTab == "history" || currentTab == "desk" || currentTab == "stats") render()
+                if (currentTab in setOf("history", "desk", "stats", "help")) render()
+                // A newly entered token also unlocks the private match and odds feeds.
+                if (loadInProgress.get()) {
+                    // The in-flight request already uses the same token.
+                } else {
+                    loadData()
+                }
             }
             if (showResult) Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             if (!success) android.util.Log.w("IQMatchHistorySync", message)
