@@ -1261,8 +1261,8 @@ class MainActivity : Activity() {
     @Volatile private var statsMetricsCache: List<StatsMetricRow> = emptyList()
     @Volatile private var statsMetricsError: String? = null
     private val statsCalculationInProgress = AtomicBoolean(false)
-    private var selectedStatsPeriod = "MONTH"
-    private var selectedStatsSource = "ALL"
+    private var selectedStatsPeriod = "ALL"
+    private var selectedStatsSource = "TOP"
     private data class StatsBetInput(
         val id: String, val betDay: String, val date: String, val createdAt: Long,
         val source: String, val status: String, val stake: Double, val odds: Double,
@@ -1275,6 +1275,8 @@ class MainActivity : Activity() {
     @Volatile private var statsBetCalculationError: String? = null
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
+    // Keep the intended stats scroll offset while a newly selected filter is calculated.
+    private var pendingStatsScrollRestore: Int? = null
 
     private fun animateContentRefresh(refresh: () -> Unit) {
         if (!::matchesContainer.isInitialized) {
@@ -1297,6 +1299,34 @@ class MainActivity : Activity() {
 
     private fun animateStakeModeHint(view: TextView, text: String) {
         UiMotion.animateTextChange(view, text)
+    }
+
+    private fun changeStatsFilter(update: () -> Unit) {
+        // A second quick filter tap must not replace the original position with a
+        // temporarily clamped offset while the report is recalculated.
+        val scrollY = pendingStatsScrollRestore ?: mainScrollView.scrollY
+        pendingStatsScrollRestore = scrollY
+        tabScrollPositions["stats|ALL"] = scrollY
+        update()
+        tabViewCache.remove("stats|ALL")
+        render()
+    }
+
+    private fun restorePendingStatsScrollPosition() {
+        val requestedY = pendingStatsScrollRestore ?: return
+        // Wait until the rebuilt report has been measured; the loading placeholder
+        // is shorter and would otherwise clamp scrollY to zero.
+        mainScrollView.post {
+            mainScrollView.postOnAnimation {
+                if (currentTab != "stats" || pendingStatsScrollRestore != requestedY) return@postOnAnimation
+                val contentHeight = mainScrollView.getChildAt(0)?.height ?: 0
+                val maxScroll = (contentHeight - mainScrollView.height).coerceAtLeast(0)
+                val restoredY = requestedY.coerceAtMost(maxScroll)
+                mainScrollView.scrollTo(0, restoredY)
+                tabScrollPositions["stats|ALL"] = restoredY
+                pendingStatsScrollRestore = null
+            }
+        }
     }
 
     private fun invalidateStatsBetCache() {
@@ -1524,7 +1554,7 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                     background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
-                    setOnClickListener { if (selectedStatsPeriod != option.first) { selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
+                    setOnClickListener { if (selectedStatsPeriod != option.first) changeStatsFilter { selectedStatsPeriod = option.first } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
@@ -1539,7 +1569,7 @@ class MainActivity : Activity() {
                 setPadding(dp(8), dp(10), dp(8), dp(10))
                 setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                 background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
-                setOnClickListener { if (selectedStatsSource != option.first) { selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); animateContentRefresh { render() } } }
+                setOnClickListener { if (selectedStatsSource != option.first) changeStatsFilter { selectedStatsSource = option.first } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
@@ -1592,7 +1622,6 @@ class MainActivity : Activity() {
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
         terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
         terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
-        terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ДНЯМ НЕДЕЛИ", report.byWeekday, 7)
 
         cached.previous?.let { previous ->
             val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
@@ -1601,6 +1630,7 @@ class MainActivity : Activity() {
                 if (delta >= 0) accent else Color.rgb(210, 112, 108)))
             compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi) + " · прибыль: " + fmt(previous.overall.profit) + " · рассчитано: " + previous.overall.settled, 10, false, muted))
         }
+        restorePendingStatsScrollPosition()
     }
 
     private fun emptyPredictionMetrics(source: String): List<StatsMetricRow> {
@@ -2347,6 +2377,8 @@ class MainActivity : Activity() {
             }
             UiMotion.transitionBackground(button, nextBackground)
         }
+        val minimumStakeSettings = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val fixedStakeSettings = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         fun addStakeModeButton(title: String, mode: String) {
             val button = Button(this).apply {
                 text = title
@@ -2357,23 +2389,14 @@ class MainActivity : Activity() {
                 setPadding(dp(5), dp(5), dp(5), dp(5))
                 styleStakeModeButton(this, stakeMode() == mode)
                 setOnClickListener {
-                    // Persist synchronously before changing the visible selection.
                     if (!settingsPrefs.edit().putString("stake_mode", mode).commit()) {
                         Toast.makeText(this@MainActivity, "Не удалось сохранить режим ставки", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
-                    animateStakeModeVisibility(minimumStakeButton, mode == "MINIMUM")
-                    animateStakeModeVisibility(fixedStakeButton, mode == "FIXED")
-                    val nextFixedHint = if (mode == "FIXED") {
-                        if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
-                        else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
-                    } else "Сохранённое значение не применяется, пока выбран режим «Минимальная»."
-                    val nextMinimumHint = if (mode == "MINIMUM") minimumStakeDescription()
-                        else "Сохранённое значение не применяется, пока выбран режим «Фиксированная»."
-                    animateStakeModeHint(fixedStakeHint, nextFixedHint)
-                    animateStakeModeHint(minimumStakeHint, nextMinimumHint)
-                    // Invalidate dependent tabs for their next visit without rebuilding this page.
+                    // Switch the complete mode-specific section: labels, saved value, hint and action.
+                    animateStakeModeVisibility(minimumStakeSettings, mode == "MINIMUM")
+                    animateStakeModeVisibility(fixedStakeSettings, mode == "FIXED")
                     tabViewCache.clear()
                     Toast.makeText(this@MainActivity,
                         if (mode == "FIXED") "Фиксированная сумма активна" else "Минимальный режим активен",
@@ -2387,30 +2410,33 @@ class MainActivity : Activity() {
         }
         addStakeModeButton("Минимальная", "MINIMUM")
         addStakeModeButton("Фиксированная", "FIXED")
-        fixedStakeHint = label(if (stakeMode() == "FIXED") {
+        fixedStakeHint = label(
             if (fixedStake() > 0.0) "Активна: каждая новая ставка будет ровно ${fmt(fixedStake())} ₽."
-            else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже."
-        } else "Сохранённое значение не применяется, пока выбран режим «Минимальная».", 11, false, muted)
-        minimumStakeHint = label(if (stakeMode() == "MINIMUM") minimumStakeDescription()
-            else "Сохранённое значение не применяется, пока выбран режим «Фиксированная».", 11, false, muted)
+            else "Режим выбран, но сумма не задана. Укажи фиксированную сумму ниже.",
+            11, false, muted
+        )
+        minimumStakeHint = label(minimumStakeDescription(), 11, false, muted)
         settings.addView(stakeModeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        addText(settings, "Минимальная сумма ставки", 12, true, Color.WHITE)
-        addText(settings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
-        settings.addView(minimumStakeHint)
-        minimumStakeButton = actionButton(settings, "Изменить минимальную сумму ставки") {
+
+        addText(minimumStakeSettings, "Минимальная сумма ставки", 12, true, Color.WHITE)
+        addText(minimumStakeSettings, if (minimumStake() > 0.0) fmt(minimumStake()) + " ₽" else "Не задана", 13, false, muted)
+        minimumStakeSettings.addView(minimumStakeHint)
+        minimumStakeButton = actionButton(minimumStakeSettings, "Изменить минимальную сумму ставки") {
             showBankSettingDialog("minimum_stake", "Минимальная сумма ставки", minimumStake(), "Укажи минимум для процентного режима. Введи 0, чтобы снять минимум.")
         }
-        val settingsSectionGap = View(this).apply { layoutParams = LinearLayout.LayoutParams(1, dp(16)) }
-        settings.addView(settingsSectionGap)
-        addText(settings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
-        addText(settings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
-        settings.addView(fixedStakeHint)
-        fixedStakeButton = actionButton(settings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
+        settings.addView(minimumStakeSettings, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+
+        addText(fixedStakeSettings, "Фиксированная сумма ставки", 12, true, Color.WHITE)
+        addText(fixedStakeSettings, if (fixedStake() > 0.0) fmt(fixedStake()) + " ₽ за ставку" else "Не задана", 13, false, muted)
+        fixedStakeSettings.addView(fixedStakeHint)
+        fixedStakeButton = actionButton(fixedStakeSettings, if (fixedStake() > 0.0) "Изменить фиксированную сумму" else "Задать фиксированную сумму") {
             showBankSettingDialog("fixed_stake", "Фиксированная сумма ставки", fixedStake(), "Укажи сумму в рублях для каждой новой ставки. Введи 0, чтобы очистить значение.")
         }
+        settings.addView(fixedStakeSettings, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+
         val selectedStakeMode = stakeMode()
-        minimumStakeButton.visibility = if (selectedStakeMode == "MINIMUM") View.VISIBLE else View.GONE
-        fixedStakeButton.visibility = if (selectedStakeMode == "FIXED") View.VISIBLE else View.GONE
+        minimumStakeSettings.visibility = if (selectedStakeMode == "MINIMUM") View.VISIBLE else View.GONE
+        fixedStakeSettings.visibility = if (selectedStakeMode == "FIXED") View.VISIBLE else View.GONE
 
         val displaySettings = card()
         addText(displaySettings, "ОТОБРАЖЕНИЕ РАЗДЕЛОВ", 10, true, accent)
@@ -3479,13 +3505,15 @@ class MainActivity : Activity() {
 
         // A same-tab refresh (for example, after background statistics calculation)
         // must preserve the user's current scroll position instead of restoring zero.
-        if (renderedKey == targetKey) {
+        if (renderedKey == targetKey && !(targetKey == "stats|ALL" && pendingStatsScrollRestore != null)) {
             tabScrollPositions[targetKey] = mainScrollView.scrollY
         }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
-            tabScrollPositions[renderedKey!!] = mainScrollView.scrollY
+            if (!(renderedKey == "stats|ALL" && pendingStatsScrollRestore != null)) {
+                tabScrollPositions[renderedKey!!] = mainScrollView.scrollY
+            }
             val oldContent = mutableListOf<View>()
             while (matchesContainer.childCount > 0) {
                 val child = matchesContainer.getChildAt(0)
