@@ -142,11 +142,6 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 connectTimeout = 12000
                 readTimeout = 18000
                 requestMethod = "GET"
-                setRequestProperty("Accept", "application/vnd.github.raw+json")
-                setRequestProperty("User-Agent", "IQMatch-Android-Worker")
-                val githubToken = PrivateHistorySync.authorizationToken(applicationContext)
-                    ?: throw IllegalStateException("GitHub token is not configured on this device")
-                setRequestProperty("Authorization", "Bearer $githubToken")
             }
             val code = connection.responseCode
             if (code !in 200..299) throw IllegalStateException("HTTP $code from ${URL(url).host}")
