@@ -14,6 +14,9 @@ LEAGUES = {
     "ITA": ("SA", "Италия · Серия A"),
     "GER": ("BL1", "Германия · Бундеслига"),
     "FRA": ("FL1", "Франция · Лига 1"),
+    "UCL": ("UCL", "Лига чемпионов УЕФА"),
+    "UEL": ("UEL", "Лига Европы УЕФА"),
+    "UECL": ("UECL", "Лига конференций УЕФА"),
 }
 MIN_ODDS = 1.50
 MIN_PROBABILITY = 0.60
@@ -260,7 +263,7 @@ def match_day(match):
             return datetime.fromtimestamp(stamp / 1000, tz=timezone.utc).date()
         return None
 
-def build(data, today=None):
+def build(data, today=None, uefa_data=None):
     today = today or datetime.now(timezone.utc).date()
     out = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -271,7 +274,9 @@ def build(data, today=None):
                           "ai_candidate": "apply probability, EV and edge gates before ranking; show one highest-ranked eligible market"},
         "leagues": {},
     }
-    comps = data.get("competitions", [])
+    comps = list(data.get("competitions", []) or [])
+    if uefa_data is not None:
+        comps.extend(uefa_data.get("competitions", []) or [])
     for code, (feed_code, name) in LEAGUES.items():
         comp = next((item for item in comps if isinstance(item, dict) and text(item.get("code")).upper() == feed_code), {})
         counts, qualifying, candidate_rows = Counter(), [], []
@@ -320,7 +325,7 @@ def build(data, today=None):
 def markdown(report):
     lines = ["# Аудит AI-сигналов: точное соответствие Android", "",
              f"- Дата среза UTC: **{report['as_of_utc_date']}**",
-             "- Источник: текущий docs/data.json; будущие SCHEDULED/TIMED матчи национальных лиг.",
+             "- Источник: docs/data.json + docs/uefa-data.json; будущие SCHEDULED/TIMED матчи всех восьми соревнований.",
              "- Для AI каждый поддерживаемый рынок сначала проходит пороги P ≥ 60%, EV ≥ 5%, edge ≥ 5 п.п. и точную цену MelBet ≥ 1.50.",
              "- После фильтрации выбирается один лидер на матч: максимальный full-Kelly среди допустимых сигналов.",
              "- BTTS NO и сигналы с флагом noPositiveSignal не допускаются.", "",
@@ -354,10 +359,13 @@ def markdown(report):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default="docs/data.json")
-    parser.add_argument("--json-out", default="ai-domestic-audit.json")
-    parser.add_argument("--markdown-out", default="ai-domestic-audit.md")
+    parser.add_argument("--uefa-input", default="docs/uefa-data.json")
+    parser.add_argument("--json-out", default="ai-eight-competition-audit.json")
+    parser.add_argument("--markdown-out", default="ai-eight-competition-audit.md")
     args = parser.parse_args()
-    report = build(json.loads(Path(args.input).read_text(encoding="utf-8")))
+    domestic = json.loads(Path(args.input).read_text(encoding="utf-8"))
+    uefa = json.loads(Path(args.uefa_input).read_text(encoding="utf-8")) if args.uefa_input else None
+    report = build(domestic, uefa_data=uefa)
     Path(args.json_out).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     rendered = markdown(report)
     Path(args.markdown_out).write_text(rendered, encoding="utf-8")
