@@ -1599,7 +1599,7 @@ class MainActivity : Activity() {
         }
         controls.addView(sourceRow)
         val report = cached!!.current
-        statsBetCalculationError?.let { code ->
+        if (selectedStatsSource == "TOP") statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
