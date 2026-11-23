@@ -2606,6 +2606,7 @@ class MainActivity : Activity() {
                         Toast.makeText(this@MainActivity, "Не удалось сохранить режим ставки", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
+                    if (PrivateHistorySync.hasToken(this@MainActivity)) PrivateHistorySync.syncAsync(this@MainActivity)
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
                     // Switch the complete mode-specific section: labels, saved value, hint and action.
                     animateStakeModeVisibility(minimumStakeSettings, mode == "MINIMUM")
@@ -2666,6 +2667,7 @@ class MainActivity : Activity() {
             setPadding(0, dp(5), 0, dp(5))
             setOnCheckedChangeListener { _, checked ->
                 settingsPrefs.edit().putBoolean("show_line_section", checked).apply()
+                if (PrivateHistorySync.hasToken(this@MainActivity)) PrivateHistorySync.syncAsync(this@MainActivity)
                 // Update only navigation. Rebuilding the settings screen here
                 // detached/recreated its content and caused a visible scroll jump.
                 if (!checked && currentTab == "matches") {
@@ -2713,8 +2715,6 @@ class MainActivity : Activity() {
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
         addText(info, "IQ MATCH · SMART FOOTBALL INTELLIGENCE", 13, true, Color.WHITE)
         addText(info, "Матчи и коэффициенты: API-Sport / MelBet. Модельные вероятности и xG: PitchAPI.", 11, false, muted)
-        // The sync controls sit above the glossary so they are reachable from Settings.
-        matchesContainer.addView(historySyncCard)
     }
 
     // Only show a strongest signal when its market is actually listed in the match card.
@@ -3124,6 +3124,7 @@ class MainActivity : Activity() {
                 }
                 if (value == 0.0) settingsPrefs.edit().remove(key).apply()
                 else settingsPrefs.edit().putString(key, value.toString()).apply()
+                if (PrivateHistorySync.hasToken(this)) PrivateHistorySync.syncAsync(this)
                 // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
                 if (key == "initial_bankroll" || key == "minimum_stake" || key == "fixed_stake") {
                     tabViewCache.clear()
