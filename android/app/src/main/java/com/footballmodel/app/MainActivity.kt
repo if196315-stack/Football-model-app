@@ -1926,7 +1926,7 @@ class MainActivity : Activity() {
             hero.addView(label("Открытые ставки и возможная выплата рассчитаны за выбранный период по тем же правилам отбора, что и статистика ТОП.", 9, false, muted))
             val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
-            terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", gold)
+            terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", if (hasInitialBankroll()) fmt(currentBankroll()) else "НЕ ЗАДАН", gold)
             hero.addView(bankRow)
 
             addTerminalEquityChart(matchesContainer, report.overall.points)
