@@ -74,16 +74,39 @@ jobs:
         run: |
           set +x
           KEYSTORE_PATH="$ANDROID_KEYSTORE_FILE"
-          echo "Decoded keystore SHA-256:"
-          sha256sum "$KEYSTORE_PATH"
-          echo "Expected local keystore SHA-256: 06394642547E6ACC577F027ACB6A0D92B6B7467A55113B117248E142B45F02AB"
-          echo "Checking keystore password and alias..."
-          keytool -list -keystore "$KEYSTORE_PATH" -storetype JKS -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
-          echo "STORE_PASSWORD_AND_ALIAS_OK"
+          ACTUAL_SHA="$(sha256sum "$KEYSTORE_PATH" | awk '{print toupper($1)}')"
+          EXPECTED_SHA="06394642547E6ACC577F027ACB6A0D92B6B7467A55113B117248E142B45F02AB"
+          if [ "$ACTUAL_SHA" = "$EXPECTED_SHA" ]; then
+            echo "KEYSTORE_SHA_MATCH=yes"
+          else
+            echo "KEYSTORE_SHA_MATCH=no"
+            exit 1
+          fi
+
+          echo "Checking store password (without alias)..."
+          if keytool -list -keystore "$KEYSTORE_PATH" -storetype JKS -storepass "$ANDROID_KEYSTORE_PASSWORD" >/dev/null 2>"$RUNNER_TEMP/store-check.err"; then
+            echo "STORE_PASSWORD_OK"
+          else
+            echo "STORE_PASSWORD_FAILED"
+            exit 1
+          fi
+
+          echo "Checking alias..."
+          if keytool -list -keystore "$KEYSTORE_PATH" -storetype JKS -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>"$RUNNER_TEMP/alias-check.err"; then
+            echo "ALIAS_OK"
+          else
+            echo "ALIAS_FAILED"
+            exit 1
+          fi
+
           echo "Checking private-key password..."
-          keytool -certreq -keystore "$KEYSTORE_PATH" -storetype JKS -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" -keypass "$ANDROID_KEY_PASSWORD" -file "$RUNNER_TEMP/signing-diagnostic.csr" >/dev/null
-          rm -f "$RUNNER_TEMP/signing-diagnostic.csr"
-          echo "PRIVATE_KEY_PASSWORD_OK"
+          if keytool -certreq -keystore "$KEYSTORE_PATH" -storetype JKS -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" -keypass "$ANDROID_KEY_PASSWORD" -file "$RUNNER_TEMP/signing-diagnostic.csr" >/dev/null 2>"$RUNNER_TEMP/key-check.err"; then
+            rm -f "$RUNNER_TEMP/signing-diagnostic.csr"
+            echo "PRIVATE_KEY_PASSWORD_OK"
+          else
+            echo "PRIVATE_KEY_PASSWORD_FAILED"
+            exit 1
+          fi
 
       - name: Verify build environment
         run: |
