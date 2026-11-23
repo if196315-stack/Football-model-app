@@ -53,3 +53,20 @@ class BetSettlementTest {
         assertNull(BetSettlement.result("over15", -1, 2))
     }
 }
+
+    @Test fun sharedSettlementGateMovesOnlyConfirmedFinalPendingBets() {
+        assertEquals(null, BetSettlement.settledResult("PENDING", "FINISHED", true, false, 2, 1, "1x"))
+        assertEquals(null, BetSettlement.settledResult("PENDING", "IN_PLAY", true, true, 2, 1, "1x"))
+        assertEquals(null, BetSettlement.settledResult("WON", "FINISHED", true, true, 2, 1, "1x"))
+        assertEquals("WON", BetSettlement.settledResult("PENDING", "FINISHED", true, true, 2, 1, "1x"))
+        assertEquals("PUSH", BetSettlement.settledResult("PENDING", "FINISHED", true, true, 2, 0, "under20"))
+        assertEquals(null, BetSettlement.settledResult("PENDING", "FINISHED", true, true, null, 1, "1x"))
+    }
+
+    @Test fun onlyKnownFinalStatusesBelongToCompletedHistory() {
+        assertEquals(true, BetSettlement.isSettledStatus("WON"))
+        assertEquals(true, BetSettlement.isSettledStatus("LOST"))
+        assertEquals(true, BetSettlement.isSettledStatus("PUSH"))
+        assertEquals(false, BetSettlement.isSettledStatus("PENDING"))
+        assertEquals(false, BetSettlement.isSettledStatus("UNKNOWN"))
+    }
