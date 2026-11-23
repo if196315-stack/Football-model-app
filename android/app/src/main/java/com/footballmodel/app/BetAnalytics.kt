@@ -187,7 +187,7 @@ internal object BetAnalyticsCalculator {
                 !bet.odds.isFinite() || bet.odds <= 1.0 ||
                 bet.dayMillis !in from..to) return@forEach
             val key = bet.id.ifBlank {
-                "${bet.dayMillis}|${bet.marketKey}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}"
+                "${bet.dayMillis}|${bet.source}|${bet.status}|${bet.stake}|${bet.odds}|${bet.market}|${bet.league}|${bet.isCoupon}"
             }
             if (!unique.containsKey(key)) unique[key] = bet
         }
