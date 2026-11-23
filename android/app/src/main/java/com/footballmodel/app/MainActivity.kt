@@ -1981,55 +1981,10 @@ class MainActivity : Activity() {
             renderBetPerformanceStats(json)
         } catch (error: Throwable) {
             android.util.Log.e("IQMatchStats", "Unable to render bet performance section", error)
-            val failure = card()
-            addText(failure, "Не удалось построить статистику ставок. Сводка прогнозов будет доступна отдельно.", 12, true, gold)
+            val failure = terminalSection(matchesContainer, "ОШИБКА СТАТИСТИКИ")
+            failure.addView(label("Не удалось построить отчёт по ставкам. Попробуйте открыть раздел повторно.", 12, true, gold))
         }
-        val source = selectedStatsSource
-        val topSelections = topPredictionSelections()
-        val statsKey = statsPredictionCacheKey(json, source, topSelections, selectedStatsPeriod)
-        if (statsMetricsCacheKey != statsKey) {
-            if (statsCalculationInProgress.compareAndSet(false, true)) {
-                // Capture the selected period with the cache key; a rapid second tap must
-                // not make this worker calculate a different period under the old key.
-                val selectedPeriod = selectedStatsPeriod
-                val bounds = statsPeriodBounds(selectedPeriod)
-                // The feed object is replaced, not mutated, on refresh; read it on the worker.
-                thread(name = "stats-metrics-calculation") {
-                    // A malformed historical row must never crash the whole Android process.
-                    val calculated = try {
-                        calculateStatsMetrics(json, source, topSelections, bounds.first, bounds.second).also { statsMetricsError = null }
-                    } catch (error: Throwable) {
-                        android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
-                        statsMetricsError = error.javaClass.simpleName
-                        emptyPredictionMetrics(source)
-                    }
-                    runOnUiThread {
-                        statsMetricsCache = calculated
-                        statsMetricsCacheKey = statsKey
-                        statsCalculationInProgress.set(false)
-                        if (currentTab == "stats") {
-                            // Rebuild even when this result became stale while calculating;
-                            // renderStats will immediately schedule a calculation for the new feed.
-                            tabViewCache.remove("stats|ALL")
-                            render()
-                        }
-                    }
-                }
-            }
-            // Keep the previous complete metrics visible until the replacement is ready.
-            // A loading placeholder here used to collapse the lower half of the report.
-            if (statsMetricsCache.isEmpty()) {
-                val loading = card()
-                addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
-                addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
-                return
-            }
-        }
-        val metrics = statsMetricsCache.ifEmpty { emptyPredictionMetrics(source) }
-        // Prediction summary cards were removed from both report sources because they
-        // duplicated the market/probability breakdown and did not include ROI.
     }
-
 
     private fun parseFeedTimeMillis(raw: String): Long? {
         return try {
