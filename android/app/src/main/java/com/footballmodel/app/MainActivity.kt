@@ -1548,22 +1548,64 @@ class MainActivity : Activity() {
                 if (right <= left || bottom <= top) return
                 var total = 0.0
                 val values = points.map { total += it.profit; total }
-                val low = minOf(0.0, values.minOrNull() ?: 0.0)
-                val high = maxOf(0.0, values.maxOrNull() ?: 0.0)
-                val span = (high - low).coerceAtLeast(1.0)
-                for (i in 0..3) {
-                    val y = top + (bottom - top) * i / 3f
-                    canvas.drawLine(left, y, right, y, grid)
-                    canvas.drawText(String.format(Locale.US, "%.0f", high - span * i / 3.0), 0f, y + dp(3), txt)
+                val rawLow = minOf(0.0, values.minOrNull() ?: 0.0)
+                val rawHigh = maxOf(0.0, values.maxOrNull() ?: 0.0)
+                val rawSpan = (rawHigh - rawLow).coerceAtLeast(1.0)
+                val roughStep = rawSpan / 4.0
+                val magnitude = Math.pow(10.0, kotlin.math.floor(kotlin.math.log10(roughStep)))
+                val normalizedStep = roughStep / magnitude
+                val stepFactor = when {
+                    normalizedStep <= 1.0 -> 1.0
+                    normalizedStep <= 2.0 -> 2.0
+                    normalizedStep <= 5.0 -> 5.0
+                    else -> 10.0
                 }
-                val path = android.graphics.Path()
+                val step = stepFactor * magnitude
+                val low = kotlin.math.floor(rawLow / step) * step
+                val high = kotlin.math.ceil(rawHigh / step) * step
+                val span = (high - low).coerceAtLeast(step)
+                fun chartY(value: Double): Float =
+                    bottom - ((value - low) / span * (bottom - top)).toFloat()
+                for (i in 0..4) {
+                    val value = high - step * i
+                    val y = chartY(value)
+                    canvas.drawLine(left, y, right, y, grid)
+                    val axisLabel = if (step < 1.0) String.format(Locale.US, "%.1f", value)
+                        else String.format(Locale.US, "%.0f", value)
+                    canvas.drawText(axisLabel, 0f, y + dp(3), txt)
+                }
+                val zeroY = chartY(0.0)
+                val zeroLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.rgb(145, 157, 168)
+                    strokeWidth = dp(1.5f).toFloat()
+                }
+                canvas.drawLine(left, zeroY, right, zeroY, zeroLine)
+                val strokeColor = if ((values.lastOrNull() ?: 0.0) >= 0) accent else Color.rgb(230, 105, 101)
+                val area = android.graphics.Path()
+                val linePath = android.graphics.Path()
                 values.forEachIndexed { i, value ->
                     val x = if (values.size == 1) (left + right) / 2f else left + (right - left) * i / (values.size - 1).toFloat()
-                    val y = bottom - ((value - low) / span * (bottom - top)).toFloat()
-                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                    val y = chartY(value)
+                    if (i == 0) {
+                        linePath.moveTo(x, y)
+                        area.moveTo(x, zeroY)
+                        area.lineTo(x, y)
+                    } else {
+                        linePath.lineTo(x, y)
+                        area.lineTo(x, y)
+                    }
                 }
-                line.color = if ((values.lastOrNull() ?: 0.0) >= 0) accent else Color.rgb(210, 112, 108)
-                canvas.drawPath(path, line)
+                val lastX = if (values.size == 1) (left + right) / 2f else right
+                area.lineTo(lastX, zeroY)
+                area.close()
+                val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = strokeColor
+                    alpha = 58
+                    style = Paint.Style.FILL
+                }
+                canvas.drawPath(area, fill)
+                line.color = strokeColor
+                canvas.drawPath(linePath, line)
                 canvas.drawText("НАЧАЛО", left, height - dp(4).toFloat(), txt)
                 canvas.drawText("СЕЙЧАС", right - dp(38), height - dp(4).toFloat(), txt)
             }
