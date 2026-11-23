@@ -73,12 +73,12 @@ class FastResultSyncTests(unittest.TestCase):
         apply_provider_match(target, fixture, "now")
         self.assertEqual((target["homeScore"], target["awayScore"]), (2, 1))
 
-    def test_finished_but_not_final_remains_unconfirmed(self):
+    def test_provider_finished_status_confirms_final_even_without_nested_flag(self):
         target = {"status": "IN_PLAY", "homeScore": 0, "awayScore": 0}
         changed = apply_provider_match(target, source(final=False), "now")
         self.assertTrue(changed)
         self.assertEqual(target["status"], "FINISHED")
-        self.assertIs(target["scoreStatusFinal"], False)
+        self.assertIs(target["scoreStatusFinal"], True)
         self.assertEqual(target["homeScore"], 2)
 
     def test_confirmed_final_is_not_downgraded_by_stale_response(self):
@@ -93,7 +93,7 @@ class FastResultSyncTests(unittest.TestCase):
         target = {"status": "SCHEDULED"}
         apply_provider_match(target, source(status="inprogress", final=None), "now")
         self.assertEqual(target["status"], "IN_PLAY")
-        self.assertIsNone(target["scoreStatusFinal"])
+        self.assertIs(target["scoreStatusFinal"], False)
 
     def test_ambiguous_or_unmatched_fixture_is_untouched(self):
         payload = {"competitions": [{"matches": [{
