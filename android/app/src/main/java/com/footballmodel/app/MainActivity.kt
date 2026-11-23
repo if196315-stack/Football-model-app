@@ -1598,7 +1598,7 @@ class MainActivity : Activity() {
         val heroSubtitle = if (selectedStatsSource == "TOP")
             "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП"
         else
-            "ВСЕ РЕАЛЬНЫЕ СТАВКИ ПО РАБОЧИМ РЫНКАМ · БЕЗ AI_AUTO"
+            ""
         val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", heroSubtitle)
         val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
         hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
