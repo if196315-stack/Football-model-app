@@ -2613,7 +2613,7 @@ class MainActivity : Activity() {
                         .firstOrNull { it.optString("name") == "app-release.apk" }
                         ?.optString("browser_download_url")
                 }.orEmpty()
-                val currentVersion = BuildConfig.VERSION_NAME
+                val currentVersion = (packageManager.getPackageInfo(packageName, 0).versionName ?: "")
                 fun versionParts(value: String) = value.split(".", "-", "+").map { it.toIntOrNull() ?: 0 }
                 fun isNewer(latest: String, current: String): Boolean {
                     val a = versionParts(latest)
@@ -2813,7 +2813,7 @@ class MainActivity : Activity() {
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
         addText(info, "IQ MATCH · SMART FOOTBALL INTELLIGENCE", 13, true, Color.WHITE)
         addText(info, "Матчи и коэффициенты: API-Sport / MelBet. Модельные вероятности и xG: PitchAPI.", 11, false, muted)
-        addText(info, "Текущая версия: ${BuildConfig.VERSION_NAME}", 11, false, muted)
+        addText(info, "Текущая версия: ${(packageManager.getPackageInfo(packageName, 0).versionName ?: "")}", 11, false, muted)
         actionButton(info, "Проверить обновление") { checkForAppUpdate() }
     }
 
