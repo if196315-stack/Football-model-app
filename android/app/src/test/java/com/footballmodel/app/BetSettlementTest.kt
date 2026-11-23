@@ -70,3 +70,4 @@ class BetSettlementTest {
         assertEquals(false, BetSettlement.isSettledStatus("PENDING"))
         assertEquals(false, BetSettlement.isSettledStatus("UNKNOWN"))
     }
+}
