@@ -54336,7 +54336,7 @@
           "home": "Levante",
           "away": "Elche",
           "homeScore": 0,
-          "awayScore": 0,
+          "awayScore": 1,
           "prediction": {
             "1x": 0.7344019088084794,
             "x2": 0.4742417873527996,
@@ -54418,7 +54418,7 @@
           },
           "scoreStatusFinal": null,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-23T20:32:32.923198+00:00"
+          "resultUpdatedAt": "2026-11-23T21:29:17.879086+00:00"
         },
         {
           "id": "m_3N7OsF",
@@ -85764,7 +85764,7 @@
           "status": "IN_PLAY",
           "home": "Monza",
           "away": "Fiorentina",
-          "homeScore": 1,
+          "homeScore": 3,
           "awayScore": 0,
           "prediction": {
             "1x": 0.6112256430864,
@@ -85847,7 +85847,7 @@
           },
           "scoreStatusFinal": null,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-23T20:32:32.923198+00:00"
+          "resultUpdatedAt": "2026-11-23T21:29:17.879086+00:00"
         },
         {
           "id": "m_398Ugm",
