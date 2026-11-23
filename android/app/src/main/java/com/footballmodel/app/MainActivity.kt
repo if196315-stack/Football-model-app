@@ -1596,17 +1596,32 @@ class MainActivity : Activity() {
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
         if (selectedStatsSource == "ALL") {
-            // ALL is a forecast-performance view: expose only the percentage ROI
-            // from paper-bet analytics, without monetary totals or bet-history counters.
-            val roiCard = terminalSection(matchesContainer, "ROI · ДОХОДНОСТЬ")
+            // ALL shows percentage performance and average odds, without monetary totals
+            // or bet-history counters.
+            val summaryCard = terminalSection(matchesContainer, "ДОХОДНОСТЬ И СРЕДНИЙ КЭФФИЦИЕНТ")
             val roiColor = when {
                 report.overall.roi > 0.0 -> accent
                 report.overall.roi < 0.0 -> Color.rgb(210, 112, 108)
                 else -> Color.WHITE
             }
-            roiCard.addView(label(String.format(Locale.US, "%.2f%%", report.overall.roi), 29, true, roiColor)
+            val metricsRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            val roiMetric = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            roiMetric.addView(label("ROI", 9, true, muted))
+            roiMetric.addView(label(String.format(Locale.US, "%.2f%%", report.overall.roi), 25, true, roiColor)
                 .apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
-            roiCard.addView(label("Относительная доходность в процентах. Денежные суммы, история ставок и ожидающие расчёта здесь не отображаются.", 9, false, muted))
+            metricsRow.addView(roiMetric, LinearLayout.LayoutParams(0, -2, 1f))
+            val oddsMetric = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            oddsMetric.addView(label("СРЕДНИЙ КЭФФИЦИЕНТ", 9, true, muted))
+            oddsMetric.addView(label(
+                if (report.overall.averageOdds > 0.0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—",
+                25, true, Color.WHITE
+            ).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
+            metricsRow.addView(oddsMetric, LinearLayout.LayoutParams(0, -2, 1f))
+            summaryCard.addView(metricsRow)
+            summaryCard.addView(label("Показатели рассчитаны по всем сохранённым бумажным ставкам. Денежные суммы и история ставок здесь не отображаются.", 9, false, muted))
         } else {
             val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП")
             val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
