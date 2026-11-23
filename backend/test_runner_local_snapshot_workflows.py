@@ -29,5 +29,15 @@ class RunnerLocalSnapshotWorkflowTests(unittest.TestCase):
         self.assertIn("Capture MelBet snapshots for all eight competitions", workflow)
         self.assertIn("Apply fresh MelBet snapshots to domestic competitions", workflow)
 
+    def test_unified_collector_refreshes_domestic_feed_before_snapshot_application(self):
+        workflow = self.read("collect-uefa-melbet-snapshots.yml")
+        refresh = workflow.index("run: python backend/update_data_pitchapi.py")
+        capture = workflow.index("run: python backend/collect_uefa_melbet_snapshots.py")
+        apply = workflow.index("run: python backend/apply_melbet_snapshots.py")
+        self.assertLess(refresh, capture)
+        self.assertLess(capture, apply)
+        self.assertIn('PITCHAPI_MAX_SHOT_REQUESTS: "0"', workflow)
+        self.assertIn("PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}", workflow)
+
 if __name__ == "__main__":
     unittest.main()
