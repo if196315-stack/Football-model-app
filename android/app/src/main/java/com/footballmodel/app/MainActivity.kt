@@ -1503,7 +1503,7 @@ class MainActivity : Activity() {
             header.addView(label("СТАВКИ", 8, true, muted), LinearLayout.LayoutParams(0, -2, 0.8f))
             header.addView(label("СР.КЭФ", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.55f))
             header.addView(label("ROI", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
-            header.addView(label("П/У", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
+            header.addView(label("W/L", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
             box.addView(header)
         }
         if (rows.isEmpty()) {
@@ -1595,56 +1595,76 @@ class MainActivity : Activity() {
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
         }
-        val heroSubtitle = if (selectedStatsSource == "TOP")
-            "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП"
-        else
-            "ВСЕ РЕАЛЬНЫЕ СТАВКИ ПО РАБОЧИМ РЫНКАМ · БЕЗ AI_AUTO"
-        val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", heroSubtitle)
-        val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
-        hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
-        hero.addView(label("ЧИСТАЯ ПРИБЫЛЬ / УБЫТОК", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
-        val heroRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(heroRow, "ROI · ДОХОДНОСТЬ", String.format(Locale.US, "%.2f%%", report.overall.roi), pnlColor)
-        terminalMetric(heroRow, "ДОЛЯ ПОБЕД", String.format(Locale.US, "%.1f%%", report.overall.winRate), Color.WHITE)
-        terminalMetric(heroRow, "РАССЧИТАНО", report.overall.settled.toString(), Color.WHITE)
-        hero.addView(heroRow)
-        val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(second, "ОБОРОТ", fmt(report.overall.turnover), Color.WHITE)
-        terminalMetric(second, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
-        terminalMetric(second, "ОЖИДАЮТ", report.overall.pending.toString(), gold)
-        hero.addView(second)
-        val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
-            ?.takeIf { it.isFinite() && it > 0.0 }
-        val allTimeBankEstimate = if (selectedStatsPeriod == "ALL" && selectedStatsSource == "ALL")
-            initialBank?.let { it + report.overall.profit } else null
-        terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
-        terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", allTimeBankEstimate?.let { fmt(it) } ?: "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", gold)
-        hero.addView(bankRow)
-        hero.addView(label("Расчётный банк показывается только для периода «Всё время» и режима «ВСЕ»; пополнения и снятия, не внесённые в историю, не учитываются.", 9, false, muted))
+        if (selectedStatsSource == "ALL") {
+            // ALL is a forecast-performance view: expose only the percentage ROI
+            // from paper-bet analytics, without monetary totals or bet-history counters.
+            val roiCard = terminalSection(matchesContainer, "ROI · ДОХОДНОСТЬ")
+            val roiColor = when {
+                report.overall.roi > 0.0 -> accent
+                report.overall.roi < 0.0 -> Color.rgb(210, 112, 108)
+                else -> Color.WHITE
+            }
+            roiCard.addView(label(String.format(Locale.US, "%.2f%%", report.overall.roi), 29, true, roiColor)
+                .apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
+            roiCard.addView(label("Относительная доходность в процентах. Денежные суммы, история ставок и ожидающие расчёта здесь не отображаются.", 9, false, muted))
+        } else {
+            val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП")
+            val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
+            hero.addView(label((if (report.overall.profit > 0) "+" else "") + fmt(report.overall.profit), 29, true, pnlColor).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
+            hero.addView(label("ЧИСТАЯ ПРИБЫЛЬ / УБЫТОК", 9, true, muted).apply { typeface = Typeface.MONOSPACE })
+            val heroRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(heroRow, "ROI · ДОХОДНОСТЬ", String.format(Locale.US, "%.2f%%", report.overall.roi), pnlColor)
+            terminalMetric(heroRow, "ДОЛЯ ПОБЕД", String.format(Locale.US, "%.1f%%", report.overall.winRate), Color.WHITE)
+            terminalMetric(heroRow, "РАССЧИТАНО", report.overall.settled.toString(), Color.WHITE)
+            hero.addView(heroRow)
+            val topPendingBetCount = (0 until bets.length()).count { index ->
+                val bet = bets.optJSONObject(index) ?: return@count false
+                bet.optString("source").equals("AI_MANUAL", ignoreCase = true) &&
+                    bet.optString("status").equals("PENDING", ignoreCase = true)
+            }
+            val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(second, "ОБОРОТ", fmt(report.overall.turnover), Color.WHITE)
+            terminalMetric(second, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
+            terminalMetric(second, "ОЖИДАЮТ ТОП", topPendingBetCount.toString(), gold)
+            hero.addView(second)
+            hero.addView(label("Ожидают расчёта только бумажные ставки, подтверждённые из раздела ТОП.", 9, false, muted))
+            val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
+            terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", "ТОЛЬКО ЗА ВСЁ ВРЕМЯ", gold)
+            hero.addView(bankRow)
 
-        addTerminalEquityChart(matchesContainer, report.overall.points)
-        val risk = terminalSection(matchesContainer, "РИСКИ И СЕРИИ", "МАКСИМАЛЬНАЯ ПРОСАДКА ПРИБЫЛИ · НЕ ИЗМЕНЕНИЕ ДЕНЕЖНОГО БАЛАНСА")
-        val riskRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(riskRow, "МАКС. ПРОСАДКА", fmt(report.maxDrawdown), Color.rgb(210, 112, 108))
-        terminalMetric(riskRow, "ПРОСАДКА, %", String.format(Locale.US, "%.1f%%", report.maxDrawdownPercent), Color.rgb(210, 112, 108))
-        terminalMetric(riskRow, "ТЕКУЩАЯ СЕРИЯ", report.currentStreak, Color.WHITE)
-        risk.addView(riskRow)
-        val runRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        terminalMetric(runRow, "ЛУЧШАЯ СЕРИЯ ПОБЕД", report.longestWinStreak.toString(), accent)
-        terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
-        risk.addView(runRow)
+            addTerminalEquityChart(matchesContainer, report.overall.points)
+            val risk = terminalSection(matchesContainer, "РИСКИ И СЕРИИ", "МАКСИМАЛЬНАЯ ПРОСАДКА ПРИБЫЛИ · НЕ ИЗМЕНЕНИЕ ДЕНЕЖНОГО БАЛАНСА")
+            val riskRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(riskRow, "МАКС. ПРОСАДКА", fmt(report.maxDrawdown), Color.rgb(210, 112, 108))
+            terminalMetric(riskRow, "ПРОСАДКА, %", String.format(Locale.US, "%.1f%%", report.maxDrawdownPercent), Color.rgb(210, 112, 108))
+            terminalMetric(riskRow, "ТЕКУЩАЯ СЕРИЯ", report.currentStreak, Color.WHITE)
+            risk.addView(riskRow)
+            val runRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(runRow, "ЛУЧШАЯ СЕРИЯ ПОБЕД", report.longestWinStreak.toString(), accent)
+            terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
+            risk.addView(runRow)
 
-        terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
-        terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
-        terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
+            terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
+            terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
+            terminalBreakdown(matchesContainer, "СЕГМЕНТЫ КОЭФФИЦИЕНТОВ", report.byOdds, 5)
 
-        cached.previous?.let { previous ->
-            val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
-            val delta = report.overall.roi - previous.overall.roi
-            compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta) + " · изменение прибыли: " + fmt(report.overall.profit - previous.overall.profit), 12, true,
-                if (delta >= 0) accent else Color.rgb(210, 112, 108)))
-            compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi) + " · прибыль: " + fmt(previous.overall.profit) + " · рассчитано: " + previous.overall.settled, 10, false, muted))
+            cached.previous?.let { previous ->
+                val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ПЕРИОДОВ")
+                val delta = report.overall.roi - previous.overall.roi
+                compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta), 12, true,
+                    if (delta >= 0) accent else Color.rgb(210, 112, 108)))
+                compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi), 10, false, muted))
+            }
+        }
+        if (selectedStatsSource == "ALL") {
+            cached.previous?.let { previous ->
+                val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ROI")
+                val delta = report.overall.roi - previous.overall.roi
+                compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta), 12, true,
+                    if (delta >= 0) accent else Color.rgb(210, 112, 108)))
+                compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi), 10, false, muted))
+            }
         }
         restorePendingStatsScrollPosition()
     }
