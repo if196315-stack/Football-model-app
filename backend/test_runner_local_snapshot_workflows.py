@@ -34,6 +34,8 @@ class RunnerLocalSnapshotWorkflowTests(unittest.TestCase):
         refresh = workflow.index("run: python backend/update_data_pitchapi.py")
         capture = workflow.index("run: python backend/collect_uefa_melbet_snapshots.py")
         apply = workflow.index("run: python backend/apply_melbet_snapshots.py")
+        install = workflow.index("run: python -m pip install requests pandas")
+        self.assertLess(install, refresh)
         self.assertLess(refresh, capture)
         self.assertLess(capture, apply)
         self.assertIn('PITCHAPI_MAX_SHOT_REQUESTS: "0"', workflow)
