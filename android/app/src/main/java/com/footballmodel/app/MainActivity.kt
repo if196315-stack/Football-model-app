@@ -1872,6 +1872,18 @@ class MainActivity : Activity() {
                 if (BetAnalyticsCalculator.isTopPending(status, bet.optString("marketKey") == "COUPON")) {
                     topPendingBetCount++
                 }
+                // Potential payout is a global open-position figure, not a period metric.
+                // Keep it independent from the selected report period just like the pending count.
+                if (bet.optString("marketKey") in statsRoiMarketLabels.keys &&
+                    bet.optString("marketKey") != "COUPON") {
+                    val openOdds = bet.optDouble("odds", Double.NaN)
+                    val openStake = bet.optDouble("stake", Double.NaN)
+                    if (status == "PENDING" && openOdds.isFinite() && openOdds > 1.0 &&
+                        openStake.isFinite() && openStake > 0.0) {
+                        pendingStake += openStake
+                        potentialPayout += openStake * openOdds
+                    }
+                }
                 val periodDate = if (status == "PENDING") {
                     StatsPredictionScope.matchDateMillis(bet.optString("betDay"))
                         ?: bet.optLong("createdAt", 0L).takeIf { it > 0L }?.let {
@@ -1887,10 +1899,6 @@ class MainActivity : Activity() {
                 val odds = bet.optDouble("odds", Double.NaN)
                 val stake = bet.optDouble("stake", Double.NaN)
                 if (!odds.isFinite() || odds <= 1.0 || !stake.isFinite() || stake <= 0.0) continue
-                if (status == "PENDING") {
-                    pendingStake += stake
-                    potentialPayout += stake * odds
-                }
                 if (status !in setOf("PENDING", "WON", "LOST", "PUSH")) continue
                 topRoiRows.add(JSONObject().put("market_key", bet.optString("marketKey"))
                     .put("probability", bet.optDouble("probability", Double.NaN))
