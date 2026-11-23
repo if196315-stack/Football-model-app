@@ -1657,6 +1657,15 @@ class MainActivity : Activity() {
                 compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi), 10, false, muted))
             }
         }
+        if (selectedStatsSource == "ALL") {
+            cached.previous?.let { previous ->
+                val compare = terminalSection(matchesContainer, "СРАВНЕНИЕ ROI")
+                val delta = report.overall.roi - previous.overall.roi
+                compare.addView(label("Изменение ROI: " + String.format(Locale.US, "%+.2f п.п.", delta), 12, true,
+                    if (delta >= 0) accent else Color.rgb(210, 112, 108)))
+                compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi), 10, false, muted))
+            }
+        }
         restorePendingStatsScrollPosition()
     }
 
