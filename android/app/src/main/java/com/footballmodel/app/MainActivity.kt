@@ -1608,11 +1608,15 @@ class MainActivity : Activity() {
         terminalMetric(heroRow, "ДОЛЯ ПОБЕД", String.format(Locale.US, "%.1f%%", report.overall.winRate), Color.WHITE)
         terminalMetric(heroRow, "РАССЧИТАНО", report.overall.settled.toString(), Color.WHITE)
         hero.addView(heroRow)
+        val allPendingBetCount = (0 until bets.length()).count { index ->
+            bets.optJSONObject(index)?.optString("status") == "PENDING"
+        }
         val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         terminalMetric(second, "ОБОРОТ", fmt(report.overall.turnover), Color.WHITE)
         terminalMetric(second, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
-        terminalMetric(second, "ОЖИДАЮТ", report.overall.pending.toString(), gold)
+        terminalMetric(second, "ОЖИДАЮТ ВСЕГО", allPendingBetCount.toString(), gold)
         hero.addView(second)
+        hero.addView(label("Ожидающие считаются по всей истории ставок — независимо от фильтра ТОП / ВСЕ и выбранного периода. Финансовые показатели остаются в рамках выбранной аналитической выборки.", 9, false, muted))
         val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val initialBank = settingsPrefs.getString("initial_bankroll", null)?.replace(',', '.')?.toDoubleOrNull()
             ?.takeIf { it.isFinite() && it > 0.0 }
