@@ -1,4 +1,4 @@
-name: Android release candidate (unsigned)
+name: Android release candidate
 
 on:
   workflow_dispatch:
@@ -24,6 +24,11 @@ jobs:
   release-candidate:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -50,6 +55,18 @@ jobs:
           unzip -q "$RUNNER_TEMP/gradle-8.9-bin.zip" -d "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/gradle-8.9/bin" >> "$GITHUB_PATH"
 
+      - name: Prepare release signing key
+        if: github.event_name != 'pull_request'
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE_B64" || { echo "ANDROID_KEYSTORE_BASE64 is missing"; exit 1; }
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "ANDROID_KEYSTORE_PASSWORD is missing"; exit 1; }
+          test -n "$ANDROID_KEY_ALIAS" || { echo "ANDROID_KEY_ALIAS is missing"; exit 1; }
+          echo "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/football-model-upload-key.jks"
+          test -s "$RUNNER_TEMP/football-model-upload-key.jks"
+          echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/football-model-upload-key.jks" >> "$GITHUB_ENV"
+
       - name: Verify build environment
         run: |
           java -version
@@ -64,11 +81,27 @@ jobs:
         working-directory: android
         run: gradle :app:lintRelease --no-daemon --stacktrace
 
-      - name: Assemble unsigned release APK
+      - name: Assemble release APK
         working-directory: android
         run: gradle :app:assembleRelease --no-daemon --stacktrace
 
-      - name: Upload unsigned release candidate
+      - name: Verify signed APK
+        if: github.event_name != 'pull_request'
+        run: |
+          apksigner verify --verbose android/app/build/outputs/apk/release/app-release.apk
+          apksigner verify --print-certs android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload signed release candidate
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Football-Model-release-signed
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload unsigned PR candidate
+        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: Football-Model-release-unsigned
