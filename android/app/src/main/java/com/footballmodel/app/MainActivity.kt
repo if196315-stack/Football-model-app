@@ -1583,8 +1583,11 @@ class MainActivity : Activity() {
                 val strokeColor = if ((values.lastOrNull() ?: 0.0) >= 0) accent else Color.rgb(230, 105, 101)
                 val area = android.graphics.Path()
                 val linePath = android.graphics.Path()
-                values.forEachIndexed { i, value ->
-                    val x = if (values.size == 1) (left + right) / 2f else left + (right - left) * i / (values.size - 1).toFloat()
+                // Include the zero-profit starting point so even a single settled day
+                // produces a visible segment instead of a path containing only moveTo().
+                val plottedValues = listOf(0.0) + values
+                plottedValues.forEachIndexed { i, value ->
+                    val x = left + (right - left) * i / (plottedValues.size - 1).toFloat()
                     val y = chartY(value)
                     if (i == 0) {
                         linePath.moveTo(x, y)
@@ -1595,8 +1598,7 @@ class MainActivity : Activity() {
                         area.lineTo(x, y)
                     }
                 }
-                val lastX = if (values.size == 1) (left + right) / 2f else right
-                area.lineTo(lastX, zeroY)
+                area.lineTo(right, zeroY)
                 area.close()
                 val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                     color = strokeColor
