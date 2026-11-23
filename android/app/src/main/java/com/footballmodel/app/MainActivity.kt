@@ -1294,7 +1294,14 @@ class MainActivity : Activity() {
     }
 
     private fun animateStakeModeVisibility(view: View, show: Boolean) {
-        UiMotion.animateVisibility(view, show, dp(6).toFloat())
+        // Stake mode panels change the settings layout height. Apply visibility
+        // immediately so the outgoing panel does not keep its space during a fade.
+        view.animate().cancel()
+        view.alpha = 1f
+        view.translationY = 0f
+        view.scaleX = 1f
+        view.scaleY = 1f
+        view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun animateStakeModeHint(view: TextView, text: String) {
@@ -1535,11 +1542,17 @@ class MainActivity : Activity() {
             }.format(Date(now))).joinToString("|")
         val cached = statsBetViewCache
         if (cached?.key != key) {
-            val loading = terminalSection(matchesContainer, "РАСЧЁТ АНАЛИТИКИ", "СБОР ДАННЫХ → ПРОВЕРКА → РАСЧЁТ")
-            loading.addView(label("Рассчитываем показатели в фоновом режиме…", 12, true, Color.WHITE))
-            loading.addView(label("История ставок не изменяется. Приложение остаётся отзывчивым.", 10, false, muted))
-            if (!statsBetCalculationInProgress.get()) requestStatsBetCalculation(key, bets, selectedStatsPeriod, selectedStatsSource, now)
-            return
+            if (!statsBetCalculationInProgress.get()) {
+                requestStatsBetCalculation(key, bets, selectedStatsPeriod, selectedStatsSource, now)
+            }
+            // Keep the last complete report on screen while the new filter is calculated.
+            // Replacing it with a short loading card changes the scroll content height abruptly.
+            if (cached == null) {
+                val loading = terminalSection(matchesContainer, "РАСЧЁТ АНАЛИТИКИ", "СБОР ДАННЫХ → ПРОВЕРКА → РАСЧЁТ")
+                loading.addView(label("Рассчитываем показатели в фоновом режиме…", 12, true, Color.WHITE))
+                loading.addView(label("История ставок не изменяется. Приложение остаётся отзывчивым.", 10, false, muted))
+                return
+            }
         }
 
         val controls = terminalSection(matchesContainer, "ФИЛЬТРЫ ОТЧЁТА", "ПЕРИОД / ИСТОЧНИК")
@@ -1574,7 +1587,10 @@ class MainActivity : Activity() {
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
         controls.addView(sourceRow)
-        val report = cached.current
+        if (cached?.key != key) {
+            controls.addView(label("Обновляем показатели для выбранного фильтра…", 10, true, gold))
+        }
+        val report = cached!!.current
         statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
             warning.addView(label("Расчёт завершён с ошибкой: " + code + ". Проверьте исходную историю.", 11, true, gold))
@@ -1779,15 +1795,16 @@ class MainActivity : Activity() {
         val topSelections = topPredictionSelections()
         val statsKey = statsPredictionCacheKey(json, source, topSelections, selectedStatsPeriod)
         if (statsMetricsCacheKey != statsKey) {
-            val loading = card()
-            addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
-            addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
             if (statsCalculationInProgress.compareAndSet(false, true)) {
+                // Capture the selected period with the cache key; a rapid second tap must
+                // not make this worker calculate a different period under the old key.
+                val selectedPeriod = selectedStatsPeriod
+                val bounds = statsPeriodBounds(selectedPeriod)
                 // The feed object is replaced, not mutated, on refresh; read it on the worker.
                 thread(name = "stats-metrics-calculation") {
                     // A malformed historical row must never crash the whole Android process.
                     val calculated = try {
-                        calculateStatsMetrics(json, source, topSelections, statsPeriodBounds(selectedStatsPeriod).first, statsPeriodBounds(selectedStatsPeriod).second).also { statsMetricsError = null }
+                        calculateStatsMetrics(json, source, topSelections, bounds.first, bounds.second).also { statsMetricsError = null }
                     } catch (error: Throwable) {
                         android.util.Log.e("IQMatchStats", "Unable to calculate prediction statistics", error)
                         statsMetricsError = error.javaClass.simpleName
@@ -1806,11 +1823,22 @@ class MainActivity : Activity() {
                     }
                 }
             }
-            return
+            // Keep the previous complete metrics visible until the replacement is ready.
+            // A loading placeholder here used to collapse the lower half of the report.
+            if (statsMetricsCache.isEmpty()) {
+                val loading = card()
+                addText(loading, "Подготавливаем статистику…", 13, true, Color.WHITE)
+                addText(loading, "Расчёт выполняется в фоне. Интерфейс остаётся доступным.", 11, false, muted)
+                matchesContainer.addView(loading)
+                return
+            }
         }
         val metrics = statsMetricsCache.ifEmpty { emptyPredictionMetrics(source) }
         val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
         val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
+        if (statsMetricsCacheKey != statsKey) {
+            addText(overallHeading, "Обновляем показатели для выбранного фильтра…", 10, true, gold)
+        }
         if (metrics.isEmpty()) {
             val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
             val calculationError = statsMetricsError
