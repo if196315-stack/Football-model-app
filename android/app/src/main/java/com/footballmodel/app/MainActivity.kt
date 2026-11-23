@@ -2127,9 +2127,12 @@ class MainActivity : Activity() {
             bets = JSONArray(merged.values.toList())
             betPrefs.edit().putString("bets", bets.toString()).apply()
         }
-        tabViewCache.remove("history|ALL")
-        tabViewCache.remove("history|OPEN")
-        tabViewCache.remove("history|COMPLETED")
+        // History screen cache keys use the selected tab label (ОЖИДАЮТ / COMPLETED),
+        // not the legacy ALL / OPEN aliases. Clear every history variant so counts
+        // and rendered bet rows are always rebuilt from the same current bets array.
+        tabViewCache.keys.filter { it.startsWith("history|") }.toList().forEach {
+            tabViewCache.remove(it)
+        }
         // Bet status changes affect both TOP subtabs; never reuse a stale count or list.
         tabViewCache.remove("desk|ALL")
         tabViewCache.remove("desk|OPEN")
