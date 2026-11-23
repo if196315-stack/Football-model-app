@@ -34,8 +34,20 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         return try {
             val domesticText = download("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json")
             val domestic = JSONObject(domesticText)
+            // Keep the previous UEFA snapshot if its independent endpoint is temporarily unavailable.
+            // Otherwise a successful domestic refresh could overwrite the merged cache without UCL/UEL/UECL.
+            val cachedMerged = FeedCacheStore.read(applicationContext.filesDir, "merged_json")
+            val cachedUefa = FeedCacheStore.read(applicationContext.filesDir, "uefa_json")
             val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
-            if (!uefaText.isNullOrBlank()) mergeUefa(domestic, JSONObject(uefaText))
+            val uefa = FeedMerger.resolveUefaFeed(uefaText, cachedUefa, cachedMerged)
+            if (uefa != null) {
+                if (FeedMerger.parseUefaFeed(uefaText) != null && !uefaText.isNullOrBlank()) {
+                    if (!FeedCacheStore.write(applicationContext.filesDir, "uefa_json", uefaText)) {
+                        Log.w(TAG, "Unable to persist UEFA feed cache; using downloaded payload for this run")
+                    }
+                }
+                mergeUefa(domestic, uefa)
+            }
             // Notify only for newly qualified TOP matches that are not already recorded by the user.
             val newTopCandidates = synchronized(AutoPaperExecutionLock) {
                 collectAiNotificationCandidates(domestic)
