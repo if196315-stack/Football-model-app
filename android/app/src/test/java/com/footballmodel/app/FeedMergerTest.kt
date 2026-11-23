@@ -58,8 +58,10 @@ class FeedMergerTest {
     @Test fun resolvesDownloadedUefaBeforeCachedSnapshots() {
         val downloaded = JSONObject().put("updatedAt", "fresh")
             .put("competitions", JSONArray().put(JSONObject().put("code", "UCL").put("name", "fresh")))
+            .put("evaluationMatches", JSONArray())
         val cached = JSONObject().put("updatedAt", "old")
             .put("competitions", JSONArray().put(JSONObject().put("code", "UCL").put("name", "old")))
+            .put("evaluationMatches", JSONArray())
         val resolved = FeedMerger.resolveUefaFeed(downloaded.toString(), cached.toString(), null)
         assertEquals("fresh", resolved?.getJSONArray("competitions")?.getJSONObject(0)?.getString("name"))
     }
@@ -67,6 +69,7 @@ class FeedMergerTest {
     @Test fun fallsBackToDedicatedUefaCacheWhenDownloadIsUnavailableOrMalformed() {
         val cached = JSONObject().put("updatedAt", "cached")
             .put("competitions", JSONArray().put(JSONObject().put("code", "UECL")))
+            .put("evaluationMatches", JSONArray())
         val unavailable = FeedMerger.resolveUefaFeed(null, cached.toString(), null)
         val malformed = FeedMerger.resolveUefaFeed("{not-json", cached.toString(), null)
         assertEquals("UECL", unavailable?.getJSONArray("competitions")?.getJSONObject(0)?.getString("code"))
