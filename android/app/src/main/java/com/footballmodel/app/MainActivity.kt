@@ -1836,6 +1836,20 @@ class MainActivity : Activity() {
                 "Все восемь рынков общей сводки · вероятность модели от 50% · только исторические коэффициенты MelBet · 1 условная единица на прогноз. Прогнозы без исторической котировки в ROI не входят.",
                 9, false, muted
             ))
+            if (roiData == null) {
+                summaryCard.addView(label("Архив исторических коэффициентов пока недоступен. Текущие коэффициенты вместо исторических не используются.", 9, true, gold))
+            }
+            val periodBounds = statsPeriodBounds(selectedStatsPeriod, now)
+            val roiRows = mutableListOf<JSONObject>()
+            val archivedRows = roiData?.optJSONArray("records") ?: JSONArray()
+            for (index in 0 until archivedRows.length()) {
+                val row = archivedRows.optJSONObject(index) ?: continue
+                val day = StatsPredictionScope.matchDateMillis(row.optString("kickoff_utc")) ?: continue
+                if (day !in periodBounds.first..periodBounds.second) continue
+                if (!row.optString("bookmaker").equals("MELBET", true)) continue
+                if (!row.optString("status").equals("SETTLED", true)) continue
+                roiRows.add(row)
+            }
             // Build the ALL-filter equity curve from the same settled historical MelBet
             // records and eligibility rules used by the market ROI breakdown below.
             val dailyRoiProfit = sortedMapOf<Long, Double>()
@@ -1851,20 +1865,6 @@ class MainActivity : Activity() {
             }
             addTerminalEquityChart(matchesContainer,
                 dailyRoiProfit.map { (day, profit) -> AnalyticsPoint(day, profit, 1.0) })
-            if (roiData == null) {
-                summaryCard.addView(label("Архив исторических коэффициентов пока недоступен. Текущие коэффициенты вместо исторических не используются.", 9, true, gold))
-            }
-            val periodBounds = statsPeriodBounds(selectedStatsPeriod, now)
-            val roiRows = mutableListOf<JSONObject>()
-            val archivedRows = roiData?.optJSONArray("records") ?: JSONArray()
-            for (index in 0 until archivedRows.length()) {
-                val row = archivedRows.optJSONObject(index) ?: continue
-                val day = StatsPredictionScope.matchDateMillis(row.optString("kickoff_utc")) ?: continue
-                if (day !in periodBounds.first..periodBounds.second) continue
-                if (!row.optString("bookmaker").equals("MELBET", true)) continue
-                if (!row.optString("status").equals("SETTLED", true)) continue
-                roiRows.add(row)
-            }
             renderMarketProbabilityRoi(matchesContainer, "ROI ПО РЫНКАМ И ВЕРОЯТНОСТЯМ", roiRows, "ALL")
         } else {
             val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП")
