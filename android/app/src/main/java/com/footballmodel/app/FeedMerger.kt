@@ -58,7 +58,8 @@ internal object FeedMerger {
         if (payload.isNullOrBlank()) return null
         return try {
             JSONObject(payload).takeIf {
-                it.has("competitions") || it.has("evaluationMatches")
+                it.optJSONArray("competitions") != null ||
+                    it.optJSONArray("evaluationMatches") != null
             }
         } catch (_: Exception) {
             null
