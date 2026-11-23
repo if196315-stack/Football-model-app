@@ -1488,7 +1488,7 @@ class MainActivity : Activity() {
             "QUARTER" -> cal.add(java.util.Calendar.MONTH, -3)
             "HALF" -> cal.add(java.util.Calendar.MONTH, -6)
             "YEAR" -> cal.add(java.util.Calendar.YEAR, -1)
-            else -> return 0L to (from + java.util.concurrent.TimeUnit.DAYS.toMillis(1) - 1L)
+            else -> return 0L to Long.MAX_VALUE
         }
         val end = from + java.util.concurrent.TimeUnit.DAYS.toMillis(1) - 1L
         return cal.timeInMillis to end
