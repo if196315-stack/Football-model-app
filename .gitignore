@@ -9,3 +9,6 @@ captures/
 .cxx/
 .env
 *.jks
+
+# Runner-local rolling odds stream; only compact frozen ROI quotes are committed.
+artifacts/all-eight-competitions-melbet-snapshots.jsonl

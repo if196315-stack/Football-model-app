@@ -6,6 +6,7 @@ on:
     paths:
       - "android/**"
       - "backend/**"
+      - "artifacts/all-eight-competitions-melbet-snapshots.jsonl"
       - ".github/workflows/backend-tests.yml"
   push:
     branches:
