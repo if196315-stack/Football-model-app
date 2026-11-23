@@ -386,6 +386,8 @@ class MainActivity : Activity() {
         invalidateStatsBetCache()
         applyHistoricalBetCorrections()
         scheduleAutoPaperWorker()
+        // Restore personal bets, TOP signals and stake settings from the private GitHub archive.
+        syncPrivateHistory(showResult = false)
         // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
         // блокировать первый показ интерфейса на главном потоке.
         thread(name = "iq-match-cache-restore") {
@@ -2112,6 +2114,8 @@ class MainActivity : Activity() {
         tabViewCache.remove("desk|FIXED")
         tabViewCache.remove("stats|ALL")
         invalidateStatsBetCache()
+        // Keep the private remote copy current after every local bet creation or settlement.
+        if (PrivateHistorySync.hasToken(this)) PrivateHistorySync.syncAsync(this)
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit): Button {
         val b = Button(this).apply {
@@ -2507,6 +2511,49 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun showPrivateHistoryTokenDialog() {
+        val tokenInput = EditText(this).apply {
+            hint = "github_pat_…"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setSingleLine(true)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Подключение приватного GitHub-архива")
+            .setMessage(
+                "Создай fine-grained personal access token в GitHub только для репозитория if196315-stack/Football-model-app. " +
+                    "Дай ему Repository permissions → Contents: Read and write. Токен хранится на телефоне в Android Keystore и не попадает в репозиторий. " +
+                    "После переустановки приложения токен нужно будет ввести повторно; сама история останется в приватном архиве."
+            )
+            .setView(tokenInput)
+            .setNegativeButton("Отмена", null)
+            .setPositiveButton("Сохранить и синхронизировать") { _, _ ->
+                try {
+                    PrivateHistorySync.saveToken(this, tokenInput.text?.toString().orEmpty())
+                    syncPrivateHistory(showResult = true)
+                } catch (error: Exception) {
+                    Toast.makeText(this, error.message ?: "Не удалось сохранить токен", Toast.LENGTH_LONG).show()
+                }
+            }
+            .show()
+    }
+
+    private fun syncPrivateHistory(showResult: Boolean) {
+        if (!PrivateHistorySync.hasToken(this)) {
+            if (showResult) showPrivateHistoryTokenDialog()
+            return
+        }
+        PrivateHistorySync.syncAsync(this) { success, message ->
+            if (success) {
+                bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+                invalidateStatsBetCache()
+                tabViewCache.clear()
+                if (currentTab == "history" || currentTab == "desk" || currentTab == "stats") render()
+            }
+            if (showResult) Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            if (!success) android.util.Log.w("IQMatchHistorySync", message)
+        }
+    }
+
     private fun renderHelp() {
         screenHeader("IQ MATCH · SETTINGS", "Настройки", "Настройки приложения и параметров ставок.")
 
@@ -2651,10 +2698,23 @@ class MainActivity : Activity() {
         addText(glossary, "Для попадания сигнала в ТОП нужны одновременно: вероятность от 60%, EV от +5%, EDGE от +5 п.п. и коэффициент MelBet от 1.50. Также действуют ограничения по допустимым рынкам.", 11, false, muted)
         addText(glossary, "Важно: вероятность, EV, EDGE, xG и Kelly — расчётные оценки. Они помогают сравнивать варианты, но не гарантируют выигрыш.", 11, true, gold)
 
+        val historySyncCard = card()
+        addText(historySyncCard, "РЕЗЕРВНАЯ КОПИЯ ИСТОРИИ", 10, true, accent)
+        addText(historySyncCard, "Ручные и автоматические записи ставок, история сигналов ТОП и настройки сохраняются в приватном репозитории GitHub. После переустановки приложения история восстановится после повторного подключения токена.", 11, false, muted)
+        addText(historySyncCard, if (PrivateHistorySync.hasToken(this)) "GitHub подключён · токен защищён Android Keystore" else "GitHub ещё не подключён на этом устройстве", 11, true, if (PrivateHistorySync.hasToken(this)) cyan else gold)
+        actionButton(historySyncCard, if (PrivateHistorySync.hasToken(this)) "Изменить GitHub token" else "Подключить GitHub") {
+            showPrivateHistoryTokenDialog()
+        }
+        actionButton(historySyncCard, "Синхронизировать сейчас") {
+            syncPrivateHistory(showResult = true)
+        }
+
         val info = card()
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
         addText(info, "IQ MATCH · SMART FOOTBALL INTELLIGENCE", 13, true, Color.WHITE)
         addText(info, "Матчи и коэффициенты: API-Sport / MelBet. Модельные вероятности и xG: PitchAPI.", 11, false, muted)
+        // The sync controls sit above the glossary so they are reachable from Settings.
+        matchesContainer.addView(historySyncCard)
     }
 
     // Only show a strongest signal when its market is actually listed in the match card.
@@ -3453,6 +3513,7 @@ class MainActivity : Activity() {
             }
         }
         aiSignalPrefs.edit().putString("signals", archive.toString()).apply()
+        if (PrivateHistorySync.hasToken(this)) PrivateHistorySync.syncAsync(this)
     }
 
     private fun renderAiSignalPerformanceSummary() {
