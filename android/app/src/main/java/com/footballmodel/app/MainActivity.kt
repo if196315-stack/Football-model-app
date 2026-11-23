@@ -2557,8 +2557,8 @@ class MainActivity : Activity() {
                 tabViewCache.clear()
                 renderedKey = null
                 if (data != null) render()
-                afterSync?.invoke()
             }
+            afterSync?.invoke()
             if (showResult) Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             if (!success) android.util.Log.w("IQMatchHistorySync", message)
         }
