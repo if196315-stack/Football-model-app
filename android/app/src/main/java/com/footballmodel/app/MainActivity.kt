@@ -2591,6 +2591,71 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun checkForAppUpdate() {
+        Toast.makeText(this, "Проверяю наличие новой версии…", Toast.LENGTH_SHORT).show()
+        thread(name = "iq-match-update-check") {
+            var connection: HttpURLConnection? = null
+            try {
+                connection = (URL("https://api.github.com/repos/if196315-stack/Football-model-app/releases/latest").openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 10000
+                    readTimeout = 10000
+                    setRequestProperty("Accept", "application/vnd.github+json")
+                    setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
+                }
+                if (connection.responseCode !in 200..299) {
+                    throw IllegalStateException("Не удалось получить информацию о релизе")
+                }
+                val release = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+                val latestTag = release.optString("tag_name").removePrefix("v")
+                val apkUrl = release.optJSONArray("assets")?.let { assets ->
+                    (0 until assets.length()).mapNotNull { assets.optJSONObject(it) }
+                        .firstOrNull { it.optString("name") == "app-release.apk" }
+                        ?.optString("browser_download_url")
+                }.orEmpty()
+                val currentVersion = BuildConfig.VERSION_NAME
+                fun versionParts(value: String) = value.split(".", "-", "+").map { it.toIntOrNull() ?: 0 }
+                fun isNewer(latest: String, current: String): Boolean {
+                    val a = versionParts(latest)
+                    val b = versionParts(current)
+                    for (i in 0 until maxOf(a.size, b.size)) {
+                        val av = a.getOrElse(i) { 0 }
+                        val bv = b.getOrElse(i) { 0 }
+                        if (av != bv) return av > bv
+                    }
+                    return false
+                }
+                runOnUiThread {
+                    if (latestTag.isBlank() || apkUrl.isBlank()) {
+                        Toast.makeText(this, "Не удалось найти APK в последнем релизе.", Toast.LENGTH_LONG).show()
+                    } else if (isNewer(latestTag, currentVersion)) {
+                        AlertDialog.Builder(this)
+                            .setTitle("Доступно обновление IQ Match")
+                            .setMessage("Установлена версия $currentVersion. Доступна версия $latestTag. Скачать обновление?")
+                            .setNegativeButton("Позже", null)
+                            .setPositiveButton("Скачать") { _, _ ->
+                                try {
+                                    startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(apkUrl)))
+                                } catch (_: Exception) {
+                                    Toast.makeText(this, "Не удалось открыть ссылку для скачивания.", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                            .show()
+                    } else {
+                        Toast.makeText(this, "У тебя установлена последняя версия ($currentVersion).", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "Не удалось проверить обновление. Проверь интернет и попробуй ещё раз.", Toast.LENGTH_LONG).show()
+                }
+                android.util.Log.w("IQMatchUpdater", "Update check failed", e)
+            } finally {
+                connection?.disconnect()
+            }
+        }
+    }
+
     private fun renderHelp() {
         screenHeader("IQ MATCH · SETTINGS", "Настройки", "Настройки приложения и параметров ставок.")
 
@@ -2748,6 +2813,8 @@ class MainActivity : Activity() {
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
         addText(info, "IQ MATCH · SMART FOOTBALL INTELLIGENCE", 13, true, Color.WHITE)
         addText(info, "Матчи и коэффициенты: API-Sport / MelBet. Модельные вероятности и xG: PitchAPI.", 11, false, muted)
+        addText(info, "Текущая версия: ${BuildConfig.VERSION_NAME}", 11, false, muted)
+        actionButton(info, "Проверить обновление") { checkForAppUpdate() }
     }
 
     // Only show a strongest signal when its market is actually listed in the match card.
