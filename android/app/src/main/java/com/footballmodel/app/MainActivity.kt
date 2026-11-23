@@ -1259,6 +1259,21 @@ class MainActivity : Activity() {
     )
 
     private data class StatsBandRow(val label: String, val n: Int, val hits: Int)
+    private data class StatsRoiAggregate(
+        var count: Int = 0, var wins: Int = 0, var losses: Int = 0, var pushes: Int = 0,
+        var profit: Double = 0.0, var turnover: Double = 0.0,
+        var oddsTotal: Double = 0.0, var oddsCount: Int = 0
+    )
+    private val statsRoiMarketLabels = linkedMapOf(
+        "1x" to "1X · хозяева или ничья",
+        "x2" to "X2 · гости или ничья",
+        "over25" to "ТБ 2,5 · всего",
+        "homeOver15" to "ИТБ хозяев 1,5",
+        "awayOver15" to "ИТБ гостей 1,5",
+        "homeOver05" to "ИТБ хозяев 0,5",
+        "awayOver05" to "ИТБ гостей 0,5",
+        "bttsYes" to "ОЗ · да"
+    )
     private data class StatsMetricRow(
         val name: String, val n: Int, val hits: Int, val brier: Double,
         val logLoss: Double, val bands: List<StatsBandRow>
@@ -1531,6 +1546,93 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun renderMarketProbabilityRoi(parent: LinearLayout, title: String, rows: List<JSONObject>, source: String) {
+        val periodLabel = if (source == "TOP") "ПО ФАКТИЧЕСКИМ БУМАЖНЫМ СТАВКАМ" else "ПО ИСТОРИЧЕСКИМ КОТИРОВКАМ MELBET · 1 ЕДИНИЦА НА ПРОГНОЗ"
+        val section = terminalSection(parent, title, periodLabel)
+        val bandLabels = if (source == "TOP") listOf("60–69%", "70–79%", "80%+") else
+            listOf("50–59%", "60–69%", "70–79%", "80%+")
+        statsRoiMarketLabels.forEach { (marketKey, marketLabel) ->
+            val marketRows = rows.filter { it.optString("market_key", it.optString("marketKey")) == marketKey }
+            val total = StatsRoiAggregate()
+            val bands = bandLabels.map { StatsRoiAggregate() }
+            marketRows.forEach rowLoop@ { row ->
+                val status = row.optString("status").uppercase(Locale.ROOT)
+                if (status != "SETTLED" && status !in setOf("WON", "LOST", "PUSH")) return@rowLoop
+                val odds = row.optDouble(if (source == "TOP") "odds" else "price", Double.NaN)
+                if (!odds.isFinite() || odds <= 1.0) return@rowLoop
+                val stake = if (source == "TOP") row.optDouble("stake", Double.NaN) else 1.0
+                if (!stake.isFinite() || stake <= 0.0) return@rowLoop
+                val profit = if (source == "TOP") when (status) {
+                    "WON" -> stake * (odds - 1.0)
+                    "LOST" -> -stake
+                    "PUSH" -> 0.0
+                    else -> 0.0
+                } else row.optDouble("profit_units", Double.NaN)
+                if (!profit.isFinite()) return@rowLoop
+                total.count++
+                total.turnover += stake
+                total.profit += profit
+                total.oddsTotal += odds
+                total.oddsCount++
+                when {
+                    status == "WON" || (status == "SETTLED" && row.optString("result").equals("WIN", true)) -> total.wins++
+                    status == "LOST" || (status == "SETTLED" && row.optString("result").equals("LOSS", true)) -> total.losses++
+                    status == "PUSH" || (status == "SETTLED" && row.optString("result").equals("PUSH", true)) -> total.pushes++
+                }
+                val probability = row.optDouble(if (source == "TOP") "probability" else "model_probability", Double.NaN)
+                val bandIndex = if (probability.isFinite()) StatsPredictionScope.confidenceBand(source, probability) else null
+                if (bandIndex != null && bandIndex in bands.indices) {
+                    val band = bands[bandIndex]
+                    band.count++
+                    band.turnover += stake
+                    band.profit += profit
+                    band.oddsTotal += odds
+                    band.oddsCount++
+                    when {
+                        status == "WON" || (status == "SETTLED" && row.optString("result").equals("WIN", true)) -> band.wins++
+                        status == "LOST" || (status == "SETTLED" && row.optString("result").equals("LOSS", true)) -> band.losses++
+                        status == "PUSH" || (status == "SETTLED" && row.optString("result").equals("PUSH", true)) -> band.pushes++
+                    }
+                }
+            }
+            val marketCard = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(9), dp(7), dp(9), dp(7))
+                background = rounded(Color.rgb(13, 25, 41), 10)
+            }
+            val titleRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            titleRow.addView(label(marketLabel, 10, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1.2f))
+            val totalRoi = if (total.turnover > 0.0) total.profit / total.turnover * 100.0 else Double.NaN
+            titleRow.addView(label(
+                if (totalRoi.isFinite()) String.format(Locale.US, "%+.2f%%", totalRoi) else "ROI —",
+                11, true, when { !totalRoi.isFinite() -> muted; totalRoi > 0 -> accent; totalRoi < 0 -> Color.rgb(210, 112, 108); else -> Color.WHITE }
+            ).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE })
+            marketCard.addView(titleRow)
+            marketCard.addView(label(
+                "Рассчитано: ${total.count} · ср. кэф.: ${if (total.oddsCount > 0) String.format(Locale.US, "%.2f", total.oddsTotal / total.oddsCount) else "—"} · W/L/P: ${total.wins}/${total.losses}/${total.pushes}",
+                9, false, muted
+            ))
+            val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(5), 0, dp(2)) }
+            header.addView(label("ВЕРОЯТНОСТЬ", 8, true, muted), LinearLayout.LayoutParams(0, -2, 1f))
+            header.addView(label("МАТЧИ", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(dp(43), -2))
+            header.addView(label("СР.КЭФ", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(dp(55), -2))
+            header.addView(label("ROI", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(dp(64), -2))
+            marketCard.addView(header)
+            bands.forEachIndexed { index, band ->
+                val bandRoi = if (band.turnover > 0.0) band.profit / band.turnover * 100.0 else Double.NaN
+                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(3), 0, dp(3)) }
+                row.addView(label(bandLabels[index], 9, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+                row.addView(label(band.count.toString(), 9, false, muted).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(dp(43), -2))
+                row.addView(label(if (band.oddsCount > 0) String.format(Locale.US, "%.2f", band.oddsTotal / band.oddsCount) else "—", 9, true, Color.WHITE).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(dp(55), -2))
+                row.addView(label(if (bandRoi.isFinite()) String.format(Locale.US, "%+.2f%%", bandRoi) else "—", 9, true,
+                    when { !bandRoi.isFinite() -> muted; bandRoi > 0 -> accent; bandRoi < 0 -> Color.rgb(210, 112, 108); else -> Color.WHITE }
+                ).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(dp(64), -2))
+                marketCard.addView(row)
+            }
+            section.addView(marketCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
+        }
+    }
+
     private fun renderBetPerformanceStats(json: JSONObject) {
         val now = System.currentTimeMillis()
         // Keep the analytics cache key stable for the whole local calendar day.
@@ -1650,6 +1752,18 @@ class MainActivity : Activity() {
             if (roiData == null) {
                 summaryCard.addView(label("Архив исторических коэффициентов пока недоступен. Текущие коэффициенты вместо исторических не используются.", 9, true, gold))
             }
+            val periodBounds = statsPeriodBounds(selectedStatsPeriod, now)
+            val roiRows = mutableListOf<JSONObject>()
+            val archivedRows = roiData?.optJSONArray("records") ?: JSONArray()
+            for (index in 0 until archivedRows.length()) {
+                val row = archivedRows.optJSONObject(index) ?: continue
+                val day = StatsPredictionScope.matchDateMillis(row.optString("kickoff_utc")) ?: continue
+                if (day !in periodBounds.first..periodBounds.second) continue
+                if (!row.optString("bookmaker").equals("MELBET", true)) continue
+                if (!row.optString("status").equals("SETTLED", true)) continue
+                roiRows.add(row)
+            }
+            renderMarketProbabilityRoi(matchesContainer, "ROI ПО РЫНКАМ И ВЕРОЯТНОСТЯМ", roiRows, "ALL")
         } else {
             val hero = terminalSection(matchesContainer, "ОБЩИЙ РЕЗУЛЬТАТ", "ТОЛЬКО СТАВКИ, ПОДТВЕРЖДЁННЫЕ ИЗ РАЗДЕЛА ТОП")
             val pnlColor = if (report.overall.profit >= 0) accent else Color.rgb(210, 112, 108)
@@ -1660,16 +1774,42 @@ class MainActivity : Activity() {
             terminalMetric(heroRow, "ДОЛЯ ПОБЕД", String.format(Locale.US, "%.1f%%", report.overall.winRate), Color.WHITE)
             terminalMetric(heroRow, "РАССЧИТАНО", report.overall.settled.toString(), Color.WHITE)
             hero.addView(heroRow)
-            val topPendingBetCount = (0 until bets.length()).count { index ->
-                val bet = bets.optJSONObject(index) ?: return@count false
-                bet.optString("source").equals("AI_MANUAL", ignoreCase = true) &&
-                    bet.optString("status").equals("PENDING", ignoreCase = true)
+            val periodBounds = statsPeriodBounds(selectedStatsPeriod, now)
+            val topRoiRows = mutableListOf<JSONObject>()
+            var topPendingBetCount = 0
+            var potentialPayout = 0.0
+            var pendingStake = 0.0
+            for (index in 0 until bets.length()) {
+                val bet = bets.optJSONObject(index) ?: continue
+                if (!bet.optString("source").equals("AI_MANUAL", ignoreCase = true)) continue
+                if (bet.optString("marketKey") !in statsRoiMarketLabels.keys) continue
+                if (bet.optString("marketKey") == "COUPON") continue
+                val day = StatsPredictionScope.matchDateMillis(bet.optString("date")) ?: continue
+                if (day !in periodBounds.first..periodBounds.second) continue
+                val status = bet.optString("status").uppercase(Locale.ROOT)
+                val odds = bet.optDouble("odds", Double.NaN)
+                val stake = bet.optDouble("stake", Double.NaN)
+                if (!odds.isFinite() || odds <= 1.0 || !stake.isFinite() || stake <= 0.0) continue
+                if (status == "PENDING") {
+                    topPendingBetCount++
+                    pendingStake += stake
+                    potentialPayout += stake * odds
+                }
+                if (status !in setOf("PENDING", "WON", "LOST", "PUSH")) continue
+                topRoiRows.add(JSONObject().put("market_key", bet.optString("marketKey"))
+                    .put("probability", bet.optDouble("probability", Double.NaN))
+                    .put("odds", odds).put("stake", stake).put("status", status)
+                    .put("result", when (status) { "WON" -> "WIN"; "LOST" -> "LOSS"; "PUSH" -> "PUSH"; else -> "" }))
             }
             val second = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(second, "ОБОРОТ", fmt(report.overall.turnover), Color.WHITE)
             terminalMetric(second, "СРЕДНИЙ КЭФ.", if (report.overall.averageOdds > 0) String.format(Locale.US, "%.2f", report.overall.averageOdds) else "—", Color.WHITE)
-            terminalMetric(second, "ОЖИДАЮТ ТОП", topPendingBetCount.toString(), gold)
+            terminalMetric(second, "ОТКРЫТЫЕ СТАВКИ", topPendingBetCount.toString(), gold)
             hero.addView(second)
+            val pendingPotential = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ВЫПЛАТА", if (topPendingBetCount > 0) fmt(potentialPayout) else "—", accent)
+            terminalMetric(pendingPotential, "ВОЗМОЖНАЯ ЧИСТАЯ ПРИБЫЛЬ", if (topPendingBetCount > 0) fmt(potentialPayout - pendingStake) else "—", accent)
+            hero.addView(pendingPotential)
             hero.addView(label("Ожидают расчёта только бумажные ставки, подтверждённые из раздела ТОП.", 9, false, muted))
             val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
@@ -1688,6 +1828,7 @@ class MainActivity : Activity() {
             terminalMetric(runRow, "ХУДШАЯ СЕРИЯ ПОРАЖЕНИЙ", report.longestLossStreak.toString(), Color.rgb(210, 112, 108))
             risk.addView(runRow)
 
+            renderMarketProbabilityRoi(matchesContainer, "ROI ПО РЫНКАМ И ВЕРОЯТНОСТЯМ", topRoiRows, "TOP")
             terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО РЫНКАМ · ОДИНОЧНЫЕ", report.byMarket, 12, true)
             terminalBreakdown(matchesContainer, "РЕЗУЛЬТАТЫ ПО ЧЕМПИОНАТАМ", report.byLeague, 10)
 
