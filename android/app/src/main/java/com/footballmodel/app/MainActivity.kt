@@ -1826,6 +1826,10 @@ class MainActivity : Activity() {
                 val bet = bets.optJSONObject(index) ?: continue
                 if (!bet.optString("source").equals("AI_MANUAL", ignoreCase = true)) continue
                 val status = bet.optString("status").uppercase(Locale.ROOT)
+                // Open TOP bets are a global outstanding count, independent of the selected report period.
+                if (BetAnalyticsCalculator.isTopPending(status, bet.optString("marketKey") == "COUPON")) {
+                    topPendingBetCount++
+                }
                 val periodDate = if (status == "PENDING") {
                     StatsPredictionScope.matchDateMillis(bet.optString("betDay"))
                         ?: bet.optLong("createdAt", 0L).takeIf { it > 0L }?.let {
@@ -1836,11 +1840,6 @@ class MainActivity : Activity() {
                 } else StatsPredictionScope.matchDateMillis(bet.optString("date"))
                 val day = periodDate ?: continue
                 if (day !in periodBounds.first..periodBounds.second) continue
-                // Count every open TOP single before ROI validation: incomplete legacy
-                // odds/stake fields must not make an existing pending bet disappear.
-                if (BetAnalyticsCalculator.isTopPending(status, bet.optString("marketKey") == "COUPON")) {
-                    topPendingBetCount++
-                }
                 if (bet.optString("marketKey") !in statsRoiMarketLabels.keys) continue
                 if (bet.optString("marketKey") == "COUPON") continue
                 val odds = bet.optDouble("odds", Double.NaN)
