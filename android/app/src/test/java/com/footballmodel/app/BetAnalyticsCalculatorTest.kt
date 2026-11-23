@@ -81,17 +81,22 @@ class BetAnalyticsCalculatorTest {
         assertEquals(0, report.duplicateRecords)
     }
 
-    @Test fun allPendingTopSinglesAreCountedEvenWhenRoiFieldsAreInvalid() {
-        val pending = List(39) { index ->
-            bet("pending-$index", source = "AI_MANUAL", status = "PENDING",
-                stake = if (index % 2 == 0) 0.0 else 10.0,
-                odds = if (index % 3 == 0) 1.0 else 2.0)
-        }
-        assertEquals(39, pending.count {
-            BetAnalyticsCalculator.isTopPending(it.status, it.isCoupon)
-        })
-        assertEquals(false, BetAnalyticsCalculator.isTopPending("PENDING", true))
-        assertEquals(false, BetAnalyticsCalculator.isTopPending("WON", false))
+    @Test fun pendingTopSummaryUsesOneEligibilityRuleForCountAndPayout() {
+        val rows = listOf(
+            bet("valid-1", source = "AI_MANUAL", status = "PENDING", stake = 25.0, odds = 2.0),
+            bet("valid-2", source = "AI_MANUAL", status = "PENDING", stake = 10.0, odds = 1.5),
+            bet("valid-1", source = "AI_MANUAL", status = "PENDING", stake = 25.0, odds = 2.0),
+            bet("bad-stake", source = "AI_MANUAL", status = "PENDING", stake = 0.0, odds = 2.0),
+            bet("bad-odds", source = "AI_MANUAL", status = "PENDING", stake = 10.0, odds = 1.0),
+            bet("coupon", source = "AI_MANUAL", status = "PENDING", stake = 100.0, odds = 5.0, coupon = true),
+            bet("not-top", source = "MANUAL", status = "PENDING", stake = 100.0, odds = 5.0),
+            bet("retired-market", source = "AI_MANUAL", status = "PENDING", stake = 100.0, odds = 5.0, marketKey = "over15")
+        )
+        val summary = BetAnalyticsCalculator.summarizePendingTop(rows)
+        assertEquals(2, summary.count)
+        assertEquals(35.0, summary.stake, 0.0001)
+        assertEquals(65.0, summary.payout, 0.0001)
+        assertEquals(30.0, summary.netProfit, 0.0001)
     }
 
     @Test fun pendingTopBetDoesNotAffectProfitTurnoverOrWinRate() {
