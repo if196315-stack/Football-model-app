@@ -60,8 +60,10 @@ jobs:
           PITCHAPI_MAX_SHOT_REQUESTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_shot_requests || '0' }}
           PITCHAPI_REFRESH_ODDS_API: "false"
         run: python backend/update_data_pitchapi.py
-      - name: Apply latest fresh active MelBet snapshots
-        run: python backend/apply_melbet_snapshots.py
+      # The unified MelBet snapshot archive is runner-local and does not exist
+      # in this workflow's checkout. Applying it here would read an empty archive
+      # and delete every upcoming domestic fixture. The all-eight collector owns
+      # snapshot application after it captures the archive in the same run.
       - name: Refresh settled ALL-market ROI from the durable quote archive
         run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl
       - name: Commit updated data and ROI
