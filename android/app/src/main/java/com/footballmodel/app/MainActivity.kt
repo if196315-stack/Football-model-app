@@ -3665,11 +3665,12 @@ class MainActivity : Activity() {
                 renderStats(json)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to render statistics screen", error)
+                CrashDiagnostics.recordHandledException(applicationContext, "Statistics screen rendering failed", error)
                 matchesContainer.removeAllViews()
+                // card() attaches itself to matchesContainer; do not add the same child twice.
                 val failure = card()
                 addText(failure, "Не удалось открыть статистику", 15, true, Color.WHITE)
-                addText(failure, "Ошибка обработана, приложение продолжает работать. Вернитесь на другой раздел и попробуйте снова.", 11, false, muted)
-                matchesContainer.addView(failure)
+                addText(failure, "Диагностический отчёт сохранён. Вернитесь на другой раздел и попробуйте снова.", 11, false, muted)
             }
             return
         } else if (currentTab == "help") {
