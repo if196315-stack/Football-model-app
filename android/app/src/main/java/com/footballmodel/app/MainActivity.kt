@@ -160,6 +160,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CrashDiagnostics.install(applicationContext)
         // Request notification permission immediately on app launch.
         AiMatchNotifications.requestPermissionIfNeeded(this)
         currentTab = intent.getStringExtra("open_tab")?.takeUnless { it == "notifications" } ?: "matches"
@@ -416,6 +417,7 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+        CrashDiagnostics.showPendingReport(this)
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
@@ -1047,18 +1049,6 @@ class MainActivity : Activity() {
         // synchronously from the view cache; only first-time screens need a frame
         // to construct their content.
         renderTabs()
-        if (tab == "matches") {
-            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
-        } else {
-            // Hide the Line heading synchronously so its temporary layout height
-            // cannot make the Statistics header/subtitle jump after the fade.
-            lineHeadingView.animate().cancel()
-            lineHeadingView.visibility = View.GONE
-            lineHeadingView.alpha = 1f
-            lineHeadingView.translationY = 0f
-        }
-        UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
-        if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
@@ -1066,18 +1056,52 @@ class MainActivity : Activity() {
             "stats" -> "ALL"
             else -> "ALL"
         }
-        if (tabViewCache.containsKey(targetKey) && data != null) {
-            render()
+        if (tab == "stats") {
+            // Statistics is intentionally rendered synchronously without view animations.
+            // This isolates the screen from delayed animator end-actions during navigation.
+            lineHeadingView.animate().cancel()
+            lineHeadingView.visibility = View.GONE
+            lineHeadingView.alpha = 1f
+            lineHeadingView.translationY = 0f
+            leagueBar.animate().cancel()
+            leagueBar.visibility = View.GONE
+            leagueBar.alpha = 1f
+            leagueBar.translationY = 0f
+            leagueScroll.animate().cancel()
+            leagueScroll.visibility = View.GONE
+            leagueScroll.alpha = 1f
+            leagueScroll.translationY = 0f
+            matchesContainer.animate().cancel()
             matchesContainer.visibility = View.VISIBLE
-            animateTabEntry(matchesContainer)
-            if (tab == "matches") animateTabEntry(leagueScroll)
+            render()
+            matchesContainer.alpha = 1f
+            matchesContainer.translationY = 0f
+            matchesContainer.scaleX = 1f
+            matchesContainer.scaleY = 1f
         } else {
-            matchesContainer.visibility = View.INVISIBLE
-            matchesContainer.postOnAnimation {
-                if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
+            if (tab == "matches") {
+                UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
+            } else {
+                lineHeadingView.animate().cancel()
+                lineHeadingView.visibility = View.GONE
+                lineHeadingView.alpha = 1f
+                lineHeadingView.translationY = 0f
+            }
+            UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
+            if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
+            if (tabViewCache.containsKey(targetKey) && data != null) {
                 render()
+                matchesContainer.visibility = View.VISIBLE
                 animateTabEntry(matchesContainer)
                 if (tab == "matches") animateTabEntry(leagueScroll)
+            } else {
+                matchesContainer.visibility = View.INVISIBLE
+                matchesContainer.postOnAnimation {
+                    if (generation != tabRenderGeneration || currentTab != tab) return@postOnAnimation
+                    render()
+                    animateTabEntry(matchesContainer)
+                    if (tab == "matches") animateTabEntry(leagueScroll)
+                }
             }
         }
 
@@ -1283,7 +1307,15 @@ class MainActivity : Activity() {
             refresh()
             return
         }
-        UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
+        if (currentTab == "stats") {
+            // Avoid overlapping content animators while asynchronous statistics reports finish.
+            matchesContainer.animate().cancel()
+            matchesContainer.alpha = 1f
+            matchesContainer.translationY = 0f
+            refresh()
+        } else {
+            UiMotion.animateContentChange(matchesContainer, dp(6).toFloat(), refresh)
+        }
     }
 
     private fun hideLineHeadingImmediately() {
@@ -3566,7 +3598,14 @@ class MainActivity : Activity() {
         UiMotion.animateTextChange(statusView, "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}")
         renderTabs()
         if (currentTab == "matches") renderLeagueTabs()
-        UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
+        if (currentTab == "stats") {
+            leagueBar.animate().cancel()
+            leagueBar.visibility = View.GONE
+            leagueBar.alpha = 1f
+            leagueBar.translationY = 0f
+        } else {
+            UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
+        }
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
         val cached = tabViewCache[targetKey]
@@ -3617,7 +3656,10 @@ class MainActivity : Activity() {
             return
         }
         if (currentTab == "stats") {
-            UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
+            leagueBar.animate().cancel()
+            leagueBar.visibility = View.GONE
+            leagueBar.alpha = 1f
+            leagueBar.translationY = 0f
             hideLineHeadingImmediately()
             try {
                 renderStats(json)
