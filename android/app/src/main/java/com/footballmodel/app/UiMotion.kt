@@ -6,7 +6,9 @@ import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import java.util.WeakHashMap
@@ -14,7 +16,7 @@ import java.util.WeakHashMap
 /**
  * Shared, restrained motion language for the whole app.
  *
- * Transitions are opacity/color only: no vertical movement, scaling, bounce or overshoot.
+ * Transitions use opacity/color and a tiny press compression; no vertical movement, bounce or overshoot.
  * Keeping the same gentle timing everywhere avoids visual jumps between screens.
  */
 internal object UiMotion {
@@ -22,8 +24,59 @@ internal object UiMotion {
     private const val CONTENT_ALPHA = 0.94f
     private const val TEXT_ALPHA = 0.88f
     private val textColorAnimations = WeakHashMap<TextView, ValueAnimator>()
+    private val pressFeedbackInstalled = WeakHashMap<View, Boolean>()
 
     private fun easing() = DecelerateInterpolator(1.2f)
+
+    /**
+     * Install the same restrained tactile response on every clickable surface.
+     * A hierarchy listener keeps newly rendered and cached screens consistent.
+     */
+    fun installPressFeedback(root: ViewGroup) {
+        installPressFeedbackTree(root)
+    }
+
+    private fun installPressFeedbackTree(view: View) {
+        if (view.isClickable && pressFeedbackInstalled.put(view, true) == null) {
+            view.setOnTouchListener { touched, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        touched.animate().cancel()
+                        touched.animate()
+                            .alpha(0.88f)
+                            .scaleX(0.985f)
+                            .scaleY(0.985f)
+                            .setDuration(90L)
+                            .setInterpolator(easing())
+                            .start()
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        touched.animate().cancel()
+                        touched.animate()
+                            .alpha(1f)
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(150L)
+                            .setInterpolator(easing())
+                            .start()
+                    }
+                }
+                // Preserve the view's normal click, scroll and accessibility handling.
+                false
+            }
+        }
+        if (view is ViewGroup) {
+            view.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
+                override fun onChildViewAdded(parent: View?, child: View?) {
+                    child?.let { installPressFeedbackTree(it) }
+                }
+                override fun onChildViewRemoved(parent: View?, child: View?) = Unit
+            })
+            for (index in 0 until view.childCount) {
+                installPressFeedbackTree(view.getChildAt(index))
+            }
+        }
+    }
 
     private fun resetMotion(view: View) {
         view.alpha = 1f

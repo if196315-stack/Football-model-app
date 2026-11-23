@@ -279,6 +279,7 @@ class MainActivity : Activity() {
         mainScrollView.addView(root)
         setContentView(mainScrollView)
         applyEdgeToEdgeInsets(root)
+        UiMotion.installPressFeedback(root)
 
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1291,14 +1292,8 @@ class MainActivity : Activity() {
     }
 
     private fun animateStakeModeVisibility(view: View, show: Boolean) {
-        // Stake mode panels change the settings layout height. Apply visibility
-        // immediately so the outgoing panel does not keep its space during a fade.
-        view.animate().cancel()
-        view.alpha = 1f
-        view.translationY = 0f
-        view.scaleX = 1f
-        view.scaleY = 1f
-        view.visibility = if (show) View.VISIBLE else View.GONE
+        // Use the shared app-wide fade transition while preserving the panel's contents.
+        UiMotion.animateVisibility(view, show, 0f)
     }
 
     private fun animateStakeModeHint(view: TextView, text: String) {
@@ -1584,9 +1579,6 @@ class MainActivity : Activity() {
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
         controls.addView(sourceRow)
-        if (cached?.key != key) {
-            controls.addView(label("Обновляем показатели для выбранного фильтра…", 10, true, gold))
-        }
         val report = cached!!.current
         statsBetCalculationError?.let { code ->
             val warning = terminalSection(matchesContainer, "ПРЕДУПРЕЖДЕНИЕ О ДАННЫХ")
@@ -1833,9 +1825,6 @@ class MainActivity : Activity() {
         val metrics = statsMetricsCache.ifEmpty { emptyPredictionMetrics(source) }
         val summaryScope = if (selectedStatsSource == "TOP") "ТОЛЬКО ПРОГНОЗЫ ПО СТАВКАМ ИЗ ТОП" else "ВСЕ ПРОГНОЗЫ, ВКЛЮЧАЯ ТОП · ТОЛЬКО ЗАВЕРШЁННЫЕ МАТЧИ"
         val overallHeading = terminalSection(matchesContainer, "ОБЩАЯ СВОДКА ПРОГНОЗОВ", summaryScope)
-        if (statsMetricsCacheKey != statsKey) {
-            addText(overallHeading, "Обновляем показатели для выбранного фильтра…", 10, true, gold)
-        }
         if (metrics.isEmpty()) {
             val empty = terminalSection(matchesContainer, "АРХИВ ПРОГНОЗОВ")
             val calculationError = statsMetricsError
