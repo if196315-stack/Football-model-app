@@ -1294,7 +1294,14 @@ class MainActivity : Activity() {
     }
 
     private fun animateStakeModeVisibility(view: View, show: Boolean) {
-        UiMotion.animateVisibility(view, show, dp(6).toFloat())
+        // Stake mode panels change the settings layout height. Apply visibility
+        // immediately so the outgoing panel does not keep its space during a fade.
+        view.animate().cancel()
+        view.alpha = 1f
+        view.translationY = 0f
+        view.scaleX = 1f
+        view.scaleY = 1f
+        view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun animateStakeModeHint(view: TextView, text: String) {
