@@ -1275,6 +1275,8 @@ class MainActivity : Activity() {
     @Volatile private var statsBetCalculationError: String? = null
     private val statsBetCalculationInProgress = AtomicBoolean(false)
     private val statsBetCacheGeneration = AtomicLong(0L)
+    // Keep the intended stats scroll offset while a newly selected filter is calculated.
+    private var pendingStatsScrollRestore: Int? = null
 
     private fun animateContentRefresh(refresh: () -> Unit) {
         if (!::matchesContainer.isInitialized) {
@@ -1297,6 +1299,34 @@ class MainActivity : Activity() {
 
     private fun animateStakeModeHint(view: TextView, text: String) {
         UiMotion.animateTextChange(view, text)
+    }
+
+    private fun changeStatsFilter(update: () -> Unit) {
+        // A second quick filter tap must not replace the original position with a
+        // temporarily clamped offset while the report is recalculated.
+        val scrollY = pendingStatsScrollRestore ?: mainScrollView.scrollY
+        pendingStatsScrollRestore = scrollY
+        tabScrollPositions["stats|ALL"] = scrollY
+        update()
+        tabViewCache.remove("stats|ALL")
+        render()
+    }
+
+    private fun restorePendingStatsScrollPosition() {
+        val requestedY = pendingStatsScrollRestore ?: return
+        // Wait until the rebuilt report has been measured; the loading placeholder
+        // is shorter and would otherwise clamp scrollY to zero.
+        mainScrollView.post {
+            mainScrollView.postOnAnimation {
+                if (currentTab != "stats" || pendingStatsScrollRestore != requestedY) return@postOnAnimation
+                val contentHeight = mainScrollView.getChildAt(0)?.height ?: 0
+                val maxScroll = (contentHeight - mainScrollView.height).coerceAtLeast(0)
+                val restoredY = requestedY.coerceAtMost(maxScroll)
+                mainScrollView.scrollTo(0, restoredY)
+                tabScrollPositions["stats|ALL"] = restoredY
+                pendingStatsScrollRestore = null
+            }
+        }
     }
 
     private fun invalidateStatsBetCache() {
@@ -1524,7 +1554,7 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(10), dp(8), dp(10))
                     setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                     background = rounded(if (active) accent else Color.rgb(23, 39, 61), 12)
-                    setOnClickListener { if (selectedStatsPeriod != option.first) { val scrollY = mainScrollView.scrollY; selectedStatsPeriod = option.first; tabViewCache.remove("stats|ALL"); render(); mainScrollView.post { mainScrollView.scrollTo(0, scrollY) } } }
+                    setOnClickListener { if (selectedStatsPeriod != option.first) changeStatsFilter { selectedStatsPeriod = option.first } }
                 }
                 row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
             }
@@ -1539,7 +1569,7 @@ class MainActivity : Activity() {
                 setPadding(dp(8), dp(10), dp(8), dp(10))
                 setTextColor(if (active) Color.rgb(31, 25, 16) else Color.rgb(205, 197, 181))
                 background = rounded(if (active) gold else Color.rgb(23, 39, 61), 12)
-                setOnClickListener { if (selectedStatsSource != option.first) { val scrollY = mainScrollView.scrollY; selectedStatsSource = option.first; tabViewCache.remove("stats|ALL"); render(); mainScrollView.post { mainScrollView.scrollTo(0, scrollY) } } }
+                setOnClickListener { if (selectedStatsSource != option.first) changeStatsFilter { selectedStatsSource = option.first } }
             }
             sourceRow.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
         }
@@ -1600,6 +1630,7 @@ class MainActivity : Activity() {
                 if (delta >= 0) accent else Color.rgb(210, 112, 108)))
             compare.addView(label("Предыдущий ROI: " + String.format(Locale.US, "%.2f%%", previous.overall.roi) + " · прибыль: " + fmt(previous.overall.profit) + " · рассчитано: " + previous.overall.settled, 10, false, muted))
         }
+        restorePendingStatsScrollPosition()
     }
 
     private fun emptyPredictionMetrics(source: String): List<StatsMetricRow> {
@@ -3474,13 +3505,15 @@ class MainActivity : Activity() {
 
         // A same-tab refresh (for example, after background statistics calculation)
         // must preserve the user's current scroll position instead of restoring zero.
-        if (renderedKey == targetKey) {
+        if (renderedKey == targetKey && !(targetKey == "stats|ALL" && pendingStatsScrollRestore != null)) {
             tabScrollPositions[targetKey] = mainScrollView.scrollY
         }
 
         // Снимаем текущие View с экрана и кладём в кеш, не уничтожая их.
         if (renderedKey != null && renderedKey != targetKey && matchesContainer.childCount > 0) {
-            tabScrollPositions[renderedKey!!] = mainScrollView.scrollY
+            if (!(renderedKey == "stats|ALL" && pendingStatsScrollRestore != null)) {
+                tabScrollPositions[renderedKey!!] = mainScrollView.scrollY
+            }
             val oldContent = mutableListOf<View>()
             while (matchesContainer.childCount > 0) {
                 val child = matchesContainer.getChildAt(0)
