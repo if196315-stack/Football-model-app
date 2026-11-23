@@ -54,4 +54,49 @@ class FeedMergerTest {
         assertNotNull(target.optJSONArray("evaluationMatches"))
         assertEquals(1, target.getJSONArray("evaluationMatches").length())
     }
+
+    @Test fun resolvesDownloadedUefaBeforeCachedSnapshots() {
+        val downloaded = JSONObject().put("updatedAt", "fresh")
+            .put("competitions", JSONArray().put(JSONObject().put("code", "UCL").put("name", "fresh")))
+            .put("evaluationMatches", JSONArray())
+        val cached = JSONObject().put("updatedAt", "old")
+            .put("competitions", JSONArray().put(JSONObject().put("code", "UCL").put("name", "old")))
+            .put("evaluationMatches", JSONArray())
+        val resolved = FeedMerger.resolveUefaFeed(downloaded.toString(), cached.toString(), null)
+        assertEquals("fresh", resolved?.getJSONArray("competitions")?.getJSONObject(0)?.getString("name"))
+    }
+
+    @Test fun fallsBackToDedicatedUefaCacheWhenDownloadIsUnavailableOrMalformed() {
+        val cached = JSONObject().put("updatedAt", "cached")
+            .put("competitions", JSONArray().put(JSONObject().put("code", "UECL")))
+            .put("evaluationMatches", JSONArray())
+        val unavailable = FeedMerger.resolveUefaFeed(null, cached.toString(), null)
+        val malformed = FeedMerger.resolveUefaFeed("{not-json", cached.toString(), null)
+        assertEquals("UECL", unavailable?.getJSONArray("competitions")?.getJSONObject(0)?.getString("code"))
+        assertEquals("UECL", malformed?.getJSONArray("competitions")?.getJSONObject(0)?.getString("code"))
+    }
+
+    @Test fun fallsBackToOnlyUefaRowsFromPreviousMergedCache() {
+        val previous = JSONObject()
+            .put("updatedAt", "domestic-time")
+            .put("uefaEvaluationUpdatedAt", "uefa-time")
+            .put("competitions", JSONArray()
+                .put(JSONObject().put("code", "PL"))
+                .put(JSONObject().put("code", "UCL"))
+                .put(JSONObject().put("code", "UECL")))
+            .put("evaluationMatches", JSONArray()
+                .put(JSONObject().put("id", "1").put("leagueCode", "ENG"))
+                .put(JSONObject().put("id", "2").put("leagueCode", "UCL")))
+        val resolved = FeedMerger.resolveUefaFeed(null, null, previous.toString())
+        assertEquals("uefa-time", resolved?.getString("updatedAt"))
+        assertEquals(2, resolved?.getJSONArray("competitions")?.length())
+        assertEquals("UCL", resolved?.getJSONArray("evaluationMatches")?.getJSONObject(0)?.getString("leagueCode"))
+        assertEquals(1, resolved?.getJSONArray("evaluationMatches")?.length())
+    }
+
+    @Test fun rejectsPayloadWithoutValidUefaFeedArrays() {
+        assertEquals(null, FeedMerger.resolveUefaFeed("{\"error\":\"temporary\"}", null, null))
+        assertEquals(null, FeedMerger.resolveUefaFeed("{\"competitions\":null}", null, null))
+        assertEquals(null, FeedMerger.resolveUefaFeed("{\"competitions\":[]}", null, null))
+    }
 }

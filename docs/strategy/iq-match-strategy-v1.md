@@ -1,6 +1,6 @@
-# IQ MATCH Strategy v1.2
+# IQ MATCH Strategy v1.3
 
-**Status:** current strategy specification  
+**Status:** approved current strategy specification (23 November 2026)  
 **Selection:** STRICT  
 **Risk controls:** none; no drawdown stops, daily exposure cap, per-match exposure cap, or automatic stake cap  
 **Launch:** LIMITED  
@@ -19,7 +19,7 @@ This document is the source of truth for the current IQ MATCH strategy. Threshol
 
 No bet is a valid outcome. A high predicted probability alone is not sufficient.
 
-**Fixture horizon:** there is no fixed 14-day, 30-day, or calendar-month cutoff for upcoming fixtures. The app, paper-signal selection, automatic paper-entry worker, and API-Sport odds ingestion may process every upcoming fixture present in their respective feeds. Past fixtures remain excluded from new entries; existing history and settlement are preserved.
+**Fixture horizon:** upcoming fixtures present in the published feeds remain eligible for analysis. Past fixtures are excluded from new signal selection; existing paper history and settlement are preserved. The Android background worker refreshes notifications and settles existing paper records; it does not create automatic bets.
 
 ## 2. Data-quality gate
 
@@ -72,13 +72,17 @@ For multi-outcome market analysis, account for bookmaker margin when comparing m
 
 Only use exact, supported MelBet quotes through API-Sport:
 
-- Double Chance 1X / X2.
-- Match Total OVER.
-- Team Total OVER.
-- BTTS YES only; BTTS NO is disabled.
-- Handicaps only when the exact handicap line and price are ingested and validated.
+The eight active user-facing markets are exactly:
+- Double Chance 1X.
+- Double Chance X2.
+- Match Total OVER 2.5.
+- Home Team Total OVER 0.5.
+- Home Team Total OVER 1.5.
+- Away Team Total OVER 0.5.
+- Away Team Total OVER 1.5.
+- BTTS YES.
 
-Do not offer 1X2 until its prices are correctly ingested. UNDER match/team totals are hidden from the current user-facing betting scenario. Never fabricate or infer missing prices.
+No other market is active in the application strategy. In particular, 1X2, BTTS NO, UNDER markets and handicaps are excluded. Never fabricate or infer missing prices.
 
 ## 6. Required decision record
 
@@ -142,4 +146,4 @@ A pause must not silently reset the next day. Resumption requires checking the c
 
 The Stats screen must keep this strategy guide accessible, including selection gates, value formulas, stake/exposure policy, market scope and test stages. Each decision should expose its reason. Strategy version must be attached to every recorded signal.
 
-**Governance:** v1.2 thresholds remain provisional until independently validated. No profit guarantee; no automatic execution is authorized by this document.
+**Governance:** v1.3 is the approved operating policy. The numerical selection thresholds remain engineering gates, not evidence of profitability. No profit guarantee; no automatic execution is authorized by this document.
