@@ -9,7 +9,6 @@ on:
       - "backend/refresh_pitchapi_uefa_fixtures.py"
       - "backend/build_uefa_app_feed.py"
       - "backend/build_market_roi.py"
-      - "backend/audit_domestic_ai_signals.py"
       - "backend/apply_melbet_snapshots.py"
       - "backend/predict_uefa_markets.py"
       - "backend/update_odds_api_sport.py"
@@ -119,7 +118,7 @@ jobs:
         run: python backend/build_uefa_app_feed.py
       - name: Audit Android strongest AI signal across all eight competitions
         run: |
-          python backend/audit_domestic_ai_signals.py \
+          python backend/audit_all_competitions.py \
             --input docs/data.json \
             --uefa-input docs/uefa-data.json \
             --json-out artifacts/eight-competition-ai-signal-audit.json \
