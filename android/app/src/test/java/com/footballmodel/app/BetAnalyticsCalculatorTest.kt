@@ -97,6 +97,12 @@ class BetAnalyticsCalculatorTest {
         assertEquals(35.0, summary.stake, 0.0001)
         assertEquals(65.0, summary.payout, 0.0001)
         assertEquals(30.0, summary.netProfit, 0.0001)
+        val periodSummary = BetAnalyticsCalculator.summarizePendingTop(
+            rows + bet("outside-period", day = 20_000L, source = "AI_MANUAL", status = "PENDING", stake = 100.0, odds = 4.0),
+            from = 0L, to = 10_000L
+        )
+        assertEquals(2, periodSummary.count)
+        assertEquals(65.0, periodSummary.payout, 0.0001)
     }
 
     @Test fun pendingTopBetDoesNotAffectProfitTurnoverOrWinRate() {
