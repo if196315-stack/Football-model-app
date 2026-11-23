@@ -1836,6 +1836,21 @@ class MainActivity : Activity() {
                 "Все восемь рынков общей сводки · вероятность модели от 50% · только исторические коэффициенты MelBet · 1 условная единица на прогноз. Прогнозы без исторической котировки в ROI не входят.",
                 9, false, muted
             ))
+            // Build the ALL-filter equity curve from the same settled historical MelBet
+            // records and eligibility rules used by the market ROI breakdown below.
+            val dailyRoiProfit = sortedMapOf<Long, Double>()
+            roiRows.forEach { row ->
+                val probability = row.optDouble("model_probability", Double.NaN)
+                val price = row.optDouble("price", Double.NaN)
+                val profitUnits = row.optDouble("profit_units", Double.NaN)
+                val day = StatsPredictionScope.matchDateMillis(row.optString("kickoff_utc"))
+                if (day != null && StatsPredictionScope.confidenceBand("ALL", probability) != null &&
+                    price.isFinite() && price > 1.0 && profitUnits.isFinite()) {
+                    dailyRoiProfit[day] = (dailyRoiProfit[day] ?: 0.0) + profitUnits
+                }
+            }
+            addTerminalEquityChart(matchesContainer,
+                dailyRoiProfit.map { (day, profit) -> AnalyticsPoint(day, profit, 1.0) })
             if (roiData == null) {
                 summaryCard.addView(label("Архив исторических коэффициентов пока недоступен. Текущие коэффициенты вместо исторических не используются.", 9, true, gold))
             }
