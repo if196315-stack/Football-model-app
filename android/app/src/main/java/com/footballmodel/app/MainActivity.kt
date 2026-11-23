@@ -45,9 +45,9 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 
 class MainActivity : Activity() {
-    private val dataUrl = "https://api.github.com/repos/if196315-stack/Football-model-app/contents/docs/data.json"
-    private val uefaDataUrl = "https://api.github.com/repos/if196315-stack/Football-model-app/contents/docs/uefa-data.json"
-    private val marketRoiUrl = "https://api.github.com/repos/if196315-stack/Football-model-app/contents/docs/market-roi.json"
+    private val dataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json"
+    private val uefaDataUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json"
+    private val marketRoiUrl = "https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/market-roi.json"
     private val bg = Color.rgb(7, 13, 25)
     private val panel = Color.rgb(17, 29, 47)
     private val surface = Color.rgb(23, 39, 61)
@@ -386,8 +386,6 @@ class MainActivity : Activity() {
         invalidateStatsBetCache()
         applyHistoricalBetCorrections()
         scheduleAutoPaperWorker()
-        // Restore personal bets, TOP signals and stake settings from the private GitHub archive.
-        syncPrivateHistory(showResult = false)
         // Восстанавливаем сохранённый снимок в фоне: большой JSON не должен
         // блокировать первый показ интерфейса на главном потоке.
         thread(name = "iq-match-cache-restore") {
@@ -420,12 +418,11 @@ class MainActivity : Activity() {
         val loadingCard = card()
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
-        loadData()
         CrashDiagnostics.showPendingReport(this)
-        if (!PrivateHistorySync.hasToken(this)) {
-            mainScrollView.post {
-                if (!isFinishing && !PrivateHistorySync.hasToken(this)) showPrivateHistoryTokenDialog()
-            }
+        if (PrivateHistorySync.hasToken(this)) {
+            syncPrivateHistory(showResult = false) { loadData() }
+        } else {
+            loadData()
         }
     }
 
@@ -464,6 +461,7 @@ class MainActivity : Activity() {
 
     override fun onPause() {
         liveRefreshHandler.removeCallbacks(liveRefreshTask)
+        if (PrivateHistorySync.hasToken(this)) PrivateHistorySync.syncAsync(this)
         super.onPause()
     }
 
@@ -928,11 +926,7 @@ class MainActivity : Activity() {
                 instanceFollowRedirects = true
                 useCaches = true
                 setRequestProperty("Accept-Encoding", "gzip")
-                setRequestProperty("Accept", "application/vnd.github.raw+json")
                 setRequestProperty("User-Agent", "IQMatch-Android")
-                val githubToken = PrivateHistorySync.authorizationToken(this@MainActivity)
-                    ?: throw IllegalStateException("Подключи GitHub token в настройках, чтобы загрузить приватные данные.")
-                setRequestProperty("Authorization", "Bearer $githubToken")
                 // A conditional request is valid only when its matching body is cached.
                 if (cached != null && !etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
             }
@@ -2123,7 +2117,6 @@ class MainActivity : Activity() {
         tabViewCache.remove("desk|FIXED")
         tabViewCache.remove("stats|ALL")
         invalidateStatsBetCache()
-        // Keep the private remote copy current after every local bet creation or settlement.
         if (PrivateHistorySync.hasToken(this)) PrivateHistorySync.syncAsync(this)
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit): Button {
@@ -2523,30 +2516,36 @@ class MainActivity : Activity() {
     private fun showPrivateHistoryTokenDialog() {
         val tokenInput = EditText(this).apply {
             hint = "github_pat_…"
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             setSingleLine(true)
         }
         AlertDialog.Builder(this)
-            .setTitle("Подключение приватного GitHub-архива")
+            .setTitle("GitHub · резервная копия истории")
             .setMessage(
-                "Создай fine-grained personal access token в GitHub только для репозитория if196315-stack/Football-model-app. " +
-                    "Дай ему Repository permissions → Contents: Read and write. Токен хранится на телефоне в Android Keystore и не попадает в репозиторий. " +
-                    "После переустановки приложения токен нужно будет ввести повторно; сама история останется в приватном архиве."
+                "Создай fine-grained personal access token для if196315-stack/Football-model-app. " +
+                    "Repository permissions → Contents: Read and write. " +
+                    "История ставок, сигналы и настройки будут храниться в открытом JSON-файле репозитория. " +
+                    "Токен останется только в памяти приложения на телефоне; после переустановки его нужно ввести повторно."
             )
             .setView(tokenInput)
             .setNegativeButton("Отмена", null)
-            .setPositiveButton("Сохранить и синхронизировать") { _, _ ->
+            .setPositiveButton("Сохранить") { _, _ ->
                 try {
                     PrivateHistorySync.saveToken(this, tokenInput.text?.toString().orEmpty())
-                    syncPrivateHistory(showResult = true)
+                    syncPrivateHistory(showResult = true) {
+                        loadData()
+                    }
                 } catch (error: Exception) {
-                    Toast.makeText(this, error.message ?: "Не удалось сохранить токен", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, error.message ?: "Не удалось сохранить token", Toast.LENGTH_LONG).show()
                 }
             }
             .show()
     }
 
-    private fun syncPrivateHistory(showResult: Boolean) {
+    private fun syncPrivateHistory(
+        showResult: Boolean,
+        afterSync: (() -> Unit)? = null
+    ) {
         if (!PrivateHistorySync.hasToken(this)) {
             if (showResult) showPrivateHistoryTokenDialog()
             return
@@ -2556,13 +2555,9 @@ class MainActivity : Activity() {
                 bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
                 invalidateStatsBetCache()
                 tabViewCache.clear()
-                if (currentTab in setOf("history", "desk", "stats", "help")) render()
-                // A newly entered token also unlocks the private match and odds feeds.
-                if (loadInProgress.get()) {
-                    // The in-flight request already uses the same token.
-                } else {
-                    loadData()
-                }
+                renderedKey = null
+                if (data != null) render()
+                afterSync?.invoke()
             }
             if (showResult) Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             if (!success) android.util.Log.w("IQMatchHistorySync", message)
@@ -2571,6 +2566,17 @@ class MainActivity : Activity() {
 
     private fun renderHelp() {
         screenHeader("IQ MATCH · SETTINGS", "Настройки", "Настройки приложения и параметров ставок.")
+
+        val historyBackup = card()
+        addText(historyBackup, "РЕЗЕРВНАЯ КОПИЯ ИСТОРИИ", 10, true, accent)
+        addText(historyBackup, if (PrivateHistorySync.hasToken(this)) "GitHub подключён" else "GitHub не подключён", 12, true, if (PrivateHistorySync.hasToken(this)) cyan else gold)
+        addText(historyBackup, "Ставки, сигналы ТОП и настройки сохраняются в репозитории и восстанавливаются после переустановки. Файл истории открыт и доступен всем, кто видит публичный репозиторий.", 11, false, muted)
+        actionButton(historyBackup, if (PrivateHistorySync.hasToken(this)) "Изменить GitHub token" else "Подключить GitHub") {
+            showPrivateHistoryTokenDialog()
+        }
+        actionButton(historyBackup, "Синхронизировать сейчас") {
+            syncPrivateHistory(showResult = true)
+        }
 
         val bank = currentBankroll()
         val bankrollCard = card()
@@ -2621,7 +2627,6 @@ class MainActivity : Activity() {
                         Toast.makeText(this@MainActivity, "Не удалось сохранить режим ставки", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
-                    if (PrivateHistorySync.hasToken(this@MainActivity)) PrivateHistorySync.syncAsync(this@MainActivity)
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
                     // Switch the complete mode-specific section: labels, saved value, hint and action.
                     animateStakeModeVisibility(minimumStakeSettings, mode == "MINIMUM")
@@ -2682,7 +2687,6 @@ class MainActivity : Activity() {
             setPadding(0, dp(5), 0, dp(5))
             setOnCheckedChangeListener { _, checked ->
                 settingsPrefs.edit().putBoolean("show_line_section", checked).apply()
-                if (PrivateHistorySync.hasToken(this@MainActivity)) PrivateHistorySync.syncAsync(this@MainActivity)
                 // Update only navigation. Rebuilding the settings screen here
                 // detached/recreated its content and caused a visible scroll jump.
                 if (!checked && currentTab == "matches") {
@@ -2714,17 +2718,6 @@ class MainActivity : Activity() {
         addText(glossary, "Порог отбора ТОП", 13, true, Color.WHITE)
         addText(glossary, "Для попадания сигнала в ТОП нужны одновременно: вероятность от 60%, EV от +5%, EDGE от +5 п.п. и коэффициент MelBet от 1.50. Также действуют ограничения по допустимым рынкам.", 11, false, muted)
         addText(glossary, "Важно: вероятность, EV, EDGE, xG и Kelly — расчётные оценки. Они помогают сравнивать варианты, но не гарантируют выигрыш.", 11, true, gold)
-
-        val historySyncCard = card()
-        addText(historySyncCard, "РЕЗЕРВНАЯ КОПИЯ ИСТОРИИ", 10, true, accent)
-        addText(historySyncCard, "Ручные и автоматические записи ставок, история сигналов ТОП и настройки сохраняются в приватном репозитории GitHub. После переустановки приложения история восстановится после повторного подключения токена.", 11, false, muted)
-        addText(historySyncCard, if (PrivateHistorySync.hasToken(this)) "GitHub подключён · токен защищён Android Keystore" else "GitHub ещё не подключён на этом устройстве", 11, true, if (PrivateHistorySync.hasToken(this)) cyan else gold)
-        actionButton(historySyncCard, if (PrivateHistorySync.hasToken(this)) "Изменить GitHub token" else "Подключить GitHub") {
-            showPrivateHistoryTokenDialog()
-        }
-        actionButton(historySyncCard, "Синхронизировать сейчас") {
-            syncPrivateHistory(showResult = true)
-        }
 
         val info = card()
         addText(info, "О ПРИЛОЖЕНИИ", 10, true, accent)
@@ -3139,7 +3132,6 @@ class MainActivity : Activity() {
                 }
                 if (value == 0.0) settingsPrefs.edit().remove(key).apply()
                 else settingsPrefs.edit().putString(key, value.toString()).apply()
-                if (PrivateHistorySync.hasToken(this)) PrivateHistorySync.syncAsync(this)
                 // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
                 if (key == "initial_bankroll" || key == "minimum_stake" || key == "fixed_stake") {
                     tabViewCache.clear()
