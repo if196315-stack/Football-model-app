@@ -160,6 +160,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CrashDiagnostics.install(applicationContext)
         // Request notification permission immediately on app launch.
         AiMatchNotifications.requestPermissionIfNeeded(this)
         currentTab = intent.getStringExtra("open_tab")?.takeUnless { it == "notifications" } ?: "matches"
@@ -416,6 +417,7 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         loadData()
+        CrashDiagnostics.showPendingReport(this)
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
@@ -1047,18 +1049,6 @@ class MainActivity : Activity() {
         // synchronously from the view cache; only first-time screens need a frame
         // to construct their content.
         renderTabs()
-        if (tab == "matches") {
-            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
-        } else {
-            // Hide the Line heading synchronously so its temporary layout height
-            // cannot make the Statistics header/subtitle jump after the fade.
-            lineHeadingView.animate().cancel()
-            lineHeadingView.visibility = View.GONE
-            lineHeadingView.alpha = 1f
-            lineHeadingView.translationY = 0f
-        }
-        UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
-        if (tab != "matches") UiMotion.animateVisibility(leagueScroll, false, dp(6).toFloat())
         val targetKey = tab + "|" + when (tab) {
             "matches" -> selectedLeague
             "history" -> selectedHistoryTab
@@ -1066,6 +1056,13 @@ class MainActivity : Activity() {
             "stats" -> "ALL"
             else -> "ALL"
         }
+        if (tab == "matches") {
+            UiMotion.animateVisibility(lineHeadingView, true, dp(6).toFloat())
+        } else {
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
+        }
+        UiMotion.animateVisibility(leagueBar, tab == "matches", dp(6).toFloat())
+        UiMotion.animateVisibility(leagueScroll, tab == "matches", dp(6).toFloat())
         if (tabViewCache.containsKey(targetKey) && data != null) {
             render()
             matchesContainer.visibility = View.VISIBLE
@@ -3566,7 +3563,14 @@ class MainActivity : Activity() {
         UiMotion.animateTextChange(statusView, "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}")
         renderTabs()
         if (currentTab == "matches") renderLeagueTabs()
-        UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
+        if (currentTab == "stats") {
+            leagueBar.animate().cancel()
+            leagueBar.visibility = View.GONE
+            leagueBar.alpha = 1f
+            leagueBar.translationY = 0f
+        } else {
+            UiMotion.animateVisibility(leagueBar, currentTab == "matches", dp(6).toFloat())
+        }
 
         // Возвращаем готовый экран мгновенно. Полная отрисовка нужна только при первом входе.
         val cached = tabViewCache[targetKey]
@@ -3618,16 +3622,17 @@ class MainActivity : Activity() {
         }
         if (currentTab == "stats") {
             UiMotion.animateVisibility(leagueBar, false, dp(6).toFloat())
-            hideLineHeadingImmediately()
+            UiMotion.animateVisibility(lineHeadingView, false, dp(6).toFloat())
             try {
                 renderStats(json)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to render statistics screen", error)
+                CrashDiagnostics.recordHandledException(applicationContext, "Statistics screen rendering failed", error)
                 matchesContainer.removeAllViews()
+                // card() attaches itself to matchesContainer; do not add the same child twice.
                 val failure = card()
                 addText(failure, "Не удалось открыть статистику", 15, true, Color.WHITE)
-                addText(failure, "Ошибка обработана, приложение продолжает работать. Вернитесь на другой раздел и попробуйте снова.", 11, false, muted)
-                matchesContainer.addView(failure)
+                addText(failure, "Диагностический отчёт сохранён. Вернитесь на другой раздел и попробуйте снова.", 11, false, muted)
             }
             return
         } else if (currentTab == "help") {
