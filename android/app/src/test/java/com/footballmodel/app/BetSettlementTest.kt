@@ -52,7 +52,7 @@ class BetSettlementTest {
         assertNull(BetSettlement.result("some-unmapped-market", 3, 0))
         assertNull(BetSettlement.result("over15", -1, 2))
     }
-}
+
 
     @Test fun sharedSettlementGateMovesOnlyConfirmedFinalPendingBets() {
         assertNull(BetSettlement.settledResult("PENDING", "FINISHED", true, false, 2, 1, "1x"))
