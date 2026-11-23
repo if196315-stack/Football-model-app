@@ -1446,8 +1446,10 @@ class MainActivity : Activity() {
                 }
                 statsBetViewCache = calculated
                 statsBetCalculationError = calculationError
+                // A cached stats screen may have been detached while this calculation
+                // ran. Always invalidate it, even if the user is on another tab now.
+                tabViewCache.remove("stats|ALL")
                 if (currentTab == "stats") {
-                    tabViewCache.remove("stats|ALL")
                     // Rebuild without a fade; keep the existing scroll position.
                     render()
                 }
