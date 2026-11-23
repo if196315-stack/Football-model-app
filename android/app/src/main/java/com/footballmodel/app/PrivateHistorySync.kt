@@ -104,10 +104,12 @@ object PrivateHistorySync {
             }
 
             val remoteFile = request(token, "GET", null)
-            val remotePayload = remoteFile?.optJSONObject("payload")
-                ?: remoteFile?.optString("content")?.takeIf { it.isNotBlank() }?.let {
-                    try { JSONObject(it) } catch (_: Exception) { null }
-                }
+            val remotePayload = remoteFile?.optString("content")?.takeIf { it.isNotBlank() }?.let {
+                try {
+                    val decoded = Base64.decode(it.replace("\\n", ""), Base64.DEFAULT)
+                    JSONObject(String(decoded, StandardCharsets.UTF_8))
+                } catch (_: Exception) { null }
+            }
             val mergedBets = mergeRows(remotePayload?.optJSONArray("bets") ?: JSONArray(), localBets,
                 "id", listOf("date", "matchId", "marketKey", "source", "createdAt"))
             val mergedSignals = mergeRows(remotePayload?.optJSONArray("signals") ?: JSONArray(), localSignals,
