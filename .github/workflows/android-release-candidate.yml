@@ -88,8 +88,8 @@ jobs:
       - name: Verify signed APK
         if: github.event_name != 'pull_request'
         run: |
-          apksigner verify --verbose android/app/build/outputs/apk/release/app-release.apk
-          apksigner verify --print-certs android/app/build/outputs/apk/release/app-release.apk
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose android/app/build/outputs/apk/release/app-release.apk
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --print-certs android/app/build/outputs/apk/release/app-release.apk
 
       - name: Upload signed release candidate
         if: github.event_name != 'pull_request'
