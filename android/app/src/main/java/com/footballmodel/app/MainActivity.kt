@@ -1621,7 +1621,6 @@ class MainActivity : Activity() {
             header.addView(label("СТАВКИ", 8, true, muted), LinearLayout.LayoutParams(0, -2, 0.8f))
             header.addView(label("СР.КЭФ", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.55f))
             header.addView(label("ROI", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
-            header.addView(label("W/L", 8, true, muted).apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 0.65f))
             box.addView(header)
         }
         if (rows.isEmpty()) {
@@ -1631,7 +1630,7 @@ class MainActivity : Activity() {
         rows.take(limit).forEachIndexed { index, item ->
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(5), 0, dp(5)) }
             row.addView(label((index + 1).toString() + ". " + item.label, 10, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1.5f))
-            row.addView(label(item.count.toString() + " · " + item.wins + "/" + item.losses, 9, false, muted).apply { typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.8f))
+            row.addView(label(item.count.toString(), 9, false, muted).apply { typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.8f))
             if (showAverageOdds) {
                 row.addView(label(if (item.count > 0) String.format(Locale.US, "%.2f", item.averageOdds) else "—", 9, true, Color.WHITE).apply { gravity = Gravity.END; typeface = Typeface.MONOSPACE }, LinearLayout.LayoutParams(0, -2, 0.55f))
             }
