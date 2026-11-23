@@ -149,5 +149,11 @@ jobs:
             git add docs/data.json
           fi
           git diff --cached --quiet || git commit -m "Capture frozen MelBet forecast ROI quotes"
+          # Some feed builders may touch already tracked generated files after
+          # the explicit staging list. Commit those tracked updates before rebase
+          # so pull never runs with a dirty index/worktree.
+          git add -u
+          git diff --cached --quiet || git commit -m "Include generated tracked feed updates"
+          git status --short
           git pull --rebase origin main
           git push
