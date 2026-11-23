@@ -1295,7 +1295,7 @@ class MainActivity : Activity() {
         val market: String, val marketKey: String, val league: String, val isCoupon: Boolean
     )
     private data class StatsBetViewCache(
-        val key: String, val current: BetAnalyticsReport, val previous: BetAnalyticsReport?
+        val key: String, val current: BetAnalyticsReport
     )
     @Volatile private var statsBetViewCache: StatsBetViewCache? = null
     @Volatile private var statsBetCalculationError: String? = null
@@ -1422,15 +1422,11 @@ class MainActivity : Activity() {
                         marketKey = item.marketKey)
                 }
                 val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, source)
-                val previous = if (period == "ALL") null else {
-                    val duration = (bounds.second - bounds.first + 1L).coerceAtLeast(1L)
-                    BetAnalyticsCalculator.calculate(records, bounds.first - duration, bounds.first - 1L, source)
-                }
-                StatsBetViewCache(key, current, previous)
+                StatsBetViewCache(key, current)
             } catch (error: Throwable) {
                 android.util.Log.e("IQMatchStats", "Unable to calculate terminal betting analytics", error)
                 calculationError = error.javaClass.simpleName
-                StatsBetViewCache(key, BetAnalyticsCalculator.calculate(emptyList(), 0L, Long.MAX_VALUE, source), null)
+                StatsBetViewCache(key, BetAnalyticsCalculator.calculate(emptyList(), 0L, Long.MAX_VALUE, source))
             }
             runOnUiThread {
                 val isLatestRequest = generation == statsBetCacheGeneration.get()
