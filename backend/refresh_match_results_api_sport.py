@@ -20,8 +20,26 @@ ROOT = Path(__file__).resolve().parents[1]
 FEEDS = (ROOT / "docs" / "data.json", ROOT / "docs" / "uefa-data.json")
 TIMEOUT = 25
 LOOKBACK_DAYS = 4
-FINISHED = {"finished"}
-LIVE = {"inprogress"}
+# Provider status is the authoritative lifecycle signal. API-Sport's nested
+# scoreStatus.final can be null even after its top-level status becomes finished;
+# forwarding that null blocks Android settlement indefinitely.
+FINISHED = {
+    "finished", "ft", "aet", "pen", "after extra time",
+    "after penalties", "match finished",
+}
+LIVE = {"inprogress", "in progress", "live", "1h", "2h", "halftime", "half time"}
+
+
+def normalized_status(match: dict) -> str:
+    return normalized_status(match).replace("_", " ")
+
+
+def is_finished_status(status: str) -> bool:
+    return status in FINISHED
+
+
+def is_live_status(status: str) -> bool:
+    return status in LIVE
 
 
 def response_matches(response: Any) -> tuple[list[dict], int]:
@@ -109,10 +127,11 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
     away_score = score_value(source, "away")
     score_status = source.get("scoreStatus")
     final = score_status.get("final") if isinstance(score_status, dict) else None
-    if final not in (True, False, None) or status != "finished":
-        final = None
+    # A top-level finished status is authoritative even when the optional nested
+    # scoreStatus.final field is absent or null. A live status must never settle.
+    final = True if is_finished_status(status) else False
 
-    mapped_status = "FINISHED" if status == "finished" else "IN_PLAY"
+    mapped_status = "FINISHED" if is_finished_status(status) else "IN_PLAY"
     changed = False
     values = {
         "status": mapped_status,
