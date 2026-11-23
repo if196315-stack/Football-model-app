@@ -2437,7 +2437,7 @@ class MainActivity : Activity() {
                     else -> "ОЖИДАЕТ РАСЧЁТА"
                 }
                 val color = when (state) {
-                    "WON" -> accent
+                    "WON" -> Color.rgb(0, 230, 118)
                     "LOST" -> Color.RED
                     else -> Color.YELLOW
                 }
@@ -2472,7 +2472,7 @@ class MainActivity : Activity() {
                     val possible = stake * odds
                     addText(box, "Возможная выплата: " + fmt(possible) + " ₽ · чистый выигрыш: +" + fmt(possible - stake) + " ₽", 12, true, accent)
                 }
-                if (state == "WON") addText(box, "Чистая прибыль: +" + fmt(stake * (odds - 1)), 12, true, accent)
+                if (state == "WON") addText(box, "Чистая прибыль: +" + fmt(stake * (odds - 1)), 12, true, Color.rgb(0, 230, 118))
                 if (state == "LOST") addText(box, "Убыток: −" + fmt(stake), 12, true, color)
                 if (state == "PUSH") addText(box, "Возврат: " + fmt(stake), 12, true, accent)
                 val actions = LinearLayout(this).apply {
