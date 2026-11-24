@@ -11,6 +11,7 @@ on:
       - "backend/predict_uefa_markets.py"
       - "backend/update_data_pitchapi.py"
       - "backend/build_market_roi.py"
+      - "backend/refresh_kickoff_times_api_sport.py"
       - ".github/workflows/update-data.yml"
   workflow_dispatch:
     inputs:
