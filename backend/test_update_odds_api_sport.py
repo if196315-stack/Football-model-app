@@ -218,7 +218,8 @@ class ApiSportOddsTests(unittest.TestCase):
         source["oddsBk"]["pari"]["markets"]["double_chance"]["stakes"]["1x"]["factor"] = 9.99
         quote = parse_odds(source)
         self.assertEqual(quote["best"]["doubleChance"], {"1x": 1.3, "x2": 2.7})
-        self.assertNotIn("spreads", quote["best"])
+        self.assertEqual({(row["team"], row["point"]) for row in quote["best"]["spreads"]},
+                         {("home", 0.0), ("away", 0.0)})
         self.assertEqual([book["key"] for book in quote["bookmakers"]], ["melbet"])
         self.assertEqual(quote["bestBookmakers"]["doubleChance"]["1x"], "MELBET")
 
