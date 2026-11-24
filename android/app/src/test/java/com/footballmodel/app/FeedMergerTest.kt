@@ -7,9 +7,11 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class FeedMergerTest {
-    @Test fun scheduledUefaMatchesRemainVisibleWithoutFreshMelBetQuotes() {
-        for (code in listOf("UCL", "UEL", "UECL")) {
-            assertEquals(true, FeedMerger.shouldShowScheduledMatch(code, true, false))
+    @Test fun everyLeagueRequiresAllWorkingMarketQuotesForScheduledMatches() {
+        for (code in listOf("PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")) {
+            assertEquals(false, FeedMerger.shouldShowScheduledMatch(code, true, false))
+            assertEquals(true, FeedMerger.shouldShowScheduledMatch(code, true, true))
+            assertEquals(false, FeedMerger.shouldShowScheduledMatch(code, false, true))
         }
     }
 
