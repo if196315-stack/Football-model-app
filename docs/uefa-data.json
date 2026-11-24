@@ -7132,9 +7132,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Feyenoord",
           "away": "FC Porto",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 1,
           "prediction": {
             "1x": 0.6104791919501836,
             "x2": 0.6551637630426635,
@@ -7247,7 +7247,10 @@
             "bookmakerUpdateAgeSeconds": 150.687
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T15:23:35.052549+00:00"
         },
         {
           "id": "m_4SYMzr",
@@ -7407,9 +7410,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Manchester City",
           "away": "Napoli",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "IN_PLAY",
+          "homeScore": 1,
+          "awayScore": 0,
           "prediction": {
             "1x": 0.8362043472028364,
             "x2": 0.3150184400463145,
@@ -7531,7 +7534,10 @@
               "away_score": null
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T15:23:35.052549+00:00"
         },
         {
           "id": "m_13c8QW",
@@ -7644,9 +7650,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Real Madrid",
           "away": "PSV Eindhoven",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "IN_PLAY",
+          "homeScore": 1,
+          "awayScore": 1,
           "prediction": {
             "1x": 0.8277743359916153,
             "x2": 0.31842748169335316,
@@ -7733,7 +7739,10 @@
             "bookmakerUpdateAgeSeconds": 150.687
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T15:23:35.052549+00:00"
         },
         {
           "id": "m_38M4aC",
