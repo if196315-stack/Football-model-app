@@ -91,6 +91,8 @@ def audit_match(session, match, key):
     row = {
         "match_id": match.get("id"), "date": match.get("date"),
         "home": home.get("name"), "away": away.get("name"),
+        "home_team_id": home.get("id"), "away_team_id": away.get("id"),
+        "home_score": match.get("score_home"), "away_score": match.get("score_away"),
         "paired_xg_present": False, "home_xg": None, "away_xg": None,
         "valid_xg_shots": 0,
     }
