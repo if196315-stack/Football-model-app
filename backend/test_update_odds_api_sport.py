@@ -131,6 +131,7 @@ class ApiSportOddsTests(unittest.TestCase):
         source = {"id": 102, "oddsBk": {"melbet": {"markets": {
             "team_total_home_goals": {"status": "open", "stage": "prematch", "stakes": {
                 "Over 1.5": {"lines": [{"argument": 1.5, "factor": 1.87}]},
+                "Over 1.0": {"lines": [{"argument": 1.0, "factor": 1.76}]},
                 "Under 1.5": {"lines": [{"argument": 1.5, "factor": 1.94}]}
             }},
             "total_team_2": {"status": "open", "stage": "prematch", "stakes": {
@@ -140,6 +141,9 @@ class ApiSportOddsTests(unittest.TestCase):
         best = parse_odds(source)["best"]
         self.assertTrue(any(x["team"] == "home" and x["point"] == 1.5
                             and x["side"] == "over" and x["price"] == 1.87
+                            for x in best["teamTotals"]))
+        self.assertTrue(any(x["team"] == "home" and x["point"] == 1.0
+                            and x["side"] == "over" and x["price"] == 1.76
                             for x in best["teamTotals"]))
         self.assertTrue(any(x["team"] == "away" and x["point"] == 0.5
                             and x["side"] == "over" and x["price"] == 1.73

@@ -41,8 +41,6 @@ class UefaMarketPredictionTests(unittest.TestCase):
             for line in ("0.0", "1.0"):
                 asian_handicap = markets["handicap_asian"][team][line]
                 self.assertAlmostEqual(sum(asian_handicap.values()), 1.0, places=10)
-        self.assertEqual(markets["team_total_asian"]["home"]["push"],
-                         markets["team_total_asian"]["home"]["push"])
 
 
     def test_generates_uecl_prediction_and_ignores_archived_unl(self):
