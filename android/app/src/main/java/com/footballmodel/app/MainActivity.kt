@@ -4247,16 +4247,31 @@ class MainActivity : Activity() {
                         cornerRadius = dp(23).toFloat()
                         setStroke(dp(1), Color.rgb(91, 78, 55))
                     }
-                    val minute = m.optInt("elapsed", m.optInt("minute", -1))
+                    val providerMinute = m.optInt("elapsed", m.optInt("minute", -1))
                     val addedMinute = m.optInt("elapsedExtra", m.optInt("extra", -1))
+                    val hasExactKickoff = listOf("utcDate", "dateEvent", "kickoff", "date")
+                        .any { m.optString(it).contains('T') }
+                    // If the provider omits its live clock, estimate elapsed time from
+                    // the exact kickoff timestamp instead of rendering "LIVE · LIVE".
+                    val estimatedMinute = if (providerMinute < 0 && cardStatus != "PAUSED" && hasExactKickoff) {
+                        kickoffTimestamp(m)?.let { kickoff ->
+                            ((System.currentTimeMillis() - kickoff) / 60_000L).toInt().coerceIn(0, 130)
+                        } ?: -1
+                    } else -1
+                    val minute = if (providerMinute >= 0) providerMinute else estimatedMinute
+                    val minuteLabel = (if (providerMinute < 0 && minute >= 0) "~" else "") + "${minute}′"
                     val clockText = when {
-                        cardStatus == "PAUSED" -> if (minute >= 0) "ПЕРЕРЫВ · ${minute}′" else "ПЕРЕРЫВ"
-                        minute >= 0 && addedMinute > 0 -> "${minute}′ +${addedMinute}"
-                        minute >= 0 -> "${minute}′"
-                        else -> if (cardStatus == "PAUSED") "ПЕРЕРЫВ" else "LIVE"
+                        cardStatus == "PAUSED" -> if (providerMinute >= 0) "ПЕРЕРЫВ · ${providerMinute}′" else "ПЕРЕРЫВ"
+                        minute >= 0 && addedMinute > 0 -> "${minuteLabel} +${addedMinute}"
+                        minute >= 0 -> minuteLabel
+                        else -> ""
                     }
                     val liveBadge = TextView(this).apply {
-                        text = if (cardStatus == "PAUSED") "Ⅱ  ${clockText}" else "●  LIVE  ·  ${clockText}"
+                        text = when {
+                            cardStatus == "PAUSED" -> "Ⅱ  ${clockText}"
+                            clockText.isBlank() -> "●  LIVE"
+                            else -> "●  LIVE  ·  ${clockText}"
+                        }
                         textSize = 11f
                         typeface = Typeface.DEFAULT_BOLD
                         gravity = Gravity.CENTER
