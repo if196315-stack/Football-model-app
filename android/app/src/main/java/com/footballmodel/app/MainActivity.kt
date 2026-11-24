@@ -2271,9 +2271,12 @@ class MainActivity : Activity() {
                 ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
             // A stale settled row must reopen from its own stored kickoff even if
             // a renamed/re-keyed fixture cannot be matched in the latest feed.
-            val kickoffInFuture = (match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(existing))
-                ?.let { it > System.currentTimeMillis() } == true
-            if (BetSettlement.shouldReopenSettledBet(existing.optString("status"), matchStatus, kickoffInFuture)) {
+            val kickoffMillis = match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(existing)
+            val nowMillis = System.currentTimeMillis()
+            val kickoffInFuture = kickoffMillis?.let { it > nowMillis } == true
+            val kickoffRecentlyPassed = BetSettlement.isKickoffWithinReopenWindow(kickoffMillis, nowMillis)
+            if (BetSettlement.shouldReopenSettledBet(existing.optString("status"), matchStatus,
+                    kickoffInFuture, kickoffRecentlyPassed)) {
                 existing.put("status", "PENDING").put("matchStatus", matchStatus)
                 existing.remove("score")
                 changed = true
@@ -2572,9 +2575,12 @@ class MainActivity : Activity() {
             val match = findIndexedMatch(bet)
             val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
                 ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
-            val kickoffInFuture = (match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(bet))
-                ?.let { it > System.currentTimeMillis() } == true
-            if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus, kickoffInFuture)) {
+            val kickoffMillis = match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(bet)
+            val nowMillis = System.currentTimeMillis()
+            val kickoffInFuture = kickoffMillis?.let { it > nowMillis } == true
+            val kickoffRecentlyPassed = BetSettlement.isKickoffWithinReopenWindow(kickoffMillis, nowMillis)
+            if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus,
+                    kickoffInFuture, kickoffRecentlyPassed)) {
                 bet.put("status", "PENDING").put("matchStatus", matchStatus)
                 bet.remove("score")
                 changed = true
