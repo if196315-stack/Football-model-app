@@ -1939,7 +1939,7 @@ class MainActivity : Activity() {
             hero.addView(label("Открытые ставки и возможная выплата рассчитаны за выбранный период по тем же правилам отбора, что и статистика ТОП.", 9, false, muted))
             val bankRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             terminalMetric(bankRow, "СРЕДНЯЯ СТАВКА", if (report.overall.averageStake > 0) fmt(report.overall.averageStake) else "—", Color.WHITE)
-            terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", if (hasInitialBankroll()) fmt(currentBankroll()) else "ЗАДАЙТЕ СТАРТОВЫЙ БАНК", gold)
+            terminalMetric(bankRow, "РАСЧЁТНЫЙ БАНК", if (hasInitialBankroll()) fmt(currentBankroll()) else "НЕ ЗАДАН", gold)
             hero.addView(bankRow)
             hero.addView(label(
                 "Это текущий остаток: стартовый банк + чистая прибыль рассчитанных ставок − проигранные и зарезервированные открытые ставки. Считается по всем ставкам за всё время и не меняется при выборе периода.",
