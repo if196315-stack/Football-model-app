@@ -4006,7 +4006,7 @@ class MainActivity : Activity() {
         }
         // Render one independent card for each eligible market. Keep the match
         // chronology from collectAiCandidates; within the same kickoff, Kelly order
-        // from eligibleTopSignals puts the strongest market first.
+        // from eligibleTopSignals puts the strongest market first; cards remain chronological.
         val openSignals = sorted.flatMap { item ->
             val (match, league, bundle) = item
             val signals = mutableListOf<JSONObject>()
