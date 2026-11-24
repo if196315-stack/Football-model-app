@@ -3308,8 +3308,13 @@ class MainActivity : Activity() {
             for (i in 0 until rows.length()) {
                 val row = rows.optJSONObject(i) ?: continue
                 if (!row.optString("side").equals("over", true)) continue
-                if (kotlin.math.abs(row.optDouble("point", Double.NaN) - point) >= 0.001) continue
-                if (team != null && !row.optString("team").equals(team, true)) continue
+                val line = row.optDouble("point", Double.NaN)
+                if (!line.isFinite() || kotlin.math.abs(line - point) >= 0.001) continue
+                if (team != null) {
+                    val rowTeam = row.optString("team").trim()
+                    val expectedTeam = if (team == "home") match.optString("home") else match.optString("away")
+                    if (!rowTeam.equals(team, true) && !rowTeam.equals(expectedTeam, true)) continue
+                }
                 if (price(row.optDouble("price", Double.NaN))) return true
             }
             return false
