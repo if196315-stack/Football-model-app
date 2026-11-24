@@ -212,8 +212,20 @@ def settled_records(quotes, domestic, uefa):
             # from feed competition codes (PL/PD/...). A unique fixture ID is safe.
             matches = [match for (_, match_id), match in final_by_identity.items()
                        if match_id == str(fixture)]
-            if len(matches) == 1:
-                final = matches[0]
+            # The same domestic final can occur in both evaluationMatches and
+            # competitions, with the former lacking leagueCode. Collapse that
+            # duplicate by fixture facts, but keep genuinely ambiguous IDs out.
+            unique = {}
+            for match in matches:
+                signature = (
+                    str(match.get("home") or match.get("homeTeam") or ""),
+                    str(match.get("away") or match.get("awayTeam") or ""),
+                    str(match.get("utcDate") or match.get("date") or ""),
+                    str(match.get("homeScore")), str(match.get("awayScore")),
+                )
+                unique[signature] = match
+            if len(unique) == 1:
+                final = next(iter(unique.values()))
         row = dict(quote)
         if final is not None:
             try:
