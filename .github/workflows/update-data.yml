@@ -64,6 +64,13 @@ jobs:
       # in this workflow's checkout. Applying it here would read an empty archive
       # and delete every upcoming domestic fixture. The all-eight collector owns
       # snapshot application after it captures the archive in the same run.
+      # PitchAPI supplies fixture dates, while API-Sport/MelBet provides the actual kickoff timestamp.
+      # Run this after every feed rebuild so the scheduled updater cannot leave date-only fixtures behind.
+      - name: Refresh kickoff times and MelBet odds
+        continue-on-error: true
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/update_odds_api_sport.py
       - name: Refresh settled ALL-market ROI from the durable quote archive
         run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl
       - name: Commit updated data and ROI
