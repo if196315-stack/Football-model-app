@@ -37,6 +37,13 @@ class SettledMarketHistoryTest {
         assertEquals(-1.0, merged.getJSONObject(0).getDouble("profit_units"), 0.00001)
     }
 
+    @Test fun identicalSourceSnapshotAlreadyCoveredByCloudIsNotRewritten() {
+        val remote = JSONArray().put(row("SETTLED")).put(row("SETTLED").put("fixture_id", "202"))
+        val current = JSONArray().put(row("SETTLED"))
+        assertTrue(SettledMarketHistory.containsAll(remote, current))
+        assertTrue(!SettledMarketHistory.containsAll(current, remote))
+    }
+
     @Test fun olderFeedCannotOverwriteNewerCloudResultAndRemoteHistoryIsRetained() {
         val newer = row("SETTLED", 1.8, -1.0).put("result", "LOSS")
         val unrelated = row("SETTLED").put("fixture_id", "202")
