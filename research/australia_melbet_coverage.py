@@ -10,7 +10,7 @@ import requests
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
-from update_odds_api_sport import URL, match_fixture, parse_odds
+from update_odds_api_sport import URL, match_fixture, parse_odds, market_kind, market_label, lines, is_supported_full_time_market
 
 PITCH="https://api.pitchapi.dev/v1"
 LEAGUE_ID="l_4MPd7x"
@@ -97,7 +97,7 @@ def main():
           "freshness":parsed.get("freshnessStatus"),
           "board_updated_at":parsed.get("bookmakerUpdatedAt"),
           "team_total_over_1_0":tt,"asian_handicap_0_or_plus1":spreads,
-          "match_over_2_5":totals,"btts_yes":btts.get("yes")})
+          "match_over_2_5":totals,"btts_yes":btts.get("yes"),"match_total_2_5_both_sides":raw_totals,"btts_both_sides":raw_btts})
     report={"generated_at":now.isoformat(),"competition":"A-League Men",
       "season":SEASON,"odds_provider":"API-Sport","bookmaker_only":"MelBet",
       "scope":"upcoming fixtures; read-only; no betting or app feed writes",
