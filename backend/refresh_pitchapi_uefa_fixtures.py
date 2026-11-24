@@ -133,17 +133,23 @@ def normalize_match(raw: dict, code: str, league: dict, season: str) -> dict | N
         return None
     home = raw.get("home_team") or {}
     away = raw.get("away_team") or {}
+    status = str(raw.get("status") or "unknown").casefold()
+    elapsed_values = [raw.get(field) for field in ("elapsed", "minute", "elapsed_minutes")
+                      if isinstance(raw.get(field), (int, float))]
+    second_half = status in ("2h", "second_half", "in_play_second_half")
+    elapsed = max(elapsed_values) if second_half and elapsed_values else (
+        elapsed_values[0] if elapsed_values else None
+    )
     return {
         "id": str(match_id), "provider": "PitchAPI",
         "leagueCode": code, "leagueId": league.get("id"),
         "leagueName": league.get("name"), "season": season,
         "date": raw.get("date") or raw.get("time_utc"),
-        "status": str(raw.get("status") or "unknown").casefold(),
+        "status": status,
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
         "homeScore": raw.get("score_home"), "awayScore": raw.get("score_away"),
-        "elapsed": next((raw.get(field) for field in ("elapsed", "minute", "elapsed_minutes")
-                         if raw.get(field) is not None), None),
+        "elapsed": elapsed,
         "elapsedExtra": next((raw.get(field) for field in ("elapsed_extra", "elapsedExtra", "extra_time_minutes")
                               if raw.get(field) is not None), None),
         "roundName": raw.get("round_name"), "hasPlayoff": raw.get("has_playoff"),
