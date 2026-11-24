@@ -26,7 +26,8 @@ class AsianMarketRoiTests(unittest.TestCase):
         self.assertEqual(market_result({"market_key": "away_itb10"}, 0, 2), "WIN")
         self.assertEqual(market_result({"market_key": "home_f0"}, 1, 1), "PUSH")
         self.assertEqual(market_result({"market_key": "away_f0"}, 2, 1), "LOSS")
-        self.assertEqual(market_result({"market_key": "home_fplus1"}, 0, 2), "PUSH")
+        self.assertEqual(market_result({"market_key": "home_fplus1"}, 0, 1), "PUSH")
+        self.assertEqual(market_result({"market_key": "home_fplus1"}, 0, 2), "LOSS")
         self.assertEqual(market_result({"market_key": "away_fplus1"}, 0, 2), "WIN")
 
     def test_freezes_melbet_quotes_and_settles_push_as_zero_profit(self):
