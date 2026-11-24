@@ -83,7 +83,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json docs/market-roi.json
+          git add docs/data.json docs/uefa-data.json docs/market-roi.json
           git diff --cached --quiet || git commit -m "Update PitchAPI data and settled market ROI"
           git pull --rebase origin main
           git push
