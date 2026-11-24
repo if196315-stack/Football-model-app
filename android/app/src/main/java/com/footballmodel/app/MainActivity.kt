@@ -946,7 +946,9 @@ class MainActivity : Activity() {
     private fun liveElapsedMinute(match: JSONObject): Int {
         val providerMinute = match.optInt("elapsed", match.optInt("minute", -1))
         val period = match.optString("period").trim().uppercase(Locale.ROOT)
-        val isSecondHalf = period in setOf("SECOND_HALF", "2H", "IN_PLAY_SECOND_HALF")
+        val status = match.optString("status").trim().uppercase(Locale.ROOT)
+        val isSecondHalf = period in setOf("SECOND_HALF", "2H", "IN_PLAY_SECOND_HALF") ||
+            status in setOf("SECOND_HALF", "2H", "IN_PLAY_SECOND_HALF")
         if (isSecondHalf && providerMinute in 0..45) {
             val kickoff = kickoffTimestamp(match)
             if (kickoff != null) {
@@ -1243,11 +1245,12 @@ class MainActivity : Activity() {
                             kickoffTimestamp(match)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
                         }
                     }
-                    if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
-                        fixtureDate.isNotBlank() && fixtureDate >= today &&
-                        FeedMerger.shouldShowScheduledMatch(
-                            code, match.optJSONObject("prediction") != null,
-                            hasStrategyPredictionWithActiveMelBetLine(match)
+                    val matchStatus = match.optString("status")
+                    val kickoffDayHasPassed = fixtureDate.isNotBlank() && fixtureDate < today
+                    if (FeedMerger.shouldKeepInLine(
+                            matchStatus,
+                            kickoffDayHasPassed,
+                            hasAllStrategyMarketsWithActiveMelBetLines(match)
                         )
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
@@ -4274,19 +4277,16 @@ class MainActivity : Activity() {
                     }
                 }
                 val normalizedMatchStatus = matchStatus.trim().uppercase(Locale.ROOT)
-                val isLiveMatch = normalizedMatchStatus in setOf("IN_PLAY", "LIVE", "PAUSED")
-                val isScheduledMatch = normalizedMatchStatus in listOf("SCHEDULED", "TIMED")
+                val isLiveMatch = FeedMerger.isLiveStatus(normalizedMatchStatus)
                 val kickoffDayHasPassed = fixtureDate.isNotBlank() && fixtureDate < fixtureToday
-                val isTerminalMatch = normalizedMatchStatus in setOf(
-                    "FINISHED", "FT", "FULL_TIME", "CANCELED", "CANCELLED", "AWARDED", "ABANDONED"
-                )
-                // Keep an overdue fixture (including postponed/unknown non-final states) visible
-                // until the provider reports a terminal result, regardless of the calendar day.
-                if (isLiveMatch || (kickoffDayHasPassed && !isTerminalMatch) ||
-                    (isScheduledMatch && FeedMerger.shouldShowScheduledMatch(
-                        league.optString("code"), hasCompleteModelPrediction(m),
+                // Use the same gate as league counters: every competition requires
+                // all active strategy markets before kickoff; live/overdue fixtures
+                // remain visible until an authoritative terminal status arrives.
+                if (FeedMerger.shouldKeepInLine(
+                        normalizedMatchStatus,
+                        kickoffDayHasPassed,
                         hasAllStrategyMarketsWithActiveMelBetLines(m)
-                    ))) {
+                    )) {
                     upcoming.add(m)
                     if (!isLiveMatch) {
                         totalUpcoming++
@@ -4335,12 +4335,12 @@ class MainActivity : Activity() {
                 addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
             upcoming.sortedWith(
-                compareBy<JSONObject> { if (it.optString("status").uppercase(Locale.ROOT) in setOf("IN_PLAY", "LIVE", "PAUSED")) 0 else 1 }
+                compareBy<JSONObject> { if (FeedMerger.isLiveStatus(it.optString("status"))) 0 else 1 }
                     .then(MatchKickoffOrdering.comparator())
             ).forEach { m ->
                 val box = card(content)
                 val cardStatus = m.optString("status").trim().uppercase(Locale.ROOT)
-                if (cardStatus in setOf("IN_PLAY", "LIVE", "PAUSED")) {
+                if (FeedMerger.isLiveStatus(cardStatus)) {
                     box.setPadding(dp(13), dp(12), dp(13), dp(12))
                     box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
                         intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply {
@@ -4353,10 +4353,11 @@ class MainActivity : Activity() {
                         .any { m.optString(it).contains('T') }
                     // If the provider omits its live clock, estimate elapsed time from
                     // the exact kickoff timestamp instead of rendering "LIVE · LIVE".
-                    val estimatedMinute = if (providerMinute < 0 && cardStatus != "PAUSED" && hasExactKickoff) {
+                    val estimatedMinute = if (providerMinute < 0 && cardStatus !in setOf("PAUSED", "HALFTIME", "HALF_TIME", "BREAK") && hasExactKickoff) {
                         kickoffTimestamp(m)?.let { kickoff ->
                             val wallMinutes = ((System.currentTimeMillis() - kickoff) / 60_000L).toInt()
-                            (wallMinutes - if (m.optString("period").equals("SECOND_HALF", true)) 15 else 0)
+                            (wallMinutes - if (m.optString("period").equals("SECOND_HALF", true) ||
+                                cardStatus in setOf("SECOND_HALF", "2H", "IN_PLAY_SECOND_HALF")) 15 else 0)
                                 .coerceIn(0, 130)
                         } ?: -1
                     } else -1
