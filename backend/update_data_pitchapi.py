@@ -327,6 +327,7 @@ def app_status(raw: str, match_date: str | None = None,
         "finished": "FINISHED", "scheduled": "SCHEDULED",
         "timed": "TIMED", "not_started": "SCHEDULED",
         "in_play": "IN_PLAY", "in play": "IN_PLAY",
+        "in_play_first_half": "IN_PLAY", "in_play_second_half": "IN_PLAY",
         "in_progress": "IN_PLAY", "in progress": "IN_PLAY", "inprogress": "IN_PLAY",
         "1h": "IN_PLAY", "2h": "IN_PLAY", "first_half": "IN_PLAY", "second_half": "IN_PLAY",
         "paused": "PAUSED", "halftime": "PAUSED", "half_time": "PAUSED", "break": "PAUSED",
@@ -334,6 +335,15 @@ def app_status(raw: str, match_date: str | None = None,
         "canceled": "CANCELED", "cancelled": "CANCELED",
         "awarded": "AWARDED",
     }.get(value, value.upper())
+
+
+def app_period(raw: str) -> str | None:
+    value = str(raw or "").strip().casefold().replace("-", "_").replace(" ", "_")
+    if value in ("2h", "second_half", "in_play_second_half"):
+        return "SECOND_HALF"
+    if value in ("1h", "first_half", "in_play_first_half"):
+        return "FIRST_HALF"
+    return None
 
 
 
@@ -443,6 +453,8 @@ def run() -> dict:
                 "id": row["id"], "utcDate": date, "status": status,
                 "home": home, "away": away,
                 "homeScore": row.get("homeScore"), "awayScore": row.get("awayScore"),
+                "elapsed": row.get("elapsed"), "elapsedExtra": row.get("elapsedExtra"),
+                "period": app_period(row.get("status")),
                 "prediction": pred, "predictionWarning": warning,
             })
         item["matches"].sort(key=lambda x: x.get("utcDate") or "")
