@@ -153,6 +153,10 @@ def app_match_status(raw: Any) -> str:
         "scheduled": "SCHEDULED",
         "timed": "TIMED",
         "in_play": "IN_PLAY",
+        "in_play_first_half": "IN_PLAY",
+        "in_play_second_half": "IN_PLAY",
+        "first_half": "IN_PLAY",
+        "second_half": "IN_PLAY",
         "in_progress": "IN_PLAY",
         "inprogress": "IN_PLAY",
         "in progress": "IN_PLAY",
@@ -281,6 +285,9 @@ def build_feed(
             "awayScore": fixture.get("awayScore"),
             "elapsed": fixture.get("elapsed"),
             "elapsedExtra": fixture.get("elapsedExtra"),
+            "period": ("SECOND_HALF" if status in ("second_half", "in_play_second_half", "2h")
+                       else "FIRST_HALF" if status in ("first_half", "in_play_first_half", "1h")
+                       else fixture.get("period")),
             "prediction": _app_prediction(model) if model else (archived.get("prediction") if archived else None),
             "odds": build_odds(odds_by_fixture.get(str(fixture_id), [])),
             "paperSignals": fixture_papers,
