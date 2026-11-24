@@ -997,8 +997,7 @@ class MainActivity : Activity() {
     // Conditional HTTP requests avoid downloading identical JSON on every refresh.
     // The last good response is retained locally and used when the network is unavailable.
     private fun fetchFeed(url: String, cacheKey: String, required: Boolean): String? {
-        val cached = readFeedCache(cacheKey)
-        val etag = feedCache.getString("${cacheKey}_etag", null)
+        val cached = readFeedCache(cacheKey)        val etag = feedCache.getString("${cacheKey}_etag", null)
         var conn: HttpURLConnection? = null
         try {
             // Bypass intermediary raw-GitHub CDN caches while retaining ETag validation
@@ -1997,8 +1996,7 @@ class MainActivity : Activity() {
                                 timeZone = java.util.TimeZone.getTimeZone("UTC")
                             }.format(Date(it)))
                         }
-                } else StatsPredictionScope.matchDateMillis(bet.optString("date"))
-                val day = periodDate ?: continue
+                } else StatsPredictionScope.matchDateMillis(bet.optString("date"))                val day = periodDate ?: continue
                 if (day !in periodBounds.first..periodBounds.second) continue
                 if (status == "PENDING") {
                     topPendingRecords.add(AnalyticsBet(
@@ -2997,8 +2995,7 @@ class MainActivity : Activity() {
         addText(glossary, "Коэффициент MelBet", 12, true, Color.WHITE)
         addText(glossary, "Выплата вместе с возвращаемой ставкой. При коэффициенте 2.00 выигрыш возвращает 2 ₽ на каждый поставленный 1 ₽.", 10, false, muted)
         addText(glossary, "Историческая база", 12, true, Color.WHITE)
-        addText(glossary, "Доля таких исходов в похожих матчах до даты игры; рядом указано число матчей в выборке. Это сравнение с историей, не обещание результата.", 10, false, muted)
-        addText(glossary, "Edge — преимущество", 12, true, Color.WHITE)
+        addText(glossary, "Доля таких исходов в похожих матчах до даты игры; рядом указано число матчей в выборке. Это сравнение с историей, не обещание результата.", 10, false, muted)        addText(glossary, "Edge — преимущество", 12, true, Color.WHITE)
         addText(glossary, "Разница между вероятностью модели и вероятностью безубыточности по коэффициенту, в процентных пунктах. В ТОП может учитываться поправка на форму.", 10, false, muted)
         addText(glossary, "EV — ожидаемая ценность", 12, true, Color.WHITE)
         addText(glossary, "Вероятность модели × коэффициент − 1. EV +5% — расчётное ожидание +5 копеек на 1 ₽ ставки на длинной дистанции, а не прибыль в конкретном матче.", 10, false, muted)
@@ -3997,8 +3994,7 @@ class MainActivity : Activity() {
                 if (topSignalOdds(signal, m) == null) continue
                 items.add(Triple(m, league.optString("name"), signal))
             }
-        }
-        val sorted = items.sortedByDescending { it.third.optDouble("selectionEdgePp", it.third.optDouble("edgePp")) }
+        }        val sorted = items.sortedByDescending { it.third.optDouble("selectionEdgePp", it.third.optDouble("edgePp")) }
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · СИГНАЛЫ ТОП", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
@@ -4247,25 +4243,76 @@ class MainActivity : Activity() {
                         cornerRadius = dp(23).toFloat()
                         setStroke(dp(1), Color.rgb(91, 78, 55))
                     }
+                    val minute = m.optInt("elapsed", m.optInt("minute", -1))
+                    val addedMinute = m.optInt("elapsedExtra", m.optInt("extra", -1))
+                    val clockText = when {
+                        cardStatus == "PAUSED" -> if (minute >= 0) "ПЕРЕРЫВ · ${minute}′" else "ПЕРЕРЫВ"
+                        minute >= 0 && addedMinute > 0 -> "${minute}′ +${addedMinute}"
+                        minute >= 0 -> "${minute}′"
+                        else -> if (cardStatus == "PAUSED") "ПЕРЕРЫВ" else "LIVE"
+                    }
                     val liveBadge = TextView(this).apply {
-                        text = if (cardStatus == "PAUSED") "Ⅱ  ПЕРЕРЫВ" else "●  LIVE"
+                        text = if (cardStatus == "PAUSED") "Ⅱ  ${clockText}" else "●  LIVE  ·  ${clockText}"
                         textSize = 11f
                         typeface = Typeface.DEFAULT_BOLD
+                        gravity = Gravity.CENTER
                         setTextColor(accent)
-                        setPadding(dp(9), dp(5), dp(9), dp(5))
+                        setPadding(dp(11), dp(5), dp(11), dp(5))
                         background = GradientDrawable().apply {
                             setColor(Color.rgb(39, 35, 29))
                             cornerRadius = dp(9).toFloat()
                             setStroke(dp(1), Color.rgb(139, 105, 57))
                         }
                     }
-                    box.addView(liveBadge)
-                    addMatchup(box, m.optString("home"), m.optString("away"))
+                    box.addView(liveBadge, LinearLayout.LayoutParams(-2, -2).apply {
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        bottomMargin = dp(9)
+                    })
+
+                    val homeName = label(m.optString("home"), 12, true, Color.WHITE).apply {
+                        gravity = Gravity.CENTER
+                        maxLines = 2
+                        includeFontPadding = false
+                    }
+                    val awayName = label(m.optString("away"), 12, true, Color.WHITE).apply {
+                        gravity = Gravity.CENTER
+                        maxLines = 2
+                        includeFontPadding = false
+                    }
+                    val homeBlock = LinearLayout(this).apply {
+                        orientation = LinearLayout.VERTICAL
+                        gravity = Gravity.CENTER
+                    }
+                    homeBlock.addView(teamCrest(m.optString("home"), Color.rgb(35, 112, 132)),
+                        LinearLayout.LayoutParams(dp(36), dp(36)))
+                    homeBlock.addView(homeName)
+                    val awayBlock = LinearLayout(this).apply {
+                        orientation = LinearLayout.VERTICAL
+                        gravity = Gravity.CENTER
+                    }
+                    awayBlock.addView(teamCrest(m.optString("away"), Color.rgb(119, 77, 91)),
+                        LinearLayout.LayoutParams(dp(36), dp(36)))
+                    awayBlock.addView(awayName)
+
                     val liveScore = if (!m.isNull("homeScore") && !m.isNull("awayScore"))
-                        "${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else "Счёт обновляется"
-                    addText(box, liveScore, 20, true, Color.WHITE)
-                    val minute = m.optInt("elapsed", m.optInt("minute", -1))
-                    if (minute >= 0) addText(box, "${minute}′", 10, false, muted)
+                        "${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else "— : —"
+                    val scoreView = label(liveScore, 24, true, Color.WHITE).apply {
+                        gravity = Gravity.CENTER
+                        includeFontPadding = false
+                        maxLines = 1
+                    }
+                    val matchupRow = LinearLayout(this).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
+                        setPadding(dp(2), dp(2), dp(2), dp(5))
+                    }
+                    matchupRow.addView(homeBlock, LinearLayout.LayoutParams(0, -2, 1f))
+                    matchupRow.addView(scoreView, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                        leftMargin = dp(4)
+                        rightMargin = dp(4)
+                    })
+                    matchupRow.addView(awayBlock, LinearLayout.LayoutParams(0, -2, 1f))
+                    box.addView(matchupRow, LinearLayout.LayoutParams(-1, -2))
                     addText(box, "Матч уже идёт. Предматчевые котировки и сигналы не используются как live-линия.", 10, false, muted)
                     return@forEach
                 }
