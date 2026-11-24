@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24T13:48:23.393488+00:00",
+  "updatedAt": "2026-11-24T16:40:01.847760+00:00",
   "source": "PitchAPI fixtures/xG + API-Sport fixtures/MelBet",
   "paperOnly": true,
   "predictionArchive": {
@@ -6781,8 +6781,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.1,
-                "x2": 2.73
+                "1x": 1.09,
+                "x2": 2.81
               },
               "totals": [
                 {
@@ -6801,19 +6801,19 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.67
+                  "price": 1.7
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 3.06
+                  "price": 3.15
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 4.71
+                  "price": 4.86
                 },
                 {
                   "team": "home",
@@ -6831,40 +6831,35 @@
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.55
+                  "price": 1.54
                 }
               ],
               "btts": {
-                "yes": 1.9
+                "yes": 1.92
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.16
-                },
-                {
-                  "team": "home",
-                  "point": 1.0,
-                  "price": 1.01
+                  "price": 1.15
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 5.19
+                  "price": 5.43
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 2.11
+                  "price": 2.16
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.686
+            "bookmakerUpdateAgeSeconds": 228.302
           },
           "paperSignals": [
             {
@@ -6991,11 +6986,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.686
+            "bookmakerUpdateAgeSeconds": 228.302
           },
           "paperSignals": [
             {
@@ -7051,18 +7046,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.05,
-                "x2": 3.6
+                "x2": 3.65
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.1
+                  "price": 1.08
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.36
+                  "price": 1.33
                 }
               ],
               "teamTotals": [
@@ -7070,35 +7065,29 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.55
+                  "price": 1.52
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.5
+                  "price": 2.34
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.92
-                },
-                {
-                  "team": "home",
-                  "point": 1.0,
-                  "side": "over",
-                  "price": 1.03
+                  "price": 3.69
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.26
+                  "price": 1.24
                 }
               ],
               "btts": {
-                "yes": 1.65
+                "yes": 1.6
               },
               "spreads": [
                 {
@@ -7114,15 +7103,15 @@
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 2.98
+                  "price": 3.02
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [],
           "paperOnly": true
@@ -7132,9 +7121,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Feyenoord",
           "away": "FC Porto",
-          "status": "IN_PLAY",
-          "homeScore": 0,
-          "awayScore": 1,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
           "prediction": {
             "1x": 0.6104791919501836,
             "x2": 0.6551637630426635,
@@ -7161,19 +7150,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.76,
-                "x2": 1.32
+                "1x": 1.72,
+                "x2": 1.33
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.2
+                  "price": 1.22
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.66
+                  "price": 1.71
                 }
               ],
               "teamTotals": [
@@ -7181,76 +7170,73 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.16
+                  "price": 1.17
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.29
+                  "price": 1.32
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.85
+                  "price": 1.93
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.29
+                  "price": 1.31
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.63
+                  "price": 1.67
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.52
+                  "price": 2.59
                 }
               ],
               "btts": {
-                "yes": 1.57
+                "yes": 1.6
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.45
+                  "price": 2.4
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.39
+                  "price": 1.36
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.55
+                  "price": 1.57
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.11
+                  "price": 1.12
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": false,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T15:23:35.052549+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_4SYMzr",
@@ -7286,19 +7272,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.66,
-                "x2": 1.41
+                "1x": 1.78,
+                "x2": 1.34
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.16
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.5
+                  "price": 1.53
                 }
               ],
               "teamTotals": [
@@ -7306,70 +7292,70 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.13
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.25
+                  "price": 1.23
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.78
+                  "price": 1.73
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.21
+                  "price": 1.25
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.4
+                  "price": 1.5
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.1
+                  "price": 2.28
                 }
               ],
               "btts": {
-                "yes": 1.44
+                "yes": 1.47
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.18
+                  "price": 2.41
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.34
+                  "price": 1.41
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.68
+                  "price": 1.57
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.17
+                  "price": 1.13
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.686
+            "bookmakerUpdateAgeSeconds": 228.302
           },
           "paperSignals": [
             {
@@ -7410,9 +7396,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Manchester City",
           "away": "Napoli",
-          "status": "IN_PLAY",
-          "homeScore": 1,
-          "awayScore": 0,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
           "prediction": {
             "1x": 0.8362043472028364,
             "x2": 0.3150184400463145,
@@ -7446,7 +7432,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.3
+                  "price": 1.29
                 }
               ],
               "teamTotals": [
@@ -7454,29 +7440,29 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.5
+                  "price": 1.49
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.29
+                  "price": 2.24
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.6
+                  "price": 3.54
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.23
+                  "price": 1.22
                 }
               ],
               "btts": {
-                "yes": 1.58
+                "yes": 1.56
               },
               "spreads": [
                 {
@@ -7496,11 +7482,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.686
+            "bookmakerUpdateAgeSeconds": 228.302
           },
           "paperSignals": [
             {
@@ -7534,10 +7520,7 @@
               "away_score": null
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": false,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T15:23:35.052549+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_13c8QW",
@@ -7636,11 +7619,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.302
           },
           "paperSignals": [],
           "paperOnly": true
@@ -7650,9 +7633,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Real Madrid",
           "away": "PSV Eindhoven",
-          "status": "IN_PLAY",
-          "homeScore": 1,
-          "awayScore": 1,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
           "prediction": {
             "1x": 0.8277743359916153,
             "x2": 0.31842748169335316,
@@ -7680,7 +7663,7 @@
             "best": {
               "doubleChance": {
                 "1x": 1.01,
-                "x2": 6.06
+                "x2": 5.88
               },
               "totals": [
                 {
@@ -7694,19 +7677,19 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.55
+                  "price": 1.52
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.51
+                  "price": 2.4
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.92
+                  "price": 3.79
                 },
                 {
                   "team": "home",
@@ -7722,27 +7705,24 @@
                 }
               ],
               "btts": {
-                "yes": 1.59
+                "yes": 1.55
               },
               "spreads": [
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 5.51
+                  "price": 5.35
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.302
           },
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": false,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T15:23:35.052549+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_38M4aC",
@@ -7778,8 +7758,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 3.79,
-                "x2": 1.05
+                "1x": 3.89,
+                "x2": 1.04
               },
               "totals": [
                 {
@@ -7810,47 +7790,47 @@
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.57
+                  "price": 1.6
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.59
+                  "price": 2.7
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 4.06
+                  "price": 4.27
                 }
               ],
               "btts": {
-                "yes": 1.67
+                "yes": 1.7
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 7.45
+                  "price": 7.86
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 3.12
+                  "price": 3.23
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.09
+                  "price": 1.08
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.302
           },
           "paperSignals": [],
           "paperOnly": true
@@ -7942,11 +7922,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [
             {
@@ -8107,11 +8087,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8150,19 +8130,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 2.26,
+                "1x": 2.23,
                 "x2": 1.18
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.17
+                  "price": 1.19
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.57
+                  "price": 1.62
                 }
               ],
               "teamTotals": [
@@ -8176,46 +8156,46 @@
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.15
+                  "price": 1.17
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.55
+                  "price": 1.6
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.41
+                  "price": 1.43
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.98
+                  "price": 2.06
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.13
+                  "price": 3.27
                 }
               ],
               "btts": {
-                "yes": 1.6
+                "yes": 1.64
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 3.59
+                  "price": 3.57
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.77
+                  "price": 1.75
                 },
                 {
                   "team": "away",
@@ -8225,15 +8205,15 @@
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.04
+                  "price": 1.03
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8346,11 +8326,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8430,11 +8410,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [
             {
@@ -8583,11 +8563,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8660,19 +8640,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.49,
-                "x2": 1.55
+                "1x": 1.51,
+                "x2": 1.54
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.16
+                  "price": 1.15
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.54
+                  "price": 1.52
                 }
               ],
               "teamTotals": [
@@ -8680,19 +8660,19 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.19
+                  "price": 1.18
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.36
+                  "price": 1.34
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.99
+                  "price": 1.95
                 },
                 {
                   "team": "home",
@@ -8704,46 +8684,46 @@
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.32
+                  "price": 1.31
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.94
+                  "price": 1.92
                 }
               ],
               "btts": {
-                "yes": 1.46
+                "yes": 1.44
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.84
+                  "price": 1.85
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.22
+                  "price": 1.23
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.97
+                  "price": 1.95
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.26
+                  "price": 1.25
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.687
+            "bookmakerUpdateAgeSeconds": 228.303
           },
           "paperSignals": [],
           "paperOnly": true
@@ -10687,11 +10667,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [
             {
@@ -10825,11 +10805,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [],
           "paperOnly": true
@@ -10947,11 +10927,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [
             {
@@ -11079,11 +11059,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11184,11 +11164,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11289,11 +11269,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11394,11 +11374,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11499,11 +11479,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [
             {
@@ -11620,11 +11600,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11742,11 +11722,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11864,11 +11844,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11986,11 +11966,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [
             {
@@ -12175,11 +12155,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [
             {
@@ -12307,11 +12287,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [
             {
@@ -12428,11 +12408,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [
             {
@@ -12599,11 +12579,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.304
           },
           "paperSignals": [],
           "paperOnly": true
@@ -14586,11 +14566,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [
             {
@@ -14752,11 +14732,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [
             {
@@ -14867,11 +14847,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [],
           "paperOnly": true
@@ -14983,11 +14963,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [
             {
@@ -15109,11 +15089,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [],
           "paperOnly": true
@@ -15231,11 +15211,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [
             {
@@ -15363,11 +15343,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [
             {
@@ -15563,11 +15543,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [
             {
@@ -15690,11 +15670,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [],
           "paperOnly": true
@@ -15795,11 +15775,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [],
           "paperOnly": true
@@ -15911,11 +15891,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16033,11 +16013,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [
             {
@@ -16171,11 +16151,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.689
+            "bookmakerUpdateAgeSeconds": 228.306
           },
           "paperSignals": [
             {
@@ -16303,11 +16283,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T13:45:52.704000+00:00",
+            "updatedAt": "2026-11-24T16:36:13.541000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 150.688
+            "bookmakerUpdateAgeSeconds": 228.305
           },
           "paperSignals": [
             {
