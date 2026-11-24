@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets
 object PrivateHistorySync {
     private const val REPOSITORY = "if196315-stack/Football-model-app"
     private const val BACKUP_PATH = "private-data/history-v1.json"
+    private const val MARKET_BACKUP_PATH = "private-data/all-market-history-v1.json"
     private const val PREFS = "private_history_auth"
     private const val TOKEN_KEY = "github_token"
     private val syncLock = Any()
@@ -46,6 +47,54 @@ object PrivateHistorySync {
                 Handler(Looper.getMainLooper()).post { done(result.first, result.second) }
             }
         }, "iq-match-history-sync").start()
+    }
+
+    fun syncSettledMarketHistoryAsync(context: Context, marketRoi: JSONObject) {
+        if (!hasToken(context)) return
+        val appContext = context.applicationContext
+        Thread({
+            try { syncSettledMarketHistoryNow(appContext, marketRoi) }
+            catch (error: Throwable) {
+                android.util.Log.w("IQMatchMarketHistory", "Settled ALL-market archive sync failed", error)
+            }
+        }, "iq-match-all-market-sync").start()
+    }
+
+    private fun syncSettledMarketHistoryNow(context: Context, marketRoi: JSONObject) = synchronized(syncLock) {
+        val accessToken = token(context) ?: throw IllegalStateException("GitHub token is not configured.")
+        val sourceUpdatedAt = marketRoi.optString("updatedAt").trim()
+        val currentRows = SettledMarketHistory.settledRows(
+            marketRoi.optJSONArray("records") ?: JSONArray(), sourceUpdatedAt
+        )
+        val remoteFile = request(accessToken, "GET", null, MARKET_BACKUP_PATH)
+        val remotePayload = if (remoteFile == null) null else {
+            val encoded = remoteFile.optString("content")
+            if (encoded.isBlank()) throw IllegalStateException("GitHub returned an empty ALL-market archive; refusing to overwrite it.")
+            try {
+                val decoded = Base64.decode(encoded.replace("\\n", ""), Base64.DEFAULT)
+                JSONObject(String(decoded, StandardCharsets.UTF_8))
+            } catch (error: Exception) {
+                throw IllegalStateException("Unable to parse the existing ALL-market archive; refusing to overwrite it.", error)
+            }
+        }
+        val remoteSourceUpdatedAt = remotePayload?.optString("sourceUpdatedAt").orEmpty()
+        val remoteRows = remotePayload?.optJSONArray("records") ?: JSONArray()
+        if (remotePayload == null && currentRows.length() == 0) return@synchronized
+        val merged = SettledMarketHistory.merge(remoteRows, currentRows, remoteSourceUpdatedAt, sourceUpdatedAt)
+        val newestSourceAt = if (sourceUpdatedAt >= remoteSourceUpdatedAt) sourceUpdatedAt else remoteSourceUpdatedAt
+        val payload = JSONObject()
+            .put("schemaVersion", 1)
+            .put("updatedAt", System.currentTimeMillis())
+            .put("sourceUpdatedAt", newestSourceAt)
+            .put("bookmaker", "MELBET")
+            .put("markets", JSONArray().put("1x").put("x2").put("over25")
+                .put("homeOver15").put("awayOver15").put("homeOver05").put("awayOver05").put("bttsYes"))
+            .put("records", merged)
+        val content = Base64.encodeToString(payload.toString().toByteArray(StandardCharsets.UTF_8), Base64.NO_WRAP)
+        val body = JSONObject().put("message", "Sync settled IQ Match ALL-market history").put("content", content)
+        remoteFile?.optString("sha")?.takeIf { it.isNotBlank() }?.let { body.put("sha", it) }
+        request(accessToken, "PUT", body, MARKET_BACKUP_PATH)
+            ?: throw IllegalStateException("GitHub did not confirm the ALL-market archive write.")
     }
 
     private fun syncNow(context: Context) = synchronized(syncLock) {
@@ -155,8 +204,8 @@ object PrivateHistorySync {
         return preferTie
     }
 
-    private fun request(token: String, method: String, body: JSONObject?): JSONObject? {
-        val url = URL("https://api.github.com/repos/if196315-stack/Football-model-app/contents/private-data/history-v1.json")
+    private fun request(token: String, method: String, body: JSONObject?, path: String = BACKUP_PATH): JSONObject? {
+        val url = URL("https://api.github.com/repos/if196315-stack/Football-model-app/contents/" + path)
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = 15000
