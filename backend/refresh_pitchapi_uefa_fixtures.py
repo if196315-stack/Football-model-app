@@ -142,8 +142,10 @@ def normalize_match(raw: dict, code: str, league: dict, season: str) -> dict | N
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
         "homeScore": raw.get("score_home"), "awayScore": raw.get("score_away"),
-        "elapsed": raw.get("elapsed", raw.get("minute", raw.get("elapsed_minutes"))),
-        "elapsedExtra": raw.get("elapsed_extra", raw.get("elapsedExtra", raw.get("extra_time_minutes"))),
+        "elapsed": next((raw.get(field) for field in ("elapsed", "minute", "elapsed_minutes")
+                         if raw.get(field) is not None), None),
+        "elapsedExtra": next((raw.get(field) for field in ("elapsed_extra", "elapsedExtra", "extra_time_minutes")
+                              if raw.get(field) is not None), None),
         "roundName": raw.get("round_name"), "hasPlayoff": raw.get("has_playoff"),
     }
 
