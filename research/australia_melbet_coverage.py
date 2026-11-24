@@ -69,7 +69,7 @@ def main():
         except ValueError: continue
         if dt < now-timedelta(hours=2): continue
         upcoming.append({"id":str(m["id"]),"date":dt.isoformat(),
-          "target":{"utcDate":dt.isoformat(),"home":h.get("name"),"away":a.get("name")}})
+          "target":{"utcDate":str(raw).strip() if len(str(raw).strip())==10 else dt.isoformat(),"home":h.get("name"),"away":a.get("name")}})
     odds=fetch_odds(ak,now.date(),(now+timedelta(days=180)).date())
     rows=[]; matched=0; boards=0; active=0
     for f in upcoming:
