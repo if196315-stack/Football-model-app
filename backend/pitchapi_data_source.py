@@ -160,6 +160,10 @@ def normalize_match(match: dict, league_code: str, league: dict, season: str) ->
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
         "homeScore": match.get("score_home"), "awayScore": match.get("score_away"),
+        "elapsed": next((match.get(field) for field in ("elapsed", "minute", "elapsed_minutes")
+                         if match.get(field) is not None), None),
+        "elapsedExtra": next((match.get(field) for field in ("elapsed_extra", "elapsedExtra", "extra_time_minutes")
+                              if match.get(field) is not None), None),
         "roundName": match.get("round_name"), "hasPlayoff": match.get("has_playoff"),
     }
 
