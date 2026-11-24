@@ -68,7 +68,7 @@ def fetch_recent_matches(session: Any, today: date | None = None) -> list[dict]:
         "exclude_amateur": "true",
         "fields": (
             "id,status,dateEvent,startTimestamp,homeTeam,awayTeam,"
-            "homeScore,awayScore,scoreStatus,time"
+            "homeScore,awayScore,scoreStatus,currentMatchMinute,overtimeLength"
         ),
         "page_size": 500,
         "sort": "desc",
@@ -115,8 +115,8 @@ def provider_status(match: dict) -> str:
 
 def elapsed_value(match: dict, key: str) -> int | None:
     """Read the provider's elapsed/added minute without accepting booleans or negatives."""
-    time_data = match.get("time")
-    raw = time_data.get(key) if isinstance(time_data, dict) else None
+    provider_key = "currentMatchMinute" if key == "elapsed" else "overtimeLength"
+    raw = match.get(provider_key)
     if raw is None:
         aliases = ("elapsed", "minute") if key == "elapsed" else ("extra", "elapsedExtra")
         raw = next((match.get(alias) for alias in aliases if match.get(alias) is not None), None)
