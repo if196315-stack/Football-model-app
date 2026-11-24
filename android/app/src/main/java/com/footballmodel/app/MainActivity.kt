@@ -2689,11 +2689,13 @@ class MainActivity : Activity() {
                 val currentMatchStatus = fixtureForDisplay?.optString("status")
                     ?.trim()?.uppercase(Locale.ROOT)?.ifBlank { null }
                     ?: bet.optString("matchStatus").trim().uppercase(Locale.ROOT)
-                val liveStatus = when (currentMatchStatus) {
-                    "IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "1H", "2H" -> " · LIVE"
-                    "PAUSED", "HALFTIME", "HALF_TIME", "BREAK" -> " · ПЕРЕРЫВ"
-                    "FINISHED" -> " · ФИНАЛ"
-                    "SCHEDULED", "TIMED", "NOT_STARTED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
+                val isCurrentMatchLive = FeedMerger.isLiveStatus(currentMatchStatus)
+                val liveStatus = when {
+                    currentMatchStatus in setOf("PAUSED", "HALFTIME", "HALF_TIME", "BREAK") -> " · ПЕРЕРЫВ"
+                    isCurrentMatchLive -> " · LIVE"
+                    FeedMerger.isTerminalStatus(currentMatchStatus) -> " · ФИНАЛ"
+                    FeedMerger.isScheduledStatus(currentMatchStatus) ||
+                        currentMatchStatus == "NOT_STARTED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
                     else -> ""
                 }
                 val currentScore = fixtureForDisplay?.let { match ->
@@ -2702,8 +2704,7 @@ class MainActivity : Activity() {
                 }.orEmpty().ifBlank { bet.optString("score") }
                 val elapsed = fixtureForDisplay?.let { liveElapsedMinute(it) } ?: -1
                 val elapsedExtra = fixtureForDisplay?.optInt("elapsedExtra", 0) ?: 0
-                val clock = if (elapsed >= 0 && currentMatchStatus in
-                    setOf("IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "1H", "2H", "PAUSED", "HALFTIME", "HALF_TIME", "BREAK")) {
+                val clock = if (elapsed >= 0 && isCurrentMatchLive) {
                     " · " + elapsed + (if (elapsedExtra > 0) "+$elapsedExtra" else "") + "′"
                 } else ""
                 addText(box, status + liveStatus + (if (currentScore.isNotBlank()) " · счёт " + currentScore else "") + clock,
