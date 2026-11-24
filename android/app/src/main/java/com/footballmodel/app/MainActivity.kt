@@ -997,7 +997,8 @@ class MainActivity : Activity() {
     // Conditional HTTP requests avoid downloading identical JSON on every refresh.
     // The last good response is retained locally and used when the network is unavailable.
     private fun fetchFeed(url: String, cacheKey: String, required: Boolean): String? {
-        val cached = readFeedCache(cacheKey)        val etag = feedCache.getString("${cacheKey}_etag", null)
+        val cached = readFeedCache(cacheKey)
+        val etag = feedCache.getString("${cacheKey}_etag", null)
         var conn: HttpURLConnection? = null
         try {
             // Bypass intermediary raw-GitHub CDN caches while retaining ETag validation
@@ -1996,7 +1997,8 @@ class MainActivity : Activity() {
                                 timeZone = java.util.TimeZone.getTimeZone("UTC")
                             }.format(Date(it)))
                         }
-                } else StatsPredictionScope.matchDateMillis(bet.optString("date"))                val day = periodDate ?: continue
+                } else StatsPredictionScope.matchDateMillis(bet.optString("date"))
+                val day = periodDate ?: continue
                 if (day !in periodBounds.first..periodBounds.second) continue
                 if (status == "PENDING") {
                     topPendingRecords.add(AnalyticsBet(
@@ -2995,7 +2997,8 @@ class MainActivity : Activity() {
         addText(glossary, "Коэффициент MelBet", 12, true, Color.WHITE)
         addText(glossary, "Выплата вместе с возвращаемой ставкой. При коэффициенте 2.00 выигрыш возвращает 2 ₽ на каждый поставленный 1 ₽.", 10, false, muted)
         addText(glossary, "Историческая база", 12, true, Color.WHITE)
-        addText(glossary, "Доля таких исходов в похожих матчах до даты игры; рядом указано число матчей в выборке. Это сравнение с историей, не обещание результата.", 10, false, muted)        addText(glossary, "Edge — преимущество", 12, true, Color.WHITE)
+        addText(glossary, "Доля таких исходов в похожих матчах до даты игры; рядом указано число матчей в выборке. Это сравнение с историей, не обещание результата.", 10, false, muted)
+        addText(glossary, "Edge — преимущество", 12, true, Color.WHITE)
         addText(glossary, "Разница между вероятностью модели и вероятностью безубыточности по коэффициенту, в процентных пунктах. В ТОП может учитываться поправка на форму.", 10, false, muted)
         addText(glossary, "EV — ожидаемая ценность", 12, true, Color.WHITE)
         addText(glossary, "Вероятность модели × коэффициент − 1. EV +5% — расчётное ожидание +5 копеек на 1 ₽ ставки на длинной дистанции, а не прибыль в конкретном матче.", 10, false, muted)
@@ -3994,7 +3997,8 @@ class MainActivity : Activity() {
                 if (topSignalOdds(signal, m) == null) continue
                 items.add(Triple(m, league.optString("name"), signal))
             }
-        }        val sorted = items.sortedByDescending { it.third.optDouble("selectionEdgePp", it.third.optDouble("edgePp")) }
+        }
+        val sorted = items.sortedByDescending { it.third.optDouble("selectionEdgePp", it.third.optDouble("edgePp")) }
         val summary = card()
         addText(summary, "АВТОМАТИЧЕСКИЙ ОТБОР · СИГНАЛЫ ТОП", 9, true, accent)
         addText(summary, sorted.size.toString(), 28, true, Color.WHITE)
