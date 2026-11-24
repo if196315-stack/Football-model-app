@@ -2657,13 +2657,30 @@ class MainActivity : Activity() {
                     addText(box, "Модель: " +
                         String.format(Locale.getDefault(), "%.1f%%", bet.optDouble("probability") * 100), 11, false, muted)
                 }
-                val liveStatus = when (bet.optString("matchStatus")) {
-                    "IN_PLAY", "LIVE", "PAUSED" -> " · LIVE"
+                // Render live state from the current fixture, not a stale status snapshot
+                // stored on the bet when it was originally placed.
+                val currentMatchStatus = fixtureForDisplay?.optString("status")
+                    ?.trim()?.uppercase(Locale.ROOT)?.ifBlank { null }
+                    ?: bet.optString("matchStatus").trim().uppercase(Locale.ROOT)
+                val liveStatus = when (currentMatchStatus) {
+                    "IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "1H", "2H" -> " · LIVE"
+                    "PAUSED", "HALFTIME", "HALF_TIME", "BREAK" -> " · ПЕРЕРЫВ"
                     "FINISHED" -> " · ФИНАЛ"
-                    "SCHEDULED", "TIMED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
+                    "SCHEDULED", "TIMED", "NOT_STARTED" -> " · ЕЩЁ НЕ НАЧАЛСЯ"
                     else -> ""
                 }
-                addText(box, status + liveStatus + (if (bet.has("score")) " · счёт " + bet.optString("score") else ""), 12, true, color)
+                val currentScore = fixtureForDisplay?.let { match ->
+                    if (!match.isNull("homeScore") && !match.isNull("awayScore"))
+                        "${match.optInt("homeScore")}:${match.optInt("awayScore")}" else ""
+                }.orEmpty().ifBlank { bet.optString("score") }
+                val elapsed = fixtureForDisplay?.optInt("elapsed", -1) ?: -1
+                val elapsedExtra = fixtureForDisplay?.optInt("elapsedExtra", 0) ?: 0
+                val clock = if (elapsed >= 0 && currentMatchStatus in
+                    setOf("IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "1H", "2H", "PAUSED", "HALFTIME", "HALF_TIME", "BREAK")) {
+                    " · " + elapsed + (if (elapsedExtra > 0) "+$elapsedExtra" else "") + "′"
+                } else ""
+                addText(box, status + liveStatus + (if (currentScore.isNotBlank()) " · счёт " + currentScore else "") + clock,
+                    12, true, if (liveStatus.contains("LIVE") || liveStatus.contains("ПЕРЕРЫВ")) cyan else color)
                 val stake = bet.optDouble("stake")
                 val odds = bet.optDouble("odds")
                 if (state == "PENDING") {
