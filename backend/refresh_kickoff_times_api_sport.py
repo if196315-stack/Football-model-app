@@ -13,7 +13,7 @@ from typing import Any
 
 import requests
 
-from update_odds_api_sport import URL, kickoff, match_fixture
+from update_odds_api_sport import URL, kickoff, norm, sim, team_names
 
 ROOT = Path(__file__).resolve().parents[1]
 FEEDS = (ROOT / "docs" / "data.json", ROOT / "docs" / "uefa-data.json")
@@ -79,6 +79,67 @@ def fetch_fixtures(api_key: str, start: date, end: date,
     return fixtures
 
 
+
+# Canonical forms for common display-name/provider-name variants. These aliases
+# are used only for kickoff enrichment; the stricter odds matcher is unchanged.
+TEAM_ALIASES = {
+    "paderborn": "sc paderborn 07",
+    "sc paderborn 07": "sc paderborn 07",
+    "elversberg": "sv 07 elversberg",
+    "sv 07 elversberg": "sv 07 elversberg",
+    "augsburg": "fc augsburg",
+    "fc augsburg": "fc augsburg",
+    "freiburg": "sc freiburg",
+    "sc freiburg": "sc freiburg",
+    "mainz 05": "1 fsv mainz 05",
+    "1 fsv mainz 05": "1 fsv mainz 05",
+    "borussia monchengladbach": "borussia m gladbach",
+    "borussia m gladbach": "borussia m gladbach",
+    "napoli": "ssc napoli",
+    "ssc napoli": "ssc napoli",
+    "milan": "ac milan",
+    "ac milan": "ac milan",
+    "roma": "as roma",
+    "as roma": "as roma",
+}
+
+
+def _kickoff_team_similarity(target_name: str, team: dict) -> float:
+    target = TEAM_ALIASES.get(norm(target_name), norm(target_name))
+    best = 0.0
+    for candidate_name in team_names(team):
+        candidate = TEAM_ALIASES.get(norm(candidate_name), norm(candidate_name))
+        score = 1.0 if target and target == candidate else sim(target_name, candidate_name)
+        best = max(best, score)
+    return best
+
+
+def match_kickoff_fixture(target: dict, candidates: list[dict]) -> dict | None:
+    """Match a date-only fixture, safely allowing duplicate IDs for the same kickoff."""
+    raw_date = target.get("utcDate") or target.get("dateEvent")
+    target_time = kickoff(target)
+    if target_time is None or not is_date_only(raw_date):
+        return None
+    ranked = []
+    for candidate in candidates:
+        candidate_time = kickoff(candidate)
+        if candidate_time is None or candidate_time.date() != target_time.date():
+            continue
+        home_score = _kickoff_team_similarity(target.get("home", ""), candidate.get("homeTeam") or {})
+        away_score = _kickoff_team_similarity(target.get("away", ""), candidate.get("awayTeam") or {})
+        if home_score >= 0.68 and away_score >= 0.68 and home_score + away_score >= 1.40:
+            ranked.append((home_score + away_score, candidate_time, candidate))
+    ranked.sort(key=lambda item: item[0], reverse=True)
+    if not ranked:
+        return None
+    top_score, top_time, top_match = ranked[0]
+    tied = [item for item in ranked if top_score - item[0] < 0.08]
+    # Multiple provider records are harmless only when they agree on the exact
+    # kickoff. If their times differ, keep the fixture unresolved rather than guess.
+    if len(tied) > 1 and any(item[1] != top_time for item in tied[1:]):
+        return None
+    return top_match
+
 def is_date_only(value: Any) -> bool:
     return isinstance(value, str) and len(value.strip()) == 10 and "T" not in value
 
@@ -95,7 +156,7 @@ def enrich_feed(payload: dict, fixtures: list[dict]) -> dict:
             if match.get("status") not in ("SCHEDULED", "TIMED", "IN_PLAY", "PAUSED"):
                 continue
             checked += 1
-            source = match_fixture(match, fixtures)
+            source = match_kickoff_fixture(match, fixtures)
             if source is None:
                 if len(unmatched) < 30:
                     unmatched.append({
