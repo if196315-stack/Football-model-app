@@ -180,7 +180,11 @@ def market_result(row, home, away):
     return None
 
 
-def settled_records(quotes, domestic, uefa):
+def settled_records(quotes, domestic, uefa, previous_records=None):
+    previous_by_identity = {
+        quote_identity(row): row for row in (previous_records or [])
+        if row.get("status") == "SETTLED"
+    }
     final_by_identity = {}
     for feed in (domestic, uefa):
         # The compact evaluation archive may lag behind competition fixtures.
@@ -227,6 +231,16 @@ def settled_records(quotes, domestic, uefa):
             if len(unique) == 1:
                 final = next(iter(unique.values()))
         row = dict(quote)
+        if final is None:
+            # Never regress an already verified settlement just because a feed
+            # refresh temporarily omits that historical fixture.
+            previous = previous_by_identity.get(quote_identity(quote))
+            if previous is not None:
+                for field in ("status", "result", "home_score", "away_score", "profit_units"):
+                    if field in previous:
+                        row[field] = previous[field]
+                output.append(row)
+                continue
         if final is not None:
             try:
                 home, away = int(final["homeScore"]), int(final["awayScore"])
@@ -292,9 +306,9 @@ def _period_records(records, period, today):
     return selected
 
 
-def build(domestic, uefa, snapshots, quotes, today=None):
+def build(domestic, uefa, snapshots, quotes, today=None, previous_records=None):
     selected = select_quotes(snapshots, domestic, uefa, quotes)
-    records = settled_records(selected, domestic, uefa)
+    records = settled_records(selected, domestic, uefa, previous_records)
     today = today or datetime.now(timezone.utc).date()
     periods = {
         period: _summary(_period_records(records, period, today))
@@ -324,7 +338,11 @@ def main():
     domestic = read_json(args.data)
     uefa = read_json(args.uefa_data)
     existing = read_jsonl(args.quotes)
-    report, selected = build(domestic, uefa, read_jsonl(args.snapshots), existing)
+    previous_report = read_json(args.output)
+    report, selected = build(
+        domestic, uefa, read_jsonl(args.snapshots), existing,
+        previous_records=previous_report.get("records") or [],
+    )
 
     quote_path = Path(args.quotes)
     quote_path.parent.mkdir(parents=True, exist_ok=True)
