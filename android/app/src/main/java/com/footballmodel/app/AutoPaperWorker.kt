@@ -366,14 +366,14 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val id = match.optString("id").trim().ifBlank {
                     match.optString("utcDate") + match.optString("home") + match.optString("away")
                 }
-                if (id.isNotBlank()) byId[id] = match
+                if (id.isNotBlank()) byId.getOrPut(id) { mutableListOf() }.add(match)
                 val home = MatchIdentity.normalizedTeam(match.optString("home"))
                 val away = MatchIdentity.normalizedTeam(match.optString("away"))
                 if (home.isBlank() || away.isBlank()) continue
                 val key = "$home|$away"
                 byTeams.getOrPut(key) { mutableListOf() }.add(match)
                 val date = MatchIdentity.matchDate(match)
-                if (date.isNotBlank()) MatchIdentity.uniqueMatch(byTeamsAndDate["$key|$date"]) = match
+                if (date.isNotBlank()) byTeamsAndDate.getOrPut("$key|$date") { mutableListOf() }.add(match)
             }
         }
         val targetId = bet.optString("matchId").trim()
@@ -384,7 +384,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         if (home.isBlank() || away.isBlank()) return null
         val key = "$home|$away"
         val date = MatchIdentity.betDate(bet)
-        return if (date.isNotBlank()) byTeamsAndDate["$key|$date"] else MatchIdentity.uniqueMatch(byTeams[key])
+        return if (date.isNotBlank()) MatchIdentity.uniqueMatch(byTeamsAndDate["$key|$date"]) else MatchIdentity.uniqueMatch(byTeams[key])
     }
 
     private fun settle(bet: JSONObject, match: JSONObject): Boolean {
