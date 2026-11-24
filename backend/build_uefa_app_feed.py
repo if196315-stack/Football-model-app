@@ -145,6 +145,38 @@ def _app_prediction(model: dict) -> dict:
     }
 
 
+def app_match_status(raw: Any) -> str:
+    """Normalize PitchAPI fixture states without collapsing live play into FINISHED."""
+    value = str(raw or "").strip().casefold().replace("-", "_").replace(" ", "_")
+    return {
+        "not_started": "SCHEDULED",
+        "scheduled": "SCHEDULED",
+        "timed": "TIMED",
+        "in_play": "IN_PLAY",
+        "live": "IN_PLAY",
+        "1h": "IN_PLAY",
+        "2h": "IN_PLAY",
+        "first_half": "IN_PLAY",
+        "second_half": "IN_PLAY",
+        "paused": "PAUSED",
+        "halftime": "PAUSED",
+        "half_time": "PAUSED",
+        "break": "PAUSED",
+        "finished": "FINISHED",
+        "full_time": "FINISHED",
+        "ft": "FINISHED",
+        "after_extra_time": "FINISHED",
+        "after_penalties": "FINISHED",
+        "postponed": "POSTPONED",
+        "cancelled": "CANCELED",
+        "canceled": "CANCELED",
+        "awarded": "AWARDED",
+    }.get(value, value.upper())
+
+
+LIVE_MATCH_STATUSES = {"IN_PLAY", "LIVE", "PAUSED"}
+
+
 def build_feed(
     fixture_cache: dict,
     xg_history: dict,
@@ -222,7 +254,9 @@ def build_feed(
         if league_code not in LEAGUES:
             continue
         status = str(fixture.get("status") or "").casefold()
-        is_upcoming = status in ("not_started", "scheduled", "timed")
+        app_status = app_match_status(status)
+        is_upcoming = app_status in ("SCHEDULED", "TIMED")
+        is_live = app_status in LIVE_MATCH_STATUSES
         fixture_papers = paper_by_fixture.get(str(fixture_id), [])
         model = predictions.get(str(fixture_id))
         archived = archive["matches"].get(f"{league_code}:{fixture_id}")
@@ -230,16 +264,14 @@ def build_feed(
         # a historical paper entry, including after its final score is known.
         if is_upcoming and model is None and not fixture_papers and league_code != "UECL":
             continue
-        if not is_upcoming and not fixture_papers and not archived:
+        if not is_upcoming and not is_live and not fixture_papers and not archived:
             continue
         match = {
             "id": str(fixture_id),
             "utcDate": fixture.get("date"),
             "home": fixture.get("home"),
             "away": fixture.get("away"),
-            "status": "SCHEDULED" if status in ("not_started", "scheduled") else (
-                "TIMED" if status == "timed" else "FINISHED"
-            ),
+            "status": app_status,
             "homeScore": fixture.get("homeScore"),
             "awayScore": fixture.get("awayScore"),
             "prediction": _app_prediction(model) if model else (archived.get("prediction") if archived else None),
