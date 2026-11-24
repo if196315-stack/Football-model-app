@@ -59,7 +59,7 @@ def _valid_fresh_snapshot(rows: list[dict], now: datetime) -> list[dict]:
                 or row.get("prematch_active") is not True
                 or row.get("bookmaker") != "MELBET"
                 or row.get("source") != "API-Sport"
-                or row.get("market_parser_version") != "melbet-fulltime-v2"
+                or row.get("market_parser_version") not in ("melbet-fulltime-v2", "melbet-fulltime-v3")
                 or source_time is None):
             continue
         current_age = (now - source_time).total_seconds()
