@@ -130,6 +130,13 @@ object PrivateHistorySync {
     }
 
     private fun shouldReplace(old: JSONObject, fresh: JSONObject, preferTie: Boolean): Boolean {
+        // An explicit, timestamped correction must beat stale terminal copies from
+        // devices that have not yet received the correction. The marker travels
+        // with the row, so subsequent merges preserve the corrected state.
+        val oldResetAt = old.optLong("statusResetAt")
+        val newResetAt = fresh.optLong("statusResetAt")
+        if (oldResetAt != newResetAt) return newResetAt > oldResetAt
+
         fun rank(row: JSONObject): Int = when (row.optString("status").uppercase()) {
             "WON", "LOST", "PUSH", "VOID", "CANCELLED" -> 2
             "PENDING", "OPEN" -> 1
