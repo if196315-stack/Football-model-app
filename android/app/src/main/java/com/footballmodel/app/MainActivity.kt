@@ -3942,7 +3942,6 @@ class MainActivity : Activity() {
         val sourceUpdated = formatSourceTimestamp(json.optString("updatedAt"))
         UiMotion.animateTextChange(statusView, "●  Источник обновлён: $sourceUpdated · проверено: ${formatLocalTimestamp(checkedAt)}")
         renderTabs()
-        if (currentTab == "matches") renderLeagueTabs()
         if (currentTab == "stats") {
             leagueBar.animate().cancel()
             leagueBar.visibility = View.GONE
@@ -3966,6 +3965,11 @@ class MainActivity : Activity() {
             }
             return
         }
+        // Build league chips only for a newly rendered Line screen. Cached
+        // screens already contain their original chips; rebuilding them before
+        // restoring the cache would append a duplicate set on every tab visit.
+        if (currentTab == "matches") renderLeagueTabs()
+
         renderedKey = targetKey
         // Restore after the new children have been attached and measured. The
         // callback is guarded so a rapid second tap cannot scroll the next tab.
