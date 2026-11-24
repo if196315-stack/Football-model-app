@@ -63,6 +63,15 @@ class BetSettlementTest {
         assertNull(BetSettlement.settledResult("PENDING", "FINISHED", true, true, null, 1, "1x"))
     }
 
+    @Test fun staleSettledBetReopensOnlyForCurrentNonFinalFixture() {
+        assertEquals(true, BetSettlement.shouldReopenSettledBet("LOST", "SCHEDULED", true))
+        assertEquals(true, BetSettlement.shouldReopenSettledBet("WON", "IN_PLAY", false))
+        assertEquals(true, BetSettlement.shouldReopenSettledBet("PUSH", "PAUSED", false))
+        assertEquals(false, BetSettlement.shouldReopenSettledBet("LOST", "SCHEDULED", false))
+        assertEquals(false, BetSettlement.shouldReopenSettledBet("LOST", "FINISHED", false))
+        assertEquals(false, BetSettlement.shouldReopenSettledBet("PENDING", "SCHEDULED", true))
+    }
+
     @Test fun onlyKnownFinalStatusesBelongToCompletedHistory() {
         assertEquals(true, BetSettlement.isSettledStatus("WON"))
         assertEquals(true, BetSettlement.isSettledStatus("LOST"))
