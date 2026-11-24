@@ -19,6 +19,8 @@ internal object MatchIdentity {
             bet.optString("kickoff").take(10).ifBlank { bet.optString("utcDate").take(10) }
         }
 
+    fun uniqueMatch(matches: List<JSONObject>?): JSONObject? = matches?.singleOrNull()
+
     fun sameFixture(bet: JSONObject, match: JSONObject): Boolean {
         val home = normalizedTeam(bet.optString("home"))
         val away = normalizedTeam(bet.optString("away"))
