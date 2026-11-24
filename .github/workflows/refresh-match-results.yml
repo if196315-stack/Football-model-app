@@ -38,11 +38,15 @@ jobs:
         env:
           API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
         run: python backend/refresh_match_results_api_sport.py
-      - name: Commit only changed result fields
+      # Recalculate settled ROI immediately after the five-minute results refresh.
+      # Use the durable frozen-quote archive only; do not collect or invent new odds here.
+      - name: Rebuild settled ALL-market ROI
+        run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl --quotes artifacts/market-roi-quotes.jsonl
+      - name: Commit only changed result fields and ROI
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json docs/uefa-data.json
-          git diff --cached --quiet || git commit -m "Refresh API-Sport match results"
+          git add docs/data.json docs/uefa-data.json docs/market-roi.json
+          git diff --cached --quiet || git commit -m "Refresh API-Sport results and settled market ROI"
           git pull --rebase origin main
           git push
