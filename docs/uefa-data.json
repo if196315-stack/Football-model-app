@@ -6905,9 +6905,9 @@
           "utcDate": "2026-11-24T17:45:00Z",
           "home": "Bodø/Glimt",
           "away": "LASK",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 0,
           "prediction": {
             "1x": 0.64839359839312,
             "x2": 0.5500750939096525,
@@ -6948,7 +6948,10 @@
               "away_score": null
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
         },
         {
           "id": "m_3llrZc",
@@ -7060,9 +7063,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Feyenoord",
           "away": "FC Porto",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "FINISHED",
+          "homeScore": 0,
+          "awayScore": 1,
           "prediction": {
             "1x": 0.6104791919501836,
             "x2": 0.6551637630426635,
@@ -7175,16 +7178,19 @@
             "bookmakerUpdateAgeSeconds": 293.469
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
         },
         {
           "id": "m_4SYMzr",
           "utcDate": "2026-11-24T17:45:00Z",
           "home": "Galatasaray",
           "away": "Aston Villa",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 0,
           "prediction": {
             "1x": 0.47192588985938416,
             "x2": 0.7557618982753048,
@@ -7240,16 +7246,19 @@
               "away_score": null
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
         },
         {
           "id": "m_0c78zD",
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Manchester City",
           "away": "Napoli",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "FINISHED",
+          "homeScore": 4,
+          "awayScore": 1,
           "prediction": {
             "1x": 0.8362043472028364,
             "x2": 0.3150184400463145,
@@ -7371,7 +7380,10 @@
               "away_score": null
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
         },
         {
           "id": "m_13c8QW",
@@ -7484,9 +7496,9 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Real Madrid",
           "away": "PSV Eindhoven",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
+          "status": "FINISHED",
+          "homeScore": 3,
+          "awayScore": 3,
           "prediction": {
             "1x": 0.8277743359916153,
             "x2": 0.31842748169335316,
@@ -7573,7 +7585,10 @@
             "bookmakerUpdateAgeSeconds": 293.469
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
         },
         {
           "id": "m_38M4aC",
