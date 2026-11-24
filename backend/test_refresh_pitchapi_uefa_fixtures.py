@@ -119,8 +119,8 @@ class UefaFixtureHistoryTests(unittest.TestCase):
         from refresh_pitchapi_uefa_fixtures import normalize_match
         row = normalize_match({
             "id": "m_LIVE01", "date": "2026-11-25T19:00:00Z",
-            "status": "in_play", "score_home": 2, "score_away": 1,
-            "elapsed": None, "elapsed_minutes": 67, "elapsed_extra": 3,
+            "status": "in_play_second_half", "score_home": 2, "score_away": 1,
+            "elapsed": 45, "elapsed_minutes": 67, "elapsed_extra": 3,
             "home_team": {"id": "t_HOME01", "name": "Home"},
             "away_team": {"id": "t_AWAY01", "name": "Away"},
         }, "UCL", {"id": "ucl-id", "name": "Champions League"}, "2026/2027")
