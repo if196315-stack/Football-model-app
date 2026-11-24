@@ -10,15 +10,15 @@ import org.json.JSONObject
  */
 internal object FeedMerger {
     /**
-     * Scheduled matches in every competition use the same strict publication rule:
-     * all strategy markets must have current bookmaker quotes. Live matches are
+     * Scheduled matches in every competition use the same publication rule:
+     * a prediction and at least one working market with a current MelBet quote. Live matches are
      * handled separately by the screen and never pass through this predicate.
      */
     fun shouldShowScheduledMatch(
         leagueCode: String,
         hasPrediction: Boolean,
-        hasAllActiveMelBetMarkets: Boolean
-    ): Boolean = hasPrediction && hasAllActiveMelBetMarkets
+        hasAtLeastOneActiveMelBetMarket: Boolean
+    ): Boolean = hasPrediction && hasAtLeastOneActiveMelBetMarket
 
     private val liveStatuses = setOf(
         "IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "IN-PLAY",
@@ -44,13 +44,13 @@ internal object FeedMerger {
     fun shouldKeepInLine(
         status: String,
         kickoffDayHasPassed: Boolean,
-        hasAllActiveMelBetMarkets: Boolean
+        hasAtLeastOneActiveMelBetMarket: Boolean
     ): Boolean {
         if (isLiveStatus(status)) return true
         if (isTerminalStatus(status)) return false
         if (kickoffDayHasPassed) return true
         return isScheduledStatus(status) &&
-            shouldShowScheduledMatch("", true, hasAllActiveMelBetMarkets)
+            shouldShowScheduledMatch("", true, hasAtLeastOneActiveMelBetMarket)
     }
 
     fun mergeUefa(target: JSONObject, uefa: JSONObject) {
