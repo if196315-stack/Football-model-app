@@ -6825,10 +6825,10 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Arsenal",
           "away": "Borussia Dortmund",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 1,
+          "awayScore": 1,
+          "elapsed": 78,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -6886,7 +6886,10 @@
               "away_score": null
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T21:34:57.665004+00:00"
         },
         {
           "id": "m_0yKeRt",
@@ -6896,7 +6899,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -6939,17 +6942,20 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T21:34:57.665004+00:00"
         },
         {
           "id": "m_3llrZc",
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Como",
           "away": "AEK Athens",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 1,
+          "awayScore": 0,
+          "elapsed": 73,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -6976,17 +6982,20 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T21:34:57.665004+00:00"
         },
         {
           "id": "m_4J6bPl",
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Feyenoord",
           "away": "FC Porto",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 1,
+          "elapsed": 74,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7013,7 +7022,10 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T21:34:57.665004+00:00"
         },
         {
           "id": "m_4SYMzr",
@@ -7023,7 +7035,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7081,7 +7093,10 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T21:34:57.665004+00:00"
         },
         {
           "id": "m_0c78zD",
@@ -7193,10 +7208,10 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Real Madrid",
           "away": "PSV Eindhoven",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 3,
+          "awayScore": 1,
+          "elapsed": 75,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7223,17 +7238,20 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T21:34:57.665004+00:00"
         },
         {
           "id": "m_38M4aC",
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Slovan Bratislava",
           "away": "Real Betis",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 2,
+          "elapsed": 78,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7260,7 +7278,10 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-24T21:34:57.665004+00:00"
         },
         {
           "id": "m_1WLVGt",
