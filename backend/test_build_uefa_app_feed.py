@@ -150,6 +150,28 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertEqual(evaluated["homeScore"], 2)
         self.assertEqual(evaluated["awayScore"], 1)
         self.assertEqual(evaluated["leagueCode"], "UECL")
+    def test_live_and_paused_fixtures_are_preserved_in_uefa_feed_without_paper_bets(self):
+        cache = {"matches": {
+            "ucl-live": {"leagueCode": "UCL", "status": "in_play",
+                         "date": "2026-11-24T19:00:00Z", "home": "Alpha",
+                         "away": "Beta", "homeScore": 2, "awayScore": 1},
+            "uel-break": {"leagueCode": "UEL", "status": "paused",
+                          "date": "2026-11-24T19:00:00Z", "home": "Gamma",
+                          "away": "Delta", "homeScore": 0, "awayScore": 0},
+            "uecl-future": {"leagueCode": "UECL", "status": "not_started",
+                            "date": "2026-11-25T19:00:00Z", "home": "Epsilon",
+                            "away": "Zeta"},
+        }}
+        feed = build_feed(cache, {"matches": []}, [], [], [], predictions={})
+        by_code = {c["code"]: c["matches"] for c in feed["competitions"]}
+        self.assertEqual(len(by_code["UCL"]), 1)
+        self.assertEqual(by_code["UCL"][0]["status"], "IN_PLAY")
+        self.assertEqual(by_code["UCL"][0]["homeScore"], 2)
+        self.assertEqual(by_code["UCL"][0]["awayScore"], 1)
+        self.assertEqual(len(by_code["UEL"]), 1)
+        self.assertEqual(by_code["UEL"][0]["status"], "PAUSED")
+        self.assertEqual(by_code["UECL"], [])
+
     def test_new_inactive_board_marker_invalidates_older_active_snapshot(self):
         rows = [
             {"captured_at": "2026-11-10T09:00:00+00:00",
