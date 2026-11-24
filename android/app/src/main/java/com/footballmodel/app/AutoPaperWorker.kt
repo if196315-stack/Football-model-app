@@ -271,13 +271,20 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         // Settle every pending manual/AI single and coupon in the background.
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("status") != "PENDING") continue
             if (bet.optString("marketKey") == "COUPON") {
-                if (settleCoupon(bet, feed)) changed = true
+                if (bet.optString("status") == "PENDING" && settleCoupon(bet, feed)) changed = true
                 continue
             }
             val match = findMatch(feed, bet) ?: continue
-            if (settle(bet, match)) changed = true
+            val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
+            val kickoffRaw = match.optString("utcDate").ifBlank { match.optString("dateEvent") }
+            val kickoffInFuture = parseInstant(kickoffRaw)?.let { it > System.currentTimeMillis() } == true
+            if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus, kickoffInFuture)) {
+                bet.put("status", "PENDING").put("matchStatus", matchStatus)
+                bet.remove("score")
+                changed = true
+            }
+            if (bet.optString("status") == "PENDING" && settle(bet, match)) changed = true
         }
         // Automatic creation is disabled; existing pending bets are still settled above.
         return changed
