@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24T18:17:55.933322+00:00",
+  "updatedAt": "2026-11-24T19:11:02.059684+00:00",
   "source": "PitchAPI fixtures/xG + API-Sport fixtures/MelBet",
   "paperOnly": true,
   "predictionArchive": {
@@ -6755,6 +6755,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7608561211948879,
             "x2": 0.44576835888315924,
@@ -6781,8 +6783,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.1,
-                "x2": 2.69
+                "1x": 1.09,
+                "x2": 2.81
               },
               "totals": [
                 {
@@ -6801,19 +6803,19 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.65
+                  "price": 1.7
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.93
+                  "price": 3.15
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 4.52
+                  "price": 4.86
                 },
                 {
                   "team": "home",
@@ -6825,46 +6827,41 @@
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.15
+                  "price": 1.14
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.56
+                  "price": 1.54
                 }
               ],
               "btts": {
-                "yes": 1.88
+                "yes": 1.92
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.17
-                },
-                {
-                  "team": "home",
-                  "point": 1.0,
-                  "price": 1.01
+                  "price": 1.15
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 4.95
+                  "price": 5.43
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 2.06
+                  "price": 2.16
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.468
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [
             {
@@ -6905,9 +6902,11 @@
           "utcDate": "2026-11-24T17:45:00Z",
           "home": "Bodø/Glimt",
           "away": "LASK",
-          "status": "IN_PLAY",
-          "homeScore": 0,
-          "awayScore": 0,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.64839359839312,
             "x2": 0.5500750939096525,
@@ -6948,10 +6947,7 @@
               "away_score": null
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": false,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_3llrZc",
@@ -6961,6 +6957,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9172484503063465,
             "x2": 0.18275678573213996,
@@ -6988,18 +6986,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.05,
-                "x2": 3.65
+                "x2": 3.69
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.08
+                  "price": 1.09
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.32
+                  "price": 1.34
                 }
               ],
               "teamTotals": [
@@ -7007,53 +7005,53 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.51
+                  "price": 1.53
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.32
+                  "price": 2.41
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.65
+                  "price": 3.79
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.24
+                  "price": 1.25
                 }
               ],
               "btts": {
-                "yes": 1.6
+                "yes": 1.62
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.1
+                  "price": 1.09
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 6.96
+                  "price": 7.19
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 3.02
+                  "price": 3.07
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [],
           "paperOnly": true
@@ -7063,9 +7061,11 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Feyenoord",
           "away": "FC Porto",
-          "status": "FINISHED",
-          "homeScore": 0,
-          "awayScore": 1,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6104791919501836,
             "x2": 0.6551637630426635,
@@ -7092,8 +7092,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.75,
-                "x2": 1.31
+                "1x": 1.77,
+                "x2": 1.3
               },
               "totals": [
                 {
@@ -7104,7 +7104,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.72
+                  "price": 1.71
                 }
               ],
               "teamTotals": [
@@ -7112,7 +7112,7 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.17
+                  "price": 1.16
                 },
                 {
                   "team": "away",
@@ -7124,7 +7124,7 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.91
+                  "price": 1.89
                 },
                 {
                   "team": "home",
@@ -7136,7 +7136,7 @@
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.7
+                  "price": 1.71
                 },
                 {
                   "team": "home",
@@ -7152,45 +7152,44 @@
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.47
+                  "price": 2.5
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.38
+                  "price": 1.39
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.55
+                  "price": 1.53
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.11
+                  "price": 1.1
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_4SYMzr",
           "utcDate": "2026-11-24T17:45:00Z",
           "home": "Galatasaray",
           "away": "Aston Villa",
-          "status": "IN_PLAY",
-          "homeScore": 0,
-          "awayScore": 0,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.47192588985938416,
             "x2": 0.7557618982753048,
@@ -7246,19 +7245,18 @@
               "away_score": null
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": false,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_0c78zD",
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Manchester City",
           "away": "Napoli",
-          "status": "FINISHED",
-          "homeScore": 4,
-          "awayScore": 1,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8362043472028364,
             "x2": 0.3150184400463145,
@@ -7285,14 +7283,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.05,
-                "x2": 3.89
+                "1x": 1.06,
+                "x2": 3.55
               },
               "totals": [
                 {
+                  "point": 1.5,
+                  "side": "over",
+                  "price": 1.09
+                },
+                {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.29
+                  "price": 1.34
                 }
               ],
               "teamTotals": [
@@ -7300,53 +7303,59 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.51
+                  "price": 1.52
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.31
+                  "price": 2.34
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.63
+                  "price": 3.69
+                },
+                {
+                  "team": "home",
+                  "point": 1.0,
+                  "side": "over",
+                  "price": 1.03
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.21
+                  "price": 1.25
                 }
               ],
               "btts": {
-                "yes": 1.58
+                "yes": 1.61
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.09
+                  "price": 1.1
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 7.53
+                  "price": 6.87
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 3.28
+                  "price": 2.96
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.468
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [
             {
@@ -7380,10 +7389,7 @@
               "away_score": null
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_13c8QW",
@@ -7393,6 +7399,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7592375414689145,
             "x2": 0.4340609480960176,
@@ -7419,8 +7427,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.09,
-                "x2": 3.35
+                "1x": 1.1,
+                "x2": 3.05
               },
               "totals": [
                 {
@@ -7434,59 +7442,59 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.41
+                  "price": 1.37
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.96
+                  "price": 1.82
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.09
+                  "price": 2.83
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.02
+                  "price": 1.03
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.25
+                  "price": 1.26
                 }
               ],
               "btts": {
-                "yes": 1.49
+                "yes": 1.45
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.14
+                  "price": 1.16
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 5.75
+                  "price": 5.31
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 2.74
+                  "price": 2.5
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [],
           "paperOnly": true
@@ -7496,9 +7504,11 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Real Madrid",
           "away": "PSV Eindhoven",
-          "status": "FINISHED",
-          "homeScore": 3,
-          "awayScore": 3,
+          "status": "SCHEDULED",
+          "homeScore": null,
+          "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8277743359916153,
             "x2": 0.31842748169335316,
@@ -7526,7 +7536,7 @@
             "best": {
               "doubleChance": {
                 "1x": 1.01,
-                "x2": 5.88
+                "x2": 5.58
               },
               "totals": [
                 {
@@ -7540,19 +7550,19 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.52
+                  "price": 1.5
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.4
+                  "price": 2.29
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.79
+                  "price": 3.6
                 },
                 {
                   "team": "home",
@@ -7568,27 +7578,24 @@
                 }
               ],
               "btts": {
-                "yes": 1.55
+                "yes": 1.53
               },
               "spreads": [
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 5.35
+                  "price": 5.07
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T18:32:31.220455+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_38M4aC",
@@ -7598,6 +7605,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.32551032243545386,
             "x2": 0.8730350638818353,
@@ -7624,73 +7633,79 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 4.14,
-                "x2": 1.03
+                "1x": 3.7,
+                "x2": 1.05
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.09
+                  "price": 1.1
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.35
+                  "price": 1.36
                 }
               ],
               "teamTotals": [
                 {
                   "team": "away",
+                  "point": 1.0,
+                  "side": "over",
+                  "price": 1.03
+                },
+                {
+                  "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.23
+                  "price": 1.26
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.61
+                  "price": 1.56
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.73
+                  "price": 2.53
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 4.3
+                  "price": 4.0
                 }
               ],
               "btts": {
-                "yes": 1.69
+                "yes": 1.66
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 8.36
+                  "price": 7.27
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 3.44
+                  "price": 3.04
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.07
+                  "price": 1.09
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [],
           "paperOnly": true
@@ -7703,6 +7718,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7816964547162808,
             "x2": 0.40167463596290715,
@@ -7782,11 +7799,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.243
           },
           "paperSignals": [
             {
@@ -7830,6 +7847,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.40293593529986416,
             "x2": 0.7972873094121966,
@@ -7864,6 +7883,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6334140805150328,
             "x2": 0.5997816096953902,
@@ -7947,11 +7968,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.243
           },
           "paperSignals": [],
           "paperOnly": true
@@ -7964,6 +7985,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.41117651982182624,
             "x2": 0.8141037494719444,
@@ -8069,11 +8092,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.243
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8086,6 +8109,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7893416470994281,
             "x2": 0.38501164577689023,
@@ -8186,11 +8211,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8203,6 +8228,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.3290094958162839,
             "x2": 0.8473755777936884,
@@ -8270,11 +8297,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [
             {
@@ -8318,6 +8345,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6073993006004189,
             "x2": 0.6514793936288057,
@@ -8423,11 +8452,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.243
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8440,6 +8469,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7249779288464433,
             "x2": 0.4838928635437584,
@@ -8474,6 +8505,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6869233309443165,
             "x2": 0.552856718331056,
@@ -8579,11 +8612,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:13:02.458000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 293.469
+            "bookmakerUpdateAgeSeconds": 189.242
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8596,6 +8629,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6820778060751238,
             "x2": 0.5378161372098187,
@@ -8630,6 +8665,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6653635891532503,
             "x2": 0.5528442656095383,
@@ -8664,6 +8701,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7138672192028526,
             "x2": 0.4901129856843887,
@@ -8698,6 +8737,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9062861384292263,
             "x2": 0.1891275973430751,
@@ -8732,6 +8773,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7372255232615306,
             "x2": 0.4653471484644386,
@@ -8766,6 +8809,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7225014139093371,
             "x2": 0.4618096338882798,
@@ -8800,6 +8845,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.730445217652475,
             "x2": 0.497783535393372,
@@ -8834,6 +8881,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6744565209559958,
             "x2": 0.5619879050880582,
@@ -8868,6 +8917,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7851859051496652,
             "x2": 0.3829492401747504,
@@ -8902,6 +8953,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7693018080204547,
             "x2": 0.4124507783338648,
@@ -8936,6 +8989,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7649769618945389,
             "x2": 0.422809966322777,
@@ -8970,6 +9025,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7189585306711641,
             "x2": 0.473944546728541,
@@ -9004,6 +9061,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6346357110569257,
             "x2": 0.5843046424011578,
@@ -9038,6 +9097,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8309140745659824,
             "x2": 0.3386755401865785,
@@ -9072,6 +9133,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6842852447049578,
             "x2": 0.5446885905198294,
@@ -9106,6 +9169,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5413790139721987,
             "x2": 0.702035293299816,
@@ -9140,6 +9205,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.48894404594058527,
             "x2": 0.7627928790465901,
@@ -9174,6 +9241,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8345173406163253,
             "x2": 0.35981317639481086,
@@ -9208,6 +9277,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5359516598798328,
             "x2": 0.7030568108689832,
@@ -9242,6 +9313,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.680600098068356,
             "x2": 0.5436572629563362,
@@ -9276,6 +9349,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.679413914299064,
             "x2": 0.536852418901774,
@@ -9310,6 +9385,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7627720463590799,
             "x2": 0.43600986442174977,
@@ -9344,6 +9421,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6756830106146718,
             "x2": 0.5645376797156448,
@@ -9378,6 +9457,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5545995908501313,
             "x2": 0.674358920126123,
@@ -9412,6 +9493,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8904743600363905,
             "x2": 0.2531504721882057,
@@ -9446,6 +9529,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8025549972415237,
             "x2": 0.3374520299845464,
@@ -9480,6 +9565,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8531191438294733,
             "x2": 0.2843118498627168,
@@ -9514,6 +9601,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.747380569563595,
             "x2": 0.44129529397757267,
@@ -9548,6 +9637,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7566469882127826,
             "x2": 0.44968811360839356,
@@ -9582,6 +9673,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.47073550516525586,
             "x2": 0.754976550247654,
@@ -9616,6 +9709,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.47026336567222327,
             "x2": 0.7475938506412582,
@@ -9650,6 +9745,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7767063762081347,
             "x2": 0.4343549951933412,
@@ -9684,6 +9781,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.548115439775934,
             "x2": 0.7090124996452748,
@@ -9718,6 +9817,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5457866290701678,
             "x2": 0.662623165153476,
@@ -9752,6 +9853,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5656301463074549,
             "x2": 0.680355211212491,
@@ -9786,6 +9889,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.617141778202031,
             "x2": 0.6088999224401729,
@@ -9820,6 +9925,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9436296447328472,
             "x2": 0.12350578793571199,
@@ -9854,6 +9961,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6976335175183463,
             "x2": 0.5270486876138732,
@@ -9888,6 +9997,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6433131720858836,
             "x2": 0.5768360082176437,
@@ -9922,6 +10033,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8516794296951341,
             "x2": 0.2957438532093581,
@@ -9956,6 +10069,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8849432788684906,
             "x2": 0.24233572268904968,
@@ -9990,6 +10105,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.654430835697945,
             "x2": 0.5427585194938407,
@@ -10024,6 +10141,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6496656961439434,
             "x2": 0.5979681424312808,
@@ -10058,6 +10177,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6835337083711134,
             "x2": 0.5260233615045463,
@@ -10092,6 +10213,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.902068887186217,
             "x2": 0.2083040871218123,
@@ -10126,6 +10249,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7979577038037574,
             "x2": 0.39768191332778247,
@@ -10160,6 +10285,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7585740087798422,
             "x2": 0.4241422788076431,
@@ -10194,6 +10321,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5542612193856832,
             "x2": 0.6912409365135359,
@@ -10228,6 +10357,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8908819635275171,
             "x2": 0.2183555572798375,
@@ -10262,6 +10393,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7806203087346384,
             "x2": 0.4359182710660701,
@@ -10296,6 +10429,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.45199978049955736,
             "x2": 0.7732715234239619,
@@ -10330,6 +10465,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5358749513531498,
             "x2": 0.6967526520441466,
@@ -10364,6 +10501,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.2842914092473023,
             "x2": 0.889430789034106,
@@ -10398,6 +10537,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6043199134373851,
             "x2": 0.634877785004444,
@@ -10439,6 +10580,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7818697560849551,
             "x2": 0.4148022136925473,
@@ -10527,11 +10670,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.111
+            "bookmakerUpdateAgeSeconds": 189.244
           },
           "paperSignals": [
             {
@@ -10560,6 +10703,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5661928801479748,
             "x2": 0.7057053278697475,
@@ -10665,11 +10810,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.111
+            "bookmakerUpdateAgeSeconds": 189.244
           },
           "paperSignals": [],
           "paperOnly": true
@@ -10682,6 +10827,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.638677389985741,
             "x2": 0.6280603628494227,
@@ -10787,11 +10934,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [
             {
@@ -10820,6 +10967,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.4904655418210476,
             "x2": 0.7605104657612737,
@@ -10919,11 +11068,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.244
           },
           "paperSignals": [],
           "paperOnly": true
@@ -10936,6 +11085,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8182272684614011,
             "x2": 0.3681076689860664,
@@ -11024,11 +11175,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11041,6 +11192,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8429677896377042,
             "x2": 0.35067271835835434,
@@ -11129,11 +11282,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11146,6 +11299,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9030320602351118,
             "x2": 0.22167694306229194,
@@ -11234,11 +11389,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11251,6 +11406,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8113880744589024,
             "x2": 0.3741584448504214,
@@ -11339,11 +11496,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [
             {
@@ -11372,6 +11529,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7728805819422297,
             "x2": 0.46695999472530275,
@@ -11460,11 +11619,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.111
+            "bookmakerUpdateAgeSeconds": 189.244
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11477,6 +11636,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5405848238114704,
             "x2": 0.70098981608516,
@@ -11582,11 +11743,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11599,6 +11760,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5036895899788291,
             "x2": 0.7774654330021528,
@@ -11704,11 +11867,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11721,6 +11884,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7462895451110804,
             "x2": 0.48288121763643915,
@@ -11826,11 +11991,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.244
           },
           "paperSignals": [
             {
@@ -11859,6 +12024,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6579226641567263,
             "x2": 0.5637922425316898,
@@ -11893,6 +12060,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5206472392980497,
             "x2": 0.7190078021625811,
@@ -11927,6 +12096,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8283535351388296,
             "x2": 0.3573820245796111,
@@ -12015,11 +12186,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [
             {
@@ -12048,6 +12219,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6114061296172831,
             "x2": 0.6225758776766748,
@@ -12147,11 +12320,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [
             {
@@ -12180,6 +12353,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9410373019670999,
             "x2": 0.12440411286021809,
@@ -12268,11 +12443,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.112
+            "bookmakerUpdateAgeSeconds": 189.245
           },
           "paperSignals": [
             {
@@ -12346,6 +12521,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5080222063362309,
             "x2": 0.7536192418777806,
@@ -12439,11 +12616,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.111
+            "bookmakerUpdateAgeSeconds": 189.244
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12456,6 +12633,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8529905286923848,
             "x2": 0.3273338533004991,
@@ -12490,6 +12669,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8924192212254438,
             "x2": 0.24893350542821502,
@@ -12524,6 +12705,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6925881465085663,
             "x2": 0.5708936202410256,
@@ -12558,6 +12741,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7006069616404156,
             "x2": 0.5163937473979714,
@@ -12592,6 +12777,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8579797580677767,
             "x2": 0.2797836515993818,
@@ -12626,6 +12813,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9242396654488068,
             "x2": 0.1921174592721445,
@@ -12660,6 +12849,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5401647332335884,
             "x2": 0.7163147284835845,
@@ -12694,6 +12885,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6449088133995129,
             "x2": 0.6479884857483337,
@@ -12728,6 +12921,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.3945277080518069,
             "x2": 0.8139298358267918,
@@ -12762,6 +12957,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7056930016926136,
             "x2": 0.5416275245948942,
@@ -12796,6 +12993,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6579000724491534,
             "x2": 0.5777892924995631,
@@ -12830,6 +13029,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7284509321514304,
             "x2": 0.5349669829752135,
@@ -12864,6 +13065,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6250745329915659,
             "x2": 0.5938672333191232,
@@ -12898,6 +13101,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5119211781178281,
             "x2": 0.7459925850599165,
@@ -12932,6 +13137,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5363435505455284,
             "x2": 0.7082692243431647,
@@ -12966,6 +13173,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8513667057198125,
             "x2": 0.31596958268828473,
@@ -13000,6 +13209,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7422681783977949,
             "x2": 0.4951710128412888,
@@ -13034,6 +13245,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6324139785182852,
             "x2": 0.5931865158635866,
@@ -13068,6 +13281,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7810390693321494,
             "x2": 0.427695638014391,
@@ -13102,6 +13317,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6228210665177631,
             "x2": 0.6238013176836502,
@@ -13136,6 +13353,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.722180385475288,
             "x2": 0.4942646953043824,
@@ -13170,6 +13389,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9301095281235545,
             "x2": 0.15436989093350093,
@@ -13204,6 +13425,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5934619336643924,
             "x2": 0.6281735827672813,
@@ -13238,6 +13461,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6114474202647624,
             "x2": 0.6326264299262494,
@@ -13272,6 +13497,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7481021959184608,
             "x2": 0.4841985868324524,
@@ -13306,6 +13533,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6486626496723851,
             "x2": 0.5968956845150717,
@@ -13340,6 +13569,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6394890843285127,
             "x2": 0.6486702455185887,
@@ -13374,6 +13605,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5640709812498379,
             "x2": 0.712620643284274,
@@ -13408,6 +13641,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5815501886379306,
             "x2": 0.6390397374500572,
@@ -13442,6 +13677,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6218814352541424,
             "x2": 0.6327707575968882,
@@ -13476,6 +13713,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.4762067168644004,
             "x2": 0.7630137359637391,
@@ -13510,6 +13749,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.4429366596453612,
             "x2": 0.7823537001873996,
@@ -13544,6 +13785,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7490199912018103,
             "x2": 0.49888991270776417,
@@ -13578,6 +13821,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7990353025815831,
             "x2": 0.42000078351120157,
@@ -13612,6 +13857,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8857156757436473,
             "x2": 0.26521563536016074,
@@ -13646,6 +13893,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7417165798025107,
             "x2": 0.523429277261859,
@@ -13680,6 +13929,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8635563706649694,
             "x2": 0.30642428692608925,
@@ -13714,6 +13965,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7279895881898978,
             "x2": 0.489765056472249,
@@ -13748,6 +14001,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7553299226107983,
             "x2": 0.4806849195828934,
@@ -13782,6 +14037,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8337769513578911,
             "x2": 0.3711044055705559,
@@ -13816,6 +14073,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6886303775056357,
             "x2": 0.5649833101857864,
@@ -13850,6 +14109,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7135873795581928,
             "x2": 0.5117651204674437,
@@ -13884,6 +14145,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5515705143815786,
             "x2": 0.6961819562540025,
@@ -13918,6 +14181,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7211285911384159,
             "x2": 0.5399207130469323,
@@ -13952,6 +14217,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7907075859090645,
             "x2": 0.3955282655981282,
@@ -13986,6 +14253,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6706839789954078,
             "x2": 0.5489440572546057,
@@ -14020,6 +14289,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7103701973116343,
             "x2": 0.5078057243365984,
@@ -14054,6 +14325,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.44769058200019807,
             "x2": 0.7797975688939626,
@@ -14088,6 +14361,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.580478887846506,
             "x2": 0.6671161658952884,
@@ -14122,6 +14397,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5802869425732632,
             "x2": 0.6713692576655157,
@@ -14156,6 +14433,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8148729400575515,
             "x2": 0.36986881427174645,
@@ -14190,6 +14469,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.49929761423961994,
             "x2": 0.7637840906087452,
@@ -14224,6 +14505,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8362711249542273,
             "x2": 0.31720196613084306,
@@ -14258,6 +14541,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7234268365709775,
             "x2": 0.5567687775044565,
@@ -14299,6 +14584,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8108353757177706,
             "x2": 0.38702021304852247,
@@ -14333,6 +14620,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5031939095902755,
             "x2": 0.7560109464745951,
@@ -14426,11 +14715,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.114
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -14459,6 +14748,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.86870051943766,
             "x2": 0.2930544178344488,
@@ -14493,6 +14784,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8890231708965108,
             "x2": 0.2510279407357645,
@@ -14592,11 +14885,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -14625,6 +14918,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8786768566792675,
             "x2": 0.29655922967045345,
@@ -14707,11 +15002,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [],
           "paperOnly": true
@@ -14724,6 +15019,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.4899758328235345,
             "x2": 0.7548948237511032,
@@ -14823,11 +15120,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -14856,6 +15153,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8577645961024479,
             "x2": 0.3275957274241474,
@@ -14949,11 +15248,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [],
           "paperOnly": true
@@ -14966,6 +15265,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.41278603140898884,
             "x2": 0.8165537642676539,
@@ -15071,11 +15372,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -15104,6 +15405,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.37466738202633376,
             "x2": 0.8393086181838117,
@@ -15203,11 +15506,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -15236,6 +15539,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7917443201310237,
             "x2": 0.417454362884664,
@@ -15270,6 +15575,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7498233915319251,
             "x2": 0.49258371756567904,
@@ -15304,6 +15611,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5278694200090026,
             "x2": 0.7459264800798017,
@@ -15403,11 +15712,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -15436,6 +15745,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5559792586392438,
             "x2": 0.714881917731299,
@@ -15530,11 +15841,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [],
           "paperOnly": true
@@ -15547,6 +15858,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.48270023033189446,
             "x2": 0.7674541704004703,
@@ -15635,11 +15948,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [],
           "paperOnly": true
@@ -15652,6 +15965,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5603661796277153,
             "x2": 0.6944768290427271,
@@ -15751,11 +16066,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [],
           "paperOnly": true
@@ -15768,6 +16083,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.561572146573442,
             "x2": 0.6912222496096917,
@@ -15873,11 +16190,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -15906,6 +16223,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5278192471317016,
             "x2": 0.7075024080865103,
@@ -16011,11 +16330,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.114
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -16044,6 +16363,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6975474567976062,
             "x2": 0.5083595324500287,
@@ -16143,11 +16464,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-24T18:14:59.818000+00:00",
+            "updatedAt": "2026-11-24T19:07:52.812000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 176.113
+            "bookmakerUpdateAgeSeconds": 189.246
           },
           "paperSignals": [
             {
@@ -16176,6 +16497,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.2619290745693278,
             "x2": 0.9073678539133984,
@@ -16210,6 +16533,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.825366661319805,
             "x2": 0.3582295495998772,
@@ -16244,6 +16569,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8144118361775534,
             "x2": 0.41775612993430056,
@@ -16278,6 +16605,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8145955739011066,
             "x2": 0.39832037485229016,
@@ -16312,6 +16641,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7424275213943285,
             "x2": 0.4733069382105359,
@@ -16346,6 +16677,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.540595211554991,
             "x2": 0.710005583712774,
@@ -16380,6 +16713,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8029061479908386,
             "x2": 0.39352696359742073,
@@ -16414,6 +16749,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7930246810009809,
             "x2": 0.41512623201358323,
@@ -16448,6 +16785,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7521732027165646,
             "x2": 0.4901581906805748,
@@ -16482,6 +16821,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5031730508465508,
             "x2": 0.7588422231205182,
@@ -16516,6 +16857,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6491116050720243,
             "x2": 0.6074179310570984,
@@ -16550,6 +16893,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5795697838102775,
             "x2": 0.6930074834177536,
@@ -16584,6 +16929,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.39463402441699447,
             "x2": 0.8225002102453938,
@@ -16618,6 +16965,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8073268484640364,
             "x2": 0.3702172673198858,
@@ -16652,6 +17001,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6834709647606764,
             "x2": 0.5570492570006704,
@@ -16686,6 +17037,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7104669377280136,
             "x2": 0.5276429140049266,
@@ -16720,6 +17073,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5397979940790941,
             "x2": 0.7291030594614645,
@@ -16754,6 +17109,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8854624817275822,
             "x2": 0.2527860834052513,
@@ -16788,6 +17145,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7789574172206736,
             "x2": 0.42691922890017386,
@@ -16822,6 +17181,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7123505201561514,
             "x2": 0.5227567629625256,
@@ -16856,6 +17217,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5384656492701583,
             "x2": 0.7278601691615724,
@@ -16890,6 +17253,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7940353321799691,
             "x2": 0.43942561073589353,
@@ -16924,6 +17289,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7138570980143868,
             "x2": 0.5449296489154463,
@@ -16958,6 +17325,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6160979665037921,
             "x2": 0.6369352136390313,
@@ -16992,6 +17361,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9516486427404866,
             "x2": 0.11263468003253135,
@@ -17026,6 +17397,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.5827365876522076,
             "x2": 0.650503740638243,
@@ -17060,6 +17433,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.4849665011380969,
             "x2": 0.7661660124939383,
@@ -17094,6 +17469,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7032869066532369,
             "x2": 0.5397632665458642,
@@ -17128,6 +17505,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6984323772335549,
             "x2": 0.5472648645026512,
@@ -17162,6 +17541,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7986030449800616,
             "x2": 0.4386565638135915,
@@ -17196,6 +17577,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.727237312938469,
             "x2": 0.4944975039318687,
@@ -17230,6 +17613,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.9516969237602284,
             "x2": 0.1317524737907744,
@@ -17264,6 +17649,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.8729828874952751,
             "x2": 0.2751859355778428,
@@ -17298,6 +17685,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.7705520154724257,
             "x2": 0.42697260644254553,
@@ -17332,6 +17721,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6387260939409378,
             "x2": 0.6181780261469,
@@ -17366,6 +17757,8 @@
           "status": "SCHEDULED",
           "homeScore": null,
           "awayScore": null,
+          "elapsed": null,
+          "elapsedExtra": null,
           "prediction": {
             "1x": 0.6304565575067385,
             "x2": 0.637369582359151,
