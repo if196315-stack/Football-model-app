@@ -17,7 +17,8 @@ class FeedMergerTest {
 
     @Test fun domesticMatchesStillRequireAnActiveMelBetLine() {
         assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", true, false))
-        assertEquals(true, FeedMerger.shouldShowScheduledMatch("PL", false, true))
+        assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", false, true))
+        assertEquals(true, FeedMerger.shouldShowScheduledMatch("PL", true, true))
         assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", false, false))
     }
 
