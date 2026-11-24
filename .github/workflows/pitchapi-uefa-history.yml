@@ -7,10 +7,12 @@ on:
     paths:
       - "backend/refresh_pitchapi_uefa_fixtures.py"
       - ".github/workflows/pitchapi-uefa-history.yml"
+  schedule:
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: pitchapi-uefa-fixture-history
@@ -37,7 +39,17 @@ jobs:
       - name: Refresh UEFA fixtures and results only
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
-        run: python backend/refresh_pitchapi_uefa_fixtures.py
+        run: python backend/refresh_pitchapi_uefa_fixtures.py --upcoming-only
+      - name: Rebuild live UEFA app feed
+        run: python backend/build_uefa_app_feed.py
+      - name: Commit refreshed UEFA live feed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/uefa-data.json
+          git diff --cached --quiet || git commit -m "Refresh live UEFA fixtures and match clocks"
+          git pull --rebase origin main
+          git push
       - name: Upload fixture history and report
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
