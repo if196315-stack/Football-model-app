@@ -8,6 +8,7 @@ on:
       - "backend/refresh_match_results_api_sport.py"
       - "backend/update_odds_api_sport.py"
       - ".github/workflows/refresh-match-results.yml"
+  # Recovery: a push changing this workflow file also triggers an immediate refresh.
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
