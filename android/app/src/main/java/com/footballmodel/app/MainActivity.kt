@@ -2518,7 +2518,7 @@ class MainActivity : Activity() {
                 }
                 val color = when (state) {
                     "WON" -> Color.rgb(0, 230, 118)
-                    "LOST" -> Color.rgb(169, 130, 135) // Muted grey-red for a calmer loss indicator.
+                    "LOST" -> Color.rgb(210, 112, 108) // Match the negative ROI color in Statistics.
                     else -> Color.YELLOW
                 }
                 val fixtureForDisplay = if (bet.optString("marketKey") == "COUPON") null else findIndexedMatch(bet)
