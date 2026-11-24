@@ -2432,7 +2432,14 @@ class MainActivity : Activity() {
                 if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
             } else {
                 allSettled = false
-                if (matchStatus in listOf("IN_PLAY", "LIVE", "PAUSED")) scores.add(scoreLabel + " · LIVE")
+                val normalizedStatus = matchStatus.trim().uppercase(Locale.ROOT)
+                if (normalizedStatus in setOf("IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "1H", "2H", "PAUSED")) {
+                    val minute = liveElapsedMinute(match)
+                    val extra = match.optInt("elapsedExtra", 0)
+                    val clock = if (minute >= 0) " · ${minute}${if (extra > 0) "+$extra" else ""}′" else ""
+                    val phase = if (normalizedStatus == "PAUSED") " · ПЕРЕРЫВ" else " · LIVE"
+                    scores.add(scoreLabel + phase + clock)
+                }
             }
         }
         bet.put("couponScores", scores.joinToString(" · "))
