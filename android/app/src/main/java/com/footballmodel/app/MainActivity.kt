@@ -4218,7 +4218,7 @@ class MainActivity : Activity() {
                 // until the provider reports a terminal result, regardless of the calendar day.
                 if (isLiveMatch || (kickoffDayHasPassed && !isTerminalMatch) ||
                     (isScheduledMatch && FeedMerger.shouldShowScheduledMatch(
-                        leagueCode, m.optJSONObject("prediction") != null,
+                        league.optString("code"), m.optJSONObject("prediction") != null,
                         hasStrategyPredictionWithActiveMelBetLine(m)
                     ))) {
                     upcoming.add(m)
