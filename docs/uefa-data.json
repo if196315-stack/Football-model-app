@@ -7202,10 +7202,10 @@
           "utcDate": "2026-11-24T17:45:00Z",
           "home": "Galatasaray",
           "away": "Aston Villa",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 95,
+          "elapsed": 90,
           "elapsedExtra": null,
           "prediction": {
             "1x": 0.47192588985938416,
@@ -7263,9 +7263,9 @@
             }
           ],
           "paperOnly": true,
-          "scoreStatusFinal": false,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T19:37:53.739154+00:00"
+          "resultUpdatedAt": "2026-11-24T19:39:34.639922+00:00"
         },
         {
           "id": "m_0c78zD",
