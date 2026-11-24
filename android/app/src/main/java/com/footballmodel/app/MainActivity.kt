@@ -943,6 +943,20 @@ class MainActivity : Activity() {
     private fun kickoffTimestamp(match: JSONObject): Long? =
         MatchKickoffOrdering.timestamp(match)
 
+    private fun liveElapsedMinute(match: JSONObject): Int {
+        val providerMinute = match.optInt("elapsed", match.optInt("minute", -1))
+        val period = match.optString("period").trim().uppercase(Locale.ROOT)
+        val isSecondHalf = period in setOf("SECOND_HALF", "2H", "IN_PLAY_SECOND_HALF")
+        if (isSecondHalf && providerMinute in 0..45) {
+            val kickoff = kickoffTimestamp(match)
+            if (kickoff != null) {
+                val wallMinutes = ((System.currentTimeMillis() - kickoff) / 60_000L).toInt()
+                return (wallMinutes - 15).coerceIn(46, 130)
+            }
+        }
+        return providerMinute
+    }
+
     private fun matchTimeZone(): java.util.TimeZone =
         java.util.TimeZone.getTimeZone("Asia/Yekaterinburg")
 
@@ -2676,7 +2690,7 @@ class MainActivity : Activity() {
                     if (!match.isNull("homeScore") && !match.isNull("awayScore"))
                         "${match.optInt("homeScore")}:${match.optInt("awayScore")}" else ""
                 }.orEmpty().ifBlank { bet.optString("score") }
-                val elapsed = fixtureForDisplay?.optInt("elapsed", -1) ?: -1
+                val elapsed = fixtureForDisplay?.let { liveElapsedMinute(it) } ?: -1
                 val elapsedExtra = fixtureForDisplay?.optInt("elapsedExtra", 0) ?: 0
                 val clock = if (elapsed >= 0 && currentMatchStatus in
                     setOf("IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "1H", "2H", "PAUSED", "HALFTIME", "HALF_TIME", "BREAK")) {
@@ -3267,6 +3281,46 @@ class MainActivity : Activity() {
 
     // Eligibility requires at least one strategy market with BOTH a valid model probability
     // and a fresh, active MelBet price for that exact market and line.
+    /**
+     * Publication gate for scheduled matches: every strategy market must have
+     * its matching model probability and a fresh MelBet prematch price.
+     * This is intentionally stricter than signal selection, which may use one market.
+     */
+    private fun hasAllStrategyMarketsWithActiveMelBetLines(match: JSONObject): Boolean {
+        val prediction = match.optJSONObject("prediction") ?: return false
+        val odds = match.optJSONObject("odds") ?: return false
+        val bookmaker = odds.optString("bookmaker")
+        val isMelBet = if (bookmaker.isNotBlank()) bookmaker.equals("MELBET", true)
+            else odds.optString("source").contains("MelBet", true)
+        if (!isMelBet || !hasFreshMelBetQuote(match)) return false
+        val best = odds.optJSONObject("best") ?: return false
+        fun probability(field: String) = prediction.optDouble(field, Double.NaN)
+            .let { it.isFinite() && it in 0.0..1.0 }
+        fun price(value: Double) = value.isFinite() && value > 1.0
+        val dc = best.optJSONObject("doubleChance") ?: return false
+        if (!probability("1x") || !price(dc.optDouble("1x", Double.NaN))) return false
+        if (!probability("x2") || !price(dc.optDouble("x2", Double.NaN))) return false
+        val btts = best.optJSONObject("btts") ?: return false
+        if (!probability("bttsYes") || !price(btts.optDouble("yes", Double.NaN))) return false
+        fun hasTotal(field: String, team: String?, point: Double, probabilityField: String): Boolean {
+            if (!probability(probabilityField)) return false
+            val rows = best.optJSONArray(field) ?: return false
+            for (i in 0 until rows.length()) {
+                val row = rows.optJSONObject(i) ?: continue
+                if (!row.optString("side").equals("over", true)) continue
+                if (kotlin.math.abs(row.optDouble("point", Double.NaN) - point) >= 0.001) continue
+                if (team != null && !row.optString("team").equals(team, true)) continue
+                if (price(row.optDouble("price", Double.NaN))) return true
+            }
+            return false
+        }
+        if (!hasTotal("totals", null, 2.5, "over25")) return false
+        return hasTotal("teamTotals", "home", 0.5, "homeOver05") &&
+            hasTotal("teamTotals", "home", 1.5, "homeOver15") &&
+            hasTotal("teamTotals", "away", 0.5, "awayOver05") &&
+            hasTotal("teamTotals", "away", 1.5, "awayOver15")
+    }
+
     private fun hasStrategyPredictionWithActiveMelBetLine(match: JSONObject): Boolean {
         val prediction = match.optJSONObject("prediction") ?: return false
         val odds = match.optJSONObject("odds") ?: return false
@@ -4218,8 +4272,8 @@ class MainActivity : Activity() {
                 // until the provider reports a terminal result, regardless of the calendar day.
                 if (isLiveMatch || (kickoffDayHasPassed && !isTerminalMatch) ||
                     (isScheduledMatch && FeedMerger.shouldShowScheduledMatch(
-                        league.optString("code"), m.optJSONObject("prediction") != null,
-                        hasStrategyPredictionWithActiveMelBetLine(m)
+                        league.optString("code"), hasCompleteModelPrediction(m),
+                        hasAllStrategyMarketsWithActiveMelBetLines(m)
                     ))) {
                     upcoming.add(m)
                     if (!isLiveMatch) {
@@ -4281,7 +4335,7 @@ class MainActivity : Activity() {
                         cornerRadius = dp(23).toFloat()
                         setStroke(dp(1), Color.rgb(91, 78, 55))
                     }
-                    val providerMinute = m.optInt("elapsed", m.optInt("minute", -1))
+                    val providerMinute = liveElapsedMinute(m)
                     val addedMinute = m.optInt("elapsedExtra", m.optInt("extra", -1))
                     val hasExactKickoff = listOf("utcDate", "dateEvent", "kickoff", "date")
                         .any { m.optString(it).contains('T') }
@@ -4289,7 +4343,9 @@ class MainActivity : Activity() {
                     // the exact kickoff timestamp instead of rendering "LIVE · LIVE".
                     val estimatedMinute = if (providerMinute < 0 && cardStatus != "PAUSED" && hasExactKickoff) {
                         kickoffTimestamp(m)?.let { kickoff ->
-                            ((System.currentTimeMillis() - kickoff) / 60_000L).toInt().coerceIn(0, 130)
+                            val wallMinutes = ((System.currentTimeMillis() - kickoff) / 60_000L).toInt()
+                            (wallMinutes - if (m.optString("period").equals("SECOND_HALF", true)) 15 else 0)
+                                .coerceIn(0, 130)
                         } ?: -1
                     } else -1
                     val minute = if (providerMinute >= 0) providerMinute else estimatedMinute
