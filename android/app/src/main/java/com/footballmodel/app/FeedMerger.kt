@@ -20,6 +20,39 @@ internal object FeedMerger {
         hasAllActiveMelBetMarkets: Boolean
     ): Boolean = hasPrediction && hasAllActiveMelBetMarkets
 
+    private val liveStatuses = setOf(
+        "IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "IN-PLAY",
+        "FIRST_HALF", "SECOND_HALF", "IN_PLAY_FIRST_HALF", "IN_PLAY_SECOND_HALF",
+        "1H", "2H", "PAUSED", "HALFTIME", "HALF_TIME", "BREAK"
+    )
+    private val terminalStatuses = setOf(
+        "FINISHED", "FT", "FULL_TIME", "AET", "PEN", "AFTER EXTRA TIME",
+        "AFTER PENALTIES", "MATCH FINISHED", "CANCELED", "CANCELLED",
+        "AWARDED", "ABANDONED"
+    )
+
+    fun isLiveStatus(status: String): Boolean =
+        status.trim().uppercase(java.util.Locale.ROOT) in liveStatuses
+
+    fun isTerminalStatus(status: String): Boolean =
+        status.trim().uppercase(java.util.Locale.ROOT) in terminalStatuses
+
+    fun isScheduledStatus(status: String): Boolean =
+        status.trim().uppercase(java.util.Locale.ROOT) in setOf("SCHEDULED", "TIMED")
+
+    /** One shared publication/retention rule for domestic and UEFA competitions. */
+    fun shouldKeepInLine(
+        status: String,
+        kickoffDayHasPassed: Boolean,
+        hasAllActiveMelBetMarkets: Boolean
+    ): Boolean {
+        if (isLiveStatus(status)) return true
+        if (isTerminalStatus(status)) return false
+        if (kickoffDayHasPassed) return true
+        return isScheduledStatus(status) &&
+            shouldShowScheduledMatch("", true, hasAllActiveMelBetMarkets)
+    }
+
     fun mergeUefa(target: JSONObject, uefa: JSONObject) {
         val targetCompetitions = target.optJSONArray("competitions")
             ?: JSONArray().also { target.put("competitions", it) }
