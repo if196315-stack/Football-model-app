@@ -150,6 +150,13 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertEqual(evaluated["homeScore"], 2)
         self.assertEqual(evaluated["awayScore"], 1)
         self.assertEqual(evaluated["leagueCode"], "UECL")
+    def test_pitchapi_in_progress_aliases_are_normalized_to_live(self):
+        from build_uefa_app_feed import app_match_status
+        for raw in ("in_progress", "inprogress", "in progress", "in-play", "1h", "2h"):
+            self.assertEqual(app_match_status(raw), "IN_PLAY", raw)
+        for raw in ("paused", "halftime", "half_time", "break"):
+            self.assertEqual(app_match_status(raw), "PAUSED", raw)
+
     def test_live_and_paused_fixtures_are_preserved_in_uefa_feed_without_paper_bets(self):
         cache = {"matches": {
             "ucl-live": {"leagueCode": "UCL", "status": "in_play",
