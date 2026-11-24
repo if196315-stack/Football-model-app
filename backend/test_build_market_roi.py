@@ -104,6 +104,49 @@ class MarketRoiTests(unittest.TestCase):
         self.assertEqual(report["summary"]["roi"], 100.0)
         self.assertEqual(report["records"][0]["status"], "SETTLED")
 
+    def test_settles_from_finished_competition_fixture_when_evaluation_archive_lags(self):
+        quote = {
+            "league_code": "ENG", "fixture_id": "101", "market_key": "1x",
+            "price": 2.0, "kickoff_utc": "2026-11-20",
+        }
+        domestic = {
+            **self.domestic,
+            "evaluationMatches": [],
+            "competitions": [{
+                "code": "ENG",
+                "matches": [{
+                    "id": "101", "status": "FINISHED",
+                    "homeScore": 2, "awayScore": 1,
+                }],
+            }],
+        }
+        report, _ = build(domestic, {}, [], [quote])
+        self.assertEqual(report["summary"]["settled"], 1)
+        self.assertEqual(report["summary"]["wins"], 1)
+        self.assertEqual(report["records"][0]["status"], "SETTLED")
+        self.assertEqual(report["records"][0]["home_score"], 2)
+        self.assertEqual(report["records"][0]["away_score"], 1)
+
+    def test_settles_uefa_competition_fixture_by_league_and_id(self):
+        quote = {
+            "league_code": "UCL", "fixture_id": "202",
+            "fixture_namespace": "UEFA", "market_key": "1x",
+            "price": 1.9, "kickoff_utc": "2026-11-20",
+        }
+        uefa = {
+            "evaluationMatches": [],
+            "competitions": [{
+                "code": "UCL",
+                "matches": [{
+                    "id": "202", "status": "FT",
+                    "homeScore": 1, "awayScore": 0,
+                }],
+            }],
+        }
+        report, _ = build({}, uefa, [], [quote])
+        self.assertEqual(report["summary"]["settled"], 1)
+        self.assertEqual(report["records"][0]["status"], "SETTLED")
+
     def test_pending_and_missing_quotes_are_not_in_roi_denominator(self):
         quote = {"league_code": "ENG", "fixture_id": "101", "market_key": "1x", "price": 1.8}
         report, _ = build(self.domestic, {}, [], [quote])
