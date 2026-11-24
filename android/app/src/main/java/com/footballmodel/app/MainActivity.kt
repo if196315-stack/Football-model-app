@@ -807,17 +807,31 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, 0, 0, dp(7))
         }
-        val star = label("★", 22, true, gold).apply {
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            setShadowLayer(dp(5).toFloat(), 0f, 0f, Color.rgb(177, 119, 42))
-            background = GradientDrawable().apply {
-                setColor(Color.rgb(54, 43, 31))
-                cornerRadius = dp(11).toFloat()
-                setStroke(dp(1), Color.rgb(181, 137, 72))
+        val bolt = object : View(this) {
+            private val boltPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = gold
+                style = Paint.Style.STROKE
+                strokeWidth = dp(2.2f).toFloat()
+                strokeCap = Paint.Cap.ROUND
+                strokeJoin = Paint.Join.ROUND
             }
-        }
-        row.addView(star, LinearLayout.LayoutParams(dp(34), dp(34)).apply { rightMargin = dp(10) })
+            override fun onDraw(canvas: Canvas) {
+                super.onDraw(canvas)
+                val w = width.toFloat()
+                val h = height.toFloat()
+                val path = android.graphics.Path().apply {
+                    moveTo(w * 0.57f, h * 0.08f)
+                    lineTo(w * 0.28f, h * 0.53f)
+                    lineTo(w * 0.48f, h * 0.53f)
+                    lineTo(w * 0.40f, h * 0.92f)
+                    lineTo(w * 0.73f, h * 0.42f)
+                    lineTo(w * 0.53f, h * 0.42f)
+                    close()
+                }
+                canvas.drawPath(path, boltPaint)
+            }
+        }.apply { contentDescription = "Самый сильный сигнал" }
+        row.addView(bolt, LinearLayout.LayoutParams(dp(26), dp(26)).apply { rightMargin = dp(14) })
         row.addView(label("САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold),
             LinearLayout.LayoutParams(0, -2, 1f))
         parent.addView(row)
@@ -867,14 +881,9 @@ class MainActivity : Activity() {
                 canvas.drawCircle(w * 0.77f, h * 0.29f, dp(2).toFloat(), nodePaint)
             }
         }.apply {
-            background = GradientDrawable().apply {
-                setColor(Color.rgb(54, 43, 31))
-                cornerRadius = dp(11).toFloat()
-                setStroke(dp(1), Color.rgb(139, 105, 57))
-            }
             contentDescription = "График котировок"
         }
-        row.addView(chart, LinearLayout.LayoutParams(dp(34), dp(34)).apply { rightMargin = dp(10) })
+        row.addView(chart, LinearLayout.LayoutParams(dp(26), dp(26)).apply { rightMargin = dp(14) })
         row.addView(label(title, 10, true, accent), LinearLayout.LayoutParams(0, -2, 1f))
         parent.addView(row)
     }
