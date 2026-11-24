@@ -7121,7 +7121,7 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Feyenoord",
           "away": "FC Porto",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 1,
           "prediction": {
@@ -7237,9 +7237,9 @@
           },
           "paperSignals": [],
           "paperOnly": true,
-          "scoreStatusFinal": false,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T16:42:05.378130+00:00"
+          "resultUpdatedAt": "2026-11-24T17:33:26.042271+00:00"
         },
         {
           "id": "m_4SYMzr",
@@ -7399,7 +7399,7 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Manchester City",
           "away": "Napoli",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "homeScore": 4,
           "awayScore": 1,
           "prediction": {
@@ -7524,9 +7524,9 @@
             }
           ],
           "paperOnly": true,
-          "scoreStatusFinal": false,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T16:42:05.378130+00:00"
+          "resultUpdatedAt": "2026-11-24T17:33:26.042271+00:00"
         },
         {
           "id": "m_13c8QW",
@@ -7639,7 +7639,7 @@
           "utcDate": "2026-11-24T20:00:00Z",
           "home": "Real Madrid",
           "away": "PSV Eindhoven",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "homeScore": 3,
           "awayScore": 3,
           "prediction": {
@@ -7729,9 +7729,9 @@
           },
           "paperSignals": [],
           "paperOnly": true,
-          "scoreStatusFinal": false,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-24T16:42:05.378130+00:00"
+          "resultUpdatedAt": "2026-11-24T17:33:26.042271+00:00"
         },
         {
           "id": "m_38M4aC",
