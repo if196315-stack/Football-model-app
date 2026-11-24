@@ -7,6 +7,18 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class FeedMergerTest {
+    @Test fun scheduledUefaMatchesRemainVisibleWithoutFreshMelBetQuotes() {
+        for (code in listOf("UCL", "UEL", "UECL")) {
+            assertEquals(true, FeedMerger.shouldShowScheduledMatch(code, true, false))
+        }
+    }
+
+    @Test fun domesticMatchesStillRequireAnActiveMelBetLine() {
+        assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", true, false))
+        assertEquals(true, FeedMerger.shouldShowScheduledMatch("PL", false, true))
+        assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", false, false))
+    }
+
     @Test fun replacesUefaCompetitionsAndPreservesDomesticCompetitions() {
         val target = JSONObject().put("competitions", JSONArray()
             .put(JSONObject().put("code", "PL").put("name", "Premier League"))
