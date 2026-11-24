@@ -166,6 +166,20 @@ class MarketRoiTests(unittest.TestCase):
         self.assertEqual(report["summary"]["settled"], 1)
         self.assertEqual(report["records"][0]["status"], "SETTLED")
 
+    def test_preserves_verified_settlement_when_feed_temporarily_omits_final(self):
+        quote = {
+            "league_code": "ENG", "fixture_id": "101", "market_key": "1x",
+            "price": 2.0, "kickoff_utc": "2026-11-20",
+        }
+        previous = [{
+            **quote, "status": "SETTLED", "result": "WIN",
+            "home_score": 2, "away_score": 1, "profit_units": 1.0,
+        }]
+        report, _ = build(self.domestic, {}, [], [quote], previous_records=previous)
+        self.assertEqual(report["summary"]["settled"], 1)
+        self.assertEqual(report["records"][0]["status"], "SETTLED")
+        self.assertEqual(report["records"][0]["profit_units"], 1.0)
+
     def test_pending_and_missing_quotes_are_not_in_roi_denominator(self):
         quote = {"league_code": "ENG", "fixture_id": "101", "market_key": "1x", "price": 1.8}
         report, _ = build(self.domestic, {}, [], [quote])
