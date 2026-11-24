@@ -855,7 +855,9 @@ class MainActivity : Activity() {
     private fun kickoffTimestamp(match: JSONObject): Long? {
         val timestamp = match.optLong("startTimestamp", 0L)
         if (timestamp > 0L) return if (timestamp < 10_000_000_000L) timestamp * 1000L else timestamp
-        val raw = match.optString("utcDate").ifBlank { match.optString("dateEvent") }
+        val raw = match.optString("utcDate").ifBlank {
+            match.optString("dateEvent").ifBlank { match.optString("date") }
+        }
         if (raw.isBlank()) return null
         val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd'T'HH:mm:ssX", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd")
         for (pattern in patterns) {
@@ -868,18 +870,23 @@ class MainActivity : Activity() {
         return null
     }
 
+    private fun matchTimeZone(): java.util.TimeZone =
+        java.util.TimeZone.getTimeZone("Asia/Yekaterinburg")
+
     private fun kickoffLabel(match: JSONObject): String {
-        val raw = match.optString("utcDate").ifBlank { match.optString("dateEvent") }
+        val raw = match.optString("utcDate").ifBlank {
+            match.optString("dateEvent").ifBlank { match.optString("date") }
+        }
         val millis = kickoffTimestamp(match) ?: return "Дата и время начала не указаны"
         val hasTime = raw.contains("T") || match.optLong("startTimestamp", 0L) > 0L
         val formatted = SimpleDateFormat(if (hasTime) "EEE, dd MMM · HH:mm" else "EEE, dd MMM", Locale.getDefault())
-            .apply { timeZone = java.util.TimeZone.getDefault() }.format(Date(millis))
-        return if (hasTime) "$formatted · местное время" else "$formatted · время начала не указано"
+            .apply { timeZone = matchTimeZone() }.format(Date(millis))
+        return if (hasTime) "$formatted · Екатеринбург (UTC+5)" else "$formatted · время начала не указано"
     }
 
     private fun formatLocalTimestamp(millis: Long): String =
         if (millis <= 0L) "—" else SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-            .format(Date(millis))
+            .apply { timeZone = matchTimeZone() }.format(Date(millis))
 
     private fun formatSourceTimestamp(raw: String): String {
         if (raw.isBlank()) return "—"
@@ -887,15 +894,13 @@ class MainActivity : Activity() {
         return formatLocalTimestamp(millis)
     }
 
-
-    private fun date(raw: String): String = try {
-        val input = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-        input.timeZone = java.util.TimeZone.getTimeZone("UTC")
-        val parsed = input.parse(raw)!!
-        SimpleDateFormat("EEE, dd MMM  ·  HH:mm", Locale.getDefault()).apply {
-            timeZone = java.util.TimeZone.getDefault()
-        }.format(parsed)
-    } catch (_: Exception) { raw.replace("T", " ").take(16) }
+    private fun date(raw: String): String {
+        if (raw.isBlank()) return "—"
+        val millis = kickoffTimestamp(JSONObject().put("utcDate", raw)) ?: return raw.replace("T", " ").take(16)
+        val hasTime = raw.contains("T")
+        return SimpleDateFormat(if (hasTime) "EEE, dd MMM  ·  HH:mm" else "EEE, dd MMM", Locale.getDefault())
+            .apply { timeZone = matchTimeZone() }.format(Date(millis))
+    }
 
     // Large feed bodies live in private files, not SharedPreferences. Preferences
     // retain only small metadata (ETags and timestamps).
@@ -2612,7 +2617,11 @@ class MainActivity : Activity() {
         }
         matchesContainer.addView(historyTabs)
         if (selectedHistoryTab == "ОЖИДАЮТ") {
-            renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets, "Ставок, ожидающих расчёта, пока нет.")
+            val sortedOpenBets = openBets.sortedWith(
+                compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }
+                    .thenBy { it.optLong("createdAt", Long.MAX_VALUE) }
+            )
+            renderBetSection("ОТКРЫТЫЕ СТАВКИ", sortedOpenBets, "Ставок, ожидающих расчёта, пока нет.")
         } else {
             renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
         }
