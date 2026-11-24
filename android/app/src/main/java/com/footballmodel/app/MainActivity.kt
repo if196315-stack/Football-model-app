@@ -4159,10 +4159,7 @@ class MainActivity : Activity() {
             return
         }
 
-        // Show every upcoming fixture in the loaded feed; no artificial date horizon.
-        val fixtureUtc = java.util.TimeZone.getTimeZone("UTC")
-        val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = fixtureUtc }
-        val fixtureToday = fixtureDayFormat.format(Date())
+        // Keep scheduled fixtures visible across calendar-day changes until the feed confirms completion.
 
         var totalUpcoming = 0
         var totalPredicted = 0
@@ -4177,16 +4174,18 @@ class MainActivity : Activity() {
                 val matchStatus = m.optString("status")
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
-                        kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
+                        kickoffTimestamp(m)?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(it)) }.orEmpty()
                     }
                 }
                 val normalizedMatchStatus = matchStatus.trim().uppercase(Locale.ROOT)
                 val isLiveMatch = normalizedMatchStatus in setOf("IN_PLAY", "LIVE", "PAUSED")
-                val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
-                // Live fixtures remain visible even though prematch odds are no longer eligible.
-                // Do not require a model or a fresh prematch quote to show the live score/status.
-                if (isLiveMatch || (normalizedMatchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
-                    hasStrategyPredictionWithActiveMelBetLine(m))) {
+                val isScheduledMatch = normalizedMatchStatus in listOf("SCHEDULED", "TIMED")
+                val kickoffDayHasPassed = fixtureDate.isNotBlank() &&
+                    fixtureDate < SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                // A delayed fixture must not disappear at midnight or lose eligibility when its old
+                // prematch quote expires. The provider's FINISHED status is the only end condition.
+                if (isLiveMatch || (isScheduledMatch &&
+                    (kickoffDayHasPassed || hasStrategyPredictionWithActiveMelBetLine(m)))) {
                     upcoming.add(m)
                     if (!isLiveMatch) {
                         totalUpcoming++
