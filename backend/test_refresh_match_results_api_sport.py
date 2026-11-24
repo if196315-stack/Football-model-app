@@ -14,7 +14,7 @@ def source(status="finished", final=True, home=2, away=1):
         "homeScore": {"current": home},
         "awayScore": {"current": away},
         "scoreStatus": {"final": final},
-        "time": {"elapsed": 67, "extra": 3},
+        "currentMatchMinute": 67, "overtimeLength": 3,
     }
 
 
@@ -48,7 +48,9 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertEqual(params["date_to"], "2026-11-22")
         self.assertEqual(params["status"], "inprogress,finished")
         self.assertIn("scoreStatus", params["fields"])
-        self.assertIn("time", params["fields"])
+        self.assertIn("currentMatchMinute", params["fields"])
+        self.assertIn("overtimeLength", params["fields"])
+        self.assertNotIn("time", params["fields"])
 
     def test_sync_copies_final_score_and_confirmation_without_touching_odds(self):
         payload = {"competitions": [{"code": "PL", "matches": [{
