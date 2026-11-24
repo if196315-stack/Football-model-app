@@ -265,7 +265,9 @@ def build_feed(
         archived = archive["matches"].get(f"{league_code}:{fixture_id}")
         # Show ordinary upcoming fixtures with a model and every fixture carrying
         # a historical paper entry, including after its final score is known.
-        if is_upcoming and model is None and not fixture_papers and league_code != "UECL":
+        # Keep the frozen pre-kickoff prediction visible if kickoff has passed but
+        # the provider still reports the fixture as scheduled/timed.
+        if is_upcoming and model is None and not fixture_papers and not archived and league_code != "UECL":
             continue
         if not is_upcoming and not is_live and not fixture_papers and not archived:
             continue
