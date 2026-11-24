@@ -852,23 +852,8 @@ class MainActivity : Activity() {
     private fun pct(o: JSONObject, key: String): String =
         if (o.isNull(key)) "—" else String.format(Locale.US, "%.0f%%", o.optDouble(key) * 100.0)
 
-    private fun kickoffTimestamp(match: JSONObject): Long? {
-        val timestamp = match.optLong("startTimestamp", 0L)
-        if (timestamp > 0L) return if (timestamp < 10_000_000_000L) timestamp * 1000L else timestamp
-        val raw = match.optString("utcDate").ifBlank {
-            match.optString("dateEvent").ifBlank { match.optString("date") }
-        }
-        if (raw.isBlank()) return null
-        val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd'T'HH:mm:ssX", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd")
-        for (pattern in patterns) {
-            try {
-                val parser = SimpleDateFormat(pattern, Locale.US).apply { isLenient = false; timeZone = java.util.TimeZone.getTimeZone("UTC") }
-                val parsed = parser.parse(raw) ?: continue
-                return parsed.time
-            } catch (_: Exception) { }
-        }
-        return null
-    }
+    private fun kickoffTimestamp(match: JSONObject): Long? =
+        MatchKickoffOrdering.timestamp(match)
 
     private fun matchTimeZone(): java.util.TimeZone =
         java.util.TimeZone.getTimeZone("Asia/Yekaterinburg")
@@ -2626,14 +2611,14 @@ class MainActivity : Activity() {
             historyTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
         }
         matchesContainer.addView(historyTabs)
+        val betKickoffOrder = compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }
+            .thenBy { it.optLong("createdAt", Long.MAX_VALUE) }
         if (selectedHistoryTab == "ОЖИДАЮТ") {
-            val sortedOpenBets = openBets.sortedWith(
-                compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }
-                    .thenBy { it.optLong("createdAt", Long.MAX_VALUE) }
-            )
-            renderBetSection("ОТКРЫТЫЕ СТАВКИ", sortedOpenBets, "Ставок, ожидающих расчёта, пока нет.")
+            renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets.sortedWith(betKickoffOrder),
+                "Ставок, ожидающих расчёта, пока нет.")
         } else {
-            renderBetSection("ЗАВЕРШЁННЫЕ", completedBets, "Завершённых ставок пока нет.")
+            renderBetSection("ЗАВЕРШЁННЫЕ", completedBets.sortedWith(betKickoffOrder),
+                "Завершённых ставок пока нет.")
         }
     }
 
@@ -3602,10 +3587,13 @@ class MainActivity : Activity() {
                 candidates.add(Triple(match, league.optString("name"), bundle))
             }
         }
-        return candidates.sortedByDescending { item ->
-            item.third.optJSONObject("primary")?.optDouble("aiKellyFraction", Double.NEGATIVE_INFINITY)
-                ?: Double.NEGATIVE_INFINITY
-        }
+        return candidates.sortedWith(
+            compareBy<Triple<JSONObject, String, JSONObject>> { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
+                .thenByDescending {
+                    it.third.optJSONObject("primary")?.optDouble("aiKellyFraction", Double.NEGATIVE_INFINITY)
+                        ?: Double.NEGATIVE_INFINITY
+                }
+        )
     }
 
     private fun aiSignalOutcome(side: String, match: JSONObject): Boolean? {
@@ -4119,7 +4107,7 @@ class MainActivity : Activity() {
                 val empty = card(content)
                 addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
-            upcoming.sortedWith(compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }).forEach { m ->
+            upcoming.sortedWith(MatchKickoffOrdering.comparator()).forEach { m ->
                 val box = card(content)
                 // Match the LINE fixture card palette to Statistics → RESULTS BY MARKETS.
                 box.setPadding(dp(13), dp(12), dp(13), dp(12))
