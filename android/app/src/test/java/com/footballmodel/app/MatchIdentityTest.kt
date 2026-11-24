@@ -30,10 +30,12 @@ class MatchIdentityTest {
         assertTrue(MatchIdentity.sameFixture(bet, fixture))
     }
 
-    @Test fun dateLessBetRequiresUniqueTeamsAtLookupLayer() {
+    @Test fun dateLessBetCanMatchOnlyWhenTeamPairIsUnique() {
         val bet = JSONObject().put("home", "Brest").put("away", "Paris")
         val fixture = JSONObject().put("home", "Brest").put("away", "Paris")
             .put("utcDate", "2026-11-27T18:00:00Z")
         assertTrue(MatchIdentity.sameFixture(bet, fixture))
+        assertTrue(MatchIdentity.uniqueMatch(listOf(fixture)) === fixture)
+        assertTrue(MatchIdentity.uniqueMatch(listOf(fixture, fixture)) == null)
     }
 }
