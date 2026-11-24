@@ -31,9 +31,10 @@ internal object MatchKickoffOrdering {
         ).filter { it.isNotBlank() }
 
         // Exact date-time strings are the most reliable source for kickoff time.
-        rawValues.firstOrNull { it.contains('T') }?.let { raw ->
-            parse(raw)?.let { return it }
-        }
+        rawValues.asSequence().filter { it.contains('T') }
+            .mapNotNull(::parse)
+            .firstOrNull()
+            ?.let { return it }
 
         val epoch = match.optLong("startTimestamp", 0L)
         if (epoch > 0L) return if (epoch < 10_000_000_000L) epoch * 1000L else epoch
