@@ -22,6 +22,29 @@ class FeedMergerTest {
         assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", false, false))
     }
 
+    @Test fun domesticAndUefaUseTheSameLineRetentionRules() {
+        for (code in listOf("PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")) {
+            assertEquals(false, FeedMerger.shouldKeepInLine("SCHEDULED", false, false))
+            assertEquals(true, FeedMerger.shouldKeepInLine("SCHEDULED", false, true))
+            assertEquals(true, FeedMerger.shouldKeepInLine("IN_PLAY_SECOND_HALF", false, false))
+            assertEquals(true, FeedMerger.shouldKeepInLine("PAUSED", false, false))
+            assertEquals(true, FeedMerger.shouldKeepInLine("SCHEDULED", true, false))
+            assertEquals(false, FeedMerger.shouldKeepInLine("FINISHED", true, true))
+        }
+    }
+
+    @Test fun recognizesProviderLiveAliasesAndTerminalStatusesConsistently() {
+        for (status in listOf("IN_PLAY", "LIVE", "IN_PROGRESS", "1H", "2H",
+            "FIRST_HALF", "SECOND_HALF", "IN_PLAY_SECOND_HALF", "PAUSED", "HALFTIME")) {
+            assertEquals(true, FeedMerger.isLiveStatus(status))
+        }
+        for (status in listOf("FINISHED", "FT", "FULL_TIME", "AET", "PEN",
+            "CANCELED", "CANCELLED", "AWARDED", "ABANDONED")) {
+            assertEquals(true, FeedMerger.isTerminalStatus(status))
+            assertEquals(false, FeedMerger.shouldKeepInLine(status, true, true))
+        }
+    }
+
     @Test fun replacesUefaCompetitionsAndPreservesDomesticCompetitions() {
         val target = JSONObject().put("competitions", JSONArray()
             .put(JSONObject().put("code", "PL").put("name", "Premier League"))
