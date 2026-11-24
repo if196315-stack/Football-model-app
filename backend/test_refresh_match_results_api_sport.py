@@ -14,6 +14,7 @@ def source(status="finished", final=True, home=2, away=1):
         "homeScore": {"current": home},
         "awayScore": {"current": away},
         "scoreStatus": {"final": final},
+        "time": {"elapsed": 67, "extra": 3},
     }
 
 
@@ -47,6 +48,7 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertEqual(params["date_to"], "2026-11-22")
         self.assertEqual(params["status"], "inprogress,finished")
         self.assertIn("scoreStatus", params["fields"])
+        self.assertIn("time", params["fields"])
 
     def test_sync_copies_final_score_and_confirmation_without_touching_odds(self):
         payload = {"competitions": [{"code": "PL", "matches": [{
@@ -62,6 +64,8 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertEqual((match["homeScore"], match["awayScore"]), (2, 1))
         self.assertIs(match["scoreStatusFinal"], True)
         self.assertEqual(match["resultProvider"], "API-Sport")
+        self.assertEqual(match["elapsed"], 67)
+        self.assertEqual(match["elapsedExtra"], 3)
         self.assertEqual(match["odds"]["bookmaker"], "MELBET")
         self.assertEqual(match["prediction"]["1x"], 0.8)
 
