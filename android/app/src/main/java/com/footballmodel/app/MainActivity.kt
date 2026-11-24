@@ -2265,22 +2265,28 @@ class MainActivity : Activity() {
         val findIndexedMatch = buildMatchLookup(json)
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
-            if (existing.optString("status") == "PENDING" && existing.optString("marketKey") != "COUPON") {
-                val match = findIndexedMatch(existing) ?: continue
-                val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
-                if (matchStatus.isNotBlank() && existing.optString("matchStatus") != matchStatus) {
-                    existing.put("matchStatus", matchStatus)
+            if (existing.optString("marketKey") == "COUPON") continue
+            val match = findIndexedMatch(existing) ?: continue
+            val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
+            val kickoffInFuture = kickoffTimestamp(match)?.let { it > System.currentTimeMillis() } == true
+            if (BetSettlement.shouldReopenSettledBet(existing.optString("status"), matchStatus, kickoffInFuture)) {
+                existing.put("status", "PENDING").put("matchStatus", matchStatus)
+                existing.remove("score")
+                changed = true
+            }
+            if (existing.optString("status") != "PENDING") continue
+            if (matchStatus.isNotBlank() && existing.optString("matchStatus") != matchStatus) {
+                existing.put("matchStatus", matchStatus)
+                changed = true
+            }
+            if (!match.isNull("homeScore") && !match.isNull("awayScore")) {
+                val liveScore = "${match.optInt("homeScore")}:${match.optInt("awayScore")}"
+                if (existing.optString("score") != liveScore) {
+                    existing.put("score", liveScore)
                     changed = true
                 }
-                if (!match.isNull("homeScore") && !match.isNull("awayScore")) {
-                    val liveScore = "${match.optInt("homeScore")}:${match.optInt("awayScore")}"
-                    if (existing.optString("score") != liveScore) {
-                        existing.put("score", liveScore)
-                        changed = true
-                    }
-                }
-                if (settleBet(existing, match)) changed = true
             }
+            if (settleBet(existing, match)) changed = true
         }
         // Automatic paper-bet creation is disabled. Keep settlement of existing bets above.
         if (changed) saveBets()
@@ -2561,7 +2567,13 @@ class MainActivity : Activity() {
             }
             val match = findIndexedMatch(bet)
             if (match != null) {
-                val matchStatus = match.optString("status")
+                val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
+                val kickoffInFuture = kickoffTimestamp(match)?.let { it > System.currentTimeMillis() } == true
+                if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus, kickoffInFuture)) {
+                    bet.put("status", "PENDING").put("matchStatus", matchStatus)
+                    bet.remove("score")
+                    changed = true
+                }
                 val score = if (!match.isNull("homeScore") && !match.isNull("awayScore"))
                     match.optInt("homeScore").toString() + ":" + match.optInt("awayScore") else ""
                 if (score.isNotEmpty() && bet.optString("score") != score) { bet.put("score", score); changed = true }
