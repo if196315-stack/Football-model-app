@@ -4247,7 +4247,11 @@ class MainActivity : Activity() {
                         cornerRadius = dp(23).toFloat()
                         setStroke(dp(1), Color.rgb(91, 78, 55))
                     }
-                    addText(box, if (cardStatus == "PAUSED") "Ⅱ  ПЕРЕРЫВ" else "●  LIVE", 11, true, accent).apply {
+                    val liveBadge = TextView(this).apply {
+                        text = if (cardStatus == "PAUSED") "Ⅱ  ПЕРЕРЫВ" else "●  LIVE"
+                        textSize = 11f
+                        typeface = Typeface.DEFAULT_BOLD
+                        setTextColor(accent)
                         setPadding(dp(9), dp(5), dp(9), dp(5))
                         background = GradientDrawable().apply {
                             setColor(Color.rgb(39, 35, 29))
@@ -4255,6 +4259,7 @@ class MainActivity : Activity() {
                             setStroke(dp(1), Color.rgb(139, 105, 57))
                         }
                     }
+                    box.addView(liveBadge)
                     addMatchup(box, m.optString("home"), m.optString("away"))
                     val liveScore = if (!m.isNull("homeScore") && !m.isNull("awayScore"))
                         "${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else "Счёт обновляется"
