@@ -1,7 +1,7 @@
 import unittest
 from datetime import date, datetime, timezone
 
-from refresh_match_results_api_sport import apply_provider_match, fetch_recent_matches, sync_feed
+from refresh_match_results_api_sport import apply_provider_match, fetch_recent_matches, result_fixture, sync_feed
 
 
 def source(status="finished", final=True, home=2, away=1):
@@ -100,6 +100,33 @@ class FastResultSyncTests(unittest.TestCase):
         apply_provider_match(target, source(status="inprogress", final=None), "now")
         self.assertEqual(target["status"], "IN_PLAY")
         self.assertIs(target["scoreStatusFinal"], False)
+
+    def test_result_matching_rejects_wrong_opponent_even_when_home_team_matches(self):
+        target = {"utcDate": "2026-11-24T20:00:00Z",
+                  "home": "Real Madrid", "away": "PSV Eindhoven"}
+        wrong = source()
+        wrong["startTimestamp"] = int(datetime(2026, 11, 24, 20, 0, tzinfo=timezone.utc).timestamp() * 1000)
+        wrong["homeTeam"] = {"name": "Real Madrid"}
+        wrong["awayTeam"] = {"name": "PSV U21"}
+        self.assertIsNone(result_fixture(target, [wrong]))
+
+    def test_result_matching_rejects_provider_fixture_with_wrong_kickoff(self):
+        target = {"utcDate": "2026-11-24T20:00:00Z",
+                  "home": "Real Madrid", "away": "PSV Eindhoven"}
+        wrong = source()
+        wrong["startTimestamp"] = int(datetime(2026, 11, 25, 8, 0, tzinfo=timezone.utc).timestamp() * 1000)
+        wrong["homeTeam"] = {"name": "Real Madrid"}
+        wrong["awayTeam"] = {"name": "PSV Eindhoven"}
+        self.assertIsNone(result_fixture(target, [wrong]))
+
+    def test_result_matching_rejects_ambiguous_duplicate_provider_fixtures(self):
+        target = {"utcDate": "2026-11-24T20:00:00Z",
+                  "home": "Real Madrid", "away": "PSV Eindhoven"}
+        first = source()
+        first.update({"startTimestamp": int(datetime(2026, 11, 24, 20, 0, tzinfo=timezone.utc).timestamp() * 1000),
+                      "homeTeam": {"name": "Real Madrid"}, "awayTeam": {"name": "PSV Eindhoven"}})
+        second = dict(first, id=456)
+        self.assertIsNone(result_fixture(target, [first, second]))
 
     def test_ambiguous_or_unmatched_fixture_is_untouched(self):
         payload = {"competitions": [{"matches": [{
