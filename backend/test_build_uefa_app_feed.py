@@ -157,6 +157,18 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         for raw in ("paused", "halftime", "half_time", "break"):
             self.assertEqual(app_match_status(raw), "PAUSED", raw)
 
+    def test_live_feed_preserves_elapsed_and_added_minutes(self):
+        cache = {"matches": {
+            "ucl-clock": {"leagueCode": "UCL", "status": "in_play",
+                          "date": "2026-11-24T19:00:00Z", "home": "Alpha",
+                          "away": "Beta", "homeScore": 2, "awayScore": 1,
+                          "elapsed": 67, "elapsedExtra": 3},
+        }}
+        feed = build_feed(cache, {"matches": []}, [], [], [], predictions={})
+        match = feed["competitions"][0]["matches"][0]
+        self.assertEqual(match["elapsed"], 67)
+        self.assertEqual(match["elapsedExtra"], 3)
+
     def test_live_and_paused_fixtures_are_preserved_in_uefa_feed_without_paper_bets(self):
         cache = {"matches": {
             "ucl-live": {"leagueCode": "UCL", "status": "in_play",
