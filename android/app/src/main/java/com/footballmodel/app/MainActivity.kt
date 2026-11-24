@@ -2459,6 +2459,21 @@ class MainActivity : Activity() {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
 
         val findIndexedMatch = buildMatchLookup(j)
+        // Bet records may contain only a calendar date; use the current fixture
+        // as the source of truth for both ordering and the displayed kickoff.
+        fun betKickoffTimestamp(bet: JSONObject): Long? {
+            if (bet.optString("marketKey") == "COUPON") {
+                val selections = bet.optJSONArray("selections")
+                val legKickoffs = (0 until (selections?.length() ?: 0)).mapNotNull { index ->
+                    val leg = selections?.optJSONObject(index) ?: return@mapNotNull null
+                    findIndexedMatch(leg)?.let { kickoffTimestamp(it) }
+                        ?: kickoffTimestamp(leg)
+                }
+                return legKickoffs.minOrNull() ?: kickoffTimestamp(bet)
+            }
+            return findIndexedMatch(bet)?.let { kickoffTimestamp(it) }
+                ?: kickoffTimestamp(bet)
+        }
         var changed = false
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
@@ -2516,8 +2531,16 @@ class MainActivity : Activity() {
                     "LOST" -> Color.rgb(210, 112, 108) // Match the negative ROI color in Statistics.
                     else -> Color.YELLOW
                 }
-                val fixtureForDisplay = if (bet.optString("marketKey") == "COUPON") null else findIndexedMatch(bet)
-                val kickoffForDisplay = fixtureForDisplay?.let { kickoffLabel(it) }
+                val isCoupon = bet.optString("marketKey") == "COUPON"
+                val fixtureForDisplay = if (isCoupon) null else findIndexedMatch(bet)
+                val couponKickoff = if (isCoupon) {
+                    val selections = bet.optJSONArray("selections")
+                    (0 until (selections?.length() ?: 0)).mapNotNull { index ->
+                        val leg = selections?.optJSONObject(index) ?: return@mapNotNull null
+                        findIndexedMatch(leg)?.let { it to (kickoffTimestamp(it) ?: Long.MAX_VALUE) }
+                    }.minByOrNull { it.second }?.first
+                } else null
+                val kickoffForDisplay = (fixtureForDisplay ?: couponKickoff)?.let { kickoffLabel(it) }
                     ?: date(bet.optString("kickoff").ifBlank { bet.optString("date") })
                 addText(box, displayLeagueName(bet.optString("league")) + " · " + kickoffForDisplay, 10, false, muted)
                 addText(box, if (bet.optString("marketKey") == "COUPON")
@@ -2614,7 +2637,7 @@ class MainActivity : Activity() {
             historyTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
         }
         matchesContainer.addView(historyTabs)
-        val betKickoffOrder = compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }
+        val betKickoffOrder = compareBy<JSONObject> { betKickoffTimestamp(it) ?: Long.MAX_VALUE }
             .thenBy { it.optLong("createdAt", Long.MAX_VALUE) }
         if (selectedHistoryTab == "ОЖИДАЮТ") {
             renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets.sortedWith(betKickoffOrder),
