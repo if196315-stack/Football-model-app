@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-24T01:24:22.210930+00:00",
+  "updatedAt": "2026-11-24T01:31:22.040096+00:00",
   "source": "PitchAPI (fixtures, results and shot-level xG); API-Sport (bookmaker odds)",
   "modelVersion": "xg-poisson-v2-x2-calibrated",
   "probabilityCalibration": {
@@ -28,7 +28,7 @@
   "xgHistoryMatches": 8678,
   "xgHistoryPairedMatches": 8678,
   "xgHistoryPending": 17,
-  "xgUpdatedAt": "2026-11-24T01:24:17.488907+00:00",
+  "xgUpdatedAt": "2026-11-24T01:31:17.681428+00:00",
   "status": "ready",
   "notice": "Прогнозы доступны для 1204 предстоящих матчей; в истории результатов 8695 матчей; парный xG есть у 8678, ожидают xG: 17.",
   "dataWarning": "Прогнозы строятся только на завершённых матчах с парным xG PitchAPI. Отсутствующий xG не заменяется нулём.",
@@ -22150,7 +22150,7 @@
         },
         {
           "id": "m_3xkED2",
-          "utcDate": "2026-11-27",
+          "utcDate": "2026-11-27T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Nottingham Forest",
           "away": "Chelsea",
@@ -22229,16 +22229,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_35NS0w",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T15:00:00Z",
           "status": "SCHEDULED",
           "home": "Leeds United",
           "away": "Coventry City",
@@ -22317,16 +22317,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_4AXxqK",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T15:00:00Z",
           "status": "SCHEDULED",
           "home": "Manchester United",
           "away": "Brentford",
@@ -22405,16 +22405,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2a6aiA",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Ipswich Town",
           "away": "Aston Villa",
@@ -22493,16 +22493,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_30gNoT",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T12:00:00Z",
           "status": "SCHEDULED",
           "home": "Everton",
           "away": "Liverpool",
@@ -22581,16 +22581,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1EvjuD",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T14:05:00Z",
           "status": "SCHEDULED",
           "home": "Brighton & Hove Albion",
           "away": "Newcastle United",
@@ -22669,16 +22669,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_38YPw8",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T14:05:00Z",
           "status": "SCHEDULED",
           "home": "Sunderland",
           "away": "Tottenham Hotspur",
@@ -22757,16 +22757,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3ELOjU",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T14:05:00Z",
           "status": "SCHEDULED",
           "home": "Fulham",
           "away": "AFC Bournemouth",
@@ -22845,16 +22845,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1cmXYH",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T14:05:00Z",
           "status": "SCHEDULED",
           "home": "Crystal Palace",
           "away": "Hull City",
@@ -22933,16 +22933,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_000aNg",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T16:30:00Z",
           "status": "SCHEDULED",
           "home": "Arsenal",
           "away": "Manchester City",
@@ -23021,16 +23021,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2auuWk",
-          "utcDate": "2026-12-01",
+          "utcDate": "2026-12-01T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Coventry City",
           "away": "Ipswich Town",
@@ -23109,16 +23109,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_45PBCV",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T19:30:00Z",
           "status": "SCHEDULED",
           "home": "Manchester City",
           "away": "Leeds United",
@@ -23191,16 +23191,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_1mNrnL",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T19:30:00Z",
           "status": "SCHEDULED",
           "home": "Hull City",
           "away": "Nottingham Forest",
@@ -23279,16 +23279,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_109S60",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T19:30:00Z",
           "status": "SCHEDULED",
           "home": "Chelsea",
           "away": "Crystal Palace",
@@ -23361,16 +23361,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_2ca0e2",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T19:30:00Z",
           "status": "SCHEDULED",
           "home": "Liverpool",
           "away": "Sunderland",
@@ -23443,16 +23443,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_32EZEH",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T20:15:00Z",
           "status": "SCHEDULED",
           "home": "Brentford",
           "away": "Arsenal",
@@ -23531,16 +23531,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_2q2SV8",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T20:15:00Z",
           "status": "SCHEDULED",
           "home": "AFC Bournemouth",
           "away": "Brighton & Hove Albion",
@@ -23619,16 +23619,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_1J5cPp",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T20:15:00Z",
           "status": "SCHEDULED",
           "home": "Newcastle United",
           "away": "Manchester United",
@@ -23707,16 +23707,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_0clzxH",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T20:15:00Z",
           "status": "SCHEDULED",
           "home": "Aston Villa",
           "away": "Everton",
@@ -23795,16 +23795,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         },
         {
           "id": "m_1sGD9w",
-          "utcDate": "2026-12-03",
+          "utcDate": "2026-12-03T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Tottenham Hotspur",
           "away": "Fulham",
@@ -23883,11 +23883,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:13.831000+00:00",
+            "updatedAt": "2026-11-24T01:30:52.201000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 247.001
+            "bookmakerUpdateAgeSeconds": 264.78
           }
         }
       ],
@@ -46208,7 +46208,7 @@
         },
         {
           "id": "m_3N7OsF",
-          "utcDate": "2026-11-27",
+          "utcDate": "2026-11-27T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Levante",
           "away": "Racing Santander",
@@ -46287,16 +46287,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_08z59s",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T13:00:00Z",
           "status": "SCHEDULED",
           "home": "Real Betis",
           "away": "Rayo Vallecano",
@@ -46375,16 +46375,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_0Ug8cm",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Elche",
           "away": "Atlético Madrid",
@@ -46463,16 +46463,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3rnAZg",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Real Madrid",
           "away": "Deportivo Alavés",
@@ -46545,16 +46545,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_33dRGf",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T13:00:00Z",
           "status": "SCHEDULED",
           "home": "Valencia",
           "away": "Osasuna",
@@ -46633,16 +46633,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_4fVjJA",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T15:15:00Z",
           "status": "SCHEDULED",
           "home": "Deportivo A Coruña",
           "away": "Barcelona",
@@ -46710,16 +46710,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3WXB3J",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Celta Vigo",
           "away": "Villarreal",
@@ -46798,16 +46798,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2Yqjou",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Real Sociedad",
           "away": "Sevilla",
@@ -46886,16 +46886,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3iTvoj",
-          "utcDate": "2026-11-30",
+          "utcDate": "2026-11-30T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Espanyol",
           "away": "Getafe",
@@ -46974,16 +46974,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_44JFxH",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T18:00:00Z",
           "status": "SCHEDULED",
           "home": "Real Sociedad",
           "away": "Real Madrid",
@@ -47051,16 +47051,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:24.486000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 356.346
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_0fuQ35",
-          "utcDate": "2026-12-02",
+          "utcDate": "2026-12-02T20:30:00Z",
           "status": "SCHEDULED",
           "home": "Barcelona",
           "away": "Atlético Madrid",
@@ -47133,16 +47133,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:24.486000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 356.346
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_3lOups",
-          "utcDate": "2026-12-04",
+          "utcDate": "2026-12-04T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Deportivo Alavés",
           "away": "Espanyol",
@@ -47221,16 +47221,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:24.486000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 356.346
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_3vr3oj",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T13:00:00Z",
           "status": "SCHEDULED",
           "home": "Racing Santander",
           "away": "Deportivo A Coruña",
@@ -47309,16 +47309,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_28uqzt",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T15:15:00Z",
           "status": "SCHEDULED",
           "home": "Rayo Vallecano",
           "away": "Levante",
@@ -47397,16 +47397,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_1Phfld",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Villarreal",
           "away": "Real Sociedad",
@@ -47479,16 +47479,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_0ntmar",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Barcelona",
           "away": "Celta Vigo",
@@ -47550,16 +47550,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_4Vrs6K",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T13:00:00Z",
           "status": "SCHEDULED",
           "home": "Osasuna",
           "away": "Elche",
@@ -47638,16 +47638,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_0qKSVy",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Getafe",
           "away": "Valencia",
@@ -47726,16 +47726,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_2Q1o5z",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Atlético Madrid",
           "away": "Real Betis",
@@ -47808,16 +47808,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_4ZGP6b",
-          "utcDate": "2026-12-07",
+          "utcDate": "2026-12-07T20:00:00Z",
           "status": "SCHEDULED",
           "home": "Sevilla",
           "away": "Málaga",
@@ -47890,11 +47890,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         }
       ],
@@ -70138,7 +70138,7 @@
         },
         {
           "id": "m_398Ugm",
-          "utcDate": "2026-11-27",
+          "utcDate": "2026-11-27T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Venezia",
           "away": "Bologna",
@@ -70217,16 +70217,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1Kxps6",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T14:00:00Z",
           "status": "SCHEDULED",
           "home": "Frosinone",
           "away": "Parma",
@@ -70305,16 +70305,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1LXkdY",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T17:00:00Z",
           "status": "SCHEDULED",
           "home": "Torino",
           "away": "Lazio",
@@ -70393,16 +70393,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1wivS8",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Inter",
           "away": "Genoa",
@@ -70481,16 +70481,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1HNA3N",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T11:30:00Z",
           "status": "SCHEDULED",
           "home": "Udinese",
           "away": "Fiorentina",
@@ -70569,16 +70569,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2PpCtR",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T14:00:00Z",
           "status": "SCHEDULED",
           "home": "Sassuolo",
           "away": "Napoli",
@@ -70657,16 +70657,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2FQrRd",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T17:00:00Z",
           "status": "SCHEDULED",
           "home": "Roma",
           "away": "Monza",
@@ -70739,16 +70739,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_45OSSt",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Como",
           "away": "Juventus",
@@ -70827,16 +70827,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_0fP1BP",
-          "utcDate": "2026-11-30",
+          "utcDate": "2026-11-30T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Lecce",
           "away": "Atalanta",
@@ -70915,16 +70915,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2TYAqN",
-          "utcDate": "2026-11-30",
+          "utcDate": "2026-11-30T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Cagliari",
           "away": "Milan",
@@ -71003,16 +71003,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3cZRHv",
-          "utcDate": "2026-12-04",
+          "utcDate": "2026-12-04T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Bologna",
           "away": "Roma",
@@ -71091,16 +71091,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:23.416000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 357.416
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_2BX2E8",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T14:00:00Z",
           "status": "SCHEDULED",
           "home": "Monza",
           "away": "Como",
@@ -71173,16 +71173,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_46PtPd",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T17:00:00Z",
           "status": "SCHEDULED",
           "home": "Frosinone",
           "away": "Inter",
@@ -71250,16 +71250,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_3C2i4b",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Napoli",
           "away": "Lecce",
@@ -71332,16 +71332,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_1KsliJ",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T11:30:00Z",
           "status": "SCHEDULED",
           "home": "Genoa",
           "away": "Torino",
@@ -71420,16 +71420,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_4akXHp",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T14:00:00Z",
           "status": "SCHEDULED",
           "home": "Lazio",
           "away": "Atalanta",
@@ -71502,16 +71502,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_3h0vxe",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T17:00:00Z",
           "status": "SCHEDULED",
           "home": "Juventus",
           "away": "Udinese",
@@ -71584,16 +71584,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_10ii0c",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Milan",
           "away": "Parma",
@@ -71666,16 +71666,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_301fHR",
-          "utcDate": "2026-12-07",
+          "utcDate": "2026-12-07T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Venezia",
           "away": "Sassuolo",
@@ -71754,16 +71754,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_3gFHXh",
-          "utcDate": "2026-12-07",
+          "utcDate": "2026-12-07T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Fiorentina",
           "away": "Cagliari",
@@ -71836,11 +71836,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         }
       ],
@@ -89673,7 +89673,7 @@
         },
         {
           "id": "m_0toF5d",
-          "utcDate": "2026-11-27",
+          "utcDate": "2026-11-27T19:30:00Z",
           "status": "SCHEDULED",
           "home": "Werder Bremen",
           "away": "Borussia Mönchengladbach",
@@ -89752,16 +89752,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3VtobK",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Mainz 05",
           "away": "Union Berlin",
@@ -89840,16 +89840,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_17iYnz",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Paderborn",
           "away": "Schalke 04",
@@ -89928,16 +89928,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2u1O22",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T14:30:00Z",
           "status": "SCHEDULED",
           "home": "1. FC Köln",
           "away": "Elversberg",
@@ -90016,16 +90016,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3Hzh67",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Hamburger SV",
           "away": "Bayern München",
@@ -90093,16 +90093,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3PhJyQ",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T17:30:00Z",
           "status": "SCHEDULED",
           "home": "VfB Stuttgart",
           "away": "Eintracht Frankfurt",
@@ -90176,16 +90176,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_4WDuqr",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Freiburg",
           "away": "RB Leipzig",
@@ -90264,16 +90264,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_0MD4hY",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T16:30:00Z",
           "status": "SCHEDULED",
           "home": "Hoffenheim",
           "away": "Augsburg",
@@ -90352,16 +90352,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2EPZPi",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T18:30:00Z",
           "status": "SCHEDULED",
           "home": "Borussia Dortmund",
           "away": "Bayer Leverkusen",
@@ -90440,16 +90440,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3UYsVM",
-          "utcDate": "2026-12-04",
+          "utcDate": "2026-12-04T19:30:00Z",
           "status": "SCHEDULED",
           "home": "Bayern München",
           "away": "Paderborn",
@@ -90510,16 +90510,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:24.486000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 356.346
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_1rTgKX",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Union Berlin",
           "away": "Hamburger SV",
@@ -90598,16 +90598,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_2edqUA",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Augsburg",
           "away": "1. FC Köln",
@@ -90686,16 +90686,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_1mnJ79",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Bayer Leverkusen",
           "away": "Borussia Mönchengladbach",
@@ -90763,16 +90763,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_0v6q2m",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Freiburg",
           "away": "Hoffenheim",
@@ -90851,16 +90851,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_1zayCA",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T14:30:00Z",
           "status": "SCHEDULED",
           "home": "RB Leipzig",
           "away": "Mainz 05",
@@ -90933,16 +90933,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_2VD3se",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T17:30:00Z",
           "status": "SCHEDULED",
           "home": "Eintracht Frankfurt",
           "away": "Werder Bremen",
@@ -91015,16 +91015,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_4eAZc9",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T14:30:00Z",
           "status": "SCHEDULED",
           "home": "Schalke 04",
           "away": "Borussia Dortmund",
@@ -91097,16 +91097,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         },
         {
           "id": "m_2R6XdR",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T16:30:00Z",
           "status": "SCHEDULED",
           "home": "Elversberg",
           "away": "VfB Stuttgart",
@@ -91179,11 +91179,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:17.763000+00:00",
+            "updatedAt": "2026-11-24T01:30:56.144000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 243.069
+            "bookmakerUpdateAgeSeconds": 260.837
           }
         }
       ],
@@ -110754,7 +110754,7 @@
         },
         {
           "id": "m_1oxRzF",
-          "utcDate": "2026-11-27",
+          "utcDate": "2026-11-27T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Brest",
           "away": "Paris FC",
@@ -110833,16 +110833,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2KbgcS",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T16:15:00Z",
           "status": "SCHEDULED",
           "home": "Angers",
           "away": "Lens",
@@ -110921,16 +110921,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1LWSAq",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Paris Saint-Germain",
           "away": "Lorient",
@@ -111003,16 +111003,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1m7rKw",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Nice",
           "away": "Troyes",
@@ -111091,16 +111091,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2UeyHL",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Le Mans",
           "away": "Lille",
@@ -111179,16 +111179,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_4f73g7",
-          "utcDate": "2026-11-28",
+          "utcDate": "2026-11-28T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Le Havre",
           "away": "Strasbourg",
@@ -111267,16 +111267,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_4g4g9c",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T14:00:00Z",
           "status": "SCHEDULED",
           "home": "Auxerre",
           "away": "Marseille",
@@ -111355,16 +111355,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:16.790000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 364.042
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_2M85c1",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T16:15:00Z",
           "status": "SCHEDULED",
           "home": "Toulouse",
           "away": "Rennes",
@@ -111443,16 +111443,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_1UrggI",
-          "utcDate": "2026-11-29",
+          "utcDate": "2026-11-29T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Lyon",
           "away": "Monaco",
@@ -111531,16 +111531,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:10.683000+00:00",
+            "updatedAt": "2026-11-24T01:30:48.949000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 250.149
+            "bookmakerUpdateAgeSeconds": 268.032
           }
         },
         {
           "id": "m_3MY6tQ",
-          "utcDate": "2026-12-04",
+          "utcDate": "2026-12-04T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Toulouse",
           "away": "Paris Saint-Germain",
@@ -111613,16 +111613,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:23:23.416000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 357.416
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_3v8yI3",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T16:15:00Z",
           "status": "SCHEDULED",
           "home": "Lille",
           "away": "Auxerre",
@@ -111695,16 +111695,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_2axaMF",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Strasbourg",
           "away": "Lorient",
@@ -111783,16 +111783,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_0mOmWm",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Lens",
           "away": "Le Havre",
@@ -111865,16 +111865,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_0ddwIc",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Monaco",
           "away": "Angers",
@@ -111947,16 +111947,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_4BiPXT",
-          "utcDate": "2026-12-05",
+          "utcDate": "2026-12-05T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Paris FC",
           "away": "Le Mans",
@@ -112029,16 +112029,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_4W2YYV",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T14:00:00Z",
           "status": "SCHEDULED",
           "home": "Troyes",
           "away": "Lyon",
@@ -112117,16 +112117,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_4bGNFs",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T16:15:00Z",
           "status": "SCHEDULED",
           "home": "Rennes",
           "away": "Brest",
@@ -112199,16 +112199,16 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         },
         {
           "id": "m_2QI0Cp",
-          "utcDate": "2026-12-06",
+          "utcDate": "2026-12-06T19:45:00Z",
           "status": "SCHEDULED",
           "home": "Marseille",
           "away": "Nice",
@@ -112287,11 +112287,11 @@
               },
               "spreads": []
             },
-            "updatedAt": "2026-11-24T01:25:16.551000+00:00",
+            "updatedAt": "2026-11-24T01:30:55.054000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 244.281
+            "bookmakerUpdateAgeSeconds": 261.927
           }
         }
       ],
@@ -127446,7 +127446,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3IrTv6": {
         "id": "m_3IrTv6",
@@ -127489,7 +127489,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_19nSVX": {
         "id": "m_19nSVX",
@@ -127532,7 +127532,7 @@
         },
         "homeScore": 1,
         "awayScore": 4,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3XXOvK": {
         "id": "m_3XXOvK",
@@ -127575,7 +127575,7 @@
         },
         "homeScore": 2,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_4Pdd0e": {
         "id": "m_4Pdd0e",
@@ -127618,7 +127618,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_2FVfvL": {
         "id": "m_2FVfvL",
@@ -127652,7 +127652,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3xkED2": {
         "id": "m_3xkED2",
@@ -133305,7 +133305,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3JKUH6": {
         "id": "m_3JKUH6",
@@ -133348,7 +133348,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_4DeisY": {
         "id": "m_4DeisY",
@@ -133391,7 +133391,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_101pSt": {
         "id": "m_101pSt",
@@ -133434,7 +133434,7 @@
         },
         "homeScore": 2,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_2xAkEu": {
         "id": "m_2xAkEu",
@@ -133477,7 +133477,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3ZF56r": {
         "id": "m_3ZF56r",
@@ -133520,7 +133520,7 @@
         },
         "homeScore": 0,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3jVoFq": {
         "id": "m_3jVoFq",
@@ -133554,7 +133554,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_08z59s": {
         "id": "m_08z59s",
@@ -139504,7 +139504,7 @@
         },
         "homeScore": 3,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_1jov2C": {
         "id": "m_1jov2C",
@@ -139547,7 +139547,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_0M5Pz1": {
         "id": "m_0M5Pz1",
@@ -139590,7 +139590,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_1PKq2V": {
         "id": "m_1PKq2V",
@@ -139633,7 +139633,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_4TXXCg": {
         "id": "m_4TXXCg",
@@ -139676,7 +139676,7 @@
         },
         "homeScore": 0,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_40elPe": {
         "id": "m_40elPe",
@@ -139719,7 +139719,7 @@
         },
         "homeScore": 5,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_0ZgZVI": {
         "id": "m_0ZgZVI",
@@ -139762,7 +139762,7 @@
         },
         "homeScore": 4,
         "awayScore": 4,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_08lkfg": {
         "id": "m_08lkfg",
@@ -139796,7 +139796,7 @@
         },
         "homeScore": 3,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_398Ugm": {
         "id": "m_398Ugm",
@@ -146736,7 +146736,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_0k03w6": {
         "id": "m_0k03w6",
@@ -146779,7 +146779,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_0aFyPg": {
         "id": "m_0aFyPg",
@@ -146822,7 +146822,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_0vvP0O": {
         "id": "m_0vvP0O",
@@ -146865,7 +146865,7 @@
         },
         "homeScore": 1,
         "awayScore": 5,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_38aXX1": {
         "id": "m_38aXX1",
@@ -146908,7 +146908,7 @@
         },
         "homeScore": 0,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_34jUwH": {
         "id": "m_34jUwH",
@@ -146951,7 +146951,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_0toF5d": {
         "id": "m_0toF5d",
@@ -151911,7 +151911,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3qap9x": {
         "id": "m_3qap9x",
@@ -151954,7 +151954,7 @@
         },
         "homeScore": 2,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3vBvLr": {
         "id": "m_3vBvLr",
@@ -151997,7 +151997,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_39zXtJ": {
         "id": "m_39zXtJ",
@@ -152040,7 +152040,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_47p1ca": {
         "id": "m_47p1ca",
@@ -152083,7 +152083,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_1waD57": {
         "id": "m_1waD57",
@@ -152126,7 +152126,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_1AvzJo": {
         "id": "m_1AvzJo",
@@ -152169,7 +152169,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_2KbgcS": {
         "id": "m_2KbgcS",
@@ -157632,7 +157632,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_04ixCx": {
         "id": "m_04ixCx",
@@ -157716,7 +157716,7 @@
         },
         "homeScore": 0,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_2PtCYr": {
         "id": "m_2PtCYr",
@@ -157800,7 +157800,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_18ul5S": {
         "id": "m_18ul5S",
@@ -157884,7 +157884,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_35NS0w": {
         "id": "m_35NS0w",
@@ -161268,7 +161268,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_2WvtVu": {
         "id": "m_2WvtVu",
@@ -161352,7 +161352,7 @@
         },
         "homeScore": 3,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_25yFU8": {
         "id": "m_25yFU8",
@@ -161436,7 +161436,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3N7OsF": {
         "id": "m_3N7OsF",
@@ -163863,7 +163863,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_2fNTjV": {
         "id": "m_2fNTjV",
@@ -163947,7 +163947,7 @@
         },
         "homeScore": 1,
         "awayScore": 5,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_1Kxps6": {
         "id": "m_1Kxps6",
@@ -165714,7 +165714,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_2mXps3": {
         "id": "m_2mXps3",
@@ -165798,7 +165798,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_1FnTzR": {
         "id": "m_1FnTzR",
@@ -165882,7 +165882,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3Hzh67": {
         "id": "m_3Hzh67",
@@ -168177,7 +168177,7 @@
         },
         "homeScore": 4,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_3pvUaB": {
         "id": "m_3pvUaB",
@@ -168261,7 +168261,7 @@
         },
         "homeScore": 2,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+        "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
       },
       "m_1oxRzF": {
         "id": "m_1oxRzF",
@@ -170187,7 +170187,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3IrTv6",
@@ -170230,7 +170230,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_19nSVX",
@@ -170273,7 +170273,7 @@
       },
       "homeScore": 1,
       "awayScore": 4,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3XXOvK",
@@ -170316,7 +170316,7 @@
       },
       "homeScore": 2,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_4Pdd0e",
@@ -170359,7 +170359,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_2FVfvL",
@@ -170393,7 +170393,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_0iaTdE",
@@ -170436,7 +170436,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3JKUH6",
@@ -170479,7 +170479,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_4DeisY",
@@ -170522,7 +170522,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_101pSt",
@@ -170565,7 +170565,7 @@
       },
       "homeScore": 2,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_2xAkEu",
@@ -170608,7 +170608,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3ZF56r",
@@ -170651,7 +170651,7 @@
       },
       "homeScore": 0,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3jVoFq",
@@ -170685,7 +170685,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_4MACO8",
@@ -170728,7 +170728,7 @@
       },
       "homeScore": 3,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_1jov2C",
@@ -170771,7 +170771,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_0M5Pz1",
@@ -170814,7 +170814,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_1PKq2V",
@@ -170857,7 +170857,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_4TXXCg",
@@ -170900,7 +170900,7 @@
       },
       "homeScore": 0,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_40elPe",
@@ -170943,7 +170943,7 @@
       },
       "homeScore": 5,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_0ZgZVI",
@@ -170986,7 +170986,7 @@
       },
       "homeScore": 4,
       "awayScore": 4,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_08lkfg",
@@ -171020,7 +171020,7 @@
       },
       "homeScore": 3,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_4McNx8",
@@ -171063,7 +171063,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_0k03w6",
@@ -171106,7 +171106,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_0aFyPg",
@@ -171149,7 +171149,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_0vvP0O",
@@ -171192,7 +171192,7 @@
       },
       "homeScore": 1,
       "awayScore": 5,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_38aXX1",
@@ -171235,7 +171235,7 @@
       },
       "homeScore": 0,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_34jUwH",
@@ -171278,7 +171278,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3rtQqb",
@@ -171321,7 +171321,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3qap9x",
@@ -171364,7 +171364,7 @@
       },
       "homeScore": 2,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3vBvLr",
@@ -171407,7 +171407,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_39zXtJ",
@@ -171450,7 +171450,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_47p1ca",
@@ -171493,7 +171493,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_1waD57",
@@ -171536,7 +171536,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_1AvzJo",
@@ -171579,7 +171579,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_0B6kF2",
@@ -171663,7 +171663,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_04ixCx",
@@ -171747,7 +171747,7 @@
       },
       "homeScore": 0,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_2PtCYr",
@@ -171831,7 +171831,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_18ul5S",
@@ -171915,7 +171915,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_1MrgIP",
@@ -171999,7 +171999,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_2WvtVu",
@@ -172083,7 +172083,7 @@
       },
       "homeScore": 3,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_25yFU8",
@@ -172167,7 +172167,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_01qIw5",
@@ -172251,7 +172251,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_2fNTjV",
@@ -172335,7 +172335,7 @@
       },
       "homeScore": 1,
       "awayScore": 5,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3vFZhn",
@@ -172419,7 +172419,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_2mXps3",
@@ -172503,7 +172503,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_1FnTzR",
@@ -172587,7 +172587,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_11vVyC",
@@ -172671,7 +172671,7 @@
       },
       "homeScore": 4,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     },
     {
       "id": "m_3pvUaB",
@@ -172755,10 +172755,10 @@
       },
       "homeScore": 2,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-24T01:24:22.442753+00:00"
+      "resultUpdatedAt": "2026-11-24T01:31:22.254532+00:00"
     }
   ],
-  "oddsUpdatedAt": "2026-11-24T01:29:20.831782+00:00",
+  "oddsUpdatedAt": "2026-11-24T01:35:16.980972+00:00",
   "oddsCreditsRemaining": 0,
   "oddsCreditsUsed": 500,
   "oddsErrors": [
