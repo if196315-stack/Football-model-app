@@ -60,7 +60,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
 
 
 
-    def test_uecl_calendar_keeps_all_fixtures_when_melbet_covers_only_subset(self):
+    def test_uecl_calendar_does_not_bypass_strict_market_publication_filter(self):
         now = datetime.now(timezone.utc)
         captured_at = now.isoformat()
         fixtures = {
@@ -95,14 +95,13 @@ class BuildUefaAppFeedTests(unittest.TestCase):
             predictions={"uecl-1": prediction}, updated_at=captured_at,
         )
         matches = feed["competitions"][2]["matches"]
+        # The feed retains the calendar, but the Android publication gate
+        # must not expose a scheduled match unless every strategy market is quoted.
         self.assertEqual(len(matches), 3)
         by_id = {match["id"]: match for match in matches}
-        self.assertIsNotNone(by_id["uecl-1"]["prediction"])
         self.assertIsNotNone(by_id["uecl-1"]["odds"])
         self.assertIsNone(by_id["uecl-2"]["odds"])
         self.assertIsNone(by_id["uecl-3"]["odds"])
-        self.assertIsNone(by_id["uecl-2"]["prediction"])
-        self.assertIsNone(by_id["uecl-3"]["prediction"])
 
     def test_freezes_pre_kickoff_prediction_and_adds_final_result_without_rewriting(self):
         kickoff = "2026-11-20T18:00:00Z"
@@ -177,7 +176,8 @@ class BuildUefaAppFeedTests(unittest.TestCase):
 
     def test_pitchapi_in_progress_aliases_are_normalized_to_live(self):
         from build_uefa_app_feed import app_match_status
-        for raw in ("in_progress", "inprogress", "in progress", "in-play", "1h", "2h"):
+        for raw in ("in_progress", "inprogress", "in progress", "in-play", "1h", "2h",
+                    "first_half", "second_half", "in_play_first_half", "in_play_second_half"):
             self.assertEqual(app_match_status(raw), "IN_PLAY", raw)
         for raw in ("paused", "halftime", "half_time", "break"):
             self.assertEqual(app_match_status(raw), "PAUSED", raw)
