@@ -208,11 +208,10 @@ def settled_records(quotes, domestic, uefa):
         # Domestic archives are keyed by fixture id; their evaluation rows may
         # not carry leagueCode, so resolve by the unique fixture id as fallback.
         if final is None:
-            matches = [m for feed in (domestic, uefa)
-                       for m in (feed.get("evaluationMatches") or [])
-                       if str(m.get("id") or "") == str(fixture)
-                       and m.get("status") == "FINISHED"
-                       and m.get("homeScore") is not None and m.get("awayScore") is not None]
+            # Provider league codes in the odds archive (ENG/ESP/...) may differ
+            # from feed competition codes (PL/PD/...). A unique fixture ID is safe.
+            matches = [match for (_, match_id), match in final_by_identity.items()
+                       if match_id == str(fixture)]
             if len(matches) == 1:
                 final = matches[0]
         row = dict(quote)
