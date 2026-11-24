@@ -1,0 +1,48 @@
+name: Refresh API-Sport match results (scheduled)
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/refresh-match-results-scheduled.yml"
+
+concurrency:
+  group: football-feed-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-results:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install requests
+      - name: Refresh recent and live results from API-Sport
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/refresh_match_results_api_sport.py
+      - name: Rebuild settled ALL-market ROI
+        run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl --quotes artifacts/market-roi-quotes.jsonl
+      - name: Commit only changed result fields and ROI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json docs/uefa-data.json docs/market-roi.json
+          git diff --cached --quiet || git commit -m "Refresh API-Sport results and settled market ROI"
+          git pull --rebase origin main
+          git push
