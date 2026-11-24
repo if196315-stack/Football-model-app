@@ -239,17 +239,36 @@ def parse_odds(m):
                             best["btts"][side]=price; books_best["btts"][side]=bk.upper()
                         row["btts"][side]=price
                     elif kind=="spread":
-                        # Handicap markets are not part of the model's approved market set.
-                        continue
-                        side="home" if key in ("handicap_1","w1","home","1") or slug.endswith("_1") else ("away" if key in ("handicap_2","w2","away","2") or slug.endswith("_2") else None)
-                        if side is None or arg is None or abs(float(arg))>.001:continue
-                        q={"team":side,"point":0.0,"price":price,
-                           "market_slug":slug,"market_group":market_key,"market_name":market_name}
-                        old=next((x for x in best["spreads"] if x["team"]==side),None)
-                        if old is None or price>old["price"]:
-                            if old:best["spreads"].remove(old)
+                        side = ("home" if key in ("handicap_1", "w1", "home", "1")
+                                or slug.endswith("_1") else
+                                "away" if key in ("handicap_2", "w2", "away", "2")
+                                or slug.endswith("_2") else None)
+                        if side is None or arg is None:
+                            continue
+                        try:
+                            raw_point = float(arg)
+                        except (TypeError, ValueError, OverflowError):
+                            continue
+                        # Only accept explicit zero and positive one-goal selections.
+                        # Negative arguments are deliberately excluded: their sign may
+                        # encode the opposite handicap, so never relabel them as +1.
+                        point = 0.0 if abs(raw_point) < 0.001 else (
+                            1.0 if abs(raw_point - 1.0) < 0.001 else None
+                        )
+                        if point is None:
+                            continue
+                        q = {"team": side, "point": point, "raw_handicap_argument": raw_point,
+                             "price": price, "market_slug": slug,
+                             "market_group": market_key, "market_name": market_name}
+                        identity = lambda x: x.get("team") == side and x.get("point") == point
+                        old = next((x for x in best["spreads"] if identity(x)), None)
+                        if old is None or price > old["price"]:
+                            if old:
+                                best["spreads"].remove(old)
                             best["spreads"].append(q)
-                            books_best["spreads"]=[x for x in books_best["spreads"] if x["team"]!=side]+[{"team":side,"point":0.0,"bookmaker":bk.upper()}]
+                            books_best["spreads"] = [
+                                x for x in books_best["spreads"] if not identity(x)
+                            ] + [{"team": side, "point": point, "bookmaker": bk.upper()}]
                         row["spreads"].append(q)
                     elif kind in ("tt","total"):
                         # API-Sport may encode the selection as "over", "over_1_5",
@@ -262,7 +281,7 @@ def parse_odds(m):
                         except (TypeError, ValueError):
                             continue
                         # Exact lines supported by the model; discard quarter-lines and unrelated markets.
-                        allowed_points = {0.5, 1.5} if kind == "tt" else {1.5, 2.5}
+                        allowed_points = {0.5, 1.0, 1.5, 2.5, 3.5} if kind == "tt" else {1.5, 2.5}
                         if not any(abs(point - allowed) < 0.001 for allowed in allowed_points):
                             continue
                         if kind=="tt":
