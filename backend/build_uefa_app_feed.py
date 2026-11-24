@@ -277,6 +277,8 @@ def build_feed(
             "status": app_status,
             "homeScore": fixture.get("homeScore"),
             "awayScore": fixture.get("awayScore"),
+            "elapsed": fixture.get("elapsed"),
+            "elapsedExtra": fixture.get("elapsedExtra"),
             "prediction": _app_prediction(model) if model else (archived.get("prediction") if archived else None),
             "odds": build_odds(odds_by_fixture.get(str(fixture_id), [])),
             "paperSignals": fixture_papers,
