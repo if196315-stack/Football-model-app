@@ -925,11 +925,18 @@ class MainActivity : Activity() {
         val etag = feedCache.getString("${cacheKey}_etag", null)
         var conn: HttpURLConnection? = null
         try {
-            conn = (URL(url).openConnection() as HttpURLConnection).apply {
+            // Bypass intermediary raw-GitHub CDN caches while retaining ETag validation
+            // against the origin. This prevents the app from repeatedly receiving an old
+            // date-only feed after the server has already published kickoff timestamps.
+            val refreshUrl = url + (if (url.contains("?")) "&" else "?") +
+                "refresh=" + System.currentTimeMillis()
+            conn = (URL(refreshUrl).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 8000
-                readTimeout = 12000
+                readTimeout = 20000
                 instanceFollowRedirects = true
-                useCaches = true
+                useCaches = false
+                setRequestProperty("Cache-Control", "no-cache")
+                setRequestProperty("Pragma", "no-cache")
                 setRequestProperty("Accept-Encoding", "gzip")
                 setRequestProperty("User-Agent", "IQMatch-Android")
                 // A conditional request is valid only when its matching body is cached.
