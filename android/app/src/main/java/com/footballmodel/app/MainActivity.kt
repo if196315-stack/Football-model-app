@@ -1250,7 +1250,7 @@ class MainActivity : Activity() {
                     if (FeedMerger.shouldKeepInLine(
                             matchStatus,
                             kickoffDayHasPassed,
-                            hasAllStrategyMarketsWithActiveMelBetLines(match)
+                            hasStrategyPredictionWithActiveMelBetLine(match)
                         )
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
@@ -4285,7 +4285,7 @@ class MainActivity : Activity() {
                 if (FeedMerger.shouldKeepInLine(
                         normalizedMatchStatus,
                         kickoffDayHasPassed,
-                        hasAllStrategyMarketsWithActiveMelBetLines(m)
+                        hasStrategyPredictionWithActiveMelBetLine(m)
                     )) {
                     upcoming.add(m)
                     if (!isLiveMatch) {
