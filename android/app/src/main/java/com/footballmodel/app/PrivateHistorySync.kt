@@ -54,16 +54,8 @@ object PrivateHistorySync {
         val betsPrefs = context.getSharedPreferences("bet_history", Context.MODE_PRIVATE)
         val signalsPrefs = context.getSharedPreferences("ai_signal_history", Context.MODE_PRIVATE)
         val settingsPrefs = context.getSharedPreferences("bank_settings", Context.MODE_PRIVATE)
-        val localBets = parseArray(betsPrefs.getString("bets", "[]"))
-        val localSignals = parseArray(signalsPrefs.getString("signals", "[]"))
-        val localSettings = JSONObject().apply {
-            settingsPrefs.all.forEach { (key, value) ->
-                when (value) {
-                    is Boolean, is Int, is Long, is Float, is String -> put(key, value)
-                }
-            }
-        }
-
+        // Fetch the remote snapshot first. Reading local preferences before the network
+        // request can capture an older state if a bet is settled while GET is in flight.
         val remoteFile = request(accessToken, "GET", null)
         val remotePayload = if (remoteFile == null) {
             null
@@ -77,6 +69,18 @@ object PrivateHistorySync {
                 throw IllegalStateException("Не удалось прочитать существующий архив; остановил запись, чтобы не потерять историю.", error)
             }
         }
+        // Take the local snapshot only after the remote GET, immediately before merge.
+        // This includes settlements saved while the network request was running.
+        val localBets = parseArray(betsPrefs.getString("bets", "[]"))
+        val localSignals = parseArray(signalsPrefs.getString("signals", "[]"))
+        val localSettings = JSONObject().apply {
+            settingsPrefs.all.forEach { (key, value) ->
+                when (value) {
+                    is Boolean, is Int, is Long, is Float, is String -> put(key, value)
+                }
+            }
+        }
+
         val bets = mergeRows(remotePayload?.optJSONArray("bets") ?: JSONArray(), localBets, "id",
             listOf("matchId", "marketKey", "createdAt"))
         val signals = mergeRows(remotePayload?.optJSONArray("signals") ?: JSONArray(), localSignals, "signalKey",
