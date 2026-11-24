@@ -2737,6 +2737,12 @@ class MainActivity : Activity() {
                         saveBets(preserveBackgroundAuto = false)
                         // The cached history view contains the deleted row; force a fresh render.
                         tabViewCache.remove("history|" + selectedHistoryTab)
+                        // TOP hides signals while a matching AI_AUTO/AI_MANUAL bet exists.
+                        // Once that bet is deleted, rebuild both TOP screens so the signal
+                        // becomes available again instead of remaining hidden in a stale cache.
+                        tabViewCache.remove("desk|ОЖИДАЮТ")
+                        tabViewCache.remove("desk|OPEN")
+                        tabViewCache.remove("desk|PENDING")
                         animateContentRefresh {
                             render()
                             mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
