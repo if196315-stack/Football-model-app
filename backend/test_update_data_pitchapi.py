@@ -16,6 +16,10 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertEqual(app_status("not_started", "2026-10-10", today=pd.Timestamp("2026-11-09").date()), "POSTPONED")
         self.assertEqual(app_status("finished"), "FINISHED")
         self.assertEqual(app_status("in_play"), "IN_PLAY")
+        for raw in ("in_progress", "in progress", "inprogress", "1h", "2h", "first_half", "second_half"):
+            self.assertEqual(app_status(raw), "IN_PLAY", raw)
+        for raw in ("paused", "halftime", "half_time", "break"):
+            self.assertEqual(app_status(raw), "PAUSED", raw)
 
     def test_build_model_frames_uses_paired_xg_and_excludes_known_bad_cohorts(self):
         cache = {"matches": {
