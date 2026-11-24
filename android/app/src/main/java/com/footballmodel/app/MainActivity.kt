@@ -2266,15 +2266,19 @@ class MainActivity : Activity() {
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("marketKey") == "COUPON") continue
-            val match = findIndexedMatch(existing) ?: continue
-            val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
-            val kickoffInFuture = kickoffTimestamp(match)?.let { it > System.currentTimeMillis() } == true
+            val match = findIndexedMatch(existing)
+            val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
+                ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
+            // A stale settled row must reopen from its own stored kickoff even if
+            // a renamed/re-keyed fixture cannot be matched in the latest feed.
+            val kickoffInFuture = (match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(existing))
+                ?.let { it > System.currentTimeMillis() } == true
             if (BetSettlement.shouldReopenSettledBet(existing.optString("status"), matchStatus, kickoffInFuture)) {
                 existing.put("status", "PENDING").put("matchStatus", matchStatus)
                 existing.remove("score")
                 changed = true
             }
-            if (existing.optString("status") != "PENDING") continue
+            if (match == null || existing.optString("status") != "PENDING") continue
             if (matchStatus.isNotBlank() && existing.optString("matchStatus") != matchStatus) {
                 existing.put("matchStatus", matchStatus)
                 changed = true
@@ -2566,14 +2570,16 @@ class MainActivity : Activity() {
                 continue
             }
             val match = findIndexedMatch(bet)
+            val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
+                ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
+            val kickoffInFuture = (match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(bet))
+                ?.let { it > System.currentTimeMillis() } == true
+            if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus, kickoffInFuture)) {
+                bet.put("status", "PENDING").put("matchStatus", matchStatus)
+                bet.remove("score")
+                changed = true
+            }
             if (match != null) {
-                val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
-                val kickoffInFuture = kickoffTimestamp(match)?.let { it > System.currentTimeMillis() } == true
-                if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus, kickoffInFuture)) {
-                    bet.put("status", "PENDING").put("matchStatus", matchStatus)
-                    bet.remove("score")
-                    changed = true
-                }
                 val score = if (!match.isNull("homeScore") && !match.isNull("awayScore"))
                     match.optInt("homeScore").toString() + ":" + match.optInt("awayScore") else ""
                 if (score.isNotEmpty() && bet.optString("score") != score) { bet.put("score", score); changed = true }
