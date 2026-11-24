@@ -124,7 +124,7 @@ class UefaFixtureHistoryTests(unittest.TestCase):
             "home_team": {"id": "t_HOME01", "name": "Home"},
             "away_team": {"id": "t_AWAY01", "name": "Away"},
         }, "UCL", {"id": "ucl-id", "name": "Champions League"}, "2026/2027")
-        self.assertEqual(row["status"], "in_play")
+        self.assertEqual(row["status"], "in_play_second_half")
         self.assertEqual(row["homeScore"], 2)
         self.assertEqual(row["awayScore"], 1)
         self.assertEqual(row["elapsed"], 67)
