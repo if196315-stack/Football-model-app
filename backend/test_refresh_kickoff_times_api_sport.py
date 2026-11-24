@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from refresh_kickoff_times_api_sport import enrich_feed, is_date_only, iter_windows
+from refresh_kickoff_times_api_sport import (enrich_feed, is_date_only, iter_windows, match_kickoff_fixture)
 
 
 class KickoffRefreshTests(unittest.TestCase):
@@ -34,6 +34,40 @@ class KickoffRefreshTests(unittest.TestCase):
         self.assertEqual(result["enriched"], 1)
         self.assertEqual(payload["competitions"][0]["matches"][0]["utcDate"],
                          "2026-11-24T19:30:00Z")
+
+    def test_accepts_duplicate_provider_rows_when_kickoff_is_identical(self):
+        target = {"utcDate": "2026-12-21", "home": "Chelsea", "away": "Aston Villa"}
+        candidates = [
+            {"id": 1, "startTimestamp": 1797883200000,
+             "homeTeam": {"name": "Chelsea"}, "awayTeam": {"name": "Aston Villa"}},
+            {"id": 2, "startTimestamp": 1797883200000,
+             "homeTeam": {"name": "Chelsea"}, "awayTeam": {"name": "Aston Villa"}},
+        ]
+        self.assertIsNotNone(match_kickoff_fixture(target, candidates))
+
+    def test_rejects_duplicate_provider_rows_with_conflicting_kickoffs(self):
+        target = {"utcDate": "2026-12-21", "home": "Chelsea", "away": "Aston Villa"}
+        candidates = [
+            {"id": 1, "startTimestamp": 1797883200000,
+             "homeTeam": {"name": "Chelsea"}, "awayTeam": {"name": "Aston Villa"}},
+            {"id": 2, "startTimestamp": 1797886800000,
+             "homeTeam": {"name": "Chelsea"}, "awayTeam": {"name": "Aston Villa"}},
+        ]
+        self.assertIsNone(match_kickoff_fixture(target, candidates))
+
+    def test_aliases_match_common_italian_and_german_club_names(self):
+        target = {"utcDate": "2026-12-13", "home": "Napoli", "away": "Milan"}
+        candidate = {
+            "id": 3, "startTimestamp": 1797181500000,
+            "homeTeam": {"name": "SSC Napoli"}, "awayTeam": {"name": "AC Milan"},
+        }
+        self.assertIsNotNone(match_kickoff_fixture(target, [candidate]))
+        target = {"utcDate": "2026-12-12", "home": "Paderborn", "away": "Elversberg"}
+        candidate = {
+            "id": 4, "startTimestamp": 1797085800000,
+            "homeTeam": {"name": "SC Paderborn 07"}, "awayTeam": {"name": "SV 07 Elversberg"},
+        }
+        self.assertIsNotNone(match_kickoff_fixture(target, [candidate]))
 
     def test_preserves_existing_timestamp_and_finished_matches(self):
         payload = {"competitions": [{"code": "PL", "matches": [
