@@ -29,7 +29,17 @@ internal object MatchIdentity {
             away != normalizedTeam(match.optString("away"))) return false
         val expectedDate = betDate(bet)
         val actualDate = matchDate(match)
-        // When the bet has a date, require an explicit matching date from the feed.
-        return expectedDate.isBlank() || (actualDate.isNotBlank() && expectedDate == actualDate)
+        // Bet timestamps can be stored in local time while the feed uses UTC.
+        // Permit a one-calendar-day boundary difference, but never a distant fixture.
+        if (expectedDate.isBlank()) return true
+        if (actualDate.isBlank()) return false
+        if (expectedDate == actualDate) return true
+        return try {
+            val expected = java.time.LocalDate.parse(expectedDate)
+            val actual = java.time.LocalDate.parse(actualDate)
+            kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(expected, actual)) <= 1
+        } catch (_: Exception) {
+            false
+        }
     }
 }
