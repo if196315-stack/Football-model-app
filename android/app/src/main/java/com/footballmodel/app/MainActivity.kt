@@ -3760,6 +3760,61 @@ class MainActivity : Activity() {
         }
     }
 
+    // Return every market that independently passes the TOP eligibility gates.
+    // Keep the best-Kelly market as primary and expose the rest as alternatives.
+    private fun eligibleTopSignals(prediction: JSONObject, match: JSONObject): List<JSONObject> {
+        val candidates = mutableListOf<JSONObject>()
+        fun addCandidate(candidate: JSONObject) {
+            val key = candidate.optString("side").trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
+            if (key.isNotBlank() && candidates.none {
+                    it.optString("side").trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT) == key
+                }) candidates.add(candidate)
+        }
+        prediction.optJSONObject("strongestSignal")?.let(::addCandidate)
+        prediction.optJSONArray("signals")?.let { signals ->
+            for (i in 0 until signals.length()) signals.optJSONObject(i)?.let(::addCandidate)
+        }
+        // Complete-probability feeds (notably UEFA) may not publish signal objects.
+        val rawMarkets = listOf(
+            "1x" to "1X", "x2" to "X2", "bttsYes" to "ОЗ ДА", "over25" to "ТБ 2.5",
+            "homeOver05" to "ИТБ 0.5 · ${match.optString("home")}",
+            "homeOver15" to "ИТБ 1.5 · ${match.optString("home")}",
+            "awayOver05" to "ИТБ 0.5 · ${match.optString("away")}",
+            "awayOver15" to "ИТБ 1.5 · ${match.optString("away")}"
+        )
+        rawMarkets.forEach { (field, side) ->
+            val probability = prediction.optDouble(field, Double.NaN)
+            if (!probability.isFinite() || probability !in 0.0..1.0) return@forEach
+            val existing = candidates.firstOrNull { it.optString("side").trim().equals(side.trim(), true) }
+            if (existing == null) addCandidate(JSONObject().put("side", side).put("modelProbability", probability))
+            else if (!existing.optDouble("modelProbability", Double.NaN).isFinite()) existing.put("modelProbability", probability)
+        }
+
+        return candidates.mapNotNull { signal ->
+            if (strongestSignalDisplayLabel(signal, match) == null) return@mapNotNull null
+            val probability = signal.optDouble("modelProbability", Double.NaN)
+            val odds = topSignalOdds(signal, match, minOdds = 1.50) ?: return@mapNotNull null
+            if (!probability.isFinite() || probability < 0.60) return@mapNotNull null
+            val expectedValue = probability * odds - 1.0
+            val edgePp = if (signal.optBoolean("paperOnly")) {
+                signal.optDouble("edgePp", Double.NaN)
+            } else {
+                (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
+            }
+            if (signal.optBoolean("noPositiveSignal") ||
+                signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) ||
+                !expectedValue.isFinite() || expectedValue < 0.05 ||
+                !edgePp.isFinite() || edgePp < 5.0) return@mapNotNull null
+            signal.put("aiExpectedValue", expectedValue)
+            signal.put("aiEdgePp", edgePp)
+            signal.put("aiKellyFraction", expectedValue / (odds - 1.0))
+            signal
+        }.distinctBy { it.optString("side").trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT) }
+         .sortedWith(compareByDescending<JSONObject> { it.optDouble("aiKellyFraction", Double.NEGATIVE_INFINITY) }
+             .thenByDescending { it.optDouble("aiExpectedValue", Double.NEGATIVE_INFINITY) }
+             .thenByDescending { it.optDouble("aiEdgePp", Double.NEGATIVE_INFINITY) })
+    }
+
     private fun collectAiCandidates(json: JSONObject): List<Triple<JSONObject, String, JSONObject>> {
         val candidates = mutableListOf<Triple<JSONObject, String, JSONObject>>()
         val leagues = json.optJSONArray("competitions") ?: return emptyList()
@@ -3783,36 +3838,18 @@ class MainActivity : Activity() {
                 }.format(Date())
                 if (matchDay < today) continue
                 val prediction = match.optJSONObject("prediction") ?: continue
-                // Apply AI thresholds to every available market before ranking; the Line
-                // display leader is descriptive and may legitimately fail the AI filters.
-                val signal = strongestDisplaySignal(prediction, match, aiEligibleOnly = true) ?: continue
-                val probability = signal.optDouble("modelProbability", Double.NaN)
-                val odds = topSignalOdds(signal, match, minOdds = 1.50) ?: continue
-                if (!probability.isFinite() || probability < 0.60) continue
-                val expectedValue = probability * odds - 1.0
-                val edgePp = if (signal.optBoolean("paperOnly")) {
-                    signal.optDouble("edgePp", Double.NaN)
-                } else {
-                    (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
-                }
-                if (signal.optBoolean("noPositiveSignal") ||
-                    signal.optString("side").equals("ОЗ НЕТ", ignoreCase = true) ||
-                    !expectedValue.isFinite() || expectedValue < 0.05 ||
-                    !edgePp.isFinite() || edgePp < 5.0) continue
-                signal.put("aiExpectedValue", expectedValue)
-                signal.put("aiEdgePp", edgePp)
-                signal.put("aiKellyFraction", expectedValue / (odds - 1.0))
-                val bundle = JSONObject().put("primary", signal).put("alternatives", JSONArray())
+                val eligible = eligibleTopSignals(prediction, match)
+                if (eligible.isEmpty()) continue
+                val bundle = JSONObject()
+                    .put("primary", eligible.first())
+                    .put("alternatives", JSONArray().apply {
+                        eligible.drop(1).forEach { put(it) }
+                    })
                 candidates.add(Triple(match, league.optString("name"), bundle))
             }
         }
-        return candidates.sortedWith(
-            compareBy<Triple<JSONObject, String, JSONObject>> { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
-                .thenByDescending {
-                    it.third.optJSONObject("primary")?.optDouble("aiKellyFraction", Double.NEGATIVE_INFINITY)
-                        ?: Double.NEGATIVE_INFINITY
-                }
-        )
+        // Match cards remain chronological; markets inside each match are ranked by Kelly.
+        return candidates.sortedBy { kickoffTimestamp(it.first) ?: Long.MAX_VALUE }
     }
 
     private fun aiSignalOutcome(side: String, match: JSONObject): Boolean? {
