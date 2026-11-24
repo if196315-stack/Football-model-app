@@ -50,7 +50,7 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertIn("scoreStatus", params["fields"])
         self.assertIn("currentMatchMinute", params["fields"])
         self.assertIn("overtimeLength", params["fields"])
-        self.assertNotIn("time", params["fields"])
+        self.assertNotIn("time", params["fields"].split(","))
 
     def test_sync_copies_final_score_and_confirmation_without_touching_odds(self):
         payload = {"competitions": [{"code": "PL", "matches": [{
