@@ -27,12 +27,21 @@ internal object BetSettlement {
      * scheduled/live again. Reopen only against a matched current fixture; scheduled
      * states additionally require a future kickoff to avoid reopening old matches.
      */
+    fun isKickoffWithinReopenWindow(kickoffMillis: Long?, nowMillis: Long,
+                                    graceMillis: Long = 6 * 60 * 60 * 1000L): Boolean {
+        if (kickoffMillis == null || graceMillis < 0L) return false
+        return kickoffMillis <= nowMillis && nowMillis - kickoffMillis <= graceMillis
+    }
+
     fun shouldReopenSettledBet(currentStatus: String, matchStatus: String,
-                               kickoffInFuture: Boolean): Boolean {
+                               kickoffInFuture: Boolean,
+                               kickoffRecentlyPassed: Boolean = false): Boolean {
         if (!isSettledStatus(currentStatus)) return false
         return when (matchStatus.trim().uppercase()) {
             "IN_PLAY", "LIVE", "PAUSED" -> true
-            "SCHEDULED", "TIMED" -> kickoffInFuture
+            // A provider may briefly retain SCHEDULED at kickoff. Reopen a stale
+            // settlement for a short window after the exact fixture's kickoff too.
+            "SCHEDULED", "TIMED" -> kickoffInFuture || kickoffRecentlyPassed
             else -> false
         }
     }
