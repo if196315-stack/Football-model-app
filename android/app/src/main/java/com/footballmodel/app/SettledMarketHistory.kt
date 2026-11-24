@@ -37,6 +37,22 @@ internal object SettledMarketHistory {
         return JSONArray().apply { rows.values.forEach { put(it) } }
     }
 
+    fun containsAll(remoteRows: JSONArray, currentRows: JSONArray): Boolean {
+        val known = HashSet<String>()
+        fun identity(row: JSONObject): String = listOf(
+            row.optString("fixture_namespace"), row.optString("league_code"),
+            row.optString("fixture_id"), row.optString("market_key")
+        ).joinToString("|")
+        for (index in 0 until remoteRows.length()) {
+            remoteRows.optJSONObject(index)?.let { known.add(identity(it)) }
+        }
+        for (index in 0 until currentRows.length()) {
+            val row = currentRows.optJSONObject(index) ?: continue
+            if (identity(row) !in known) return false
+        }
+        return true
+    }
+
     fun merge(
         remoteRows: JSONArray,
         currentRows: JSONArray,
