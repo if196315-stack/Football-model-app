@@ -64,6 +64,12 @@ jobs:
       # in this workflow's checkout. Applying it here would read an empty archive
       # and delete every upcoming domestic fixture. The all-eight collector owns
       # snapshot application after it captures the archive in the same run.
+      # Refresh kickoff timestamps from the full API-Sport fixtures calendar,
+      # independently of bookmaker odds availability.
+      - name: Enrich fixture kickoff times
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/refresh_kickoff_times_api_sport.py
       # PitchAPI supplies fixture dates, while API-Sport/MelBet provides the actual kickoff timestamp.
       # Run this after every feed rebuild so the scheduled updater cannot leave date-only fixtures behind.
       - name: Refresh kickoff times and MelBet odds
