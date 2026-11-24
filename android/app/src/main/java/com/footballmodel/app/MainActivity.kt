@@ -4184,12 +4184,14 @@ class MainActivity : Activity() {
                 val normalizedMatchStatus = matchStatus.trim().uppercase(Locale.ROOT)
                 val isLiveMatch = normalizedMatchStatus in setOf("IN_PLAY", "LIVE", "PAUSED")
                 val isScheduledMatch = normalizedMatchStatus in listOf("SCHEDULED", "TIMED")
-                val kickoffDayHasPassed = fixtureDate.isNotBlank() &&
-                    fixtureDate < fixtureToday
-                // A delayed fixture must not disappear at midnight or lose eligibility when its old
-                // prematch quote expires. The provider's FINISHED status is the only end condition.
-                if (isLiveMatch || (isScheduledMatch &&
-                    (kickoffDayHasPassed || hasStrategyPredictionWithActiveMelBetLine(m)))) {
+                val kickoffDayHasPassed = fixtureDate.isNotBlank() && fixtureDate < fixtureToday
+                val isTerminalMatch = normalizedMatchStatus in setOf(
+                    "FINISHED", "FT", "FULL_TIME", "CANCELED", "CANCELLED", "AWARDED", "ABANDONED"
+                )
+                // Keep an overdue fixture (including postponed/unknown non-final states) visible
+                // until the provider reports a terminal result, regardless of the calendar day.
+                if (isLiveMatch || (kickoffDayHasPassed && !isTerminalMatch) ||
+                    (isScheduledMatch && hasStrategyPredictionWithActiveMelBetLine(m))) {
                     upcoming.add(m)
                     if (!isLiveMatch) {
                         totalUpcoming++
