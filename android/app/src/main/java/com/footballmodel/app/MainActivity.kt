@@ -4047,9 +4047,15 @@ class MainActivity : Activity() {
                     UiMotion.animateTextChange(openIntroCountView, "НОВЫЕ СИГНАЛЫ · $openSignalsCount")
                     UiMotion.animateTextChange(recordButton, "✓ Сигнал записан")
                     recordButton.isEnabled = false
-                    UiMotion.animateVisibility(box, false, dp(6).toFloat())
+                    // Remove the recorded signal card synchronously as soon as the
+                    // confirmed bet has been persisted; do not leave it visible during
+                    // the shared fade-out animation.
+                    box.animate().cancel()
+                    box.visibility = View.GONE
+                    box.alpha = 1f
                     if (openSignalsCount == 0) {
-                        emptyOpenCard?.let { UiMotion.animateVisibility(it, true, dp(6).toFloat()) }
+                        emptyOpenCard?.visibility = View.VISIBLE
+                        emptyOpenCard?.alpha = 1f
                     }
                     // Rebuild the cached TOP list on the next visit so this exact
                     // market disappears while the other markets remain available.
