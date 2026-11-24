@@ -4116,14 +4116,6 @@ class MainActivity : Activity() {
                 val box = card(content)
                 // Compact fixture card: time, matchup and status remain the same information.
                 box.setPadding(dp(13), dp(12), dp(13), dp(12))
-                box.background = GradientDrawable(
-                    GradientDrawable.Orientation.TL_BR,
-                    intArrayOf(Color.rgb(20, 38, 58), Color.rgb(10, 24, 40))
-                ).apply {
-                    cornerRadius = dp(16).toFloat()
-                    setStroke(dp(1), Color.rgb(43, 62, 82))
-                }
-                box.elevation = dp(1).toFloat()
                 (box.layoutParams as? LinearLayout.LayoutParams)?.apply {
                     topMargin = dp(5)
                     bottomMargin = dp(6)
