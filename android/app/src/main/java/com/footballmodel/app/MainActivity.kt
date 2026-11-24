@@ -2086,7 +2086,7 @@ class MainActivity : Activity() {
 
     private fun calculateStatsMetrics(json: JSONObject, source: String, topSelections: Set<String>, from: Long, to: Long): List<StatsMetricRow> {
         val metrics = mutableListOf<StatsMetricRow>()
-        val evaluatedMatches = json.optJSONArray("evaluationMatches")
+        val evaluatedMatches = StatsPredictionScope.evaluationMatchesForStats(json)
         fun collect(key: String, title: String, actual: (Int, Int) -> Boolean, excludeDraws: Boolean = false) {
             var n = 0
             var hits = 0
