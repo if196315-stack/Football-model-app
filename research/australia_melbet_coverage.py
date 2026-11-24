@@ -89,6 +89,34 @@ def main():
         spreads=[x for x in best.get("spreads",[]) if float(x.get("point",99)) in (0.0,1.0)]
         totals=[x for x in best.get("totals",[]) if abs(float(x.get("point",99))-2.5)<.001 and x.get("side")=="over"]
         btts=best.get("btts") or {}
+        raw_totals=[]; raw_btts={}
+        if isinstance(board,dict):
+            for slug, market in (board.get("markets") or {}).items():
+                if not isinstance(market,dict) or market.get("status")!="open" or market.get("stage")!="prematch":
+                    continue
+                if not is_supported_full_time_market(slug,market):
+                    continue
+                kind=market_kind(slug,market)
+                if kind=="total":
+                    for outcome,stake in (market.get("stakes") or {}).items():
+                        side=str(outcome).lower()
+                        if side not in ("over","under","больше","меньше"):
+                            continue
+                        side="over" if side in ("over","больше") else "under"
+                        for line in lines(stake):
+                            try: point=float(line.get("argument"))
+                            except (TypeError,ValueError): continue
+                            if abs(point-2.5)<.001:
+                                raw_totals.append({"side":side,"point":point,"price":float(line["factor"]),
+                                  "market_slug":slug,"market_name":market_label(market)})
+                elif kind=="btts":
+                    for outcome,stake in (market.get("stakes") or {}).items():
+                        side=str(outcome).lower()
+                        if side not in ("yes","no","true","false","1","0"):
+                            continue
+                        side="yes" if side in ("yes","true","1") else "no"
+                        for line in lines(stake):
+                            raw_btts[side]=max(float(line["factor"]),raw_btts.get(side,0))
         rows.append({"pitchapi_match_id":f["id"],"date":f["date"],
           "home":f["target"]["home"],"away":f["target"]["away"],
           "provider_fixture_matched":True,"provider_fixture_id":str(found.get("id")),
