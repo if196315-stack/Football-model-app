@@ -812,7 +812,7 @@ class MainActivity : Activity() {
             private val boltPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = gold
                 style = Paint.Style.STROKE
-                strokeWidth = dp(2.2f).toFloat()
+                strokeWidth = dp(2).toFloat()
                 strokeCap = Paint.Cap.ROUND
                 strokeJoin = Paint.Join.ROUND
             }
