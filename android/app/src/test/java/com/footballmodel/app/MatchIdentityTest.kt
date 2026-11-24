@@ -30,6 +30,22 @@ class MatchIdentityTest {
         assertTrue(MatchIdentity.sameFixture(bet, fixture))
     }
 
+    @Test fun sameFixtureMatchesAcrossUtcLocalMidnightBoundary() {
+        val bet = JSONObject().put("home", "Real Madrid").put("away", "PSV Eindhoven")
+            .put("date", "2026-11-25")
+        val fixture = JSONObject().put("home", "Real Madrid").put("away", "PSV Eindhoven")
+            .put("utcDate", "2026-11-24T23:30:00Z")
+        assertTrue(MatchIdentity.sameFixture(bet, fixture))
+    }
+
+    @Test fun sameTeamsMoreThanOneDayApartAreRejected() {
+        val bet = JSONObject().put("home", "Real Madrid").put("away", "PSV Eindhoven")
+            .put("date", "2026-11-27")
+        val fixture = JSONObject().put("home", "Real Madrid").put("away", "PSV Eindhoven")
+            .put("utcDate", "2026-11-24T23:30:00Z")
+        assertFalse(MatchIdentity.sameFixture(bet, fixture))
+    }
+
     @Test fun dateLessBetCanMatchOnlyWhenTeamPairIsUnique() {
         val bet = JSONObject().put("home", "Brest").put("away", "Paris")
         val fixture = JSONObject().put("home", "Brest").put("away", "Paris")
