@@ -801,6 +801,7 @@ class MainActivity : Activity() {
         parent.addView(row)
     }
 
+    // Lightweight outline icon: no badge background or heavy frame.
     private fun addStrongestSignalTitle(parent: LinearLayout) {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
