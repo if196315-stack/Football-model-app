@@ -170,7 +170,9 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertEqual(by_code["UCL"][0]["awayScore"], 1)
         self.assertEqual(len(by_code["UEL"]), 1)
         self.assertEqual(by_code["UEL"][0]["status"], "PAUSED")
-        self.assertEqual(by_code["UECL"], [])
+        self.assertEqual(len(by_code["UECL"]), 1)
+        self.assertEqual(by_code["UECL"][0]["status"], "SCHEDULED")
+        self.assertIsNone(by_code["UECL"][0]["prediction"])
 
     def test_new_inactive_board_marker_invalidates_older_active_snapshot(self):
         rows = [
