@@ -984,8 +984,14 @@ class MainActivity : Activity() {
                 // never block match data, predictions or navigation.
                 val marketRoiBody = fetchFeed(marketRoiUrl, "market_roi_json", false)
                 if (!marketRoiBody.isNullOrBlank()) {
-                    try { json.put("marketRoi", JSONObject(marketRoiBody)) }
-                    catch (_: Exception) { /* Keep the last valid market ROI cache if present. */ }
+                    try {
+                        val marketRoi = JSONObject(marketRoiBody)
+                        json.put("marketRoi", marketRoi)
+                        // Archive only settled ALL-filter rows; pending quotes and manual TOP bets stay out.
+                        PrivateHistorySync.syncSettledMarketHistoryAsync(this, marketRoi)
+                    } catch (_: Exception) {
+                        /* Keep the last valid market ROI cache if present. */
+                    }
                 }
                 // Prepare expensive navigation summaries and TOP candidates off the main thread.
                 prepareAvailableMatchCounts(json)
