@@ -4114,8 +4114,13 @@ class MainActivity : Activity() {
             }
             upcoming.sortedWith(compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }).forEach { m ->
                 val box = card(content)
-                // Compact fixture card: time, matchup and status remain the same information.
+                // Match the LINE fixture card palette to Statistics → RESULTS BY MARKETS.
                 box.setPadding(dp(13), dp(12), dp(13), dp(12))
+                box.background = GradientDrawable().apply {
+                    setColor(Color.rgb(14, 24, 38))
+                    cornerRadius = dp(18).toFloat()
+                    setStroke(dp(1), Color.rgb(91, 78, 55))
+                }
                 (box.layoutParams as? LinearLayout.LayoutParams)?.apply {
                     topMargin = dp(5)
                     bottomMargin = dp(6)
