@@ -75,4 +75,78 @@ class StatsPredictionScopeTest {
         assertEquals(3, StatsPredictionScope.confidenceBand("ALL", 0.80))
     }
 
+
+    @Test fun statsFallbackIncludesFinishedCompetitionFixturesMissingFromEvaluationArchive() {
+        val galatasaray = org.json.JSONObject()
+            .put("id", "m_4SYMzr").put("utcDate", "2026-11-24T17:45:00Z")
+            .put("home", "Galatasaray").put("away", "Aston Villa")
+            .put("status", "FINISHED").put("homeScore", 1).put("awayScore", 0)
+            .put("prediction", org.json.JSONObject().put("1x", 0.47).put("x2", 0.74))
+        val bodo = org.json.JSONObject()
+            .put("id", "m_0yKeRt").put("utcDate", "2026-11-24T17:45:00Z")
+            .put("home", "Bodø/Glimt").put("away", "LASK")
+            .put("status", "FINISHED").put("homeScore", 1).put("awayScore", 0)
+            .put("prediction", org.json.JSONObject().put("1x", 0.65))
+        val feed = org.json.JSONObject()
+            .put("evaluationMatches", org.json.JSONArray())
+            .put("competitions", org.json.JSONArray().put(
+                org.json.JSONObject().put("code", "UCL")
+                    .put("matches", org.json.JSONArray().put(galatasaray).put(bodo))))
+
+        val resolved = StatsPredictionScope.evaluationMatchesForStats(feed)
+
+        assertEquals(2, resolved.length())
+        assertEquals("m_4SYMzr", resolved.getJSONObject(0).getString("id"))
+        assertEquals("Galatasaray", resolved.getJSONObject(0).getString("home"))
+        assertEquals("UCL", resolved.getJSONObject(0).getString("leagueCode"))
+        assertEquals("m_0yKeRt", resolved.getJSONObject(1).getString("id"))
+    }
+
+    @Test fun statsFallbackDoesNotDuplicateArchivedMatchesOrReplaceTheirEvaluation() {
+        val archived = org.json.JSONObject().put("id", "same-id").put("leagueCode", "UCL")
+            .put("status", "FINISHED").put("homeScore", 2).put("awayScore", 1)
+            .put("utcDate", "2026-11-24").put("prediction", org.json.JSONObject().put("1x", 0.8))
+        val competitionMatch = org.json.JSONObject().put("id", "same-id")
+            .put("status", "FINISHED").put("homeScore", 0).put("awayScore", 4)
+            .put("utcDate", "2026-11-24").put("prediction", org.json.JSONObject().put("1x", 0.1))
+        val feed = org.json.JSONObject()
+            .put("evaluationMatches", org.json.JSONArray().put(archived))
+            .put("competitions", org.json.JSONArray().put(
+                org.json.JSONObject().put("code", "UCL")
+                    .put("matches", org.json.JSONArray().put(competitionMatch))))
+
+        val resolved = StatsPredictionScope.evaluationMatchesForStats(feed)
+
+        assertEquals(1, resolved.length())
+        assertEquals(2, resolved.getJSONObject(0).getInt("homeScore"))
+        assertEquals(0.8, resolved.getJSONObject(0).getJSONObject("prediction").getDouble("1x"), 0.0001)
+    }
+
+    @Test fun statsFallbackRejectsUnfinishedOrIncompleteFixtures() {
+        val prediction = org.json.JSONObject().put("1x", 0.7)
+        val validBase = org.json.JSONObject().put("utcDate", "2026-11-24")
+            .put("homeScore", 1).put("awayScore", 0).put("prediction", prediction)
+        val fixtures = org.json.JSONArray()
+            .put(org.json.JSONObject(validBase.toString()).put("id", "scheduled").put("status", "SCHEDULED"))
+            .put(org.json.JSONObject(validBase.toString()).put("id", "no-away-score").put("status", "FINISHED").remove("awayScore"))
+            .put(org.json.JSONObject(validBase.toString()).put("id", "no-prediction").put("status", "FINISHED").remove("prediction"))
+            .put(org.json.JSONObject(validBase.toString()).put("id", "bad-date").put("status", "FINISHED").put("utcDate", "invalid"))
+        val feed = org.json.JSONObject().put("competitions", org.json.JSONArray().put(
+            org.json.JSONObject().put("code", "UCL").put("matches", fixtures)))
+
+        assertEquals(0, StatsPredictionScope.evaluationMatchesForStats(feed).length())
+    }
+
+    @Test fun statsFallbackNamespacesFixtureIdsByCompetition() {
+        fun fixture(league: String) = org.json.JSONObject().put("id", "reused-id")
+            .put("utcDate", "2026-11-24").put("status", "FINISHED")
+            .put("homeScore", 1).put("awayScore", 0)
+            .put("prediction", org.json.JSONObject().put("1x", 0.6))
+            .let { org.json.JSONObject().put("code", league).put("matches", org.json.JSONArray().put(it)) }
+        val feed = org.json.JSONObject().put("competitions",
+            org.json.JSONArray().put(fixture("UCL")).put(fixture("UEL")))
+
+        assertEquals(2, StatsPredictionScope.evaluationMatchesForStats(feed).length())
+    }
+
 }
