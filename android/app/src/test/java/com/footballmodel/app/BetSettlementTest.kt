@@ -79,4 +79,20 @@ class BetSettlementTest {
         assertEquals(false, BetSettlement.isSettledStatus("PENDING"))
         assertEquals(false, BetSettlement.isSettledStatus("UNKNOWN"))
     }
+    @Test fun scheduledFixtureReopensSettlementDuringKickoffGraceWindow() {
+        val now = 1_795_550_000_000L
+        val kickoff = now - 4 * 60 * 1000L
+        assertEquals(true, BetSettlement.isKickoffWithinReopenWindow(kickoff, now))
+        assertEquals(true, BetSettlement.shouldReopenSettledBet(
+            "WON", "SCHEDULED", false, true
+        ))
+        assertEquals(false, BetSettlement.isKickoffWithinReopenWindow(
+            now - 7 * 60 * 60 * 1000L, now
+        ))
+        assertEquals(false, BetSettlement.isKickoffWithinReopenWindow(null, now))
+        assertEquals(false, BetSettlement.shouldReopenSettledBet(
+            "WON", "SCHEDULED", false, false
+        ))
+    }
+
 }
