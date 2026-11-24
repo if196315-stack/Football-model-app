@@ -864,7 +864,7 @@ class MainActivity : Activity() {
                     color = gold
                     style = android.graphics.Paint.Style.FILL
                 }
-                canvas.drawCircle(w * 0.77f, h * 0.29f, dp(2.2).toFloat(), nodePaint)
+                canvas.drawCircle(w * 0.77f, h * 0.29f, dp(2).toFloat(), nodePaint)
             }
         }.apply {
             background = GradientDrawable().apply {
