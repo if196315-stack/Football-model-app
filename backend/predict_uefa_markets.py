@@ -44,7 +44,7 @@ def calibrate_binary_probability(probability_yes: float, params: dict = X2_CALIB
     return exp_yes / (exp_no + exp_yes)
 
 MATCH_TOTAL_LINES = (1.5, 2.5, 3.5)
-TEAM_TOTAL_LINES = (0.5, 1.5, 2.5, 3.5)
+TEAM_TOTAL_LINES = (0.5, 1.0, 1.5, 2.5, 3.5)
 SUPPORTED_LEAGUES = {"UCL", "UEL", "UECL", "ENG", "ESP", "ITA", "GER", "FRA"}
 
 
@@ -111,7 +111,35 @@ def _market_probabilities(home_lambda: float, away_lambda: float) -> dict:
             team_totals[team]["under"][str(line)] = 1.0 - over
 
     btts_yes = (1.0 - home_pmf[0]) * (1.0 - away_pmf[0])
+
+    # Asian team total 1.0: 2+ goals wins, exactly 1 pushes, 0 loses.
+    team_total_asian = {
+        "home": {"win": sum(home_pmf[2:]), "push": home_pmf[1], "lose": home_pmf[0]},
+        "away": {"win": sum(away_pmf[2:]), "push": away_pmf[1], "lose": away_pmf[0]},
+    }
+    # Asian handicaps 0 and +1 for either selected team.
+    handicap_asian = {}
+    for team in ("home", "away"):
+        handicap_asian[team] = {}
+        for point in (0.0, 1.0):
+            win = push = lose = 0.0
+            for home_goals, p_home in enumerate(home_pmf):
+                for away_goals, p_away in enumerate(away_pmf):
+                    margin = ((home_goals - away_goals) if team == "home"
+                              else (away_goals - home_goals)) + point
+                    probability = p_home * p_away
+                    if margin > 0:
+                        win += probability
+                    elif abs(margin) < 1e-12:
+                        push += probability
+                    else:
+                        lose += probability
+            handicap_asian[team][str(point)] = {
+                "win": win, "push": push, "lose": lose,
+            }
     return {
+        "team_total_asian": team_total_asian,
+        "handicap_asian": handicap_asian,
         "double_chance": {
             "1x": outcome["1"] + outcome["x"],
             "x2": calibrate_binary_probability(outcome["x"] + outcome["2"]),

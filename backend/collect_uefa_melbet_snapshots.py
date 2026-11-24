@@ -26,10 +26,10 @@ FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
 ARCHIVE = ROOT / "artifacts" / "all-eight-competitions-melbet-snapshots.jsonl"
 DOMESTIC_CACHE = ROOT / "backend" / "cache" / "pitchapi_history.json"
 ALLOWED_TOTALS = {1.5, 2.5, 3.5}
-ALLOWED_TEAM_TOTALS = {0.5, 1.5, 2.5, 3.5}
+ALLOWED_TEAM_TOTALS = {0.5, 1.0, 1.5, 2.5, 3.5}
 LOOKAHEAD_DAYS = 30
 MAX_QUOTE_AGE_SECONDS = 12 * 60 * 60
-MARKET_PARSER_VERSION = "melbet-fulltime-v2"
+MARKET_PARSER_VERSION = "melbet-fulltime-v3"
 
 
 def valid_price(value: Any) -> bool:
@@ -194,12 +194,19 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
                 continue
             is_reference = side == "under"
             market = "team_total_under_reference" if is_reference else "team_total_over"
-            row = _row(common, market, item.get("price"), team=team, point=float(point),
-                       side=side, candidate_market=not is_reference, reference_only=is_reference,
-                       model_probability=((((model_markets.get("team_total") or {}).get(team) or {}).get(side) or {}).get(str(float(point)))),
-                       provider_market_slug=item.get("market_slug"),
-                       provider_market_group=item.get("market_group"),
-                       provider_market_name=item.get("market_name"))
+            asian_team = (model_markets.get("team_total_asian") or {}).get(team) or {}
+            is_asian_one = abs(float(point) - 1.0) < 0.001 and side == "over"
+            row = _row(
+                common, market, item.get("price"), team=team, point=float(point),
+                side=side, candidate_market=not is_reference, reference_only=is_reference,
+                model_probability=(asian_team.get("win") if is_asian_one else
+                    (((model_markets.get("team_total") or {}).get(team) or {}).get(side) or {}).get(str(float(point)))),
+                model_push_probability=(asian_team.get("push") if is_asian_one else None),
+                model_loss_probability=(asian_team.get("lose") if is_asian_one else None),
+                provider_market_slug=item.get("market_slug"),
+                provider_market_group=item.get("market_group"),
+                provider_market_name=item.get("market_name"),
+            )
             if row:
                 rows.append(row)
 
@@ -218,9 +225,11 @@ def snapshot_rows(cache: dict, provider_fixtures: list[dict],
                 point = float(item.get("point"))
             except (TypeError, ValueError):
                 continue
-            if abs(point) > 0.001:
+            if min(abs(point), abs(point - 1.0)) > 0.001:
                 continue
-            handicap_model = (model_markets.get("handicap_zero") or {}).get(item["team"]) or {}
+            handicap_model = ((model_markets.get("handicap_asian") or {}).get(item["team"]) or {}).get(str(point)) or {}
+            if not handicap_model and abs(point) < 0.001:
+                handicap_model = (model_markets.get("handicap_zero") or {}).get(item["team"]) or {}
             row = _row(common, "handicap", item.get("price"),
                        team=item["team"], point=point,
                        model_probability=handicap_model.get("win"),

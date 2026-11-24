@@ -139,6 +139,8 @@ jobs:
             --markdown-out artifacts/eight-competition-ai-signal-audit.md
       - name: Freeze one historical MelBet quote per ALL forecast and publish settled ROI data
         run: python backend/build_market_roi.py
+      - name: Build Asian market paper ROI for the six target lines
+        run: python backend/build_asian_market_roi.py
       - name: Commit compact historical ROI archive and evaluation data
         run: |
           git config user.name "github-actions[bot]"
@@ -147,6 +149,12 @@ jobs:
           # per frozen forecast/market is retained in Git, avoiding the 100 MB limit.
           if [ -f artifacts/market-roi-quotes.jsonl ]; then
             git add artifacts/market-roi-quotes.jsonl
+          fi
+          if [ -f artifacts/asian-market-roi-quotes.jsonl ]; then
+            git add artifacts/asian-market-roi-quotes.jsonl
+          fi
+          if [ -f docs/asian-market-roi.json ]; then
+            git add docs/asian-market-roi.json
           fi
           if [ -f artifacts/uefa-xg-history.json ]; then
             git add artifacts/uefa-xg-history.json
