@@ -4057,12 +4057,17 @@ class MainActivity : Activity() {
                         }
                         // Update the visible TOP lists and counters in place; avoid a full
                         // Activity render so the screen stays responsive after saving.
-                        UiMotion.animateTextChange(recordButton, "✓ Ставка зафиксирована")
-                        recordButton.isEnabled = false
                         openSignalsCount = (openSignalsCount - 1).coerceAtLeast(0)
                         UiMotion.animateTextChange(openIntroCountView, "НОВЫЕ СИГНАЛЫ · $openSignalsCount")
                         val stillOpenInMatch = statusViews.keys.count { it !== signal && !isAiBetRecorded(match, it) }
-                        if (stillOpenInMatch == 0) UiMotion.animateVisibility(box, false, dp(6).toFloat())
+                        if (stillOpenInMatch > 0) {
+                            UiMotion.animateTextChange(recordButton, "Выбрать следующий сигнал")
+                            recordButton.isEnabled = true
+                        } else {
+                            UiMotion.animateTextChange(recordButton, "✓ Все сигналы записаны")
+                            recordButton.isEnabled = false
+                            UiMotion.animateVisibility(box, false, dp(6).toFloat())
+                        }
                         if (openSignalsCount == 0) {
                             emptyOpenCard?.let { UiMotion.animateVisibility(it, true, dp(6).toFloat()) }
                         }
