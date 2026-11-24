@@ -183,14 +183,24 @@ def market_result(row, home, away):
 def settled_records(quotes, domestic, uefa):
     final_by_identity = {}
     for feed in (domestic, uefa):
-        for match in feed.get("evaluationMatches") or []:
-            if (match.get("status") != "FINISHED" or match.get("homeScore") is None
+        # The compact evaluation archive may lag behind competition fixtures.
+        # Collect both sources so a newly finished match is settled immediately.
+        sources = [(str(match.get("leagueCode") or ""), match)
+                   for match in (feed.get("evaluationMatches") or [])]
+        for competition in feed.get("competitions") or []:
+            league = str(competition.get("code") or "")
+            sources.extend((league, match) for match in (competition.get("matches") or []))
+        for league, match in sources:
+            status = str(match.get("status") or "").strip().upper()
+            if (status not in {"FINISHED", "FT", "AET", "PEN", "FULL_TIME",
+                               "AFTER_EXTRA_TIME", "AFTER_PENALTIES"}
+                    or match.get("homeScore") is None
                     or match.get("awayScore") is None):
                 continue
-            league = str(match.get("leagueCode") or "")
             fixture = str(match.get("id") or "")
+            if not fixture:
+                continue
             final_by_identity[(league, fixture)] = match
-    output = []
     for quote in quotes:
         league, fixture = quote.get("league_code"), quote.get("fixture_id")
         final = final_by_identity.get((league, fixture))
