@@ -127,6 +127,25 @@ class MarketRoiTests(unittest.TestCase):
         self.assertEqual(report["records"][0]["home_score"], 2)
         self.assertEqual(report["records"][0]["away_score"], 1)
 
+    def test_domestic_evaluation_and_competition_duplicate_is_one_final(self):
+        quote = {
+            "league_code": "ENG", "fixture_id": "101", "market_key": "1x",
+            "price": 2.0, "kickoff_utc": "2026-11-20",
+        }
+        final = {
+            "id": "101", "status": "FINISHED", "home": "Alpha", "away": "Beta",
+            "utcDate": "2026-11-20", "homeScore": 2, "awayScore": 1,
+        }
+        domestic = {
+            **self.domestic,
+            "evaluationMatches": [{k: v for k, v in final.items() if k != "status"} |
+                                  {"status": "FINISHED"}],
+            "competitions": [{"code": "PL", "matches": [final]}],
+        }
+        report, _ = build(domestic, {}, [], [quote])
+        self.assertEqual(report["summary"]["settled"], 1)
+        self.assertEqual(report["records"][0]["status"], "SETTLED")
+
     def test_settles_uefa_competition_fixture_by_league_and_id(self):
         quote = {
             "league_code": "UCL", "fixture_id": "202",
