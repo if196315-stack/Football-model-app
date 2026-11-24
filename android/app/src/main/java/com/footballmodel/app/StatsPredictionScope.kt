@@ -83,6 +83,7 @@ internal object StatsPredictionScope {
     fun evaluationMatchesForStats(feed: org.json.JSONObject): org.json.JSONArray {
         val result = org.json.JSONArray()
         val seen = mutableSetOf<String>()
+        val unscopedArchivedIds = mutableSetOf<String>()
         val archived = feed.optJSONArray("evaluationMatches")
         if (archived != null) {
             for (i in 0 until archived.length()) {
@@ -91,6 +92,7 @@ internal object StatsPredictionScope {
                 if (id.isBlank()) continue
                 val league = row.optString("leagueCode").trim()
                 val key = "$league:$id"
+                if (league.isBlank()) unscopedArchivedIds.add(id)
                 if (seen.add(key)) result.put(org.json.JSONObject(row.toString()))
             }
         }
@@ -105,7 +107,7 @@ internal object StatsPredictionScope {
                 val id = match.optString("id").trim()
                 if (id.isBlank()) continue
                 val key = "$league:$id"
-                if (key in seen) continue
+                if (key in seen || id in unscopedArchivedIds) continue
                 if (match.optString("status").uppercase(java.util.Locale.ROOT) != "FINISHED") continue
                 if (!match.has("homeScore") || match.isNull("homeScore") ||
                     !match.has("awayScore") || match.isNull("awayScore")) continue
