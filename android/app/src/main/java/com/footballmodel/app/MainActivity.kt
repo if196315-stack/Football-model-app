@@ -2550,29 +2550,32 @@ class MainActivity : Activity() {
                 if (state == "WON") addText(box, "Чистая прибыль: +" + fmt(stake * (odds - 1)), 12, true, Color.rgb(0, 230, 118))
                 if (state == "LOST") addText(box, "Убыток: −" + fmt(stake), 12, true, color)
                 if (state == "PUSH") addText(box, "Возврат: " + fmt(stake), 12, true, accent)
-                val actions = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    gravity = Gravity.CENTER_VERTICAL
-                }
-                compactHistoryButton(actions, "Удалить", destructive = true) {
-                    val id = bet.optString("id")
-                    val next = JSONArray()
-                    for (k in 0 until bets.length()) {
-                        val item = bets.optJSONObject(k) ?: continue
-                        if (item.optString("id") != id) next.put(item)
+                // Completed bets remain in the history permanently; only open bets can be deleted.
+                if (!BetSettlement.isSettledStatus(state)) {
+                    val actions = LinearLayout(this).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
                     }
-                    // Keep the visible position stable when a bet is removed.
-                    val previousScrollY = mainScrollView.scrollY
-                    bets = next
-                    saveBets(preserveBackgroundAuto = false)
-                    // The cached history view contains the deleted row; force a fresh render.
-                    tabViewCache.remove("history|" + selectedHistoryTab)
-                    animateContentRefresh {
-                        render()
-                        mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
+                    compactHistoryButton(actions, "Удалить", destructive = true) {
+                        val id = bet.optString("id")
+                        val next = JSONArray()
+                        for (k in 0 until bets.length()) {
+                            val item = bets.optJSONObject(k) ?: continue
+                            if (item.optString("id") != id) next.put(item)
+                        }
+                        // Keep the visible position stable when a bet is removed.
+                        val previousScrollY = mainScrollView.scrollY
+                        bets = next
+                        saveBets(preserveBackgroundAuto = false)
+                        // The cached history view contains the deleted row; force a fresh render.
+                        tabViewCache.remove("history|" + selectedHistoryTab)
+                        animateContentRefresh {
+                            render()
+                            mainScrollView.post { mainScrollView.scrollTo(0, previousScrollY) }
+                        }
                     }
+                    box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
                 }
-                box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
             }
         }
 
