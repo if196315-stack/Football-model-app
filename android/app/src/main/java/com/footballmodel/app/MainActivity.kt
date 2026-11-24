@@ -4035,7 +4035,8 @@ class MainActivity : Activity() {
             addText(box, if (isBestForMatch) "★ ЛУЧШИЙ СИГНАЛ МАТЧА ПО KELLY" else "АЛЬТЕРНАТИВНЫЙ СИГНАЛ МАТЧА", 10, true, if (isBestForMatch) cyan else muted)
             val statusView = addAiSignalDetails(box, signal, match, isBestForMatch)
             val odds = topSignalOdds(signal, match)
-            val recordButton = actionButton(box, "Выбрать и зафиксировать") {
+            lateinit var recordButton: Button
+            recordButton = actionButton(box, "Выбрать и зафиксировать") {
                 val currentOdds = topSignalOdds(signal, match) ?: return@actionButton
                 confirmManualAiSignalBet(match, league, signal, currentOdds) {
                     statusView.apply {
