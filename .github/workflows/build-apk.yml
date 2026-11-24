@@ -36,6 +36,9 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
@@ -60,11 +63,77 @@ jobs:
 
       - name: Run Android unit tests
         working-directory: android
-        run: gradle :app:testDebugUnitTest --no-daemon --stacktrace
+        shell: bash
+        run: |
+          run_gradle_with_retry() {
+            local task="$1"
+            local log_file="$RUNNER_TEMP/gradle-${task//:/-}.log"
+            local attempt status
+
+            for attempt in 1 2 3; do
+              echo "Running $task (attempt $attempt/3)"
+              set +e
+              gradle "$task" --no-daemon --stacktrace 2>&1 | tee "$log_file"
+              status=${PIPESTATUS[0]}
+              set -e
+
+              if [ "$status" -eq 0 ]; then
+                return 0
+              fi
+
+              if ! grep -Eqi 'status code 429|HTTP[^[:cntrl:]]*429|Too Many Requests' "$log_file"; then
+                return "$status"
+              fi
+
+              if [ "$attempt" -lt 3 ]; then
+                local delay=$((attempt * 20))
+                echo "Maven returned HTTP 429; retrying in ${delay}s."
+                sleep "$delay"
+              fi
+            done
+
+            echo "Dependency download still rate-limited after 3 attempts."
+            return "$status"
+          }
+
+          run_gradle_with_retry :app:testDebugUnitTest
 
       - name: Build debug APK
         working-directory: android
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        shell: bash
+        run: |
+          run_gradle_with_retry() {
+            local task="$1"
+            local log_file="$RUNNER_TEMP/gradle-${task//:/-}.log"
+            local attempt status
+
+            for attempt in 1 2 3; do
+              echo "Running $task (attempt $attempt/3)"
+              set +e
+              gradle "$task" --no-daemon --stacktrace 2>&1 | tee "$log_file"
+              status=${PIPESTATUS[0]}
+              set -e
+
+              if [ "$status" -eq 0 ]; then
+                return 0
+              fi
+
+              if ! grep -Eqi 'status code 429|HTTP[^[:cntrl:]]*429|Too Many Requests' "$log_file"; then
+                return "$status"
+              fi
+
+              if [ "$attempt" -lt 3 ]; then
+                local delay=$((attempt * 20))
+                echo "Maven returned HTTP 429; retrying in ${delay}s."
+                sleep "$delay"
+              fi
+            done
+
+            echo "Dependency download still rate-limited after 3 attempts."
+            return "$status"
+          }
+
+          run_gradle_with_retry :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
