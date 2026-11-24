@@ -6,7 +6,7 @@ import pandas as pd
 from update_data import markets
 
 from update_data_pitchapi import (
-    app_status, build_model_frames, find_odds_event, fixture_identity, preserve_odds_by_identity,
+    app_period, app_status, build_model_frames, find_odds_event, fixture_identity, preserve_odds_by_identity,
 )
 
 
@@ -16,10 +16,18 @@ class PitchApiUpdaterTests(unittest.TestCase):
         self.assertEqual(app_status("not_started", "2026-10-10", today=pd.Timestamp("2026-11-09").date()), "POSTPONED")
         self.assertEqual(app_status("finished"), "FINISHED")
         self.assertEqual(app_status("in_play"), "IN_PLAY")
-        for raw in ("in_progress", "in progress", "inprogress", "1h", "2h", "first_half", "second_half"):
+        for raw in ("in_progress", "in progress", "inprogress", "1h", "2h", "first_half", "second_half",
+                    "in_play_first_half", "in_play_second_half"):
             self.assertEqual(app_status(raw), "IN_PLAY", raw)
         for raw in ("paused", "halftime", "half_time", "break"):
             self.assertEqual(app_status(raw), "PAUSED", raw)
+
+    def test_live_period_is_preserved_for_second_half_clock_correction(self):
+        self.assertEqual(app_period("second_half"), "SECOND_HALF")
+        self.assertEqual(app_period("in_play_second_half"), "SECOND_HALF")
+        self.assertEqual(app_period("2h"), "SECOND_HALF")
+        self.assertEqual(app_period("first_half"), "FIRST_HALF")
+        self.assertIsNone(app_period("in_play"))
 
     def test_build_model_frames_uses_paired_xg_and_excludes_known_bad_cohorts(self):
         cache = {"matches": {
