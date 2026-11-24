@@ -801,6 +801,84 @@ class MainActivity : Activity() {
         parent.addView(row)
     }
 
+    private fun addStrongestSignalTitle(parent: LinearLayout) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(7))
+        }
+        val star = label("★", 22, true, gold).apply {
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            setShadowLayer(dp(5).toFloat(), 0f, 0f, Color.rgb(177, 119, 42))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(54, 43, 31))
+                cornerRadius = dp(11).toFloat()
+                setStroke(dp(1), Color.rgb(181, 137, 72))
+            }
+        }
+        row.addView(star, LinearLayout.LayoutParams(dp(34), dp(34)).apply { rightMargin = dp(10) })
+        row.addView(label("САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold),
+            LinearLayout.LayoutParams(0, -2, 1f))
+        parent.addView(row)
+    }
+
+    private fun addMarketChartTitle(parent: LinearLayout, title: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(7))
+        }
+        val chart = object : View(this) {
+            private val linePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = gold
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = dp(2).toFloat()
+                strokeCap = android.graphics.Paint.Cap.ROUND
+                strokeJoin = android.graphics.Paint.Join.ROUND
+            }
+            private val gridPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(105, 88, 66)
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = dp(1).toFloat()
+            }
+            override fun onDraw(canvas: android.graphics.Canvas) {
+                super.onDraw(canvas)
+                val w = width.toFloat()
+                val h = height.toFloat()
+                val left = w * 0.22f
+                val right = w * 0.80f
+                val top = h * 0.20f
+                val bottom = h * 0.78f
+                canvas.drawLine(left, top, left, bottom, gridPaint)
+                canvas.drawLine(left, bottom, right, bottom, gridPaint)
+                canvas.drawLine(left, h * 0.48f, right, h * 0.48f, gridPaint)
+                val path = android.graphics.Path().apply {
+                    moveTo(left + w * 0.08f, h * 0.64f)
+                    lineTo(w * 0.43f, h * 0.49f)
+                    lineTo(w * 0.58f, h * 0.57f)
+                    lineTo(w * 0.77f, h * 0.29f)
+                }
+                canvas.drawPath(path, linePaint)
+                val nodePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    color = gold
+                    style = android.graphics.Paint.Style.FILL
+                }
+                canvas.drawCircle(w * 0.77f, h * 0.29f, dp(2.2).toFloat(), nodePaint)
+            }
+        }.apply {
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(54, 43, 31))
+                cornerRadius = dp(11).toFloat()
+                setStroke(dp(1), Color.rgb(139, 105, 57))
+            }
+            contentDescription = "График котировок"
+        }
+        row.addView(chart, LinearLayout.LayoutParams(dp(34), dp(34)).apply { rightMargin = dp(10) })
+        row.addView(label(title, 10, true, accent), LinearLayout.LayoutParams(0, -2, 1f))
+        parent.addView(row)
+    }
+
     private fun addTeamMarketTitle(parent: LinearLayout, team: String, side: String) {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -4148,7 +4226,7 @@ class MainActivity : Activity() {
                     val signalBox = card(box)
                     signalBox.setPadding(dp(9), dp(9), dp(9), dp(9))
                     signalBox.background = rounded(Color.rgb(13, 29, 46), 12)
-                    addText(signalBox, "★  САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold)
+                    addStrongestSignalTitle(signalBox)
                     if (signal == null) {
                         addText(signalBox, "Нет доступной котировки MelBet ни для одного из разрешённых рынков этого матча.", 11, false, muted)
                     } else {
@@ -4218,7 +4296,7 @@ class MainActivity : Activity() {
                     val mainMarkets = card(box)
                     mainMarkets.setPadding(dp(9), dp(9), dp(9), dp(9))
                     mainMarkets.background = rounded(Color.rgb(13, 29, 46), 12)
-                    addMarketTitle(mainMarkets, "!", "РЫНКИ И КОТИРОВКИ")
+                    addMarketChartTitle(mainMarkets, "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
                     fun totalQuote(point: Double, side: String, team: String? = null): String {
                         val rows = bestOdds?.optJSONArray(if (team == null) "totals" else "teamTotals") ?: return "—"
