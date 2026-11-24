@@ -8,7 +8,7 @@ class BuildUefaAppFeedTests(unittest.TestCase):
     def test_build_odds_uses_only_fresh_full_time_melbet_rows(self):
         rows = [
             {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-10T10:00:00+00:00", "freshness_status": "fresh", "prematch_active": True, "bookmaker": "MELBET", "source": "API-Sport",
-             "bookmaker_update_age_seconds": 20, "market_parser_version": "melbet-fulltime-v2",
+             "bookmaker_update_age_seconds": 20, "market_parser_version": "melbet-fulltime-v3",
              "market": "team_total_over", "team": "home", "point": 1.5, "side": "over", "price": 1.9},
             {"captured_at": "2026-11-10T10:00:20+00:00", "bookmaker_updated_at": "2026-11-09T21:00:00+00:00", "freshness_status": "stale", "prematch_active": True, "bookmaker": "MELBET", "source": "API-Sport",
              "bookmaker_update_age_seconds": 46800, "market_parser_version": "melbet-fulltime-v2",
