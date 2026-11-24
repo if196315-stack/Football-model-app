@@ -4236,8 +4236,19 @@ class MainActivity : Activity() {
                 val cardStatus = m.optString("status").trim().uppercase(Locale.ROOT)
                 if (cardStatus in setOf("IN_PLAY", "LIVE", "PAUSED")) {
                     box.setPadding(dp(13), dp(12), dp(13), dp(12))
-                    box.background = rounded(Color.rgb(14, 24, 38), 18)
-                    addText(box, if (cardStatus == "PAUSED") "Ⅱ  ПЕРЕРЫВ" else "●  LIVE", 11, true, accent)
+                    box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply {
+                        cornerRadius = dp(23).toFloat()
+                        setStroke(dp(1), Color.rgb(91, 78, 55))
+                    }
+                    addText(box, if (cardStatus == "PAUSED") "Ⅱ  ПЕРЕРЫВ" else "●  LIVE", 11, true, accent).apply {
+                        setPadding(dp(9), dp(5), dp(9), dp(5))
+                        background = GradientDrawable().apply {
+                            setColor(Color.rgb(39, 35, 29))
+                            cornerRadius = dp(9).toFloat()
+                            setStroke(dp(1), Color.rgb(139, 105, 57))
+                        }
+                    }
                     addMatchup(box, m.optString("home"), m.optString("away"))
                     val liveScore = if (!m.isNull("homeScore") && !m.isNull("awayScore"))
                         "${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else "Счёт обновляется"
@@ -4247,12 +4258,13 @@ class MainActivity : Activity() {
                     addText(box, "Матч уже идёт. Предматчевые котировки и сигналы не используются как live-линия.", 10, false, muted)
                     return@forEach
                 }
-                // Match the LINE fixture card palette to Statistics → RESULTS BY MARKETS.
+                // Keep fixture cards on the same dark gradient and outlined surface
+                // used throughout IQ Match; gold is reserved for emphasis, not borders.
                 box.setPadding(dp(13), dp(12), dp(13), dp(12))
-                box.background = GradientDrawable().apply {
-                    setColor(Color.rgb(14, 24, 38))
-                    cornerRadius = dp(18).toFloat()
-                    setStroke(dp(1), Color.rgb(91, 78, 55))
+                box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                    intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply {
+                    cornerRadius = dp(23).toFloat()
+                    setStroke(dp(1), Color.rgb(43, 68, 91))
                 }
                 (box.layoutParams as? LinearLayout.LayoutParams)?.apply {
                     topMargin = dp(5)
@@ -4282,7 +4294,11 @@ class MainActivity : Activity() {
                     val signal = strongestDisplaySignal(pred, m)
                     val signalBox = card(box)
                     signalBox.setPadding(dp(9), dp(9), dp(9), dp(9))
-                    signalBox.background = rounded(Color.rgb(13, 29, 46), 12)
+                    signalBox.background = GradientDrawable().apply {
+                        setColor(Color.rgb(13, 29, 46))
+                        cornerRadius = dp(12).toFloat()
+                        setStroke(dp(1), Color.rgb(35, 55, 76))
+                    }
                     addStrongestSignalTitle(signalBox)
                     if (signal == null) {
                         addText(signalBox, "Нет доступной котировки MelBet ни для одного из разрешённых рынков этого матча.", 11, false, muted)
@@ -4352,7 +4368,11 @@ class MainActivity : Activity() {
 
                     val mainMarkets = card(box)
                     mainMarkets.setPadding(dp(9), dp(9), dp(9), dp(9))
-                    mainMarkets.background = rounded(Color.rgb(13, 29, 46), 12)
+                    mainMarkets.background = GradientDrawable().apply {
+                        setColor(Color.rgb(13, 29, 46))
+                        cornerRadius = dp(12).toFloat()
+                        setStroke(dp(1), Color.rgb(35, 55, 76))
+                    }
                     addMarketChartTitle(mainMarkets, "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
                     fun totalQuote(point: Double, side: String, team: String? = null): String {
