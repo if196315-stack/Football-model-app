@@ -278,10 +278,13 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             val match = findMatch(feed, bet)
             val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
                 ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
-            val kickoffInFuture = (match?.let { MatchKickoffOrdering.timestamp(it) }
-                ?: MatchKickoffOrdering.timestamp(bet))
-                ?.let { it > System.currentTimeMillis() } == true
-            if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus, kickoffInFuture)) {
+            val kickoffMillis = match?.let { MatchKickoffOrdering.timestamp(it) }
+                ?: MatchKickoffOrdering.timestamp(bet)
+            val nowMillis = System.currentTimeMillis()
+            val kickoffInFuture = kickoffMillis?.let { it > nowMillis } == true
+            val kickoffRecentlyPassed = BetSettlement.isKickoffWithinReopenWindow(kickoffMillis, nowMillis)
+            if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus,
+                    kickoffInFuture, kickoffRecentlyPassed)) {
                 bet.put("status", "PENDING").put("matchStatus", matchStatus)
                 bet.remove("score")
                 changed = true
