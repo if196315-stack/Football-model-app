@@ -2521,7 +2521,10 @@ class MainActivity : Activity() {
                     "LOST" -> Color.rgb(169, 130, 135) // Muted grey-red for a calmer loss indicator.
                     else -> Color.YELLOW
                 }
-                addText(box, displayLeagueName(bet.optString("league")) + " · " + date(bet.optString("date")), 10, false, muted)
+                val fixtureForDisplay = if (bet.optString("marketKey") == "COUPON") null else findIndexedMatch(bet)
+                val kickoffForDisplay = fixtureForDisplay?.let { kickoffLabel(it) }
+                    ?: date(bet.optString("kickoff").ifBlank { bet.optString("date") })
+                addText(box, displayLeagueName(bet.optString("league")) + " · " + kickoffForDisplay, 10, false, muted)
                 addText(box, if (bet.optString("marketKey") == "COUPON")
                     "Экспресс · " + (bet.optJSONArray("selections")?.length() ?: 0) + " исходов"
                     else bet.optString("home") + " — " + bet.optString("away"), 15, true)
