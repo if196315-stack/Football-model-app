@@ -1,4 +1,5 @@
 """Read-only A-League Men upcoming MelBet quote coverage audit.
+Updated trigger marker: run standalone coverage audit.
 Uses PitchAPI fixtures + API-Sport odds feed; writes only a standalone artifact.
 No app feeds, Android files, betting actions or non-MelBet prices are touched.
 """
