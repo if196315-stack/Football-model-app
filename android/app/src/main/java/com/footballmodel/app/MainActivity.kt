@@ -2267,6 +2267,18 @@ class MainActivity : Activity() {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("status") == "PENDING" && existing.optString("marketKey") != "COUPON") {
                 val match = findIndexedMatch(existing) ?: continue
+                val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
+                if (matchStatus.isNotBlank() && existing.optString("matchStatus") != matchStatus) {
+                    existing.put("matchStatus", matchStatus)
+                    changed = true
+                }
+                if (!match.isNull("homeScore") && !match.isNull("awayScore")) {
+                    val liveScore = "${match.optInt("homeScore")}:${match.optInt("awayScore")}"
+                    if (existing.optString("score") != liveScore) {
+                        existing.put("score", liveScore)
+                        changed = true
+                    }
+                }
                 if (settleBet(existing, match)) changed = true
             }
         }
@@ -4150,12 +4162,18 @@ class MainActivity : Activity() {
                         kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
                     }
                 }
+                val normalizedMatchStatus = matchStatus.trim().uppercase(Locale.ROOT)
+                val isLiveMatch = normalizedMatchStatus in setOf("IN_PLAY", "LIVE", "PAUSED")
                 val isUpcoming = fixtureDate.isNotBlank() && fixtureDate >= fixtureToday
-                if (matchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
-                    hasStrategyPredictionWithActiveMelBetLine(m)) {
+                // Live fixtures remain visible even though prematch odds are no longer eligible.
+                // Do not require a model or a fresh prematch quote to show the live score/status.
+                if (isLiveMatch || (normalizedMatchStatus in listOf("SCHEDULED", "TIMED") && isUpcoming &&
+                    hasStrategyPredictionWithActiveMelBetLine(m))) {
                     upcoming.add(m)
-                    totalUpcoming++
-                    totalPredicted++
+                    if (!isLiveMatch) {
+                        totalUpcoming++
+                        totalPredicted++
+                    }
                 }
             }
             val leagueCode = league.optString("code")
@@ -4198,8 +4216,25 @@ class MainActivity : Activity() {
                 val empty = card(content)
                 addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
-            upcoming.sortedWith(MatchKickoffOrdering.comparator()).forEach { m ->
+            upcoming.sortedWith(
+                compareBy<JSONObject> { if (it.optString("status").uppercase(Locale.ROOT) in setOf("IN_PLAY", "LIVE", "PAUSED")) 0 else 1 }
+                    .then(MatchKickoffOrdering.comparator())
+            ).forEach { m ->
                 val box = card(content)
+                val cardStatus = m.optString("status").trim().uppercase(Locale.ROOT)
+                if (cardStatus in setOf("IN_PLAY", "LIVE", "PAUSED")) {
+                    box.setPadding(dp(13), dp(12), dp(13), dp(12))
+                    box.background = rounded(Color.rgb(14, 24, 38), 18)
+                    addText(box, if (cardStatus == "PAUSED") "Ⅱ  ПЕРЕРЫВ" else "●  LIVE", 11, true, accent)
+                    addMatchup(box, m.optString("home"), m.optString("away"))
+                    val liveScore = if (!m.isNull("homeScore") && !m.isNull("awayScore"))
+                        "${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else "Счёт обновляется"
+                    addText(box, liveScore, 20, true, Color.WHITE)
+                    val minute = m.optInt("elapsed", m.optInt("minute", -1))
+                    if (minute >= 0) addText(box, "${minute}′", 10, false, muted)
+                    addText(box, "Матч уже идёт. Предматчевые котировки и сигналы не используются как live-линия.", 10, false, muted)
+                    return@forEach
+                }
                 // Match the LINE fixture card palette to Statistics → RESULTS BY MARKETS.
                 box.setPadding(dp(13), dp(12), dp(13), dp(12))
                 box.background = GradientDrawable().apply {
