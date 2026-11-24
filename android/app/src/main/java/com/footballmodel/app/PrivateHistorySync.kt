@@ -80,6 +80,11 @@ object PrivateHistorySync {
         val remoteSourceUpdatedAt = remotePayload?.optString("sourceUpdatedAt").orEmpty()
         val remoteRows = remotePayload?.optJSONArray("records") ?: JSONArray()
         if (remotePayload == null && currentRows.length() == 0) return@synchronized
+        // The market feed is polled frequently. Avoid a Git commit every minute
+        // when this exact source snapshot is already represented in cloud.
+        if (remotePayload != null && sourceUpdatedAt.isNotBlank() &&
+            sourceUpdatedAt == remoteSourceUpdatedAt &&
+            SettledMarketHistory.containsAll(remoteRows, currentRows)) return@synchronized
         val merged = SettledMarketHistory.merge(remoteRows, currentRows, remoteSourceUpdatedAt, sourceUpdatedAt)
         val newestSourceAt = if (sourceUpdatedAt >= remoteSourceUpdatedAt) sourceUpdatedAt else remoteSourceUpdatedAt
         val payload = JSONObject()
