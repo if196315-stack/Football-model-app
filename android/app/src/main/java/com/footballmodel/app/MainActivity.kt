@@ -860,9 +860,12 @@ class MainActivity : Activity() {
 
     private fun kickoffLabel(match: JSONObject): String {
         val raw = match.optString("utcDate").ifBlank {
-            match.optString("dateEvent").ifBlank { match.optString("date") }
+            match.optString("dateEvent").ifBlank {
+                match.optString("kickoff").ifBlank { match.optString("date") }
+            }
         }
         val millis = kickoffTimestamp(match) ?: return "Дата и время начала не указаны"
+        // Keep the displayed precision consistent with the timestamp used for sorting.
         val hasTime = raw.contains("T") || match.optLong("startTimestamp", 0L) > 0L
         val formatted = SimpleDateFormat(if (hasTime) "EEE, dd MMM · HH:mm" else "EEE, dd MMM", Locale.getDefault())
             .apply { timeZone = matchTimeZone() }.format(Date(millis))
