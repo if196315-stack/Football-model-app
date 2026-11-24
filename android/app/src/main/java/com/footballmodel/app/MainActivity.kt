@@ -2443,7 +2443,7 @@ class MainActivity : Activity() {
             }
         }
         bet.put("couponScores", scores.joinToString(" · "))
-        val anyLive = scores.any { it.contains("LIVE") }
+        val anyLive = scores.any { it.contains("LIVE") || it.contains("ПЕРЕРЫВ") }
         bet.put("matchStatus", if (anyLive) "IN_PLAY" else if (allSettled) "FINISHED" else "SCHEDULED")
         if (lost) bet.put("status", "LOST")
         else if (allSettled) {
