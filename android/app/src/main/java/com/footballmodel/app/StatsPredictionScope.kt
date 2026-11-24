@@ -72,4 +72,64 @@ internal object StatsPredictionScope {
         if (matchId.isBlank() || marketKey.isBlank()) return false
         return key(matchId, marketKey) in topSelections
     }
+
+    /**
+     * Builds a complete, de-duplicated evaluation set. The dedicated archive remains
+     * authoritative; completed fixtures with their own captured prediction are a
+     * safe fallback when a result has reached the competition feed first.
+     *
+     * IDs are namespaced by competition because providers can reuse fixture IDs.
+     */
+    fun evaluationMatchesForStats(feed: org.json.JSONObject): org.json.JSONArray {
+        val result = org.json.JSONArray()
+        val seen = mutableSetOf<String>()
+        val archived = feed.optJSONArray("evaluationMatches")
+        if (archived != null) {
+            for (i in 0 until archived.length()) {
+                val row = archived.optJSONObject(i) ?: continue
+                val id = row.optString("id").trim()
+                if (id.isBlank()) continue
+                val league = row.optString("leagueCode").trim()
+                val key = "$league:$id"
+                if (seen.add(key)) result.put(org.json.JSONObject(row.toString()))
+            }
+        }
+
+        val competitions = feed.optJSONArray("competitions") ?: return result
+        for (i in 0 until competitions.length()) {
+            val competition = competitions.optJSONObject(i) ?: continue
+            val league = competition.optString("code").trim()
+            val matches = competition.optJSONArray("matches") ?: continue
+            for (j in 0 until matches.length()) {
+                val match = matches.optJSONObject(j) ?: continue
+                val id = match.optString("id").trim()
+                if (id.isBlank()) continue
+                val key = "$league:$id"
+                if (key in seen) continue
+                if (match.optString("status").uppercase(java.util.Locale.ROOT) != "FINISHED") continue
+                if (!match.has("homeScore") || match.isNull("homeScore") ||
+                    !match.has("awayScore") || match.isNull("awayScore")) continue
+                val date = match.optString("utcDate").ifBlank {
+                    match.optString("dateEvent").ifBlank { match.optString("date") }
+                }
+                if (matchDateMillis(date) == null) continue
+                val prediction = match.optJSONObject("prediction") ?: continue
+                val hasProbability = listOf(
+                    "1x", "x2", "over15", "over25", "over35",
+                    "homeOver05", "homeOver15", "homeOver25", "homeOver35",
+                    "awayOver05", "awayOver15", "awayOver25", "awayOver35",
+                    "bttsYes", "bttsNo"
+                ).any { prediction.has(it) && !prediction.isNull(it) &&
+                    prediction.optDouble(it, Double.NaN).isFinite() }
+                if (!hasProbability) continue
+
+                val fallback = org.json.JSONObject(match.toString())
+                if (league.isNotBlank()) fallback.put("leagueCode", league)
+                result.put(fallback)
+                seen.add(key)
+            }
+        }
+        return result
+    }
+
 }
