@@ -4114,21 +4114,21 @@ class MainActivity : Activity() {
             }
             upcoming.sortedWith(compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }).forEach { m ->
                 val box = card(content)
-                // Match-only visual treatment: clearer hierarchy, softer navy gradient and a restrained gold outline.
-                box.setPadding(dp(18), dp(18), dp(18), dp(18))
+                // Compact fixture card: time, matchup and status remain the same information.
+                box.setPadding(dp(13), dp(12), dp(13), dp(12))
                 box.background = GradientDrawable(
                     GradientDrawable.Orientation.TL_BR,
-                    intArrayOf(Color.rgb(23, 43, 66), Color.rgb(11, 25, 42), Color.rgb(9, 20, 35))
+                    intArrayOf(Color.rgb(20, 38, 58), Color.rgb(10, 24, 40))
                 ).apply {
-                    cornerRadius = dp(24).toFloat()
-                    setStroke(dp(1), Color.rgb(91, 78, 55))
+                    cornerRadius = dp(16).toFloat()
+                    setStroke(dp(1), Color.rgb(43, 62, 82))
                 }
-                box.elevation = dp(2).toFloat()
+                box.elevation = dp(1).toFloat()
                 (box.layoutParams as? LinearLayout.LayoutParams)?.apply {
-                    topMargin = dp(10)
-                    bottomMargin = dp(12)
+                    topMargin = dp(5)
+                    bottomMargin = dp(6)
                 }
-                addText(box, "★  MATCH FIXTURE  ·  ${kickoffLabel(m)}", 9, true, gold)
+                addText(box, "★  " + kickoffLabel(m), 10, true, gold)
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val scoreAvailable = !m.isNull("homeScore") && !m.isNull("awayScore")
                 val scoreText = if (scoreAvailable) " · ${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else ""
@@ -4139,7 +4139,7 @@ class MainActivity : Activity() {
                     "SCHEDULED", "TIMED" -> "ЕЩЁ НЕ НАЧАЛСЯ"
                     else -> m.optString("status")
                 }
-                addText(box, matchStatusLabel + scoreText, 12, true,
+                addText(box, matchStatusLabel + scoreText, 11, true,
                     if (m.optString("status") in listOf("IN_PLAY", "LIVE")) accent else muted)
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
@@ -4151,7 +4151,8 @@ class MainActivity : Activity() {
                 } else {
                     val signal = strongestDisplaySignal(pred, m)
                     val signalBox = card(box)
-                    signalBox.setPadding(dp(12), dp(12), dp(12), dp(12))
+                    signalBox.setPadding(dp(9), dp(9), dp(9), dp(9))
+                    signalBox.background = rounded(Color.rgb(13, 29, 46), 12)
                     addText(signalBox, "★  САМЫЙ СИЛЬНЫЙ ПРОГНОЗ В МАТЧЕ", 10, true, gold)
                     if (signal == null) {
                         addText(signalBox, "Нет доступной котировки MelBet ни для одного из разрешённых рынков этого матча.", 11, false, muted)
@@ -4220,7 +4221,8 @@ class MainActivity : Activity() {
                     }
 
                     val mainMarkets = card(box)
-                    mainMarkets.setPadding(dp(12), dp(12), dp(12), dp(12))
+                    mainMarkets.setPadding(dp(9), dp(9), dp(9), dp(9))
+                    mainMarkets.background = rounded(Color.rgb(13, 29, 46), 12)
                     addMarketTitle(mainMarkets, "!", "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
                     fun totalQuote(point: Double, side: String, team: String? = null): String {
