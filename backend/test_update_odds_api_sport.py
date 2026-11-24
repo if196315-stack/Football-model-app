@@ -73,6 +73,27 @@ class ApiSportOddsTests(unittest.TestCase):
         self.assertEqual(quote["best"], {})
         self.assertEqual(quote["bookmakers"], [])
 
+    def test_parses_exact_asian_handicap_zero_and_plus_one_lines_only(self):
+        source = {"id": 103, "oddsBk": {"melbet": {"markets": {
+            "asian_handicap": {"status": "open", "stage": "prematch", "stakes": {
+                "handicap_1": {"lines": [
+                    {"argument": 0.0, "factor": 1.91},
+                    {"argument": 1.0, "factor": 1.72},
+                    {"argument": -1.0, "factor": 2.05},
+                    {"argument": 0.5, "factor": 1.88}
+                ]},
+                "handicap_2": {"lines": [
+                    {"argument": 0.0, "factor": 1.89},
+                    {"argument": 1.0, "factor": 1.95}
+                ]}
+            }}
+        }}}}
+        spreads = parse_odds(source)["best"]["spreads"]
+        self.assertEqual({(row["team"], row["point"]) for row in spreads},
+                         {("home", 0.0), ("home", 1.0), ("away", 0.0), ("away", 1.0)})
+        self.assertFalse(any(row["raw_handicap_argument"] < 0 for row in spreads))
+        self.assertFalse(any(row["point"] == 0.5 for row in spreads))
+
     def test_parses_btts_match_totals_and_both_team_total_sides_from_melbet_only(self):
         source = {"id": 88, "oddsBk": {
             "melbet": {"markets": {

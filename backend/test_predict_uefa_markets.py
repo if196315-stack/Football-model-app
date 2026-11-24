@@ -35,6 +35,14 @@ class UefaMarketPredictionTests(unittest.TestCase):
         self.assertTrue(0.0 <= markets["double_chance"]["1x"] <= 1.0)
         self.assertEqual(markets["handicap_zero"]["home"]["push"],
                          markets["handicap_zero"]["away"]["push"])
+        for team in ("home", "away"):
+            asian_total = markets["team_total_asian"][team]
+            self.assertAlmostEqual(sum(asian_total.values()), 1.0, places=10)
+            for line in ("0.0", "1.0"):
+                asian_handicap = markets["handicap_asian"][team][line]
+                self.assertAlmostEqual(sum(asian_handicap.values()), 1.0, places=10)
+        self.assertEqual(markets["team_total_asian"]["home"]["push"],
+                         markets["team_total_asian"]["home"]["push"])
 
 
     def test_generates_uecl_prediction_and_ignores_archived_unl(self):
@@ -76,7 +84,7 @@ class UefaMarketPredictionTests(unittest.TestCase):
             for line in ("1.5", "2.5", "3.5"):
                 self.assertIn(line, markets["match_total"]["over"])
             for team in ("home", "away"):
-                for line in ("0.5", "1.5", "2.5", "3.5"):
+                for line in ("0.5", "1.0", "1.5", "2.5", "3.5"):
                     self.assertIn(line, markets["team_total"][team]["over"])
 
     def test_does_not_predict_team_without_prior_competition_history(self):
