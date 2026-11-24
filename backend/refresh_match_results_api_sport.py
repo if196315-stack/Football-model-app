@@ -68,7 +68,7 @@ def fetch_recent_matches(session: Any, today: date | None = None) -> list[dict]:
         "exclude_amateur": "true",
         "fields": (
             "id,status,dateEvent,startTimestamp,homeTeam,awayTeam,"
-            "homeScore,awayScore,scoreStatus"
+            "homeScore,awayScore,scoreStatus,time"
         ),
         "page_size": 500,
         "sort": "desc",
@@ -113,6 +113,22 @@ def provider_status(match: dict) -> str:
     return normalized_status(match)
 
 
+def elapsed_value(match: dict, key: str) -> int | None:
+    """Read the provider's elapsed/added minute without accepting booleans or negatives."""
+    time_data = match.get("time")
+    raw = time_data.get(key) if isinstance(time_data, dict) else None
+    if raw is None:
+        aliases = ("elapsed", "minute") if key == "elapsed" else ("extra", "elapsedExtra")
+        raw = next((match.get(alias) for alias in aliases if match.get(alias) is not None), None)
+    if isinstance(raw, bool):
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return value if value >= 0 else None
+
+
 def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
     status = provider_status(source)
     if not is_finished_status(status) and not is_live_status(status):
@@ -139,6 +155,12 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
     if home_score is not None and away_score is not None:
         values["homeScore"] = home_score
         values["awayScore"] = away_score
+    elapsed = elapsed_value(source, "elapsed")
+    added = elapsed_value(source, "extra")
+    if elapsed is not None:
+        values["elapsed"] = elapsed
+    if added is not None:
+        values["elapsedExtra"] = added
 
     for key, value in values.items():
         # Always write an explicit boolean so Android can distinguish live from final.
