@@ -82,8 +82,20 @@ internal object StatsPredictionScope {
      */
     fun evaluationMatchesForStats(feed: org.json.JSONObject): org.json.JSONArray {
         val result = org.json.JSONArray()
-        val seen = mutableSetOf<String>()
+        val indexes = mutableMapOf<String, Int>()
         val unscopedArchivedIds = mutableSetOf<String>()
+
+        fun fixtureKey(league: String, id: String): String =
+            if (league.isBlank()) ":$id" else "$league:$id"
+
+        fun hasFinalScore(row: org.json.JSONObject): Boolean =
+            row.optString("status").trim().uppercase(java.util.Locale.ROOT) in
+                setOf("FINISHED", "FT", "AET", "PEN", "FULL_TIME", "AFTER_EXTRA_TIME", "AFTER_PENALTIES") &&
+                row.has("homeScore") && !row.isNull("homeScore") &&
+                row.has("awayScore") && !row.isNull("awayScore")
+
+        // Start with the dedicated archive, but do not let an old scheduled
+        // snapshot block a newer confirmed result from the competition feed.
         val archived = feed.optJSONArray("evaluationMatches")
         if (archived != null) {
             for (i in 0 until archived.length()) {
@@ -91,9 +103,12 @@ internal object StatsPredictionScope {
                 val id = row.optString("id").trim()
                 if (id.isBlank()) continue
                 val league = row.optString("leagueCode").trim()
-                val key = "$league:$id"
+                val key = fixtureKey(league, id)
                 if (league.isBlank()) unscopedArchivedIds.add(id)
-                if (seen.add(key)) result.put(org.json.JSONObject(row.toString()))
+                if (!indexes.containsKey(key)) {
+                    indexes[key] = result.length()
+                    result.put(org.json.JSONObject(row.toString()))
+                }
             }
         }
 
@@ -106,11 +121,27 @@ internal object StatsPredictionScope {
                 val match = matches.optJSONObject(j) ?: continue
                 val id = match.optString("id").trim()
                 if (id.isBlank()) continue
-                val key = "$league:$id"
-                if (key in seen || id in unscopedArchivedIds) continue
-                if (match.optString("status").uppercase(java.util.Locale.ROOT) != "FINISHED") continue
-                if (!match.has("homeScore") || match.isNull("homeScore") ||
-                    !match.has("awayScore") || match.isNull("awayScore")) continue
+                val key = fixtureKey(league, id)
+                val existingIndex = indexes[key]
+                if (existingIndex != null) {
+                    val existing = result.optJSONObject(existingIndex) ?: continue
+                    if (hasFinalScore(match) && !hasFinalScore(existing)) {
+                        // Keep the frozen prediction from the archive; refresh only
+                        // result fields from the authoritative current fixture.
+                        val merged = org.json.JSONObject(existing.toString())
+                        for (field in listOf("status", "homeScore", "awayScore", "utcDate", "dateEvent", "date")) {
+                            if (match.has(field)) {
+                                if (match.isNull(field)) merged.remove(field) else merged.put(field, match.get(field))
+                            }
+                        }
+                        if (!merged.has("prediction") || merged.isNull("prediction")) {
+                            match.optJSONObject("prediction")?.let { merged.put("prediction", org.json.JSONObject(it.toString())) }
+                        }
+                        result.put(existingIndex, merged)
+                    }
+                    continue
+                }
+                if (id in unscopedArchivedIds || !hasFinalScore(match)) continue
                 val date = match.optString("utcDate").ifBlank {
                     match.optString("dateEvent").ifBlank { match.optString("date") }
                 }
@@ -127,11 +158,10 @@ internal object StatsPredictionScope {
 
                 val fallback = org.json.JSONObject(match.toString())
                 if (league.isNotBlank()) fallback.put("leagueCode", league)
+                indexes[key] = result.length()
                 result.put(fallback)
-                seen.add(key)
             }
         }
         return result
     }
-
 }
