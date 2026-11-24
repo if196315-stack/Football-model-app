@@ -113,7 +113,7 @@ class MarketRoiTests(unittest.TestCase):
             **self.domestic,
             "evaluationMatches": [],
             "competitions": [{
-                "code": "ENG",
+                "code": "PL",
                 "matches": [{
                     "id": "101", "status": "FINISHED",
                     "homeScore": 2, "awayScore": 1,
