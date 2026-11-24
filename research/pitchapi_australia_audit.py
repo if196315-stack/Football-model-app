@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import requests
 
 BASE = "https://api.pitchapi.dev/v1"
-SAMPLE_LIMIT = 5
+SAMPLE_LIMIT = 0  # 0 means every finished match in every advertised season
 
 
 def get(session, path, key, params=None):
@@ -69,7 +69,7 @@ def is_finished(match):
 
 def spaced(rows):
     rows = sorted(rows, key=lambda row: str(row.get("date") or ""))
-    if len(rows) <= SAMPLE_LIMIT:
+    if SAMPLE_LIMIT <= 0 or len(rows) <= SAMPLE_LIMIT:
         return rows
     indices = [round(i * (len(rows) - 1) / (SAMPLE_LIMIT - 1)) for i in range(SAMPLE_LIMIT)]
     return [rows[i] for i in indices]
@@ -123,7 +123,7 @@ def main():
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "provider": "PitchAPI",
-        "scope": "read-only Australian A-League catalogue, fixtures and sampled shot-level xG; no odds",
+        "scope": "read-only Australian A-League catalogue, all finished fixtures and shot-level xG coverage; no odds",
         "catalogue_league_count": len(all_leagues),
         "target_leagues_found": len(targets),
         "leagues": [], "errors": [],
@@ -154,9 +154,9 @@ def main():
                 item["season_reports"].append({
                     "season": season, "listed_matches": len(matches),
                     "status_counts": dict(statuses), "finished_matches": len(finished),
-                    "xg_sample_size": len(xg_rows), "paired_xg_matches": paired,
+                    "xg_checked_matches": len(xg_rows), "paired_xg_matches": paired,
                     "paired_xg_sample_rate": round(paired / len(xg_rows), 4) if xg_rows else None,
-                    "xg_sample": xg_rows,
+                    "xg_match_audits": xg_rows,
                 })
             except Exception as exc:
                 report["errors"].append({
@@ -178,7 +178,7 @@ def main():
             "seasons": [{
                 "season": s["season"], "listed_matches": s["listed_matches"],
                 "finished_matches": s["finished_matches"],
-                "xg_sample_size": s["xg_sample_size"],
+                "xg_checked_matches": s["xg_checked_matches"],
                 "paired_xg_matches": s["paired_xg_matches"],
             } for s in x["season_reports"]],
         } for x in report["leagues"]],
