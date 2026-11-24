@@ -356,8 +356,8 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
 
     private fun findMatch(feed: JSONObject, bet: JSONObject): JSONObject? {
         val competitions = feed.optJSONArray("competitions") ?: return null
-        val byId = HashMap<String, JSONObject>()
-        val byTeamsAndDate = HashMap<String, JSONObject>()
+        val byId = HashMap<String, MutableList<JSONObject>>()
+        val byTeamsAndDate = HashMap<String, MutableList<JSONObject>>()
         val byTeams = HashMap<String, MutableList<JSONObject>>()
         for (i in 0 until competitions.length()) {
             val matches = competitions.optJSONObject(i)?.optJSONArray("matches") ?: continue
@@ -373,18 +373,18 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 val key = "$home|$away"
                 byTeams.getOrPut(key) { mutableListOf() }.add(match)
                 val date = MatchIdentity.matchDate(match)
-                if (date.isNotBlank()) byTeamsAndDate["$key|$date"] = match
+                if (date.isNotBlank()) MatchIdentity.uniqueMatch(byTeamsAndDate["$key|$date"]) = match
             }
         }
         val targetId = bet.optString("matchId").trim()
-        val exact = if (targetId.isNotBlank()) byId[targetId] else null
+        val exact = if (targetId.isNotBlank()) MatchIdentity.uniqueMatch(byId[targetId]) else null
         if (exact != null && MatchIdentity.sameFixture(bet, exact)) return exact
         val home = MatchIdentity.normalizedTeam(bet.optString("home"))
         val away = MatchIdentity.normalizedTeam(bet.optString("away"))
         if (home.isBlank() || away.isBlank()) return null
         val key = "$home|$away"
         val date = MatchIdentity.betDate(bet)
-        return if (date.isNotBlank()) byTeamsAndDate["$key|$date"] else byTeams[key]?.singleOrNull()
+        return if (date.isNotBlank()) byTeamsAndDate["$key|$date"] else MatchIdentity.uniqueMatch(byTeams[key])
     }
 
     private fun settle(bet: JSONObject, match: JSONObject): Boolean {
