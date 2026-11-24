@@ -275,16 +275,18 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 if (bet.optString("status") == "PENDING" && settleCoupon(bet, feed)) changed = true
                 continue
             }
-            val match = findMatch(feed, bet) ?: continue
-            val matchStatus = match.optString("status").trim().uppercase(Locale.ROOT)
-            val kickoffRaw = match.optString("utcDate").ifBlank { match.optString("dateEvent") }
-            val kickoffInFuture = parseInstant(kickoffRaw)?.let { it > System.currentTimeMillis() } == true
+            val match = findMatch(feed, bet)
+            val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
+                ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
+            val kickoffInFuture = (match?.let { MatchKickoffOrdering.timestamp(it) }
+                ?: MatchKickoffOrdering.timestamp(bet))
+                ?.let { it > System.currentTimeMillis() } == true
             if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus, kickoffInFuture)) {
                 bet.put("status", "PENDING").put("matchStatus", matchStatus)
                 bet.remove("score")
                 changed = true
             }
-            if (bet.optString("status") == "PENDING" && settle(bet, match)) changed = true
+            if (match != null && bet.optString("status") == "PENDING" && settle(bet, match)) changed = true
         }
         // Automatic creation is disabled; existing pending bets are still settled above.
         return changed
