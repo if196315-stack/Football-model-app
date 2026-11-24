@@ -150,6 +150,31 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertEqual(evaluated["homeScore"], 2)
         self.assertEqual(evaluated["awayScore"], 1)
         self.assertEqual(evaluated["leagueCode"], "UECL")
+
+    def test_archived_scheduled_fixture_survives_after_kickoff_day_until_finished(self):
+        kickoff = "2026-11-24T17:45:00Z"
+        key = "UCL:ucl-delayed"
+        frozen_prediction = {"over25": 0.61, "modelVersion": "frozen"}
+        previous_archive = {"version": 1, "matches": {
+            key: {"id": "ucl-delayed", "leagueCode": "UCL", "status": "SCHEDULED",
+                  "prediction": frozen_prediction, "home": "Galatasaray",
+                  "away": "Aston Villa", "utcDate": kickoff}
+        }}
+        cache = {"matches": {
+            "ucl-delayed": {"leagueCode": "UCL", "status": "scheduled",
+                            "date": kickoff, "home": "Galatasaray",
+                            "away": "Aston Villa"}
+        }}
+        feed = build_feed(
+            cache, {"matches": []}, [], [], [], predictions={},
+            previous_archive=previous_archive,
+            now=datetime(2026, 11, 25, 12, 0, tzinfo=timezone.utc),
+        )
+        match = feed["competitions"][0]["matches"][0]
+        self.assertEqual(match["id"], "ucl-delayed")
+        self.assertEqual(match["status"], "SCHEDULED")
+        self.assertEqual(match["prediction"], frozen_prediction)
+
     def test_pitchapi_in_progress_aliases_are_normalized_to_live(self):
         from build_uefa_app_feed import app_match_status
         for raw in ("in_progress", "inprogress", "in progress", "in-play", "1h", "2h"):
