@@ -13,6 +13,7 @@ on:
       - "backend/apply_melbet_snapshots.py"
       - "backend/predict_uefa_markets.py"
       - "backend/update_odds_api_sport.py"
+      - "backend/refresh_kickoff_times_api_sport.py"
       - ".github/workflows/collect-uefa-melbet-snapshots.yml"
       - ".github/workflows/update-data.yml"
       - ".github/workflows/update-odds-only.yml"
@@ -123,6 +124,12 @@ jobs:
         run: python backend/apply_melbet_snapshots.py
       - name: Build UEFA competitions for the Android match centre
         run: python backend/build_uefa_app_feed.py
+      # Run after both feeds are rebuilt and before publishing them. This
+      # uses the full API-Sport fixture calendar, independently of MelBet odds.
+      - name: Enrich upcoming fixture kickoff times
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/refresh_kickoff_times_api_sport.py
       - name: Audit Android strongest AI signal across all eight competitions
         run: |
           python backend/audit_all_competitions.py \
