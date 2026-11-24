@@ -4160,6 +4160,10 @@ class MainActivity : Activity() {
         }
 
         // Keep scheduled fixtures visible across calendar-day changes until the feed confirms completion.
+        val fixtureDayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
+        val fixtureToday = fixtureDayFormat.format(Date())
 
         var totalUpcoming = 0
         var totalPredicted = 0
@@ -4174,14 +4178,14 @@ class MainActivity : Activity() {
                 val matchStatus = m.optString("status")
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
-                        kickoffTimestamp(m)?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(it)) }.orEmpty()
+                        kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
                     }
                 }
                 val normalizedMatchStatus = matchStatus.trim().uppercase(Locale.ROOT)
                 val isLiveMatch = normalizedMatchStatus in setOf("IN_PLAY", "LIVE", "PAUSED")
                 val isScheduledMatch = normalizedMatchStatus in listOf("SCHEDULED", "TIMED")
                 val kickoffDayHasPassed = fixtureDate.isNotBlank() &&
-                    fixtureDate < SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                    fixtureDate < fixtureToday
                 // A delayed fixture must not disappear at midnight or lose eligibility when its old
                 // prematch quote expires. The provider's FINISHED status is the only end condition.
                 if (isLiveMatch || (isScheduledMatch &&
