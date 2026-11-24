@@ -201,6 +201,7 @@ def settled_records(quotes, domestic, uefa):
             if not fixture:
                 continue
             final_by_identity[(league, fixture)] = match
+    output = []
     for quote in quotes:
         league, fixture = quote.get("league_code"), quote.get("fixture_id")
         final = final_by_identity.get((league, fixture))
