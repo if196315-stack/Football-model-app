@@ -7,7 +7,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class FeedMergerTest {
-    @Test fun everyLeagueRequiresAllWorkingMarketQuotesForScheduledMatches() {
+    @Test fun everyLeagueRequiresOnlyOneWorkingMarketForScheduledMatches() {
         for (code in listOf("PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")) {
             assertEquals(false, FeedMerger.shouldShowScheduledMatch(code, true, false))
             assertEquals(true, FeedMerger.shouldShowScheduledMatch(code, true, true))
@@ -15,7 +15,7 @@ class FeedMergerTest {
         }
     }
 
-    @Test fun domesticMatchesStillRequireAnActiveMelBetLine() {
+    @Test fun domesticMatchesRequirePredictionAndAtLeastOneActiveMelBetLine() {
         assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", true, false))
         assertEquals(false, FeedMerger.shouldShowScheduledMatch("PL", false, true))
         assertEquals(true, FeedMerger.shouldShowScheduledMatch("PL", true, true))
