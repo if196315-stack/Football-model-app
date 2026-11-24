@@ -1,6 +1,10 @@
 package com.footballmodel.app
 
 import org.json.JSONObject
+import java.text.ParsePosition
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 /** A fixture ID alone is never sufficient to settle or display a paper bet. */
 internal object MatchIdentity {
@@ -21,6 +25,16 @@ internal object MatchIdentity {
 
     fun uniqueMatch(matches: List<JSONObject>?): JSONObject? = matches?.singleOrNull()
 
+    private fun dateMillis(value: String): Long? {
+        val parser = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply {
+            isLenient = false
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val position = ParsePosition(0)
+        val parsed = parser.parse(value, position) ?: return null
+        return parsed.time.takeIf { position.index == value.length }
+    }
+
     fun sameFixture(bet: JSONObject, match: JSONObject): Boolean {
         val home = normalizedTeam(bet.optString("home"))
         val away = normalizedTeam(bet.optString("away"))
@@ -34,12 +48,8 @@ internal object MatchIdentity {
         if (expectedDate.isBlank()) return true
         if (actualDate.isBlank()) return false
         if (expectedDate == actualDate) return true
-        return try {
-            val expected = java.time.LocalDate.parse(expectedDate)
-            val actual = java.time.LocalDate.parse(actualDate)
-            kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(expected, actual)) <= 1
-        } catch (_: Exception) {
-            false
-        }
+        val expectedMillis = dateMillis(expectedDate) ?: return false
+        val actualMillis = dateMillis(actualDate) ?: return false
+        return kotlin.math.abs(expectedMillis - actualMillis) <= 86_400_000L
     }
 }
