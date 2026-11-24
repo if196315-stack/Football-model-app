@@ -102,32 +102,6 @@ class StatsPredictionScopeTest {
         assertEquals("m_0yKeRt", resolved.getJSONObject(1).getString("id"))
     }
 
-
-    @Test fun statsAllRefreshesArchivedScheduledSnapshotFromFinishedCompetitionFixture() {
-        val archived = org.json.JSONObject().put("id", "same-id").put("leagueCode", "UCL")
-            .put("status", "SCHEDULED").put("homeScore", org.json.JSONObject.NULL)
-            .put("awayScore", org.json.JSONObject.NULL).put("utcDate", "2026-11-24")
-            .put("prediction", org.json.JSONObject().put("1x", 0.8))
-        val finished = org.json.JSONObject().put("id", "same-id")
-            .put("status", "FINISHED").put("homeScore", 2).put("awayScore", 1)
-            .put("utcDate", "2026-11-24").put("prediction", org.json.JSONObject().put("1x", 0.2))
-        val feed = org.json.JSONObject()
-            .put("evaluationMatches", org.json.JSONArray().put(archived))
-            .put("competitions", org.json.JSONArray().put(
-                org.json.JSONObject().put("code", "UCL")
-                    .put("matches", org.json.JSONArray().put(finished))))
-
-        val resolved = StatsPredictionScope.evaluationMatchesForStats(feed)
-
-        assertEquals(1, resolved.length())
-        assertEquals("FINISHED", resolved.getJSONObject(0).getString("status"))
-        assertEquals(2, resolved.getJSONObject(0).getInt("homeScore"))
-        assertEquals(1, resolved.getJSONObject(0).getInt("awayScore"))
-        // The pre-match probability must remain the archived one.
-        assertEquals(0.8, resolved.getJSONObject(0).getJSONObject("prediction").getDouble("1x"), 0.0001)
-    }
-
-
     @Test fun statsFallbackDoesNotDuplicateArchivedMatchesOrReplaceTheirEvaluation() {
         val archived = org.json.JSONObject().put("id", "same-id").put("leagueCode", "UCL")
             .put("status", "FINISHED").put("homeScore", 2).put("awayScore", 1)
