@@ -10,18 +10,15 @@ import org.json.JSONObject
  */
 internal object FeedMerger {
     /**
-     * UEFA fixtures belong in Lines even when a fresh bookmaker quote is
-     * temporarily unavailable. Their model forecast remains useful; the UI
-     * renders the odds as unavailable instead of hiding the entire match.
+     * Scheduled matches in every competition use the same strict publication rule:
+     * all strategy markets must have current bookmaker quotes. Live matches are
+     * handled separately by the screen and never pass through this predicate.
      */
     fun shouldShowScheduledMatch(
         leagueCode: String,
         hasPrediction: Boolean,
-        hasActiveMelBetLine: Boolean
-    ): Boolean {
-        val isUefa = leagueCode in setOf("UCL", "UEL", "UECL")
-        return hasActiveMelBetLine || (isUefa && hasPrediction)
-    }
+        hasAllActiveMelBetMarkets: Boolean
+    ): Boolean = hasPrediction && hasAllActiveMelBetMarkets
 
     fun mergeUefa(target: JSONObject, uefa: JSONObject) {
         val targetCompetitions = target.optJSONArray("competitions")
