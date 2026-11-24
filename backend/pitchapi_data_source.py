@@ -152,16 +152,22 @@ def normalize_match(match: dict, league_code: str, league: dict, season: str) ->
     home = match.get("home_team") or {}
     away = match.get("away_team") or {}
     date = match.get("date")
+    status = str(match.get("status") or "").casefold()
+    elapsed_values = [match.get(field) for field in ("elapsed", "minute", "elapsed_minutes")
+                      if isinstance(match.get(field), (int, float))]
+    second_half = status in ("2h", "second_half", "in_play_second_half")
+    elapsed = max(elapsed_values) if second_half and elapsed_values else (
+        elapsed_values[0] if elapsed_values else None
+    )
     return {
         "id": str(match_id), "provider": "PitchAPI",
         "leagueCode": league_code, "leagueId": league.get("id"),
         "leagueName": league.get("name"), "season": season,
-        "date": date, "timeUtc": match.get("time_utc"), "status": str(match.get("status") or "").casefold(),
+        "date": date, "timeUtc": match.get("time_utc"), "status": status,
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
         "homeScore": match.get("score_home"), "awayScore": match.get("score_away"),
-        "elapsed": next((match.get(field) for field in ("elapsed", "minute", "elapsed_minutes")
-                         if match.get(field) is not None), None),
+        "elapsed": elapsed,
         "elapsedExtra": next((match.get(field) for field in ("elapsed_extra", "elapsedExtra", "extra_time_minutes")
                               if match.get(field) is not None), None),
         "roundName": match.get("round_name"), "hasPlayoff": match.get("has_playoff"),
