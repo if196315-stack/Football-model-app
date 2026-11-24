@@ -1231,7 +1231,10 @@ class MainActivity : Activity() {
                     }
                     if (match.optString("status") in listOf("SCHEDULED", "TIMED") &&
                         fixtureDate.isNotBlank() && fixtureDate >= today &&
-                        hasStrategyPredictionWithActiveMelBetLine(match)
+                        FeedMerger.shouldShowScheduledMatch(
+                            code, match.optJSONObject("prediction") != null,
+                            hasStrategyPredictionWithActiveMelBetLine(match)
+                        )
                     ) {
                         counts["ALL"] = (counts["ALL"] ?: 0) + 1
                         if (counts.containsKey(code)) counts[code] = (counts[code] ?: 0) + 1
@@ -4214,7 +4217,10 @@ class MainActivity : Activity() {
                 // Keep an overdue fixture (including postponed/unknown non-final states) visible
                 // until the provider reports a terminal result, regardless of the calendar day.
                 if (isLiveMatch || (kickoffDayHasPassed && !isTerminalMatch) ||
-                    (isScheduledMatch && hasStrategyPredictionWithActiveMelBetLine(m))) {
+                    (isScheduledMatch && FeedMerger.shouldShowScheduledMatch(
+                        leagueCode, m.optJSONObject("prediction") != null,
+                        hasStrategyPredictionWithActiveMelBetLine(m)
+                    ))) {
                     upcoming.add(m)
                     if (!isLiveMatch) {
                         totalUpcoming++
