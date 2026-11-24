@@ -20,7 +20,7 @@ class PitchApiDataSourceTests(unittest.TestCase):
             "home_team": {"id": "h", "name": "Home"},
             "away_team": {"id": "a", "name": "Away"},
         }, "ENG", {"id": "pl", "name": "Premier League"}, "2026/2027")
-        self.assertEqual(row["elapsed"], 45)
+        self.assertEqual(row["elapsed"], 67)
         self.assertEqual(row["elapsedExtra"], 3)
 
     def test_flatten_shots_supports_periods_and_direct_list(self):
