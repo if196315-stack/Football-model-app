@@ -11,6 +11,18 @@ from pitchapi_data_source import (
 
 
 class PitchApiDataSourceTests(unittest.TestCase):
+    def test_normalize_match_preserves_live_clock_and_stoppage_time(self):
+        from pitchapi_data_source import normalize_match
+        row = normalize_match({
+            "id": "live-2h", "date": "2026-11-25T00:10:00Z",
+            "status": "in_play_second_half", "elapsed": 45, "elapsed_minutes": 67,
+            "elapsed_extra": 3, "score_home": 1, "score_away": 0,
+            "home_team": {"id": "h", "name": "Home"},
+            "away_team": {"id": "a", "name": "Away"},
+        }, "ENG", {"id": "pl", "name": "Premier League"}, "2026/2027")
+        self.assertEqual(row["elapsed"], 45)
+        self.assertEqual(row["elapsedExtra"], 3)
+
     def test_flatten_shots_supports_periods_and_direct_list(self):
         self.assertEqual(len(flatten_shots({"periods": [
             {"shots": [{"id": "a"}]}, {"shots": [{"id": "b"}]}
