@@ -1,0 +1,41 @@
+name: Isolated Australia MelBet market coverage audit
+
+on:
+  push:
+    branches:
+      - research/pitchapi-australia-audit
+    paths:
+      - "research/australia_melbet_coverage.py"
+      - ".github/workflows/australia-melbet-coverage.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: australia-melbet-readonly-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install research dependency
+        run: python -m pip install requests
+      - name: Check upcoming A-League MelBet markets (read-only)
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python research/australia_melbet_coverage.py
+      - name: Upload standalone coverage report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: australia-melbet-market-coverage
+          path: australia-melbet-coverage.json
+          if-no-files-found: warn
+          retention-days: 14
