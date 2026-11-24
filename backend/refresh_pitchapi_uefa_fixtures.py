@@ -1,5 +1,7 @@
 """Incremental fixture history cache for UEFA Champions League, Europa League and Conference League.
 
+The scheduled runner also rebuilds the public app feed so live score and clock changes reach Android.
+
 This job is deliberately isolated from the production model and docs/data.json.
 It does not request shot/xG endpoints or bookmaker odds.
 """
