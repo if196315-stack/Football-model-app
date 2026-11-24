@@ -114,6 +114,22 @@ class UefaFixtureHistoryTests(unittest.TestCase):
         self.assertEqual(row["leagueCode"], "UNL")
         self.assertEqual(row["homeScore"], 2)
 
+
+    def test_normalize_match_preserves_live_status_score_and_match_clock(self):
+        from refresh_pitchapi_uefa_fixtures import normalize_match
+        row = normalize_match({
+            "id": "m_LIVE01", "date": "2026-11-25T19:00:00Z",
+            "status": "in_play", "score_home": 2, "score_away": 1,
+            "elapsed": 67, "elapsed_extra": 3,
+            "home_team": {"id": "t_HOME01", "name": "Home"},
+            "away_team": {"id": "t_AWAY01", "name": "Away"},
+        }, "UCL", {"id": "ucl-id", "name": "Champions League"}, "2026/2027")
+        self.assertEqual(row["status"], "in_play")
+        self.assertEqual(row["homeScore"], 2)
+        self.assertEqual(row["awayScore"], 1)
+        self.assertEqual(row["elapsed"], 67)
+        self.assertEqual(row["elapsedExtra"], 3)
+
     def test_season_requests_are_status_all(self):
         with tempfile.TemporaryDirectory() as tmp:
             session = FakeSession()
