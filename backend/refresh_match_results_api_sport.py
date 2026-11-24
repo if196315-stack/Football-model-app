@@ -14,7 +14,7 @@ from typing import Any
 
 import requests
 
-from update_odds_api_sport import URL, match_fixture
+from update_odds_api_sport import URL, kickoff, team_similarity
 
 ROOT = Path(__file__).resolve().parents[1]
 FEEDS = (ROOT / "docs" / "data.json", ROOT / "docs" / "uefa-data.json")
@@ -172,6 +172,37 @@ def apply_provider_match(target: dict, source: dict, updated_at: str) -> bool:
     return changed
 
 
+def result_fixture(target: dict, candidates: list[dict]) -> dict | None:
+    """Conservative identity match for settlement: both clubs and kickoff must agree.
+
+    The odds pipeline can tolerate fuzzy nearest-neighbour matching; result settlement
+    cannot. A false positive permanently closes a different fixture.
+    """
+    target_time = kickoff(target)
+    if target_time is None:
+        return None
+    raw_time = target.get("utcDate") or target.get("dateEvent")
+    date_only = isinstance(raw_time, str) and len(raw_time.strip()) == 10 and "T" not in raw_time
+    accepted = []
+    for candidate in candidates:
+        candidate_time = kickoff(candidate)
+        if candidate_time is None:
+            continue
+        if date_only:
+            if candidate_time.date() != target_time.date():
+                continue
+        elif abs((candidate_time - target_time).total_seconds()) > 3 * 3600:
+            continue
+        home = team_similarity(target.get("home"), candidate.get("homeTeam"))
+        away = team_similarity(target.get("away"), candidate.get("awayTeam"))
+        # Require strong agreement for each side independently; a high score
+        # on one club must not compensate for a different opponent.
+        if home >= 0.82 and away >= 0.82:
+            accepted.append(candidate)
+    # Even two near-identical provider fixtures are ambiguous: do not settle either.
+    return accepted[0] if len(accepted) == 1 else None
+
+
 def sync_feed(payload: dict, provider_matches: list[dict],
               updated_at: str | None = None) -> dict:
     updated_at = updated_at or datetime.now(timezone.utc).isoformat()
@@ -179,7 +210,7 @@ def sync_feed(payload: dict, provider_matches: list[dict],
     samples = []
     for competition in payload.get("competitions", []):
         for target in competition.get("matches", []):
-            source = match_fixture(target, provider_matches)
+            source = result_fixture(target, provider_matches)
             if source is None:
                 continue
             status = provider_status(source)
