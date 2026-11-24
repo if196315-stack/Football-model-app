@@ -22,6 +22,21 @@ internal object BetSettlement {
 
     fun isSettledStatus(status: String): Boolean = status in setOf("WON", "LOST", "PUSH")
 
+    /**
+     * A previously settled local record is stale if its exact fixture is explicitly
+     * scheduled/live again. Reopen only against a matched current fixture; scheduled
+     * states additionally require a future kickoff to avoid reopening old matches.
+     */
+    fun shouldReopenSettledBet(currentStatus: String, matchStatus: String,
+                               kickoffInFuture: Boolean): Boolean {
+        if (!isSettledStatus(currentStatus)) return false
+        return when (matchStatus.trim().uppercase()) {
+            "IN_PLAY", "LIVE", "PAUSED" -> true
+            "SCHEDULED", "TIMED" -> kickoffInFuture
+            else -> false
+        }
+    }
+
     fun settledResult(
         currentStatus: String,
         matchStatus: String,
