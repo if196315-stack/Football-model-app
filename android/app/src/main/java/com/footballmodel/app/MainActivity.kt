@@ -4112,7 +4112,7 @@ class MainActivity : Activity() {
                 val empty = card(content)
                 addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
-            upcoming.sortedBy { it.optString("utcDate") }.forEach { m ->
+            upcoming.sortedWith(compareBy<JSONObject> { kickoffTimestamp(it) ?: Long.MAX_VALUE }).forEach { m ->
                 val box = card(content)
                 // Match-only visual treatment: clearer hierarchy, softer navy gradient and a restrained gold outline.
                 box.setPadding(dp(18), dp(18), dp(18), dp(18))
@@ -4128,7 +4128,7 @@ class MainActivity : Activity() {
                     topMargin = dp(10)
                     bottomMargin = dp(12)
                 }
-                addText(box, "★  MATCH FIXTURE  ·  ${date(m.optString("utcDate"))}", 9, true, gold)
+                addText(box, "★  MATCH FIXTURE  ·  ${kickoffLabel(m)}", 9, true, gold)
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val scoreAvailable = !m.isNull("homeScore") && !m.isNull("awayScore")
                 val scoreText = if (scoreAvailable) " · ${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else ""
