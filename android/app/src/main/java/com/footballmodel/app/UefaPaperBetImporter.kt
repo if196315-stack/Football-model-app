@@ -145,11 +145,11 @@ internal object UefaPaperBetImporter {
 
     private fun findMatchingBet(bets: JSONArray, match: JSONObject, marketKey: String,
                                 odds: Double): JSONObject? {
-        val fixture = fixtureKey(match)
+        val fixture = fixtureTeamsKey(match)
         val matchId = match.optString("id").trim()
         fun sameFixture(bet: JSONObject): Boolean =
             (matchId.isNotBlank() && bet.optString("matchId") == matchId) ||
-                fixtureKey(bet) == fixture
+                fixtureTeamsKey(bet) == fixture
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (!isImportedPaperRow(bet) ||
@@ -193,7 +193,7 @@ internal object UefaPaperBetImporter {
                 bet.put("marketKey", marketKey)
                 changed = true
             }
-            val key = "${fixtureKey(bet)}|$marketKey"
+            val key = "${fixtureTeamsKey(bet)}|$marketKey"
             val keeper = keeperByKey[key]
             if (keeper == null) {
                 keeperByKey[key] = bet
@@ -223,7 +223,7 @@ internal object UefaPaperBetImporter {
             val matches = competition.optJSONArray("matches") ?: continue
             for (mi in 0 until matches.length()) {
                 val match = matches.optJSONObject(mi) ?: continue
-                val matchKey = fixtureKey(match)
+                val matchKey = fixtureTeamsKey(match)
                 val signals = match.optJSONArray("paperSignals") ?: continue
                 for (si in 0 until signals.length()) {
                     val signal = signals.optJSONObject(si) ?: continue
@@ -238,7 +238,7 @@ internal object UefaPaperBetImporter {
             val bet = bets.optJSONObject(i) ?: continue
             if (!bet.optString("source").equals("AI_MANUAL", true)) continue
             val market = canonicalMarketKey(bet.optString("marketKey"))
-            if (market.isBlank() || "${fixtureKey(bet)}|$market" !in paperKeys) continue
+            if (market.isBlank() || "${fixtureTeamsKey(bet)}|$market" !in paperKeys) continue
             val matchId = bet.optString("matchId")
             val legacyPaperId = matchId.isNotBlank() &&
                 bet.optString("id").startsWith("AI_MANUAL:$matchId:$market:")
@@ -250,6 +250,13 @@ internal object UefaPaperBetImporter {
         }
         for (index in remove.sortedDescending()) bets.remove(index)
         return remove.isNotEmpty()
+    }
+
+    private fun fixtureTeamsKey(row: JSONObject): String {
+        val home = normalizeText(row.optString("home"))
+        val away = normalizeText(row.optString("away"))
+        return if (home.isNotBlank() && away.isNotBlank()) "$home|$away"
+            else fixtureKey(row)
     }
 
     private fun fixtureKey(row: JSONObject): String {
