@@ -99,6 +99,31 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         self.assertEqual([signal["signal_id"] for signal in match["paperSignals"]],
                          ["btts-yes"])
 
+    def test_retired_signal_ids_are_never_published_even_if_settled(self):
+        cache = {"matches": {
+            "m_1NQ9Kt": {
+                "leagueCode": "UEL", "status": "scheduled",
+                "date": "2026-11-26T18:00:00Z",
+                "home": "Union St.Gilloise", "away": "Lech Poznań"
+            }
+        }}
+        bets = [
+            {"signal_id": "c3b279f109074fcbbf0c", "fixture_id": "m_1NQ9Kt",
+             "paper_only": True, "decision": "BET", "market": "match_total_over",
+             "point": 3.5},
+            {"signal_id": "28ecfccda8f24626566b", "fixture_id": "m_1NQ9Kt",
+             "paper_only": True, "decision": "BET", "market": "team_total_over",
+             "point": 2.5, "team": "home"},
+        ]
+        settlements = [
+            {"signal_id": "c3b279f109074fcbbf0c", "result": "WIN"},
+            {"signal_id": "28ecfccda8f24626566b", "result": "WIN"},
+        ]
+        feed = build_feed(cache, {"matches": []}, [], bets, settlements,
+                          predictions={})
+        match = feed["competitions"][1]["matches"][0]
+        self.assertEqual(match["paperSignals"], [])
+
     def test_feed_contains_only_active_club_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
             "ucl-1": {"leagueCode": "UCL", "status": "finished", "date": "2026-11-01",
