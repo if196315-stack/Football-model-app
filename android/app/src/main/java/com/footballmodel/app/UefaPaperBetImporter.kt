@@ -154,7 +154,7 @@ internal object UefaPaperBetImporter {
             val bet = bets.optJSONObject(i) ?: continue
             if (!isImportedPaperRow(bet) ||
                 !sameFixture(bet) ||
-                bet.optString("marketKey") != marketKey) continue
+                canonicalMarketKey(bet.optString("marketKey")) != canonicalMarketKey(marketKey)) continue
             val existingOdds = bet.optDouble("odds", Double.NaN)
             if (existingOdds.isFinite() && abs(existingOdds - odds) < 0.005) return bet
         }
@@ -186,8 +186,13 @@ internal object UefaPaperBetImporter {
                 bet.put("source", "UEFA_PAPER")
                 changed = true
             }
-            val marketKey = bet.optString("marketKey").ifBlank { normalizeText(bet.optString("market")) }
+            val rawMarketKey = bet.optString("marketKey").ifBlank { normalizeText(bet.optString("market")) }
+            val marketKey = canonicalMarketKey(rawMarketKey)
             if (marketKey.isBlank()) continue
+            if (rawMarketKey != marketKey) {
+                bet.put("marketKey", marketKey)
+                changed = true
+            }
             val key = "${fixtureKey(bet)}|$marketKey"
             val keeper = keeperByKey[key]
             if (keeper == null) {
@@ -232,7 +237,7 @@ internal object UefaPaperBetImporter {
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (!bet.optString("source").equals("AI_MANUAL", true)) continue
-            val market = bet.optString("marketKey")
+            val market = canonicalMarketKey(bet.optString("marketKey"))
             if (market.isBlank() || "${fixtureKey(bet)}|$market" !in paperKeys) continue
             val matchId = bet.optString("matchId")
             val legacyPaperId = matchId.isNotBlank() &&
@@ -257,6 +262,13 @@ internal object UefaPaperBetImporter {
             return "$home|$away|$date"
         }
         return row.optString("matchId").trim().ifBlank { row.optString("id").trim() }
+    }
+
+    private fun canonicalMarketKey(key: String): String = when (key.trim()) {
+        "homeOver5" -> "homeOver05"
+        "awayOver5" -> "awayOver05"
+        "over5" -> "over05"
+        else -> key.trim()
     }
 
     private fun normalizeText(value: String): String = Normalizer.normalize(
