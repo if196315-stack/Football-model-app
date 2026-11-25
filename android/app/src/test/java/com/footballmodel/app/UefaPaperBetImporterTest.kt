@@ -41,6 +41,33 @@ class UefaPaperBetImporterTest {
             """.trimIndent()
         )
 
+    @Test fun removesExcludedAtleticoVikingBttsPaperLossAndNeverReimportsIt() {
+        val signalId = "a479aac3d5a7864b151b"
+        val bets = JSONArray()
+            .put(JSONObject().put("id", "AI_MANUAL:m_1WLVGt:bttsYes:1795608397977")
+                .put("source", "AI_MANUAL").put("matchId", "m_1WLVGt")
+                .put("marketKey", "bttsYes").put("status", "LOST").put("stake", 25.0))
+            .put(JSONObject().put("id", "UEFA_PAPER:$signalId")
+                .put("paperSignalId", signalId).put("source", "UEFA_PAPER")
+                .put("paperOnly", true).put("matchId", "m_1WLVGt")
+                .put("marketKey", "bttsYes").put("status", "LOST").put("stake", 25.0))
+        val feed = JSONObject(
+            """
+            {"competitions":[{"code":"UCL","name":"ЛЧ","matches":[{
+              "id":"m_1WLVGt","utcDate":"2026-11-25T20:00:00Z",
+              "home":"Atlético Madrid","away":"Viking","status":"FINISHED",
+              "scoreStatusFinal":true,"homeScore":2,"awayScore":0,
+              "paperSignals":[{"signal_id":"$signalId","market":"btts","outcome":"yes",
+                "price":2.13,"model_probability":0.64879606,"result":"LOSS","status":"SETTLED"}]
+            }]}]}
+            """.trimIndent()
+        )
+        assertTrue(UefaPaperBetImporter.sync(bets, feed))
+        assertEquals(0, bets.length())
+        assertFalse(UefaPaperBetImporter.sync(bets, feed))
+        assertEquals(0, bets.length())
+    }
+
     @Test fun importsSettledUefaPaperSignalIntoCompletedHistory() {
         val bets = JSONArray()
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
