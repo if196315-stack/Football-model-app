@@ -2688,9 +2688,25 @@ class MainActivity : Activity() {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
 
         // Backend UEFA paperSignals are a separate archive from local manual bets.
-        // Import them idempotently so a finished fixture moves from pending to completed
-        // instead of disappearing when it is no longer an upcoming TOP candidate.
-        if (UefaPaperBetImporter.sync(bets, j)) saveBets()
+        // Import/dedupe them idempotently. When rows are removed as duplicates, add
+        // their IDs to the cloud tombstones before syncing; otherwise the cloud merge
+        // restores the deleted copies immediately.
+        val idsBeforePaperImport = (0 until bets.length()).mapNotNull { index ->
+            bets.optJSONObject(index)?.optString("id")?.takeIf { it.isNotBlank() }
+        }.toSet()
+        if (UefaPaperBetImporter.sync(bets, j)) {
+            val idsAfterPaperImport = (0 until bets.length()).mapNotNull { index ->
+                bets.optJSONObject(index)?.optString("id")?.takeIf { it.isNotBlank() }
+            }.toSet()
+            val removedIds = idsBeforePaperImport - idsAfterPaperImport
+            if (removedIds.isNotEmpty()) {
+                val prefs = betPrefs
+                val deleted = prefs.getStringSet("deleted_bet_ids", emptySet()).orEmpty().toMutableSet()
+                deleted.addAll(removedIds)
+                prefs.edit().putStringSet("deleted_bet_ids", deleted).apply()
+            }
+            saveBets()
+        }
 
         val rawMatchLookup = buildMatchLookup(j)
         // Cache fixture resolution by JSONObject identity for this render. A bet is
