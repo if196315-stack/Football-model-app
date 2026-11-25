@@ -1479,7 +1479,8 @@ class MainActivity : Activity() {
     private data class StatsBetInput(
         val id: String, val betDay: String, val date: String, val createdAt: Long,
         val source: String, val status: String, val stake: Double, val odds: Double,
-        val market: String, val marketKey: String, val league: String, val isCoupon: Boolean
+        val market: String, val marketKey: String, val league: String, val isCoupon: Boolean,
+        val isTopSignal: Boolean
     )
     private data class StatsBetViewCache(
         val key: String, val current: BetAnalyticsReport
@@ -1581,14 +1582,18 @@ class MainActivity : Activity() {
         val generation = statsBetCacheGeneration.get()
         val snapshot = try {
             val inputs = mutableListOf<StatsBetInput>()
+            val topSelections = topPredictionSelections()
             for (index in 0 until sourceBets.length()) {
                 val bet = sourceBets.optJSONObject(index) ?: continue
+                val matchId = bet.optString("matchId").trim()
+                val marketKey = bet.optString("marketKey")
+                val isTopSignal = matchId.isNotBlank() && StatsPredictionScope.key(matchId, marketKey) in topSelections
                 inputs.add(StatsBetInput(
                     bet.optString("id"), bet.optString("betDay"), bet.optString("date"),
                     bet.optLong("createdAt", 0L), bet.optString("source"), bet.optString("status"),
                     bet.optDouble("stake", Double.NaN), bet.optDouble("odds", Double.NaN),
-                    bet.optString("market"), bet.optString("marketKey"), bet.optString("league"),
-                    bet.optString("marketKey") == "COUPON"
+                    bet.optString("market"), marketKey, bet.optString("league"),
+                    marketKey == "COUPON", isTopSignal
                 ))
             }
             inputs
@@ -1606,7 +1611,7 @@ class MainActivity : Activity() {
                     val day = betStatsDate(item) ?: return@mapNotNull null
                     AnalyticsBet(item.id, day, item.source, item.status, item.stake, item.odds,
                         item.market.ifBlank { item.marketKey }, item.league, item.isCoupon,
-                        marketKey = item.marketKey)
+                        isTopSignal = item.isTopSignal, marketKey = item.marketKey)
                 }
                 val current = BetAnalyticsCalculator.calculate(records, bounds.first, bounds.second, source)
                 StatsBetViewCache(key, current)
@@ -3794,21 +3799,25 @@ class MainActivity : Activity() {
     }
 
     private fun aiPaperRoiPercent(): Pair<Double?, Int> {
-        var profit = 0.0
-        var turnover = 0.0
-        var settledCount = 0
+        val topSelections = topPredictionSelections()
+        val records = mutableListOf<AnalyticsBet>()
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("source") != "AI_MANUAL") continue
-            val stake = bet.optDouble("stake", 0.0)
-            val odds = bet.optDouble("odds", 0.0)
-            when (bet.optString("status")) {
-                "WON" -> { profit += stake * (odds - 1.0); turnover += stake; settledCount++ }
-                "LOST" -> { profit -= stake; turnover += stake; settledCount++ }
-                "PUSH" -> { turnover += stake; settledCount++ }
-            }
+            val status = bet.optString("status").uppercase(Locale.ROOT)
+            if (status !in setOf("WON", "LOST", "PUSH")) continue
+            val marketKey = bet.optString("marketKey")
+            val matchId = bet.optString("matchId").trim()
+            val day = StatsPredictionScope.matchDateMillis(bet.optString("betDay").ifBlank { bet.optString("date") }) ?: continue
+            records.add(AnalyticsBet(
+                id = bet.optString("id"), dayMillis = day, source = bet.optString("source"), status = status,
+                stake = bet.optDouble("stake", Double.NaN), odds = bet.optDouble("odds", Double.NaN),
+                market = bet.optString("market"), league = bet.optString("league"), isCoupon = marketKey == "COUPON",
+                isTopSignal = matchId.isNotBlank() && StatsPredictionScope.key(matchId, marketKey) in topSelections,
+                marketKey = marketKey
+            ))
         }
-        return (if (turnover > 0.0) profit / turnover * 100.0 else null) to settledCount
+        val report = BetAnalyticsCalculator.calculate(records, Long.MIN_VALUE, Long.MAX_VALUE, "TOP").overall
+        return (if (report.turnover > 0.0) report.roi else null) to report.settled
     }
 
     private fun refreshHeaderFinancials() {
