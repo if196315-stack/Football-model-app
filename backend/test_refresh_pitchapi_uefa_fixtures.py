@@ -115,6 +115,15 @@ class UefaFixtureHistoryTests(unittest.TestCase):
         self.assertEqual(row["homeScore"], 2)
 
 
+    def test_prefers_exact_time_utc_when_date_is_calendar_only(self):
+        from refresh_pitchapi_uefa_fixtures import normalize_match
+        row = normalize_match({
+            "id": "m_UTC_TIME", "date": "2026-11-26",
+            "time_utc": "2026-11-26T18:45:00Z", "status": "scheduled",
+            "home_team": {"name": "Home"}, "away_team": {"name": "Away"},
+        }, "UCL", {"id": "ucl-id", "name": "Champions League"}, "2026/2027")
+        self.assertEqual(row["date"], "2026-11-26T18:45:00Z")
+
     def test_normalize_match_preserves_live_status_score_and_match_clock(self):
         from refresh_pitchapi_uefa_fixtures import normalize_match
         row = normalize_match({
