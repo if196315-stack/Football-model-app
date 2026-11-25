@@ -2278,6 +2278,14 @@ class MainActivity : Activity() {
             val bet = bets.optJSONObject(i) ?: continue
             if (!bet.optString("source").equals("AI_MANUAL", true)) continue
             if (bet.optString("marketKey") !in setOf("1x", "x2", "homeOver15", "awayOver15", "over25", "bttsYes", "homeOver05", "awayOver05")) continue
+            val odds = bet.optDouble("odds", Double.NaN)
+            val probability = bet.optDouble("probability", Double.NaN)
+            val edgePp = bet.optDouble("edgePp", Double.NaN)
+            val expectedValue = bet.optDouble("expectedValue", Double.NaN)
+            if (!odds.isFinite() || odds < 1.50 ||
+                !probability.isFinite() || probability < 0.60 ||
+                !edgePp.isFinite() || edgePp < 5.0 ||
+                !expectedValue.isFinite() || expectedValue < 0.05) continue
             val matchId = bet.optString("matchId").trim()
             if (matchId.isNotBlank()) selections.add(StatsPredictionScope.key(matchId, bet.optString("marketKey")))
         }
@@ -2287,7 +2295,7 @@ class MainActivity : Activity() {
     private fun statsCacheKey(json: JSONObject): String {
         // Shared lightweight feed signature for AI candidate ordering caches.
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
-            (json.optJSONArray("evaluationMatches")?.length() ?: 0)
+            json.optString("oddsUpdatedAt") + "|" + (json.optJSONArray("evaluationMatches")?.length() ?: 0)
     }
 
     private fun statsPredictionCacheKey(json: JSONObject, source: String, topSelections: Set<String>, period: String): String {
