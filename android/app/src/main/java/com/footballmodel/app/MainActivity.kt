@@ -3171,35 +3171,46 @@ class MainActivity : Activity() {
         thread(name = "iq-match-update-check") {
             var connection: HttpURLConnection? = null
             try {
-                connection = (URL("https://api.github.com/repos/if196315-stack/Football-model-app/releases/latest").openConnection() as HttpURLConnection).apply {
+                connection = (URL("https://api.github.com/repos/if196315-stack/Football-model-app/releases?per_page=100").openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
-                    connectTimeout = 10000
-                    readTimeout = 10000
+                    connectTimeout = 15000
+                    readTimeout = 15000
                     setRequestProperty("Accept", "application/vnd.github+json")
                     setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
                 }
                 if (connection.responseCode !in 200..299) {
-                    throw IllegalStateException("Не удалось получить информацию о релизе")
+                    throw IllegalStateException("Не удалось получить информацию о релизах")
                 }
-                val release = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
-                val latestTag = release.optString("tag_name").removePrefix("v")
-                val apkUrl = release.optJSONArray("assets")?.let { assets ->
-                    (0 until assets.length()).mapNotNull { assets.optJSONObject(it) }
-                        .firstOrNull { it.optString("name") == "app-release.apk" }
-                        ?.optString("browser_download_url")
-                }.orEmpty()
+                val releases = JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
                 val currentVersion = (packageManager.getPackageInfo(packageName, 0).versionName ?: "")
-                fun versionParts(value: String) = value.split(".", "-", "+").map { it.toIntOrNull() ?: 0 }
-                fun isNewer(latest: String, current: String): Boolean {
-                    val a = versionParts(latest)
-                    val b = versionParts(current)
+                fun versionParts(value: String) = value.removePrefix("v").split(".", "-", "+").map { it.toIntOrNull() ?: 0 }
+                fun compareVersions(left: String, right: String): Int {
+                    val a = versionParts(left)
+                    val b = versionParts(right)
                     for (i in 0 until maxOf(a.size, b.size)) {
                         val av = a.getOrElse(i) { 0 }
                         val bv = b.getOrElse(i) { 0 }
-                        if (av != bv) return av > bv
+                        if (av != bv) return av.compareTo(bv)
                     }
-                    return false
+                    return 0
                 }
+                // GitHub's /releases/latest can point to an older semantic version
+                // when releases were created or republished out of version order.
+                val releaseCandidates = (0 until releases.length()).mapNotNull { releases.optJSONObject(it) }
+                    .filter { !it.optBoolean("draft", true) && !it.optBoolean("prerelease", true) }
+                    .mapNotNull { release ->
+                        val tag = release.optString("tag_name").removePrefix("v")
+                        val apk = release.optJSONArray("assets")?.let { assets ->
+                            (0 until assets.length()).mapNotNull { assets.optJSONObject(it) }
+                                .firstOrNull { it.optString("name") == "app-release.apk" }
+                                ?.optString("browser_download_url")
+                        }.orEmpty()
+                        if (tag.isBlank() || apk.isBlank()) null else tag to apk
+                    }
+                val latestRelease = releaseCandidates.maxWithOrNull { a, b -> compareVersions(a.first, b.first) }
+                val latestTag = latestRelease?.first.orEmpty()
+                val apkUrl = latestRelease?.second.orEmpty()
+                fun isNewer(latest: String, current: String) = compareVersions(latest, current) > 0
                 runOnUiThread {
                     if (latestTag.isBlank() || apkUrl.isBlank()) {
                         Toast.makeText(this, "Не удалось найти APK в последнем релизе.", Toast.LENGTH_LONG).show()
