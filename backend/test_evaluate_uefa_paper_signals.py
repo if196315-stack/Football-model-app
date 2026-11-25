@@ -30,13 +30,27 @@ def base_row(**overrides):
 
 class UefaPaperSignalTests(unittest.TestCase):
     def test_retired_signal_ids_are_not_rewritten_to_signal_or_bet_archives(self):
-        self.assertTrue({"a4492587108500498f80", "865839eb433e43cd854d", "f1fba97b5a003a622528", "d23779ab177afc4ee37f", "16998bfe36cf27b25488", "6e819e3d7241a187e90b", "49b06e91a7cdf8f8d5f7", "cccf6eeab148e7fa93c1", "cc5974e18a0d3dac1d31"}.issubset(RETIRED_SIGNAL_IDS))
+        self.assertTrue({"a4492587108500498f80", "865839eb433e43cd854d", "f1fba97b5a003a622528", "d23779ab177afc4ee37f", "16998bfe36cf27b25488", "6e819e3d7241a187e90b", "49b06e91a7cdf8f8d5f7", "cccf6eeab148e7fa93c1", "cc5974e18a0d3dac1d31", "1764459527a687260408"}.issubset(RETIRED_SIGNAL_IDS))
         retired = [
             {"signal_id": "c3b279f109074fcbbf0c", "decision": "BET",
              "fixture_id": "m_1NQ9Kt", "market": "match_total_over", "point": 3.5},
             {"signal_id": "28ecfccda8f24626566b", "decision": "BET",
              "fixture_id": "m_1NQ9Kt", "market": "team_total_over", "point": 2.5},
         ]
+        with tempfile.TemporaryDirectory() as tmp:
+            signal_path = Path(tmp) / "signals.jsonl"
+            bets_path = Path(tmp) / "bets.jsonl"
+            append_new_signals(retired, signal_path)
+            append_unique_paper_bets(retired, bets_path)
+            self.assertFalse(signal_path.exists())
+            self.assertFalse(bets_path.exists())
+
+    def test_bodo_glimt_low_odds_signal_is_never_reappended(self):
+        retired = [{
+            "signal_id": "1764459527a687260408", "decision": "BET",
+            "fixture_id": "m_0yKeRt", "market": "team_total_over",
+            "point": 0.5, "team": "away", "price": 1.24,
+        }]
         with tempfile.TemporaryDirectory() as tmp:
             signal_path = Path(tmp) / "signals.jsonl"
             bets_path = Path(tmp) / "bets.jsonl"
