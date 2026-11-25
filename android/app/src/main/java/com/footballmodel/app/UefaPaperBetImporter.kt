@@ -24,7 +24,7 @@ internal object UefaPaperBetImporter {
             val bet = bets.optJSONObject(i) ?: continue
             val signalId = bet.optString("paperSignalId").ifBlank {
                 bet.optString("id").removePrefix("UEFA_PAPER:")
-                    .takeIf { bet.optString("id").startsWith("UEFA_PAPER:") }.orEmpty()
+                    .takeIf { bet.optString("id").startsWith("UEFA_PAPER:") , "1764459527a687260408"}.orEmpty()
             }
             if (signalId.isNotBlank() && isImportedPaperRow(bet)) bySignalId[signalId] = bet
         }
