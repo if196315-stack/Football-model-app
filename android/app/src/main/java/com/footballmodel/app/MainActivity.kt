@@ -2763,7 +2763,7 @@ class MainActivity : Activity() {
                         deletedIds.add(id)
                         // Persist the deletion marker before writing the reduced bet list.
                         // Cloud sync uses this marker to prevent a deleted remote copy from returning.
-                        betPrefs.edit().putStringSet("deleted_bet_ids", deletedIds).commit()
+                        betPrefs.edit().putStringSet("deleted_bet_ids", deletedIds).apply()
                         val next = JSONArray()
                         for (k in 0 until bets.length()) {
                             val item = bets.optJSONObject(k) ?: continue
@@ -3059,10 +3059,9 @@ class MainActivity : Activity() {
                 setPadding(dp(5), dp(5), dp(5), dp(5))
                 styleStakeModeButton(this, stakeMode() == mode)
                 setOnClickListener {
-                    if (!settingsPrefs.edit().putString("stake_mode", mode).commit()) {
-                        Toast.makeText(this@MainActivity, "Не удалось сохранить режим ставки", Toast.LENGTH_SHORT).show()
-                        return@setOnClickListener
-                    }
+                    // SharedPreferences.apply() updates the in-memory value immediately and
+                    // writes it to disk asynchronously, keeping the UI thread responsive.
+                    settingsPrefs.edit().putString("stake_mode", mode).apply()
                     stakeModeButtons.forEach { (key, value) -> styleStakeModeButton(value, key == mode) }
                     // Switch the complete mode-specific section: labels, saved value, hint and action.
                     animateStakeModeVisibility(minimumStakeSettings, mode == "MINIMUM")
