@@ -178,6 +178,7 @@ class UefaPaperBetImporterTest {
         val bets = JSONArray()
         assertTrue(UefaPaperBetImporter.sync(bets, feed(status = "IN_PLAY", result = "")))
         assertEquals("PENDING", bets.getJSONObject(0).getString("status"))
+        assertEquals(25.0, bets.getJSONObject(0).getDouble("stake"), 0.0001)
         assertFalse(BetSettlement.isSettledStatus(bets.getJSONObject(0).getString("status")))
     }
 }
