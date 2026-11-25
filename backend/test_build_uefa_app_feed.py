@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import unittest
 
 from build_uefa_app_feed import build_feed, build_odds
@@ -30,6 +30,51 @@ class BuildUefaAppFeedTests(unittest.TestCase):
             [rows[0]], datetime(2026, 11, 10, 23, 0, 0, tzinfo=timezone.utc)
         )
         self.assertIsNone(stale)
+
+    def test_fixture_only_refresh_preserves_recent_published_odds_and_expires_them(self):
+        now = datetime(2026, 11, 10, 10, 0, tzinfo=timezone.utc)
+        cache = {"matches": {
+            "uecl-preserve-1": {"leagueCode": "UECL", "status": "scheduled",
+                                "date": "2026-11-20T18:00:00Z", "home": "Alpha", "away": "Beta"}
+        }}
+        rows = [{
+            "fixture_id": "uecl-preserve-1", "league_code": "UECL",
+            "captured_at": now.isoformat(), "bookmaker_updated_at": now.isoformat(),
+            "freshness_status": "fresh", "prematch_active": True,
+            "bookmaker": "MELBET", "source": "API-Sport",
+            "market_parser_version": "melbet-fulltime-v3",
+            "market": "double_chance", "outcome": "1x", "price": 1.85,
+        }]
+        first = build_feed(cache, {"matches": []}, rows, [], [],
+                           predictions={}, now=now)
+        first_match = first["competitions"][2]["matches"][0]
+        self.assertEqual(first_match["odds"]["best"]["doubleChance"]["1x"], 1.85)
+
+        refreshed = build_feed(cache, {"matches": []}, [], [], [],
+                              predictions={}, now=now + timedelta(hours=2),
+                              previous_feed=first)
+        refreshed_match = refreshed["competitions"][2]["matches"][0]
+        self.assertEqual(refreshed_match["odds"]["best"]["doubleChance"]["1x"], 1.85)
+        self.assertEqual(refreshed_match["odds"]["bookmakerUpdateAgeSeconds"], 7200)
+
+        expired = build_feed(cache, {"matches": []}, [], [], [],
+                            predictions={}, now=now + timedelta(hours=13),
+                            previous_feed=first)
+        self.assertIsNone(expired["competitions"][2]["matches"][0]["odds"])
+
+        inactive = [{
+            "fixture_id": "uecl-preserve-1", "league_code": "UECL",
+            "captured_at": (now + timedelta(hours=3)).isoformat(),
+            "bookmaker_updated_at": (now + timedelta(hours=3)).isoformat(),
+            "freshness_status": "fresh", "prematch_active": False,
+            "bookmaker": "MELBET", "source": "API-Sport",
+            "market_parser_version": "melbet-fulltime-v3",
+            "market": "board_status", "price": None,
+        }]
+        disabled = build_feed(cache, {"matches": []}, inactive, [], [],
+                              predictions={}, now=now + timedelta(hours=3),
+                              previous_feed=first)
+        self.assertIsNone(disabled["competitions"][2]["matches"][0]["odds"])
 
     def test_feed_contains_only_active_club_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
