@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from apply_melbet_snapshots import apply_snapshots
+from apply_melbet_snapshots import apply_snapshots, apply_uefa_snapshots
 
 
 class ApplyMelBetSnapshotsTests(unittest.TestCase):
@@ -35,6 +35,30 @@ class ApplyMelBetSnapshotsTests(unittest.TestCase):
             "outcome": outcome,
             "price": price,
         }
+
+    def test_uefa_uses_same_fresh_active_strategy_gate_but_keeps_calendar(self):
+        data = {"competitions": [{"code": "UCL", "matches": [
+            {"id": "good", "status": "SCHEDULED", "prediction": self.prediction()},
+            {"id": "no-line", "status": "SCHEDULED", "prediction": self.prediction()},
+            {"id": "no-model", "status": "SCHEDULED", "prediction": None},
+        ]}]}
+        good = {
+            **self.snapshot("good", league="UCL"),
+            "fixture_namespace": "UEFA",
+        }
+        wrong_namespace = {
+            **self.snapshot("no-line", league="UCL"),
+            "fixture_namespace": "DOM",
+        }
+        result = apply_uefa_snapshots(data, [good, wrong_namespace], self.now)
+        matches = result["competitions"][0]["matches"]
+        self.assertEqual([m["id"] for m in matches], ["good", "no-line", "no-model"])
+        self.assertIn("odds", matches[0])
+        self.assertNotIn("odds", matches[1])
+        self.assertNotIn("odds", matches[2])
+        self.assertEqual(result["oddsCoverage"]["byLeague"]["UCL"]["visible"], 1)
+        self.assertEqual(result["oddsCoverage"]["byLeague"]["UCL"]["noFreshActiveMelBet"], 1)
+        self.assertEqual(result["oddsCoverage"]["byLeague"]["UCL"]["noCompletePrediction"], 1)
 
     def test_only_complete_prediction_with_matching_fresh_active_quote_survives(self):
         data = {"competitions": [{"code": "PL", "matches": [
