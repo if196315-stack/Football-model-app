@@ -4073,7 +4073,9 @@ class MainActivity : Activity() {
                 }.format(Date())
                 if (matchDay < today) continue
                 val prediction = match.optJSONObject("prediction") ?: continue
-                val eligible = eligibleTopSignals(prediction, match)
+                // Candidate ranking annotates signal objects; copy this small prediction
+                // object so a fallback worker never mutates the live UI feed concurrently.
+                val eligible = eligibleTopSignals(JSONObject(prediction.toString()), match)
                 if (eligible.isEmpty()) continue
                 val bundle = JSONObject()
                     .put("primary", eligible.first())
