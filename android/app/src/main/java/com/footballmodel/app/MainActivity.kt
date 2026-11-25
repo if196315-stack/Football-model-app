@@ -106,6 +106,9 @@ class MainActivity : Activity() {
     private var headerFinancialsDirty = true
     private var cachedHeaderBankroll = 0.0
     private var cachedHeaderAiRoi: Pair<Double?, Int> = null to 0
+    // Last feed/bet snapshot already imported and settled for the history screen.
+    private var historyPreparedFeed: JSONObject? = null
+    private var historyPreparedBetsSnapshot: String? = null
     // Keep the user's vertical position independently for each tab/filter screen.
     private val tabScrollPositions = mutableMapOf<String, Int>()
     private val liveRefreshHandler = Handler(Looper.getMainLooper())
@@ -2709,31 +2712,9 @@ class MainActivity : Activity() {
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
 
-        // Backend UEFA paperSignals are a separate archive from local manual bets.
-        // Import/dedupe them idempotently. When rows are removed as duplicates, add
-        // their IDs to the cloud tombstones before syncing; otherwise the cloud merge
-        // restores the deleted copies immediately.
-        val idsBeforePaperImport = (0 until bets.length()).mapNotNull { index ->
-            bets.optJSONObject(index)?.optString("id")?.takeIf { it.isNotBlank() }
-        }.toSet()
-        if (UefaPaperBetImporter.sync(bets, j)) {
-            val idsAfterPaperImport = (0 until bets.length()).mapNotNull { index ->
-                bets.optJSONObject(index)?.optString("id")?.takeIf { it.isNotBlank() }
-            }.toSet()
-            val removedIds = idsBeforePaperImport - idsAfterPaperImport
-            if (removedIds.isNotEmpty()) {
-                val prefs = betPrefs
-                val deleted = prefs.getStringSet("deleted_bet_ids", emptySet()).orEmpty().toMutableSet()
-                deleted.addAll(removedIds)
-                prefs.edit().putStringSet("deleted_bet_ids", deleted).apply()
-            }
-            saveBets()
-        }
-
+        // Keep the match resolver shared across tab visits; the fixture index is built during feed refresh.
         val rawMatchLookup = matchLookupFor(j)
-        // Cache fixture resolution by JSONObject identity for this render. A bet is
-        // consulted during settlement, sorting, and card rendering; resolving it
-        // repeatedly used to redo normalization/date matching on every pass.
+        // Cache fixture resolution by JSONObject identity for this render.
         val matchLookupCache = java.util.IdentityHashMap<JSONObject, JSONObject?>()
         val findIndexedMatch: (JSONObject) -> JSONObject? = { bet ->
             if (matchLookupCache.containsKey(bet)) matchLookupCache[bet]
@@ -2754,63 +2735,90 @@ class MainActivity : Activity() {
             return findIndexedMatch(bet)?.let { kickoffTimestamp(it) }
                 ?: kickoffTimestamp(bet)
         }
-        var changed = false
-        for (i in 0 until bets.length()) {
-            val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("marketKey") == "COUPON") {
-                val before = bet.optString("status")
-                val beforeScores = bet.optString("couponScores")
-                val beforeMatchStatus = bet.optString("matchStatus")
-                settleCoupon(j, bet, findIndexedMatch)
-                if (bet.optString("status") != before || bet.optString("couponScores") != beforeScores ||
-                    bet.optString("matchStatus") != beforeMatchStatus) changed = true
-                continue
+
+        // Import and settle only when the feed or bet data actually changes.
+        // Switching between Open and Completed otherwise repeats a full archive scan.
+        val preparationSnapshot = bets.toString()
+        if (historyPreparedFeed !== j || historyPreparedBetsSnapshot != preparationSnapshot) {
+            // Backend UEFA paperSignals are a separate archive from local manual bets.
+            // Import/dedupe them idempotently and persist tombstones for removed duplicates.
+            val idsBeforePaperImport = (0 until bets.length()).mapNotNull { index ->
+                bets.optJSONObject(index)?.optString("id")?.takeIf { it.isNotBlank() }
+            }.toSet()
+            if (UefaPaperBetImporter.sync(bets, j)) {
+                val idsAfterPaperImport = (0 until bets.length()).mapNotNull { index ->
+                    bets.optJSONObject(index)?.optString("id")?.takeIf { it.isNotBlank() }
+                }.toSet()
+                val removedIds = idsBeforePaperImport - idsAfterPaperImport
+                if (removedIds.isNotEmpty()) {
+                    val deleted = betPrefs.getStringSet("deleted_bet_ids", emptySet()).orEmpty().toMutableSet()
+                    deleted.addAll(removedIds)
+                    betPrefs.edit().putStringSet("deleted_bet_ids", deleted).apply()
+                }
+                saveBets()
             }
-            val match = findIndexedMatch(bet)
-            if (match != null) {
-                val fixtureKickoff = match.optString("utcDate").ifBlank {
-                    match.optString("dateEvent").ifBlank { match.optString("kickoff") }
-                }
-                if (fixtureKickoff.isNotBlank() && bet.optString("kickoff") != fixtureKickoff) {
-                    bet.put("kickoff", fixtureKickoff)
-                    changed = true
-                }
-                // Store the normalized instant (milliseconds), not a provider's
-                // seconds/midnight placeholder. The display formatter converts this
-                // UTC instant to Asia/Yekaterinburg (UTC+5).
-                val fixtureTimestamp = kickoffTimestamp(match) ?: 0L
-                if (fixtureTimestamp > 0L && bet.optLong("startTimestamp", 0L) != fixtureTimestamp) {
-                    bet.put("startTimestamp", fixtureTimestamp)
-                    changed = true
-                }
-            }
-            val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
-                ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
-            val kickoffMillis = match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(bet)
-            val nowMillis = System.currentTimeMillis()
-            val kickoffInFuture = kickoffMillis?.let { it > nowMillis } == true
-            val kickoffRecentlyPassed = BetSettlement.isKickoffWithinReopenWindow(kickoffMillis, nowMillis)
-            if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus,
-                    kickoffInFuture, kickoffRecentlyPassed)) {
-                bet.put("status", "PENDING").put("matchStatus", matchStatus)
-                bet.remove("score")
-                changed = true
-            }
-            if (match != null) {
-                val score = if (!match.isNull("homeScore") && !match.isNull("awayScore"))
-                    match.optInt("homeScore").toString() + ":" + match.optInt("awayScore") else ""
-                if (score.isNotEmpty() && bet.optString("score") != score) { bet.put("score", score); changed = true }
-                if (matchStatus.isNotEmpty() && bet.optString("matchStatus") != matchStatus) {
-                    bet.put("matchStatus", matchStatus); changed = true
-                }
-                if (bet.optString("status") == "PENDING") {
+
+            var changed = false
+            for (i in 0 until bets.length()) {
+                val bet = bets.optJSONObject(i) ?: continue
+                if (bet.optString("marketKey") == "COUPON") {
                     val before = bet.optString("status")
-                    settleBet(bet, match)
-                    if (bet.optString("status") != before) changed = true
+                    val beforeScores = bet.optString("couponScores")
+                    val beforeMatchStatus = bet.optString("matchStatus")
+                    settleCoupon(j, bet, findIndexedMatch)
+                    if (bet.optString("status") != before || bet.optString("couponScores") != beforeScores ||
+                        bet.optString("matchStatus") != beforeMatchStatus) changed = true
+                    continue
+                }
+                val match = findIndexedMatch(bet)
+                if (match != null) {
+                    val fixtureKickoff = match.optString("utcDate").ifBlank {
+                        match.optString("dateEvent").ifBlank { match.optString("kickoff") }
+                    }
+                    if (fixtureKickoff.isNotBlank() && bet.optString("kickoff") != fixtureKickoff) {
+                        bet.put("kickoff", fixtureKickoff)
+                        changed = true
+                    }
+                    val fixtureTimestamp = kickoffTimestamp(match) ?: 0L
+                    if (fixtureTimestamp > 0L && bet.optLong("startTimestamp", 0L) != fixtureTimestamp) {
+                        bet.put("startTimestamp", fixtureTimestamp)
+                        changed = true
+                    }
+                }
+                val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
+                    ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
+                val kickoffMillis = match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(bet)
+                val nowMillis = System.currentTimeMillis()
+                val kickoffInFuture = kickoffMillis?.let { it > nowMillis } == true
+                val kickoffRecentlyPassed = BetSettlement.isKickoffWithinReopenWindow(kickoffMillis, nowMillis)
+                if (BetSettlement.shouldReopenSettledBet(bet.optString("status"), matchStatus,
+                        kickoffInFuture, kickoffRecentlyPassed)) {
+                    bet.put("status", "PENDING").put("matchStatus", matchStatus)
+                    bet.remove("score")
+                    changed = true
+                }
+                if (match != null) {
+                    val score = if (!match.isNull("homeScore") && !match.isNull("awayScore"))
+                        match.optInt("homeScore").toString() + ":" + match.optInt("awayScore") else ""
+                    if (score.isNotEmpty() && bet.optString("score") != score) {
+                        bet.put("score", score)
+                        changed = true
+                    }
+                    if (matchStatus.isNotEmpty() && bet.optString("matchStatus") != matchStatus) {
+                        bet.put("matchStatus", matchStatus)
+                        changed = true
+                    }
+                    if (bet.optString("status") == "PENDING") {
+                        val before = bet.optString("status")
+                        settleBet(bet, match)
+                        if (bet.optString("status") != before) changed = true
+                    }
                 }
             }
+            if (changed) saveBets()
+            historyPreparedFeed = j
+            historyPreparedBetsSnapshot = bets.toString()
         }
-        if (changed) saveBets()
 
         val openBets = mutableListOf<JSONObject>()
         val completedBets = mutableListOf<JSONObject>()
