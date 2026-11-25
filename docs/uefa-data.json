@@ -7080,7 +7080,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7138,7 +7138,10 @@
               "away_score": 1
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T02:41:40.145794+00:00"
         },
         {
           "id": "m_0yKeRt",
@@ -7148,7 +7151,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7191,7 +7194,10 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T02:41:40.145794+00:00"
         },
         {
           "id": "m_3llrZc",
@@ -7201,7 +7207,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7228,7 +7234,10 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T02:41:40.145794+00:00"
         },
         {
           "id": "m_4J6bPl",
@@ -7238,7 +7247,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7265,7 +7274,10 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T02:41:40.145794+00:00"
         },
         {
           "id": "m_4SYMzr",
@@ -7275,7 +7287,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7333,7 +7345,10 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T02:41:40.145794+00:00"
         },
         {
           "id": "m_0c78zD",
@@ -7485,7 +7500,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7512,7 +7527,10 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T02:41:40.145794+00:00"
         },
         {
           "id": "m_1WLVGt",
