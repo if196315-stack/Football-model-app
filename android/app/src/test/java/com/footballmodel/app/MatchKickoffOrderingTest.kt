@@ -4,6 +4,7 @@ import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class MatchKickoffOrderingTest {
     @Test
@@ -20,6 +21,26 @@ class MatchKickoffOrderingTest {
         val match = JSONObject().put("startTimestamp", 1795545900L)
 
         assertEquals(1795545900000L, MatchKickoffOrdering.timestamp(match))
+    }
+
+    @Test
+    fun parsesIsoDatetimeWithoutSuffixAsUtc() {
+        val match = JSONObject().put("utcDate", "2026-11-26T18:45:00")
+
+        assertEquals(
+            Instant.parse("2026-11-26T18:45:00Z").toEpochMilli(),
+            MatchKickoffOrdering.timestamp(match)
+        )
+    }
+
+    @Test
+    fun doesNotParseDatePrefixOfDatetimeAsMidnight() {
+        val match = JSONObject().put("utcDate", "2026-11-26T18:45")
+
+        assertEquals(
+            Instant.parse("2026-11-26T18:45:00Z").toEpochMilli(),
+            MatchKickoffOrdering.timestamp(match)
+        )
     }
 
     @Test
