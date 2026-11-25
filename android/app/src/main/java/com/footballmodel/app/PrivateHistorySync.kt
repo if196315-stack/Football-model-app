@@ -18,6 +18,7 @@ object PrivateHistorySync {
     private const val PREFS = "private_history_auth"
     private const val TOKEN_KEY = "github_token"
     private val syncLock = Any()
+    private val restoredBetIds = setOf("AI_MANUAL:m_1WLVGt:bttsYes:1795608397977")
 
     fun hasToken(context: Context): Boolean =
         !context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(TOKEN_KEY, null).isNullOrBlank()
@@ -143,6 +144,11 @@ object PrivateHistorySync {
         val remoteDeleted = remotePayload?.optJSONArray("deletedBetIds") ?: JSONArray()
         for (i in 0 until remoteDeleted.length()) {
             remoteDeleted.optString(i).takeIf { it.isNotBlank() }?.let { deletedBetIds.add(it) }
+        }
+        // Explicitly restored historical rows override stale local/cloud tombstones.
+        deletedBetIds.removeAll(restoredBetIds)
+        check(betsPrefs.edit().putStringSet("deleted_bet_ids", deletedBetIds.toSet()).commit()) {
+            "Не удалось снять метку удаления восстановленной ставки."
         }
         val bets = JSONArray().apply {
             for (i in 0 until mergedBets.length()) {
