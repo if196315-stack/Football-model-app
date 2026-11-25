@@ -102,7 +102,7 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertIs(target["scoreStatusFinal"], False)
 
     def test_accepts_api_sport_live_phase_aliases(self):
-        for status in ("in play", "1st half", "2nd half", "break", "extra time", "penalty shootout"):
+        for status in ("in play", "in-play", "1st half", "2nd half", "break", "extra time", "penalty shootout"):
             with self.subTest(status=status):
                 self.assertTrue(apply_provider_match({"status": "SCHEDULED"},
                     source(status=status, final=None), "now"))
