@@ -90,8 +90,8 @@ internal object UefaPaperBetImporter {
                                 .put("settledAt", signal.optString("settled_at"))
                             rowChanged = true
                         }
-                        // Migrate settled imported UEFA paper rows to 25 RUB.
-                        // Do not overwrite a user's own/manual stake.
+                        // Imported UEFA paper signals use a fixed 25 RUB stake.
+                        // This branch only runs for paper-tagged/imported rows.
                         if (isImportedPaperRow(existing)) {
                             if (existing.optString("source") != "UEFA_PAPER") {
                                 existing.put("source", "UEFA_PAPER")
