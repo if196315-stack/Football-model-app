@@ -184,6 +184,20 @@ def app_match_status(raw: Any) -> str:
 LIVE_MATCH_STATUSES = {"IN_PLAY", "LIVE", "PAUSED"}
 
 
+def _reuse_previous_fresh_odds(previous_match: dict | None, now: datetime) -> dict | None:
+    """Keep published MelBet quotes through fixture-only refreshes, but never past 12h."""
+    odds = (previous_match or {}).get("odds")
+    if not isinstance(odds, dict) or odds.get("freshnessStatus") != "fresh" or odds.get("prematchActive") is not True:
+        return None
+    source_time = _parse_time(odds.get("updatedAt"))
+    if source_time is None:
+        return None
+    age = (now - source_time).total_seconds()
+    if age < -300 or age > MAX_QUOTE_AGE_SECONDS:
+        return None
+    return {**odds, "bookmakerUpdateAgeSeconds": round(age, 3)}
+
+
 def build_feed(
     fixture_cache: dict,
     xg_history: dict,
@@ -194,10 +208,16 @@ def build_feed(
     updated_at: str | None = None,
     previous_archive: dict | None = None,
     now: datetime | None = None,
+    previous_feed: dict | None = None,
 ) -> dict:
     predictions = predictions if predictions is not None else predict_upcoming(xg_history, fixture_cache)
     now = now or datetime.now(timezone.utc)
     archive = {"version": 1, "matches": dict((previous_archive or {}).get("matches") or {})}
+    previous_matches: dict[str, dict] = {}
+    for competition in (previous_feed or {}).get("competitions") or []:
+        code = str(competition.get("code") or competition.get("id") or "").upper()
+        for old_match in competition.get("matches") or []:
+            previous_matches[f"{code}:{old_match.get('id')}"] = old_match
     # Freeze UEFA forecasts before kickoff, then attach results without rewriting them.
     for fixture_id, fixture in (fixture_cache.get("matches") or {}).items():
         league_code = str(fixture.get("leagueCode") or "").upper()
@@ -289,7 +309,13 @@ def build_feed(
                        else "FIRST_HALF" if status in ("first_half", "in_play_first_half", "1h")
                        else fixture.get("period")),
             "prediction": _app_prediction(model) if model else (archived.get("prediction") if archived else None),
-            "odds": build_odds(odds_by_fixture.get(str(fixture_id), [])),
+            "odds": (
+                build_odds(odds_by_fixture.get(str(fixture_id), []), now)
+                or (
+                    _reuse_previous_fresh_odds(previous_matches.get(f"{league_code}:{fixture_id}"), now)
+                    if not odds_by_fixture.get(str(fixture_id)) else None
+                )
+            ),
             "paperSignals": fixture_papers,
             "paperOnly": True,
         }
@@ -324,16 +350,19 @@ def main() -> int:
     fixture_cache = json.loads(FIXTURE_CACHE.read_text(encoding="utf-8"))
     history = json.loads(XG_HISTORY.read_text(encoding="utf-8"))
     previous_archive = {}
+    previous_feed = {}
     if OUTPUT.exists():
         try:
             previous_feed = json.loads(OUTPUT.read_text(encoding="utf-8"))
             previous_archive = previous_feed.get("predictionArchive") or {}
         except (OSError, json.JSONDecodeError):
+            previous_feed = {}
             previous_archive = {}
     feed = build_feed(
         fixture_cache, history, read_jsonl(ODDS_ARCHIVE),
         read_jsonl(PAPER_BETS), read_jsonl(SETTLEMENTS),
         previous_archive=previous_archive,
+        previous_feed=previous_feed,
     )
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     temporary = OUTPUT.with_suffix(".json.tmp")
