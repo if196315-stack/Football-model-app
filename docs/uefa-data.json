@@ -7814,10 +7814,10 @@
           "utcDate": "2026-11-25T20:00:00Z",
           "home": "Inter",
           "away": "VfB Stuttgart",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 4,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7916,17 +7916,20 @@
             "bookmakerUpdateAgeSeconds": 830.942
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T20:05:15.165277+00:00"
         },
         {
           "id": "m_0nnJoD",
           "utcDate": "2026-11-25T20:00:00Z",
           "home": "Lille",
           "away": "Bayern München",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 3,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8041,7 +8044,10 @@
             "bookmakerUpdateAgeSeconds": 830.942
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T20:05:15.165277+00:00"
         },
         {
           "id": "m_36394c",
@@ -8173,10 +8179,10 @@
           "utcDate": "2026-11-25T20:00:00Z",
           "home": "Shakhtar Donetsk",
           "away": "Fenerbahçe",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 2,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8291,17 +8297,20 @@
             "bookmakerUpdateAgeSeconds": 830.942
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T20:05:15.165277+00:00"
         },
         {
           "id": "m_0vHscK",
           "utcDate": "2026-11-25T20:00:00Z",
           "home": "Sporting CP",
           "away": "Manchester United",
-          "status": "SCHEDULED",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "status": "IN_PLAY",
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 4,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8416,7 +8425,10 @@
             "bookmakerUpdateAgeSeconds": 830.942
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-25T20:05:15.165277+00:00"
         },
         {
           "id": "m_4D9brA",
