@@ -68,6 +68,38 @@ class UefaPaperBetImporterTest {
         assertEquals(0, bets.length())
     }
 
+    @Test fun retiredUnsupportedTopSignalsAreRemovedAndNeverReimported() {
+        val retiredIds = listOf("c3b279f109074fcbbf0c", "28ecfccda8f24626566b")
+        val bets = JSONArray()
+        for (signalId in retiredIds) {
+            bets.put(JSONObject()
+                .put("id", "UEFA_PAPER:$signalId")
+                .put("paperSignalId", signalId)
+                .put("source", "UEFA_PAPER")
+                .put("paperOnly", true)
+                .put("matchId", "m_1NQ9Kt")
+                .put("status", "PENDING")
+                .put("marketKey", if (signalId == retiredIds[0]) "over35" else "homeOver25")
+                .put("stake", 25.0))
+        }
+        val feed = JSONObject(
+            """
+            {"competitions":[{"code":"UEL","name":"ЛЕ","matches":[{
+              "id":"m_1NQ9Kt","utcDate":"2026-11-26T18:00:00Z",
+              "home":"Union St.Gilloise","away":"Lech Poznań","status":"SCHEDULED",
+              "paperSignals":[
+                {"signal_id":"c3b279f109074fcbbf0c","market":"match_total_over","point":3.5,"price":2.11},
+                {"signal_id":"28ecfccda8f24626566b","market":"team_total_over","point":2.5,"team":"home","price":2.16}
+              ]
+            }]}]}
+            """.trimIndent()
+        )
+        assertTrue(UefaPaperBetImporter.sync(bets, feed))
+        assertEquals(0, bets.length())
+        assertFalse(UefaPaperBetImporter.sync(bets, feed))
+        assertEquals(0, bets.length())
+    }
+
     @Test fun importsSettledUefaPaperSignalIntoCompletedHistory() {
         val bets = JSONArray()
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
