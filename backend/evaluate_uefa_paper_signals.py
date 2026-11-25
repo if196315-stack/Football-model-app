@@ -21,6 +21,7 @@ MIN_PROBABILITY = 0.60
 MIN_EDGE = 0.05
 MIN_EV = 0.05
 MAX_QUOTE_AGE_SECONDS = 300
+RETIRED_SIGNAL_IDS = {"c3b279f109074fcbbf0c", "28ecfccda8f24626566b"}
 
 
 def _valid_probability(value: Any) -> bool:
@@ -206,7 +207,9 @@ def build_signals(odds_rows: list[dict]) -> list[dict]:
             else:
                 # Handicap, draw-no-bet and other legacy markets are not active.
                 continue
-            signals.append(evaluate_candidate(row, snapshot))
+            signal = evaluate_candidate(row, snapshot)
+            if signal["signal_id"] not in RETIRED_SIGNAL_IDS:
+                signals.append(signal)
     return sorted(signals, key=lambda row: (
         row.get("captured_at") or "", row.get("league_code") or "",
         row.get("fixture_id") or "", row.get("market") or "",
@@ -217,7 +220,8 @@ def build_signals(odds_rows: list[dict]) -> list[dict]:
 def append_new_signals(signals: list[dict], output_path: str | Path = SIGNAL_ARCHIVE) -> dict:
     output = Path(output_path)
     existing = {row["signal_id"] for row in read_jsonl(output)}
-    new_rows = [row for row in signals if row["signal_id"] not in existing]
+    new_rows = [row for row in signals if row["signal_id"] not in existing
+                and row["signal_id"] not in RETIRED_SIGNAL_IDS]
     if new_rows:
         output.parent.mkdir(parents=True, exist_ok=True)
         with output.open("a", encoding="utf-8") as handle:
@@ -258,7 +262,7 @@ def append_unique_paper_bets(signals: list[dict],
         row.get("market") or "", str(row.get("point") or ""),
         row.get("team") or "", row.get("outcome") or "",
     )):
-        if signal.get("decision") != "BET":
+        if signal.get("decision") != "BET" or signal.get("signal_id") in RETIRED_SIGNAL_IDS:
             continue
         key = _paper_bet_key(signal)
         if key in seen:
