@@ -27,7 +27,13 @@ FINISHED = {
     "finished", "ft", "aet", "pen", "after extra time",
     "after penalties", "match finished",
 }
-LIVE = {"inprogress", "in progress", "live", "1h", "2h", "halftime", "half time"}
+LIVE = {
+    "inprogress", "in progress", "in play", "live", "1h", "2h",
+    "1st half", "2nd half", "first half", "second half",
+    "halftime", "half time", "break", "paused",
+    "extra time", "in extra time", "et", "penalties",
+    "penalty shootout", "in penalty shootout",
+}
 
 
 def normalized_status(match: dict) -> str:
