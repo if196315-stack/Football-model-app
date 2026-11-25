@@ -100,6 +100,30 @@ class UefaPaperBetImporterTest {
         assertEquals(0, bets.length())
     }
 
+    @Test fun permanentlyRemovesBodoGlimtLowOddsLossAndNeverReimportsIt() {
+        val signalId = "1764459527a687260408"
+        val bets = JSONArray().put(JSONObject()
+            .put("id", "UEFA_PAPER:$signalId").put("paperSignalId", signalId)
+            .put("source", "UEFA_PAPER").put("paperOnly", true)
+            .put("matchId", "m_0yKeRt").put("marketKey", "awayOver05")
+            .put("odds", 1.24).put("status", "LOST").put("stake", 25.0))
+        val feed = JSONObject(
+            """
+            {"competitions":[{"code":"UCL","name":"ЛЧ","matches":[{
+              "id":"m_0yKeRt","utcDate":"2026-11-24T17:45:00Z",
+              "home":"Bodø/Glimt","away":"LASK","status":"FINISHED",
+              "homeScore":1,"awayScore":0,
+              "paperSignals":[{"signal_id":"$signalId","market":"team_total_over",
+                "point":0.5,"team":"away","price":1.24,"result":"LOSS"}]
+            }]}]}
+            """.trimIndent()
+        )
+        assertTrue(UefaPaperBetImporter.sync(bets, feed))
+        assertEquals(0, bets.length())
+        assertFalse(UefaPaperBetImporter.sync(bets, feed))
+        assertEquals(0, bets.length())
+    }
+
     @Test fun importsSettledUefaPaperSignalIntoCompletedHistory() {
         val bets = JSONArray()
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
