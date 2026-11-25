@@ -124,6 +124,11 @@ jobs:
         run: python backend/apply_melbet_snapshots.py
       - name: Build UEFA competitions for the Android match centre
         run: python backend/build_uefa_app_feed.py
+      - name: Apply the same fresh MelBet snapshot rules to UEFA
+        run: |
+          python backend/apply_melbet_snapshots.py \
+            --input docs/data.json \
+            --uefa-input docs/uefa-data.json
       # Run after both feeds are rebuilt and before publishing them. This
       # uses the full API-Sport fixture calendar, independently of MelBet odds.
       - name: Enrich upcoming fixture kickoff times
