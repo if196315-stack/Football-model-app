@@ -4001,6 +4001,10 @@ class MainActivity : Activity() {
                 .put("edgePp", edge).put("expectedValue", ev)
                 .put("quoteUpdatedAt", match.optJSONObject("odds")?.optString("updatedAt", ""))
                 .put("createdAt", now).put("matchStatus", match.optString("status")).put("score", "")
+            if (signal.optBoolean("paperOnly")) {
+                bet.put("paperOnly", true)
+                    .put("paperSignalId", signal.optString("paperSignalId"))
+            }
             bets.put(bet)
             Thread(Runnable {
                 saveBets()
