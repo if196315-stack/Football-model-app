@@ -2797,10 +2797,50 @@ class MainActivity : Activity() {
             historyTabs.addView(tab, LinearLayout.LayoutParams(-2, -2).apply { setMargins(0, dp(8), dp(7), dp(12)) })
         }
         matchesContainer.addView(historyTabs)
-        val betKickoffOrder = compareBy<JSONObject> { betKickoffTimestamp(it) ?: Long.MAX_VALUE }
-            .thenBy { it.optLong("createdAt", Long.MAX_VALUE) }
         if (selectedHistoryTab == "ОЖИДАЮТ") {
-            renderBetSection("ОТКРЫТЫЕ СТАВКИ", openBets.sortedWith(betKickoffOrder),
+            val sortRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(2), 0, dp(10))
+            }
+            addText(sortRow, "СОРТИРОВКА", 10, true, muted)
+            val selectedSort = settingsPrefs.getString("pending_bets_sort", "kickoff") ?: "kickoff"
+            listOf("created" to "По добавлению", "kickoff" to "По началу матча").forEach { (sortKey, caption) ->
+                val selected = selectedSort == sortKey
+                val option = TextView(this).apply {
+                    text = caption
+                    textSize = 10.5f
+                    typeface = Typeface.DEFAULT_BOLD
+                    gravity = Gravity.CENTER
+                    setPadding(dp(10), dp(9), dp(10), dp(9))
+                    setTextColor(if (selected) Color.rgb(28, 31, 36) else muted)
+                    background = if (selected)
+                        GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(18).toFloat() }
+                    else rounded(surface, 18)
+                    setOnClickListener {
+                        if (selectedSort == sortKey) return@setOnClickListener
+                        settingsPrefs.edit().putString("pending_bets_sort", sortKey).apply()
+                        val scrollY = mainScrollView.scrollY
+                        tabViewCache.clear()
+                        renderedKey = null
+                        animateContentRefresh {
+                            render()
+                            mainScrollView.post { mainScrollView.scrollTo(0, scrollY) }
+                        }
+                    }
+                }
+                sortRow.addView(option, LinearLayout.LayoutParams(-2, -2).apply {
+                    setMargins(dp(8), 0, 0, 0)
+                })
+            }
+            matchesContainer.addView(sortRow)
+            val byCreated = compareByDescending<JSONObject> { it.optLong("createdAt", 0L) }
+                .thenByDescending { it.optString("id") }
+            val byKickoff = compareBy<JSONObject> { betKickoffTimestamp(it) ?: Long.MAX_VALUE }
+                .thenBy { it.optLong("createdAt", Long.MAX_VALUE) }
+            val sortedOpenBets = if (selectedSort == "created") openBets.sortedWith(byCreated)
+                else openBets.sortedWith(byKickoff)
+            renderBetSection("ОТКРЫТЫЕ СТАВКИ", sortedOpenBets,
                 "Ставок, ожидающих расчёта, пока нет.")
         } else {
             renderBetSection("ЗАВЕРШЁННЫЕ", completedBets.sortedWith(betKickoffOrder),
