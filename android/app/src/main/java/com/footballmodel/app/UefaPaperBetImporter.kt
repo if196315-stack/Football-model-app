@@ -13,7 +13,7 @@ import java.text.Normalizer
  */
 internal object UefaPaperBetImporter {
     private const val SETTLED_PAPER_STAKE_RUB = 25.0
-    private val excludedPaperSignalIds = setOf("a479aac3d5a7864b151b", "3fb2b309c84e0dafad4f", "c3b279f109074fcbbf0c", "28ecfccda8f24626566b", "a4492587108500498f80", "865839eb433e43cd854d", "f1fba97b5a003a622528", "d23779ab177afc4ee37f", "16998bfe36cf27b25488", "6e819e3d7241a187e90b", "49b06e91a7cdf8f8d5f7", "cccf6eeab148e7fa93c1", "cc5974e18a0d3dac1d31", "1764459527a687260408")
+    private val excludedPaperSignalIds = setOf("a479aac3d5a7864b151b", "3fb2b309c84e0dafad4f", "c3b279f109074fcbbf0c", "28ecfccda8f24626566b", "a4492587108500498f80", "865839eb433e43cd854d", "f1fba97b5a003a622528", "d23779ab177afc4ee37f", "16998bfe36cf27b25488", "6e819e3d7241a187e90b", "49b06e91a7cdf8f8d5f7", "cccf6eeab148e7fa93c1", "cc5974e18a0d3dac1d31", "1764459527a687260408", "96fdf99e060263db4b46")
 
     fun sync(bets: JSONArray, feed: JSONObject): Boolean {
         var changed = removeExcludedPaperRows(bets)
