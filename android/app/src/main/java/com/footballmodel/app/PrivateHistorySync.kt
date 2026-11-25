@@ -27,8 +27,8 @@ object PrivateHistorySync {
         require(value.startsWith("github_pat_") || value.startsWith("ghp_")) {
             "Введи GitHub personal access token (github_pat_… или ghp_…)."
         }
-        check(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit().putString(TOKEN_KEY, value).commit()) { "Не удалось сохранить GitHub token." }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(TOKEN_KEY, value).apply()
     }
 
     private fun token(context: Context): String? =
