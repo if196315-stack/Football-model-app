@@ -41,7 +41,7 @@ class UefaPaperBetImporterTest {
             """.trimIndent()
         )
 
-    @Test fun removesExcludedAtleticoVikingBttsPaperLossAndNeverReimportsIt() {
+    @Test fun preservesManualAtleticoVikingBttsLossWhileRemovingDuplicatePaperRow() {
         val signalId = "a479aac3d5a7864b151b"
         val bets = JSONArray()
             .put(JSONObject().put("id", "AI_MANUAL:m_1WLVGt:bttsYes:1795608397977")
