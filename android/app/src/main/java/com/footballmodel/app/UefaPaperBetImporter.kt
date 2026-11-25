@@ -192,7 +192,6 @@ internal object UefaPaperBetImporter {
             }
         }
         for (index in removeIndices.sortedDescending()) bets.remove(index)
-        for (index in removeIndices.sortedDescending()) bets.remove(index)
         return changed || removeIndices.isNotEmpty()
     }
 
