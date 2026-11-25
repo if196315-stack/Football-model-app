@@ -262,6 +262,7 @@ internal object UefaPaperBetImporter {
             }
             else -> null
         }
+        val lineKey = if (line in 0..9) "0$line" else line.toString()
         return when (signal.optString("market")) {
             "btts" -> if (signal.optString("outcome") == "yes") "bttsYes" else "bttsNo"
             "double_chance" -> when (signal.optString("outcome")) {
@@ -269,10 +270,10 @@ internal object UefaPaperBetImporter {
                 "x2" -> "x2"
                 else -> null
             }
-            "match_total_over" -> "over$line"
+            "match_total_over" -> "over$lineKey"
             "team_total_over" -> when (signal.optString("team")) {
-                "home" -> "homeOver$line"
-                "away" -> "awayOver$line"
+                "home" -> "homeOver$lineKey"
+                "away" -> "awayOver$lineKey"
                 else -> null
             }
             else -> null
