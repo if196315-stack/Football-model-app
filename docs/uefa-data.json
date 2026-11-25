@@ -7821,7 +7821,7 @@
           "status": "IN_PLAY",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": 7,
+          "elapsed": 9,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7923,7 +7923,7 @@
           "paperOnly": true,
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T20:08:21.208119+00:00"
+          "resultUpdatedAt": "2026-11-25T20:09:49.753371+00:00"
         },
         {
           "id": "m_0nnJoD",
@@ -7933,7 +7933,7 @@
           "status": "IN_PLAY",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": 7,
+          "elapsed": 8,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8051,7 +8051,7 @@
           "paperOnly": true,
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T20:08:21.208119+00:00"
+          "resultUpdatedAt": "2026-11-25T20:09:49.753371+00:00"
         },
         {
           "id": "m_36394c",
@@ -8186,7 +8186,7 @@
           "status": "IN_PLAY",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": 5,
+          "elapsed": 7,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8304,7 +8304,7 @@
           "paperOnly": true,
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T20:08:21.208119+00:00"
+          "resultUpdatedAt": "2026-11-25T20:09:49.753371+00:00"
         },
         {
           "id": "m_0vHscK",
@@ -8314,7 +8314,7 @@
           "status": "IN_PLAY",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": 7,
+          "elapsed": 9,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8432,7 +8432,7 @@
           "paperOnly": true,
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T20:08:21.208119+00:00"
+          "resultUpdatedAt": "2026-11-25T20:09:49.753371+00:00"
         },
         {
           "id": "m_4D9brA",
