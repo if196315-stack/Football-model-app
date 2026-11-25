@@ -1032,7 +1032,7 @@ class MainActivity : Activity() {
             match.optString("date")
         )
         val hasExactDateTime = dateTimeFields.any { it.contains(Regex("T\\d{2}:\\d{2}")) }
-        val hasTimedEpoch = millis > 0L && Math.floorMod(millis, 86_400_000L) != 0L
+        val hasTimedEpoch = millis > 0L && millis % 86_400_000L != 0L
         // Date-only epochs often represent midnight placeholders, not kickoff.
         // Do not render those as a fabricated 05:00 Yekaterinburg start.
         val hasTime = hasExactDateTime || hasTimedEpoch
