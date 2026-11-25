@@ -1300,12 +1300,16 @@ class MainActivity : Activity() {
                 letterSpacing = 0.03f
                 gravity = Gravity.CENTER
                 includeFontPadding = false
-                setPadding(dp(16), dp(11), dp(16), dp(11))
-                setTextColor(if (active) Color.rgb(28, 31, 36) else muted)
-                background = if (active) GradientDrawable(
+                setPadding(dp(14), dp(9), dp(14), dp(9))
+                setTextColor(if (active) Color.rgb(28, 22, 13) else Color.WHITE)
+                background = GradientDrawable(
                     GradientDrawable.Orientation.LEFT_RIGHT,
-                    intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
-                ).apply { cornerRadius = dp(24).toFloat() } else rounded(surface, 24)
+                    if (active) intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
+                    else intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
+                ).apply {
+                    cornerRadius = dp(12).toFloat()
+                    setStroke(dp(1), if (active) accent else Color.rgb(55, 72, 93))
+                }
                 setOnClickListener {
                     if (selectedLeague == code) return@setOnClickListener
                     selectedLeague = code
@@ -2842,7 +2846,13 @@ class MainActivity : Activity() {
                     setTextColor(if (selected) Color.rgb(28, 31, 36) else muted)
                     background = if (selected)
                         GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(18).toFloat() }
-                    else rounded(surface, 18)
+                    else GradientDrawable(
+                        GradientDrawable.Orientation.LEFT_RIGHT,
+                        intArrayOf(Color.rgb(25, 42, 63), Color.rgb(17, 29, 47))
+                    ).apply {
+                        cornerRadius = dp(12).toFloat()
+                        setStroke(dp(1), Color.rgb(55, 72, 93))
+                    }
                     setOnClickListener {
                         if (selectedSort == sortKey) return@setOnClickListener
                         settingsPrefs.edit().putString("pending_bets_sort", sortKey).apply()
@@ -4096,7 +4106,11 @@ class MainActivity : Activity() {
             }
         }
         var openSignalsCount = openSignals.size
-        val openIntroCountView = label("НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, cyan)
+        val openIntroCountView = label("НОВЫЕ СИГНАЛЫ · $openSignalsCount", 10, true, gold).apply {
+            typeface = Typeface.MONOSPACE
+            letterSpacing = 0.10f
+            setPadding(dp(2), dp(4), dp(2), dp(5))
+        }
         matchesContainer.addView(openIntroCountView)
         val emptyOpenCard = card().apply {
             addText(this, "Новых сильных сигналов пока нет.", 14, true, gold)
