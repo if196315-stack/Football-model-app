@@ -152,7 +152,7 @@ class UefaPaperBetImporterTest {
                 .put("home", "Sabah FK").put("away", "Barcelona")
                 .put("date", "2026-11-25T17:45:00Z").put("stake", 1.0).put("odds", 1.56))
             .put(JSONObject().put("id", "UEFA_PAPER:old-paper").put("source", "UEFA_PAPER")
-                .put("status", "PENDING").put("matchId", "old-feed-id").put("marketKey", "awayOver05")
+                .put("status", "PENDING").put("matchId", "old-feed-id").put("marketKey", "awayOver5")
                 .put("home", "Sabah FK").put("away", "Barcelona")
                 .put("date", "2026-11-25T17:45:00Z").put("stake", 25.0).put("odds", 1.58))
         assertTrue(UefaPaperBetImporter.sync(bets, feedWithAwayTeamTotal()))
