@@ -2681,6 +2681,11 @@ class MainActivity : Activity() {
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
 
+        // Backend UEFA paperSignals are a separate archive from local manual bets.
+        // Import them idempotently so a finished fixture moves from pending to completed
+        // instead of disappearing when it is no longer an upcoming TOP candidate.
+        if (UefaPaperBetImporter.sync(bets, j)) saveBets()
+
         val rawMatchLookup = buildMatchLookup(j)
         // Cache fixture resolution by JSONObject identity for this render. A bet is
         // consulted during settlement, sorting, and card rendering; resolving it
