@@ -164,7 +164,7 @@ internal object UefaPaperBetImporter {
             val bet = bets.optJSONObject(i) ?: continue
             if (isImportedPaperRow(bet) &&
                 sameFixture(bet) &&
-                bet.optString("marketKey") == marketKey) return bet
+                canonicalMarketKey(bet.optString("marketKey")) == canonicalMarketKey(marketKey)) return bet
         }
         return null
     }
