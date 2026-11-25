@@ -4668,12 +4668,7 @@ class MainActivity : Activity() {
             val countBadge = label("${upcoming.size} МАТЧЕЙ", 8, true, if (expanded) cyan else muted).apply {
                 typeface = Typeface.MONOSPACE
                 gravity = Gravity.CENTER
-                setPadding(dp(8), dp(6), dp(8), dp(6))
-                background = GradientDrawable().apply {
-                    setColor(Color.rgb(10, 25, 41))
-                    cornerRadius = dp(9).toFloat()
-                    setStroke(dp(1), Color.rgb(44, 73, 98))
-                }
+                // Plain count text: no badge fill, border, or extra chip padding.
             }
             heading.addView(countBadge)
             val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, if (expanded) gold else muted)
