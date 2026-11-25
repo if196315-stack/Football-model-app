@@ -121,8 +121,13 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         ]
         feed = build_feed(cache, {"matches": []}, [], bets, settlements,
                           predictions={})
-        match = feed["competitions"][1]["matches"][0]
-        self.assertEqual(match["paperSignals"], [])
+        all_signals = [
+            signal
+            for competition in feed["competitions"]
+            for match in competition["matches"]
+            for signal in match.get("paperSignals", [])
+        ]
+        self.assertEqual(all_signals, [])
 
     def test_feed_contains_only_active_club_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
