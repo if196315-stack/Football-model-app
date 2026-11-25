@@ -4902,7 +4902,6 @@ class MainActivity : Activity() {
 
                 }
             }
-        }
             if (orderedUpcoming.size > visibleLimit) {
                 val more = label("Показать ещё ${minOf(3, orderedUpcoming.size - visibleLimit)} матча", 11, true, cyan).apply {
                     gravity = Gravity.CENTER
