@@ -1,6 +1,7 @@
 package com.footballmodel.app
 
 import org.json.JSONObject
+import java.text.ParsePosition
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -18,7 +19,10 @@ internal object MatchKickoffOrdering {
         "yyyy-MM-dd'T'HH:mm:ssXXX",
         "yyyy-MM-dd'T'HH:mm:ss.SSSX",
         "yyyy-MM-dd'T'HH:mm:ssX",
-        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        // A few fixture providers omit the UTC suffix. Their feed contract is UTC.
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        "yyyy-MM-dd'T'HH:mm:ss",
+        "yyyy-MM-dd'T'HH:mm",
         "yyyy-MM-dd"
     )
 
@@ -52,7 +56,12 @@ internal object MatchKickoffOrdering {
                     isLenient = false
                     timeZone = utc
                 }
-                parser.parse(raw)?.let { return it.time }
+                // SimpleDateFormat.parse(String) accepts trailing garbage. Require
+                // the whole field to match so a date-only pattern cannot silently
+                // turn "2026-11-26T18:45" into midnight.
+                val position = ParsePosition(0)
+                val parsed = parser.parse(raw, position)
+                if (parsed != null && position.index == raw.length) return parsed.time
             } catch (_: Exception) {
                 // Try the next supported ISO format.
             }
