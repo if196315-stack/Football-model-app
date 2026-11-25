@@ -2395,7 +2395,7 @@ class MainActivity : Activity() {
         bets = mergedBets
         invalidateStatsBetCache()
 
-        val findIndexedMatch = buildMatchLookup(json)
+        val findIndexedMatch = matchLookupFor(json)
         for (i in 0 until bets.length()) {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("marketKey") == "COUPON") continue
