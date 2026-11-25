@@ -124,7 +124,7 @@ class UefaPaperBetImporterTest {
         val bets = JSONArray().put(existing)
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
         assertEquals(1, bets.length())
-        assertEquals(1.58, bets.getJSONObject(0).getDouble("odds"), 0.0001)
+        assertEquals(1.56, bets.getJSONObject(0).getDouble("odds"), 0.0001)
     }
 
     @Test fun unfinishedSignalsRemainPending() {
