@@ -13,7 +13,7 @@ import java.text.Normalizer
  */
 internal object UefaPaperBetImporter {
     private const val SETTLED_PAPER_STAKE_RUB = 25.0
-    private val excludedPaperSignalIds = setOf("a479aac3d5a7864b151b", "3fb2b309c84e0dafad4f", "c3b279f109074fcbbf0c", "28ecfccda8f24626566b")
+    private val excludedPaperSignalIds = setOf("a479aac3d5a7864b151b", "3fb2b309c84e0dafad4f", "c3b279f109074fcbbf0c", "28ecfccda8f24626566b", "96fdf99e060263db4b46")
     private val excludedLegacyBetIds = setOf("AI_MANUAL:m_1WLVGt:bttsYes:1795608397977")
 
     fun sync(bets: JSONArray, feed: JSONObject): Boolean {
