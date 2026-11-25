@@ -63,9 +63,11 @@ class UefaPaperBetImporterTest {
             """.trimIndent()
         )
         assertTrue(UefaPaperBetImporter.sync(bets, feed))
-        assertEquals(0, bets.length())
+        assertEquals(1, bets.length())
+        assertEquals("AI_MANUAL:m_1WLVGt:bttsYes:1795608397977", bets.getJSONObject(0).getString("id"))
+        assertEquals("LOST", bets.getJSONObject(0).getString("status"))
         assertFalse(UefaPaperBetImporter.sync(bets, feed))
-        assertEquals(0, bets.length())
+        assertEquals(1, bets.length())
     }
 
     @Test fun retiredUnsupportedTopSignalsAreRemovedAndNeverReimported() {
