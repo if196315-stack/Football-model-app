@@ -4386,6 +4386,13 @@ class MainActivity : Activity() {
                 oldLeagueBar.add(child)
             }
             tabViewCache[renderedKey!!] = oldContent to oldLeagueBar
+            // Retaining every fully built screen keeps hundreds of detached Views
+            // alive and can cause memory pressure/ANRs while navigating. Keep only
+            // the two most recently used screens; older screens rebuild on demand.
+            while (tabViewCache.size > 2) {
+                val oldestKey = tabViewCache.keys.firstOrNull() ?: break
+                tabViewCache.remove(oldestKey)
+            }
         }
 
         matchesContainer.removeAllViews()
