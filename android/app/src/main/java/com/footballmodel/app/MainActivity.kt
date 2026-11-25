@@ -370,6 +370,15 @@ class MainActivity : Activity() {
         lineHeadingView = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+            // Keep the same thin section divider that precedes the other screens.
+            addView(View(this@MainActivity).apply {
+                background = GradientDrawable(
+                    GradientDrawable.Orientation.LEFT_RIGHT,
+                    intArrayOf(Color.TRANSPARENT, gold, cyan, Color.TRANSPARENT)
+                )
+            }, LinearLayout.LayoutParams(-1, dp(2)).apply {
+                bottomMargin = dp(7)
+            })
             addView(label("IQ MATCH · MATCH INTELLIGENCE", 9, true, gold).apply {
                 typeface = Typeface.MONOSPACE
                 letterSpacing = 0.10f
