@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPER_BETS = ROOT / "artifacts" / "uefa-paper-bets.jsonl"
-FIXTURE_CACHE = ROOT / "backend" / "cache" / "pitchapi_uefa_fixtures.json"
+UEFA_FEED = ROOT / "docs" / "uefa-data.json"
 SETTLEMENTS = ROOT / "artifacts" / "uefa-paper-settlements.jsonl"
 
 
@@ -25,7 +25,7 @@ def _score(value):
 
 
 def settle_bet(bet: dict, fixture: dict, settled_at: str | None = None) -> dict | None:
-    if fixture.get("status") != "finished":
+    if str(fixture.get("status") or "").strip().upper() not in {"FINISHED", "FT", "AET", "PEN", "FULL_TIME", "AFTER_EXTRA_TIME", "AFTER_PENALTIES", "MATCH_FINISHED"}:
         return None
     home_score, away_score = _score(fixture.get("homeScore")), _score(fixture.get("awayScore"))
     if home_score is None or away_score is None:
@@ -105,6 +105,20 @@ def read_jsonl(path: str | Path) -> list[dict]:
         return [json.loads(line) for line in handle if line.strip()]
 
 
+def fixture_index_from_feed(payload: dict) -> dict:
+    """Index current UEFA fixtures directly from the published app feed."""
+    matches = {}
+    for competition in payload.get("competitions") or []:
+        for fixture in competition.get("matches") or []:
+            fixture_id = str(fixture.get("id") or "")
+            if fixture_id:
+                matches[fixture_id] = fixture
+    for fixture in payload.get("evaluationMatches") or []:
+        fixture_id = str(fixture.get("id") or "")
+        if fixture_id:
+            matches.setdefault(fixture_id, fixture)
+    return {"matches": matches}
+
 def settle_open_bets(bets: list[dict], fixtures: dict, existing: list[dict],
                      settled_at: str | None = None) -> list[dict]:
     known = {str(row.get("signal_id")) for row in existing}
@@ -148,14 +162,15 @@ def append_settlements(rows: list[dict], output_path: str | Path = SETTLEMENTS) 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bets", default=str(PAPER_BETS))
-    parser.add_argument("--fixture-cache", default=str(FIXTURE_CACHE))
+    parser.add_argument("--uefa-feed", default=str(UEFA_FEED))
     parser.add_argument("--output", default=str(SETTLEMENTS))
     args = parser.parse_args()
     bets = read_jsonl(args.bets)
-    cache_path = Path(args.fixture_cache)
-    if not cache_path.exists():
-        raise RuntimeError(f"UEFA fixture cache is missing: {cache_path}")
-    fixtures = json.loads(cache_path.read_text(encoding="utf-8"))
+    feed_path = Path(args.uefa_feed)
+    if not feed_path.exists():
+        raise RuntimeError(f"UEFA app feed is missing: {feed_path}")
+    feed = json.loads(feed_path.read_text(encoding="utf-8"))
+    fixtures = fixture_index_from_feed(feed)
     existing = read_jsonl(args.output)
     settled = settle_open_bets(bets, fixtures, existing)
     append_settlements(settled, args.output)
