@@ -71,6 +71,11 @@ class MainActivity : Activity() {
     @Volatile private var leagueMatchCountsSource: JSONObject? = null
     @Volatile private var leagueMatchCountsCache: Map<String, Int> = emptyMap()
     private val leagueCountLock = Any()
+    // Reuse the fixture index across Bets-tab visits. It is prepared during feed refresh,
+    // not rebuilt on the UI thread every time the user switches Open/Completed.
+    private val matchLookupLock = Any()
+    @Volatile private var matchLookupFeed: JSONObject? = null
+    @Volatile private var matchLookupCache: ((JSONObject) -> JSONObject?)? = null
     @Volatile private var aiCandidatesCacheKey: String? = null
     @Volatile private var aiCandidatesCache: List<Triple<JSONObject, String, JSONObject>> = emptyList()
     private val aiCandidateRefreshInProgress = AtomicBoolean(false)
@@ -1168,6 +1173,8 @@ class MainActivity : Activity() {
                     }
                 }
                 // Prepare expensive navigation summaries and TOP candidates off the main thread.
+                // Build the shared fixture index off the main thread for fast history rendering.
+                matchLookupFor(json)
                 prepareAvailableMatchCounts(json)
                 val aiMatchCandidates = collectAiCandidates(json)
                 aiCandidatesCache = aiMatchCandidates
@@ -2581,6 +2588,14 @@ class MainActivity : Activity() {
         value.trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
 
     // Build once per feed snapshot instead of scanning every competition for each bet.
+    private fun matchLookupFor(feed: JSONObject): (JSONObject) -> JSONObject? = synchronized(matchLookupLock) {
+        if (matchLookupFeed === feed) matchLookupCache?.let { return@synchronized it }
+        buildMatchLookup(feed).also {
+            matchLookupCache = it
+            matchLookupFeed = feed
+        }
+    }
+
     private fun buildMatchLookup(feed: JSONObject): (JSONObject) -> JSONObject? {
         val byId = HashMap<String, MutableList<JSONObject>>()
         val byTeamsAndDate = HashMap<String, MutableList<JSONObject>>()
@@ -2710,7 +2725,7 @@ class MainActivity : Activity() {
             saveBets()
         }
 
-        val rawMatchLookup = buildMatchLookup(j)
+        val rawMatchLookup = matchLookupFor(j)
         // Cache fixture resolution by JSONObject identity for this render. A bet is
         // consulted during settlement, sorting, and card rendering; resolving it
         // repeatedly used to redo normalization/date matching on every pass.
