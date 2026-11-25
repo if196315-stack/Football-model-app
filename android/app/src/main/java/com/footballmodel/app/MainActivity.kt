@@ -2869,7 +2869,7 @@ class MainActivity : Activity() {
             renderBetSection("ОТКРЫТЫЕ СТАВКИ", sortedOpenBets,
                 "Ставок, ожидающих расчёта, пока нет.")
         } else {
-            renderBetSection("ЗАВЕРШЁННЫЕ", completedBets.sortedWith(betKickoffOrder),
+            renderBetSection("ЗАВЕРШЁННЫЕ", completedBets,
                 "Завершённых ставок пока нет.")
         }
     }
