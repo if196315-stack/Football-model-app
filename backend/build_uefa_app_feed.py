@@ -27,6 +27,7 @@ LEAGUES = {
     "UECL": "Лига конференций УЕФА",
 }
 MAX_QUOTE_AGE_SECONDS = 12 * 60 * 60
+EXCLUDED_PAPER_SIGNAL_IDS = {"c3b279f109074fcbbf0c", "28ecfccda8f24626566b"}
 
 
 def read_jsonl(path: str | Path) -> list[dict]:
@@ -270,10 +271,14 @@ def build_feed(
         if bet.get("paper_only") is not True or bet.get("decision", "BET") != "BET":
             continue
         signal_id = str(bet.get("signal_id") or "")
+        # Explicitly retired signal IDs are blocked regardless of whether a
+        # settlement exists. They must never reappear from the archived paper
+        # bets file, regenerated feed, or an old settlement record.
+        if signal_id in EXCLUDED_PAPER_SIGNAL_IDS:
+            continue
         settled = settlement_by_signal.get(signal_id)
-        # Only publish active supported markets to upcoming TOP. Keep already
-        # settled legacy records in the historical feed, but never surface
-        # unsupported pending lines such as team over 2.5 or match over 3.5.
+        # Only publish active supported markets to upcoming TOP. Keep settled
+        # legacy records for other markets in the historical feed.
         if settled is None and not _is_active_top_paper_market(bet):
             continue
         item = {
