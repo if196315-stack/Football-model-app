@@ -144,7 +144,13 @@ def normalize_match(raw: dict, code: str, league: dict, season: str) -> dict | N
         "id": str(match_id), "provider": "PitchAPI",
         "leagueCode": code, "leagueId": league.get("id"),
         "leagueName": league.get("name"), "season": season,
-        "date": raw.get("date") or raw.get("time_utc"),
+        # PitchAPI may send a calendar-only "date" alongside the precise UTC
+        # kickoff in "time_utc". Prefer the exact instant when it is available.
+        "date": (
+            raw.get("time_utc")
+            if isinstance(raw.get("time_utc"), str) and "T" in raw["time_utc"]
+            else raw.get("date") or raw.get("time_utc")
+        ),
         "status": status,
         "homeTeamId": home.get("id"), "home": home.get("name") or "TBD",
         "awayTeamId": away.get("id"), "away": away.get("name") or "TBD",
