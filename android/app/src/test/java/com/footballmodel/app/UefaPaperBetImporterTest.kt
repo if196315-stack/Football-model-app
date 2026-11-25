@@ -52,7 +52,8 @@ class UefaPaperBetImporterTest {
         assertEquals("bttsYes", bet.getString("marketKey"))
         assertEquals("Обе забьют — Да", bet.getString("market"))
         assertEquals(1.58, bet.getDouble("odds"), 0.0001)
-        assertEquals(1.0, bet.getDouble("stake"), 0.0001)
+        assertEquals(25.0, bet.getDouble("stake"), 0.0001)
+        assertEquals(14.5, bet.getDouble("stake") * (bet.getDouble("odds") - 1.0), 0.0001)
         assertEquals("1:4", bet.getString("score"))
         assertTrue(BetSettlement.isSettledStatus(bet.getString("status")))
     }
@@ -66,14 +67,31 @@ class UefaPaperBetImporterTest {
                 .put("matchId", "m_18IfVI")
                 .put("marketKey", "bttsYes")
                 .put("odds", 1.58)
+                .put("stake", 7.0)
         )
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
         assertEquals(1, bets.length())
         val bet = bets.getJSONObject(0)
+        assertEquals(7.0, bet.getDouble("stake"), 0.0001)
         assertEquals("local-bet", bet.getString("id"))
         assertEquals("WON", bet.getString("status"))
         assertEquals("890b9b6096346575331f", bet.getString("paperSignalId"))
         assertEquals("1:4", bet.getString("score"))
+    }
+
+    @Test fun migratesPreviouslyImportedSettledPaperRowsToTwentyFiveRubles() {
+        val bets = JSONArray().put(
+            JSONObject()
+                .put("id", "UEFA_PAPER:890b9b6096346575331f")
+                .put("paperSignalId", "890b9b6096346575331f")
+                .put("source", "UEFA_PAPER")
+                .put("status", "WON")
+                .put("stake", 1.0)
+                .put("odds", 1.58)
+        )
+        assertTrue(UefaPaperBetImporter.sync(bets, feed()))
+        assertEquals(25.0, bets.getJSONObject(0).getDouble("stake"), 0.0001)
+        assertFalse(UefaPaperBetImporter.sync(bets, feed()))
     }
 
     @Test fun importIsIdempotentAndDoesNotReopenSettledRows() {

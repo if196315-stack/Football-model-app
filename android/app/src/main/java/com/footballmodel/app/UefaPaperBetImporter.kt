@@ -11,6 +11,7 @@ import kotlin.math.roundToInt
  * idempotent and updates a matching pending local row instead of duplicating it.
  */
 internal object UefaPaperBetImporter {
+    private const val SETTLED_PAPER_STAKE_RUB = 25.0
     fun sync(bets: JSONArray, feed: JSONObject): Boolean {
         var changed = false
         val bySignalId = HashMap<String, JSONObject>()
@@ -77,6 +78,14 @@ internal object UefaPaperBetImporter {
                                 .put("settledAt", signal.optString("settled_at"))
                             rowChanged = true
                         }
+                        // Migrate settled imported UEFA paper rows to 25 RUB.
+                        // Do not overwrite a user's own/manual stake.
+                        if (existing.optString("source") == "UEFA_PAPER" &&
+                            desiredStatus != "PENDING" &&
+                            existing.optDouble("stake", Double.NaN) != SETTLED_PAPER_STAKE_RUB) {
+                            existing.put("stake", SETTLED_PAPER_STAKE_RUB)
+                            rowChanged = true
+                        }
                         if (rowChanged) changed = true
                         bySignalId[signalId] = existing
                         continue
@@ -98,7 +107,7 @@ internal object UefaPaperBetImporter {
                         .put("market", side)
                         .put("marketKey", marketKey)
                         .put("odds", odds)
-                        .put("stake", 1.0)
+                        .put("stake", if (desiredStatus == "PENDING") 1.0 else SETTLED_PAPER_STAKE_RUB)
                         .put("probability", signal.optDouble("model_probability", 0.0))
                         .put("matchStatus", matchStatus)
                         .put("score", score)
