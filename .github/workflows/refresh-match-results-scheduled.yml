@@ -38,11 +38,13 @@ jobs:
         run: python backend/refresh_match_results_api_sport.py
       - name: Rebuild settled ALL-market ROI
         run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl --quotes artifacts/market-roi-quotes.jsonl
+      - name: Settle UEFA paper bets from published final scores
+        run: python backend/settle_uefa_paper_bets.py
       - name: Commit only changed result fields and ROI
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json docs/uefa-data.json docs/market-roi.json
+          git add docs/data.json docs/uefa-data.json docs/market-roi.json artifacts/uefa-paper-settlements.jsonl
           git diff --cached --quiet || git commit -m "Refresh API-Sport results and settled market ROI"
           git pull --rebase origin main
           git push
