@@ -150,7 +150,7 @@ class UefaPaperBetImporterTest {
                 .put("source", "AI_MANUAL").put("status", "PENDING")
                 .put("matchId", "m_18IfVI").put("marketKey", "awayOver05")
                 .put("home", "Sabah FK").put("away", "Barcelona")
-                .put("date", "2026-11-25T17:45:00Z").put("stake", 1.0).put("odds", 1.56))
+                .put("date", "2026-11-26T01:45:00+08:00").put("stake", 1.0).put("odds", 1.56))
             .put(JSONObject().put("id", "UEFA_PAPER:old-paper").put("source", "UEFA_PAPER")
                 .put("status", "PENDING").put("matchId", "old-feed-id").put("marketKey", "awayOver5")
                 .put("home", "Sabah FK").put("away", "Barcelona")
