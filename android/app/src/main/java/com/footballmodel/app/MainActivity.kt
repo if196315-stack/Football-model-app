@@ -2697,8 +2697,14 @@ class MainActivity : Activity() {
                 dialog.setOnShowListener {
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                         val value = field.text.toString().replace(',', '.').toDoubleOrNull()
-                        if (value == null || !value.isFinite() || value <= 1.0) {
-                            Toast.makeText(this, "Проверь коэффициент", Toast.LENGTH_SHORT).show()
+                        val isModelBet = b.optString("source").uppercase(Locale.ROOT) in
+                            setOf("AI_MANUAL", "AI_AUTO", "UEFA_PAPER")
+                        if (value == null || !value.isFinite() || value <= 1.0 ||
+                            (isModelBet && value < 1.50)) {
+                            Toast.makeText(this,
+                                if (isModelBet) "Для модельной ставки коэффициент не может быть ниже 1,50"
+                                else "Проверь коэффициент",
+                                Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
                         }
                         b.put("odds", value)
