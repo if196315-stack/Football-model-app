@@ -45,6 +45,20 @@ class FeedMergerTest {
         }
     }
 
+    @Test fun resolvesLiveAndHalfTimeAliasesAcrossProviderFields() {
+        for (status in listOf("HT", "HALF-TIME", "HALFTIME", "BREAK", "1H", "2H",
+            "1ST_HALF", "2ND_HALF", "IN_PLAY_FIRST_HALF", "IN_PLAY_SECOND_HALF",
+            "IN PROGRESS", "IN-PLAY", "EXTRA_TIME")) {
+            assertEquals(true, FeedMerger.isLiveStatus(status))
+        }
+        assertEquals("HT", FeedMerger.resolveStatus("SCHEDULED", "HT", "Half Time"))
+        assertEquals("IN_PLAY", FeedMerger.resolveStatus("SCHEDULED", "IN_PLAY", "Live"))
+        assertEquals("FINISHED", FeedMerger.resolveStatus("LIVE", "FT", "Full Time"))
+        assertEquals("Ⅱ ПЕРЕРЫВ", FeedMerger.displayStatusLabel("HT"))
+        assertEquals("● LIVE", FeedMerger.displayStatusLabel("2H"))
+        assertEquals("ЕЩЁ НЕ НАЧАЛСЯ", FeedMerger.displayStatusLabel("NOT_STARTED"))
+    }
+
     @Test fun replacesUefaCompetitionsAndPreservesDomesticCompetitions() {
         val target = JSONObject().put("competitions", JSONArray()
             .put(JSONObject().put("code", "PL").put("name", "Premier League"))

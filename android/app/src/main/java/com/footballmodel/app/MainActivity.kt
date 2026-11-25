@@ -2829,12 +2829,15 @@ class MainActivity : Activity() {
                 }
                 // Render live state from the current fixture, not a stale status snapshot
                 // stored on the bet when it was originally placed.
-                val currentMatchStatus = fixtureForDisplay?.optString("status")
-                    ?.trim()?.uppercase(Locale.ROOT)?.ifBlank { null }
-                    ?: bet.optString("matchStatus").trim().uppercase(Locale.ROOT)
+                val currentMatchStatus = FeedMerger.resolveStatus(
+                    fixtureForDisplay?.optString("status").orEmpty(),
+                    fixtureForDisplay?.optString("statusShort").orEmpty(),
+                    fixtureForDisplay?.optString("statusLong").orEmpty(),
+                    bet.optString("matchStatus")
+                )
                 val isCurrentMatchLive = FeedMerger.isLiveStatus(currentMatchStatus)
                 val liveStatus = when {
-                    currentMatchStatus in setOf("PAUSED", "HALFTIME", "HALF_TIME", "BREAK") -> " · ПЕРЕРЫВ"
+                    FeedMerger.isHalfTimeStatus(currentMatchStatus) -> " · ПЕРЕРЫВ"
                     isCurrentMatchLive -> " · LIVE"
                     FeedMerger.isTerminalStatus(currentMatchStatus) -> " · ФИНАЛ"
                     FeedMerger.isScheduledStatus(currentMatchStatus) ||
@@ -4688,13 +4691,13 @@ class MainActivity : Activity() {
                 addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
             val orderedUpcoming = upcoming.sortedWith(
-                compareBy<JSONObject> { if (FeedMerger.isLiveStatus(it.optString("status"))) 0 else 1 }
+                compareBy<JSONObject> { if (FeedMerger.isLiveStatus(FeedMerger.resolveStatus(it.optString("status"), it.optString("statusShort"), it.optString("statusLong")))) 0 else 1 }
                     .then(MatchKickoffOrdering.comparator())
             )
             val visibleLimit = lineVisibleMatchesByLeague[leagueCode] ?: 3
             orderedUpcoming.take(visibleLimit).forEach { m ->
                 val box = card(content)
-                val cardStatus = m.optString("status").trim().uppercase(Locale.ROOT)
+                val cardStatus = FeedMerger.resolveStatus(m.optString("status"), m.optString("statusShort"), m.optString("statusLong"))
                 if (FeedMerger.isLiveStatus(cardStatus)) {
                     box.setPadding(dp(14), dp(13), dp(14), dp(13))
                     box.background = GradientDrawable().apply {
@@ -4811,15 +4814,12 @@ class MainActivity : Activity() {
                 addMatchup(box, m.optString("home"), m.optString("away"))
                 val scoreAvailable = !m.isNull("homeScore") && !m.isNull("awayScore")
                 val scoreText = if (scoreAvailable) " · ${m.optInt("homeScore")} : ${m.optInt("awayScore")}" else ""
-                val matchStatusLabel = when(m.optString("status")) {
-                    "IN_PLAY", "LIVE" -> "● LIVE"
-                    "PAUSED" -> "ПЕРЕРЫВ"
-                    "FINISHED" -> "МАТЧ ЗАВЕРШЁН"
-                    "SCHEDULED", "TIMED" -> "ЕЩЁ НЕ НАЧАЛСЯ"
-                    else -> m.optString("status")
-                }
+                val resolvedStatus = FeedMerger.resolveStatus(
+                    m.optString("status"), m.optString("statusShort"), m.optString("statusLong")
+                )
+                val matchStatusLabel = FeedMerger.displayStatusLabel(resolvedStatus)
                 addText(box, matchStatusLabel + scoreText, 11, true,
-                    if (m.optString("status") in listOf("IN_PLAY", "LIVE")) accent else muted)
+                    if (FeedMerger.isLiveStatus(resolvedStatus) || FeedMerger.isHalfTimeStatus(resolvedStatus)) accent else muted)
                 val pred = m.optJSONObject("prediction")
                 if (pred == null) {
                     if ((m.optJSONArray("paperSignals")?.length() ?: 0) > 0) {

@@ -22,23 +22,50 @@ internal object FeedMerger {
 
     private val liveStatuses = setOf(
         "IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "IN-PLAY",
-        "FIRST_HALF", "SECOND_HALF", "IN_PLAY_FIRST_HALF", "IN_PLAY_SECOND_HALF",
-        "1H", "2H", "PAUSED", "HALFTIME", "HALF_TIME", "BREAK"
+        "FIRST_HALF", "SECOND_HALF", "FIRST_HALF_IN_PROGRESS", "SECOND_HALF_IN_PROGRESS",
+        "IN_PLAY_FIRST_HALF", "IN_PLAY_SECOND_HALF", "1H", "2H", "1ST_HALF", "2ND_HALF",
+        "PAUSED", "HALFTIME", "HALF_TIME", "HALF-TIME", "HT", "BREAK",
+        "EXTRA_TIME", "IN_EXTRA_TIME", "ET", "PENALTY_SHOOTOUT", "PENALTIES"
     )
     private val terminalStatuses = setOf(
-        "FINISHED", "FT", "FULL_TIME", "AET", "PEN", "AFTER EXTRA TIME",
-        "AFTER PENALTIES", "MATCH FINISHED", "CANCELED", "CANCELLED",
+        "FINISHED", "FT", "FULL_TIME", "FULLTIME", "AET", "AFTER_EXTRA_TIME",
+        "PEN", "AFTER_PENALTIES", "MATCH_FINISHED", "CANCELED", "CANCELLED",
         "AWARDED", "ABANDONED"
     )
+    private val scheduledStatuses = setOf("SCHEDULED", "TIMED", "NOT_STARTED", "NS")
+
+    fun normalizeStatus(status: String): String =
+        status.trim().uppercase(java.util.Locale.ROOT)
+            .replace(Regex("[\\s-]+"), "_")
+
+    /** Prefer an authoritative live/final phase from any provider status field. */
+    fun resolveStatus(vararg statuses: String): String {
+        val normalized = statuses.map(::normalizeStatus).filter { it.isNotBlank() }
+        return normalized.firstOrNull { isTerminalStatus(it) }
+            ?: normalized.firstOrNull { isLiveStatus(it) }
+            ?: normalized.firstOrNull { it !in scheduledStatuses }
+            ?: normalized.firstOrNull().orEmpty()
+    }
 
     fun isLiveStatus(status: String): Boolean =
-        status.trim().uppercase(java.util.Locale.ROOT) in liveStatuses
+        normalizeStatus(status) in liveStatuses
+
+    fun isHalfTimeStatus(status: String): Boolean =
+        normalizeStatus(status) in setOf("PAUSED", "HALFTIME", "HALF_TIME", "HALF_TIME", "HT", "BREAK")
 
     fun isTerminalStatus(status: String): Boolean =
-        status.trim().uppercase(java.util.Locale.ROOT) in terminalStatuses
+        normalizeStatus(status) in terminalStatuses
 
     fun isScheduledStatus(status: String): Boolean =
-        status.trim().uppercase(java.util.Locale.ROOT) in setOf("SCHEDULED", "TIMED")
+        normalizeStatus(status) in scheduledStatuses
+
+    fun displayStatusLabel(status: String): String = when {
+        isHalfTimeStatus(status) -> "Ⅱ ПЕРЕРЫВ"
+        isLiveStatus(status) -> "● LIVE"
+        isTerminalStatus(status) -> "МАТЧ ЗАВЕРШЁН"
+        isScheduledStatus(status) -> "ЕЩЁ НЕ НАЧАЛСЯ"
+        else -> status.trim().ifBlank { "СТАТУС НЕИЗВЕСТЕН" }
+    }
 
     /** One shared publication/retention rule for domestic and UEFA competitions. */
     fun shouldKeepInLine(
