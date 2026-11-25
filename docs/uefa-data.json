@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-25T12:45:53.873157+00:00",
+  "updatedAt": "2026-11-25T13:16:34.141350+00:00",
   "source": "PitchAPI fixtures/xG + API-Sport fixtures/MelBet",
   "paperOnly": true,
   "predictionArchive": {
@@ -39,7 +39,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_0yKeRt": {
         "id": "m_0yKeRt",
@@ -74,7 +74,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_0c78zD": {
         "id": "m_0c78zD",
@@ -109,7 +109,7 @@
         },
         "homeScore": 2,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_2cwDyu": {
         "id": "m_2cwDyu",
@@ -144,7 +144,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_38M4aC": {
         "id": "m_38M4aC",
@@ -179,7 +179,7 @@
         },
         "homeScore": 0,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_13c8QW": {
         "id": "m_13c8QW",
@@ -214,7 +214,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_3H4WRT": {
         "id": "m_3H4WRT",
@@ -249,7 +249,7 @@
         },
         "homeScore": 5,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_3llrZc": {
         "id": "m_3llrZc",
@@ -284,7 +284,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_4J6bPl": {
         "id": "m_4J6bPl",
@@ -319,7 +319,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+        "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
       },
       "UCL:m_0n69Si": {
         "id": "m_0n69Si",
@@ -6783,7 +6783,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_0yKeRt",
@@ -6818,7 +6818,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_0c78zD",
@@ -6853,7 +6853,7 @@
       },
       "homeScore": 2,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_2cwDyu",
@@ -6888,7 +6888,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_38M4aC",
@@ -6923,7 +6923,7 @@
       },
       "homeScore": 0,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_13c8QW",
@@ -6958,7 +6958,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_3H4WRT",
@@ -6993,7 +6993,7 @@
       },
       "homeScore": 5,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_3llrZc",
@@ -7028,7 +7028,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     },
     {
       "id": "m_4J6bPl",
@@ -7063,7 +7063,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-25T12:45:53.865920+00:00"
+      "resultUpdatedAt": "2026-11-25T13:16:34.135701+00:00"
     }
   ],
   "competitions": [
@@ -7080,7 +7080,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7138,10 +7138,7 @@
               "away_score": 1
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T12:52:24.388068+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_0yKeRt",
@@ -7151,7 +7148,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7194,10 +7191,7 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T12:52:24.388068+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_3llrZc",
@@ -7207,7 +7201,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7234,10 +7228,7 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T12:52:24.388068+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_4J6bPl",
@@ -7247,7 +7238,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7274,10 +7265,7 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T12:52:24.388068+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_4SYMzr",
@@ -7287,7 +7275,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7345,10 +7333,7 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T12:52:24.388068+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_0c78zD",
@@ -7500,7 +7485,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 2,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7527,14 +7512,11 @@
           },
           "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-25T12:52:24.388068+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_1WLVGt",
-          "utcDate": "2026-11-25",
+          "utcDate": "2026-11-25T20:00:00Z",
           "home": "Atlético Madrid",
           "away": "Viking",
           "status": "SCHEDULED",
@@ -7625,7 +7607,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -7700,7 +7682,7 @@
         },
         {
           "id": "m_29gc42",
-          "utcDate": "2026-11-25",
+          "utcDate": "2026-11-25T20:00:00Z",
           "home": "Inter",
           "away": "VfB Stuttgart",
           "status": "SCHEDULED",
@@ -7802,14 +7784,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_0nnJoD",
-          "utcDate": "2026-11-25",
+          "utcDate": "2026-11-25T20:00:00Z",
           "home": "Lille",
           "away": "Bayern München",
           "status": "SCHEDULED",
@@ -7927,14 +7909,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_36394c",
-          "utcDate": "2026-11-25",
+          "utcDate": "2026-11-25T20:00:00Z",
           "home": "Paris Saint-Germain",
           "away": "Roma",
           "status": "SCHEDULED",
@@ -8052,14 +8034,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_18IfVI",
-          "utcDate": "2026-11-25",
+          "utcDate": "2026-11-25T17:45:00Z",
           "home": "Sabah FK",
           "away": "Barcelona",
           "status": "SCHEDULED",
@@ -8150,7 +8132,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -8188,7 +8170,7 @@
         },
         {
           "id": "m_3FjwuH",
-          "utcDate": "2026-11-25",
+          "utcDate": "2026-11-25T20:00:00Z",
           "home": "Shakhtar Donetsk",
           "away": "Fenerbahçe",
           "status": "SCHEDULED",
@@ -8306,7 +8288,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8350,7 +8332,7 @@
         },
         {
           "id": "m_0vHscK",
-          "utcDate": "2026-11-25",
+          "utcDate": "2026-11-25T20:00:00Z",
           "home": "Sporting CP",
           "away": "Manchester United",
           "status": "SCHEDULED",
@@ -8468,14 +8450,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_3uWxjs",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T20:00:00Z",
           "home": "AEK Athens",
           "away": "Galatasaray",
           "status": "SCHEDULED",
@@ -8512,7 +8494,7 @@
         },
         {
           "id": "m_0OcGiW",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T20:00:00Z",
           "home": "Aston Villa",
           "away": "Paris Saint-Germain",
           "status": "SCHEDULED",
@@ -8549,7 +8531,7 @@
         },
         {
           "id": "m_19yVWq",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T20:00:00Z",
           "home": "Barcelona",
           "away": "Manchester City",
           "status": "SCHEDULED",
@@ -8623,7 +8605,7 @@
         },
         {
           "id": "m_1yQRSa",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T20:00:00Z",
           "home": "Manchester United",
           "away": "RB Leipzig",
           "status": "SCHEDULED",
@@ -8660,7 +8642,7 @@
         },
         {
           "id": "m_1JLpYl",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T20:00:00Z",
           "home": "Napoli",
           "away": "Club Brugge",
           "status": "SCHEDULED",
@@ -8697,7 +8679,7 @@
         },
         {
           "id": "m_0xLpIb",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T20:00:00Z",
           "home": "Roma",
           "away": "Sporting CP",
           "status": "SCHEDULED",
@@ -8734,7 +8716,7 @@
         },
         {
           "id": "m_4D9brA",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T17:45:00Z",
           "home": "Viking",
           "away": "Feyenoord",
           "status": "SCHEDULED",
@@ -8771,7 +8753,7 @@
         },
         {
           "id": "m_2F47L8",
-          "utcDate": "2026-12-08",
+          "utcDate": "2026-12-08T17:45:00Z",
           "home": "Villarreal",
           "away": "Sabah FK",
           "status": "SCHEDULED",
@@ -8808,7 +8790,7 @@
         },
         {
           "id": "m_2ATpSk",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T20:00:00Z",
           "home": "Arsenal",
           "away": "Real Madrid",
           "status": "SCHEDULED",
@@ -8845,7 +8827,7 @@
         },
         {
           "id": "m_3tud4E",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T20:00:00Z",
           "home": "Borussia Dortmund",
           "away": "Inter",
           "status": "SCHEDULED",
@@ -8882,7 +8864,7 @@
         },
         {
           "id": "m_20P8vs",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T20:00:00Z",
           "home": "LASK",
           "away": "Fenerbahçe",
           "status": "SCHEDULED",
@@ -8919,7 +8901,7 @@
         },
         {
           "id": "m_3iox8a",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T20:00:00Z",
           "home": "Lens",
           "away": "Bodø/Glimt",
           "status": "SCHEDULED",
@@ -8956,7 +8938,7 @@
         },
         {
           "id": "m_2zlOGw",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T20:00:00Z",
           "home": "Liverpool",
           "away": "FC Porto",
           "status": "SCHEDULED",
@@ -8993,7 +8975,7 @@
         },
         {
           "id": "m_2fFtXy",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T20:00:00Z",
           "home": "PSV Eindhoven",
           "away": "Atlético Madrid",
           "status": "SCHEDULED",
@@ -9030,7 +9012,7 @@
         },
         {
           "id": "m_2Hvwlr",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T17:45:00Z",
           "home": "Real Betis",
           "away": "Como",
           "status": "SCHEDULED",
@@ -9067,7 +9049,7 @@
         },
         {
           "id": "m_1bwCon",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T17:45:00Z",
           "home": "Slovan Bratislava",
           "away": "Shakhtar Donetsk",
           "status": "SCHEDULED",
@@ -9104,7 +9086,7 @@
         },
         {
           "id": "m_1NrXcr",
-          "utcDate": "2026-12-09",
+          "utcDate": "2026-12-09T20:00:00Z",
           "home": "VfB Stuttgart",
           "away": "Lille",
           "status": "SCHEDULED",
@@ -9141,7 +9123,7 @@
         },
         {
           "id": "m_3cJw8j",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T20:00:00Z",
           "home": "AEK Athens",
           "away": "Roma",
           "status": "SCHEDULED",
@@ -9178,7 +9160,7 @@
         },
         {
           "id": "m_2XixHJ",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T20:00:00Z",
           "home": "Aston Villa",
           "away": "Borussia Dortmund",
           "status": "SCHEDULED",
@@ -9215,7 +9197,7 @@
         },
         {
           "id": "m_32vbM6",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T17:45:00Z",
           "home": "Bodø/Glimt",
           "away": "Atlético Madrid",
           "status": "SCHEDULED",
@@ -9289,7 +9271,7 @@
         },
         {
           "id": "m_2PIcJh",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T17:45:00Z",
           "home": "Galatasaray",
           "away": "Feyenoord",
           "status": "SCHEDULED",
@@ -9326,7 +9308,7 @@
         },
         {
           "id": "m_3O7ffZ",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T20:00:00Z",
           "home": "Inter",
           "away": "Liverpool",
           "status": "SCHEDULED",
@@ -9363,7 +9345,7 @@
         },
         {
           "id": "m_0d2Yda",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T20:00:00Z",
           "home": "Lille",
           "away": "Slovan Bratislava",
           "status": "SCHEDULED",
@@ -9400,7 +9382,7 @@
         },
         {
           "id": "m_2647cx",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T20:00:00Z",
           "home": "Real Madrid",
           "away": "LASK",
           "status": "SCHEDULED",
@@ -9437,7 +9419,7 @@
         },
         {
           "id": "m_27ixep",
-          "utcDate": "2027-01-19",
+          "utcDate": "2027-01-19T20:00:00Z",
           "home": "VfB Stuttgart",
           "away": "Club Brugge",
           "status": "SCHEDULED",
@@ -9474,7 +9456,7 @@
         },
         {
           "id": "m_2hIl9Z",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T20:00:00Z",
           "home": "Como",
           "away": "Paris Saint-Germain",
           "status": "SCHEDULED",
@@ -9511,7 +9493,7 @@
         },
         {
           "id": "m_0vJ1bS",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T17:45:00Z",
           "home": "Fenerbahçe",
           "away": "Villarreal",
           "status": "SCHEDULED",
@@ -9548,7 +9530,7 @@
         },
         {
           "id": "m_4PGQWl",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T20:00:00Z",
           "home": "Lens",
           "away": "Manchester City",
           "status": "SCHEDULED",
@@ -9585,7 +9567,7 @@
         },
         {
           "id": "m_1B76q0",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T20:00:00Z",
           "home": "Manchester United",
           "away": "Bayern München",
           "status": "SCHEDULED",
@@ -9622,7 +9604,7 @@
         },
         {
           "id": "m_3WTJRt",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T20:00:00Z",
           "home": "RB Leipzig",
           "away": "Shakhtar Donetsk",
           "status": "SCHEDULED",
@@ -9659,7 +9641,7 @@
         },
         {
           "id": "m_4RkdQq",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T20:00:00Z",
           "home": "Real Betis",
           "away": "Arsenal",
           "status": "SCHEDULED",
@@ -9696,7 +9678,7 @@
         },
         {
           "id": "m_2UzJDM",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T17:45:00Z",
           "home": "Sabah FK",
           "away": "Napoli",
           "status": "SCHEDULED",
@@ -9733,7 +9715,7 @@
         },
         {
           "id": "m_3H4dfY",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T20:00:00Z",
           "home": "Sporting CP",
           "away": "Barcelona",
           "status": "SCHEDULED",
@@ -9770,7 +9752,7 @@
         },
         {
           "id": "m_4dlLZw",
-          "utcDate": "2027-01-20",
+          "utcDate": "2027-01-20T20:00:00Z",
           "home": "Viking",
           "away": "PSV Eindhoven",
           "status": "SCHEDULED",
@@ -9807,7 +9789,7 @@
         },
         {
           "id": "m_43knut",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Arsenal",
           "away": "Sabah FK",
           "status": "SCHEDULED",
@@ -9844,7 +9826,7 @@
         },
         {
           "id": "m_13ZTgQ",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Atlético Madrid",
           "away": "Fenerbahçe",
           "status": "SCHEDULED",
@@ -9881,7 +9863,7 @@
         },
         {
           "id": "m_2GgUDP",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Barcelona",
           "away": "Como",
           "status": "SCHEDULED",
@@ -9918,7 +9900,7 @@
         },
         {
           "id": "m_05ErnL",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Bayern München",
           "away": "Real Betis",
           "status": "SCHEDULED",
@@ -9955,7 +9937,7 @@
         },
         {
           "id": "m_1XGmD3",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Borussia Dortmund",
           "away": "AEK Athens",
           "status": "SCHEDULED",
@@ -9992,7 +9974,7 @@
         },
         {
           "id": "m_18Oylp",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Club Brugge",
           "away": "Bodø/Glimt",
           "status": "SCHEDULED",
@@ -10029,7 +10011,7 @@
         },
         {
           "id": "m_3wpwoH",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Feyenoord",
           "away": "RB Leipzig",
           "status": "SCHEDULED",
@@ -10066,7 +10048,7 @@
         },
         {
           "id": "m_1WnewK",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "LASK",
           "away": "FC Porto",
           "status": "SCHEDULED",
@@ -10103,7 +10085,7 @@
         },
         {
           "id": "m_28wmHy",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Liverpool",
           "away": "Lens",
           "status": "SCHEDULED",
@@ -10140,7 +10122,7 @@
         },
         {
           "id": "m_4Dpb1t",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Manchester City",
           "away": "Sporting CP",
           "status": "SCHEDULED",
@@ -10177,7 +10159,7 @@
         },
         {
           "id": "m_138eTy",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Napoli",
           "away": "Viking",
           "status": "SCHEDULED",
@@ -10214,7 +10196,7 @@
         },
         {
           "id": "m_2G1xXt",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "PSV Eindhoven",
           "away": "VfB Stuttgart",
           "status": "SCHEDULED",
@@ -10251,7 +10233,7 @@
         },
         {
           "id": "m_1xeIqU",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Paris Saint-Germain",
           "away": "Galatasaray",
           "status": "SCHEDULED",
@@ -10288,7 +10270,7 @@
         },
         {
           "id": "m_2wOxKW",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Roma",
           "away": "Lille",
           "status": "SCHEDULED",
@@ -10325,7 +10307,7 @@
         },
         {
           "id": "m_2wdzd7",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Shakhtar Donetsk",
           "away": "Real Madrid",
           "status": "SCHEDULED",
@@ -10399,7 +10381,7 @@
         },
         {
           "id": "m_2qJKNN",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Slovan Bratislava",
           "away": "Inter",
           "status": "SCHEDULED",
@@ -10436,7 +10418,7 @@
         },
         {
           "id": "m_243gm8",
-          "utcDate": "2027-01-27",
+          "utcDate": "2027-01-27T20:00:00Z",
           "home": "Villarreal",
           "away": "Manchester United",
           "status": "SCHEDULED",
@@ -10480,7 +10462,7 @@
       "matches": [
         {
           "id": "m_2wltyW",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Beşiktaş",
           "away": "Hapoel Beer Sheva",
           "status": "SCHEDULED",
@@ -10581,7 +10563,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -10604,7 +10586,7 @@
         },
         {
           "id": "m_2aKzEl",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Celta Vigo",
           "away": "AFC Bournemouth",
           "status": "SCHEDULED",
@@ -10722,14 +10704,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_1IDFXG",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Crystal Palace",
           "away": "Real Sociedad",
           "status": "SCHEDULED",
@@ -10847,7 +10829,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -10870,7 +10852,7 @@
         },
         {
           "id": "m_0dkmnA",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Dinamo Zagreb",
           "away": "Bayer Leverkusen",
           "status": "SCHEDULED",
@@ -10982,14 +10964,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_0snBmF",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Ferencváros",
           "away": "NK Celje",
           "status": "SCHEDULED",
@@ -11090,14 +11072,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_2yFf8O",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Hoffenheim",
           "away": "Sturm Graz",
           "status": "SCHEDULED",
@@ -11198,14 +11180,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_04Y9Kg",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Juventus",
           "away": "Omonia Nicosia",
           "status": "SCHEDULED",
@@ -11306,14 +11288,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_30yUrS",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Lyon",
           "away": "Lillestrøm",
           "status": "SCHEDULED",
@@ -11414,7 +11396,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -11437,7 +11419,7 @@
         },
         {
           "id": "m_3SZtsw",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Marseille",
           "away": "Levski Sofia",
           "status": "SCHEDULED",
@@ -11538,14 +11520,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_1NPdGz",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "NEC Nijmegen",
           "away": "Rennes",
           "status": "SCHEDULED",
@@ -11663,14 +11645,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_1R2Vyf",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "OFI Crete",
           "away": "Anderlecht",
           "status": "SCHEDULED",
@@ -11788,14 +11770,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_0ADq1e",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Olympiacos",
           "away": "Milan",
           "status": "SCHEDULED",
@@ -11913,7 +11895,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -12010,7 +11992,7 @@
         },
         {
           "id": "m_12vC0r",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Sunderland",
           "away": "Jagiellonia Białystok",
           "status": "SCHEDULED",
@@ -12111,7 +12093,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -12134,7 +12116,7 @@
         },
         {
           "id": "m_4CEVyM",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Torreense",
           "away": "Celtic",
           "status": "SCHEDULED",
@@ -12246,7 +12228,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -12269,7 +12251,7 @@
         },
         {
           "id": "m_1NQ9Kt",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Union St.Gilloise",
           "away": "Lech Poznań",
           "status": "SCHEDULED",
@@ -12370,7 +12352,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -12438,7 +12420,7 @@
         },
         {
           "id": "m_1UYxQd",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Viktoria Plzeň",
           "away": "Benfica",
           "status": "SCHEDULED",
@@ -12544,14 +12526,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_06YKvN",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "AFC Bournemouth",
           "away": "Viktoria Plzeň",
           "status": "SCHEDULED",
@@ -12588,7 +12570,7 @@
         },
         {
           "id": "m_007YHc",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "AZ Alkmaar",
           "away": "Sturm Graz",
           "status": "SCHEDULED",
@@ -12625,7 +12607,7 @@
         },
         {
           "id": "m_1JnZiH",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Anderlecht",
           "away": "Hoffenheim",
           "status": "SCHEDULED",
@@ -12662,7 +12644,7 @@
         },
         {
           "id": "m_2CPCaL",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Ararat Armenia",
           "away": "NEC Nijmegen",
           "status": "SCHEDULED",
@@ -12699,7 +12681,7 @@
         },
         {
           "id": "m_0rmU60",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Bayer Leverkusen",
           "away": "Beşiktaş",
           "status": "SCHEDULED",
@@ -12736,7 +12718,7 @@
         },
         {
           "id": "m_3x2xlm",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Benfica",
           "away": "OFI Crete",
           "status": "SCHEDULED",
@@ -12773,7 +12755,7 @@
         },
         {
           "id": "m_1VBF8p",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Hapoel Beer Sheva",
           "away": "Juventus",
           "status": "SCHEDULED",
@@ -12810,7 +12792,7 @@
         },
         {
           "id": "m_1aMAzH",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Jagiellonia Białystok",
           "away": "Crystal Palace",
           "status": "SCHEDULED",
@@ -12847,7 +12829,7 @@
         },
         {
           "id": "m_0jpLtD",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Lech Poznań",
           "away": "Ferencváros",
           "status": "SCHEDULED",
@@ -12884,7 +12866,7 @@
         },
         {
           "id": "m_1r7fIV",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Levski Sofia",
           "away": "Lillestrøm",
           "status": "SCHEDULED",
@@ -12921,7 +12903,7 @@
         },
         {
           "id": "m_2Iu7iy",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Lyon",
           "away": "Union St.Gilloise",
           "status": "SCHEDULED",
@@ -12958,7 +12940,7 @@
         },
         {
           "id": "m_090OP5",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Marseille",
           "away": "Celta Vigo",
           "status": "SCHEDULED",
@@ -12995,7 +12977,7 @@
         },
         {
           "id": "m_1qfnTG",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Milan",
           "away": "Sunderland",
           "status": "SCHEDULED",
@@ -13032,7 +13014,7 @@
         },
         {
           "id": "m_44Kcmh",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "NK Celje",
           "away": "Olympiacos",
           "status": "SCHEDULED",
@@ -13069,7 +13051,7 @@
         },
         {
           "id": "m_05fkqQ",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Omonia Nicosia",
           "away": "Celtic",
           "status": "SCHEDULED",
@@ -13106,7 +13088,7 @@
         },
         {
           "id": "m_0k3fTw",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Real Sociedad",
           "away": "Torreense",
           "status": "SCHEDULED",
@@ -13143,7 +13125,7 @@
         },
         {
           "id": "m_3airsW",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Rennes",
           "away": "Dinamo Zagreb",
           "status": "SCHEDULED",
@@ -13217,7 +13199,7 @@
         },
         {
           "id": "m_4afsqz",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T20:00:00Z",
           "home": "AZ Alkmaar",
           "away": "Dinamo Zagreb",
           "status": "SCHEDULED",
@@ -13254,7 +13236,7 @@
         },
         {
           "id": "m_1GwxMe",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T20:00:00Z",
           "home": "Anderlecht",
           "away": "Sunderland",
           "status": "SCHEDULED",
@@ -13291,7 +13273,7 @@
         },
         {
           "id": "m_4SBEtn",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Ararat Armenia",
           "away": "NK Celje",
           "status": "SCHEDULED",
@@ -13365,7 +13347,7 @@
         },
         {
           "id": "m_3ePToY",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Beşiktaş",
           "away": "Union St.Gilloise",
           "status": "SCHEDULED",
@@ -13402,7 +13384,7 @@
         },
         {
           "id": "m_0MnjSS",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T20:00:00Z",
           "home": "Celtic",
           "away": "Marseille",
           "status": "SCHEDULED",
@@ -13476,7 +13458,7 @@
         },
         {
           "id": "m_4FNf7F",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Ferencváros",
           "away": "Juventus",
           "status": "SCHEDULED",
@@ -13513,7 +13495,7 @@
         },
         {
           "id": "m_4ML2of",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T20:00:00Z",
           "home": "Hapoel Beer Sheva",
           "away": "Celta Vigo",
           "status": "SCHEDULED",
@@ -13550,7 +13532,7 @@
         },
         {
           "id": "m_1zuTWg",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Jagiellonia Białystok",
           "away": "Lyon",
           "status": "SCHEDULED",
@@ -13587,7 +13569,7 @@
         },
         {
           "id": "m_04u0oN",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T20:00:00Z",
           "home": "Lech Poznań",
           "away": "Torreense",
           "status": "SCHEDULED",
@@ -13624,7 +13606,7 @@
         },
         {
           "id": "m_3REb3S",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T20:00:00Z",
           "home": "Levski Sofia",
           "away": "Milan",
           "status": "SCHEDULED",
@@ -13661,7 +13643,7 @@
         },
         {
           "id": "m_1AqTQ2",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Lillestrøm",
           "away": "AFC Bournemouth",
           "status": "SCHEDULED",
@@ -13698,7 +13680,7 @@
         },
         {
           "id": "m_1RUqPB",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "NEC Nijmegen",
           "away": "Benfica",
           "status": "SCHEDULED",
@@ -13735,7 +13717,7 @@
         },
         {
           "id": "m_4dRhun",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Olympiacos",
           "away": "Hoffenheim",
           "status": "SCHEDULED",
@@ -13772,7 +13754,7 @@
         },
         {
           "id": "m_0IPMle",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Real Sociedad",
           "away": "Viktoria Plzeň",
           "status": "SCHEDULED",
@@ -13809,7 +13791,7 @@
         },
         {
           "id": "m_1L9J7y",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T20:00:00Z",
           "home": "Rennes",
           "away": "Omonia Nicosia",
           "status": "SCHEDULED",
@@ -13846,7 +13828,7 @@
         },
         {
           "id": "m_0EqrVF",
-          "utcDate": "2027-01-21",
+          "utcDate": "2027-01-21T17:45:00Z",
           "home": "Sturm Graz",
           "away": "OFI Crete",
           "status": "SCHEDULED",
@@ -13883,7 +13865,7 @@
         },
         {
           "id": "m_3UZZM3",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "AFC Bournemouth",
           "away": "Hapoel Beer Sheva",
           "status": "SCHEDULED",
@@ -13920,7 +13902,7 @@
         },
         {
           "id": "m_3pucpL",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Benfica",
           "away": "AZ Alkmaar",
           "status": "SCHEDULED",
@@ -13957,7 +13939,7 @@
         },
         {
           "id": "m_3Wlhze",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Celta Vigo",
           "away": "Lillestrøm",
           "status": "SCHEDULED",
@@ -13994,7 +13976,7 @@
         },
         {
           "id": "m_1WnDN3",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Dinamo Zagreb",
           "away": "Sturm Graz",
           "status": "SCHEDULED",
@@ -14031,7 +14013,7 @@
         },
         {
           "id": "m_1LxBM3",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Hoffenheim",
           "away": "Ferencváros",
           "status": "SCHEDULED",
@@ -14068,7 +14050,7 @@
         },
         {
           "id": "m_0Qv64c",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Juventus",
           "away": "Real Sociedad",
           "status": "SCHEDULED",
@@ -14105,7 +14087,7 @@
         },
         {
           "id": "m_4egDxA",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Lyon",
           "away": "Bayer Leverkusen",
           "status": "SCHEDULED",
@@ -14142,7 +14124,7 @@
         },
         {
           "id": "m_2T0x0f",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Marseille",
           "away": "Anderlecht",
           "status": "SCHEDULED",
@@ -14179,7 +14161,7 @@
         },
         {
           "id": "m_0pmFb9",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Milan",
           "away": "Ararat Armenia",
           "status": "SCHEDULED",
@@ -14216,7 +14198,7 @@
         },
         {
           "id": "m_1mfizp",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "NK Celje",
           "away": "NEC Nijmegen",
           "status": "SCHEDULED",
@@ -14253,7 +14235,7 @@
         },
         {
           "id": "m_19rLT5",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "OFI Crete",
           "away": "Lech Poznań",
           "status": "SCHEDULED",
@@ -14290,7 +14272,7 @@
         },
         {
           "id": "m_2llS6z",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Omonia Nicosia",
           "away": "Beşiktaş",
           "status": "SCHEDULED",
@@ -14401,7 +14383,7 @@
         },
         {
           "id": "m_2l7FdW",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Sunderland",
           "away": "Levski Sofia",
           "status": "SCHEDULED",
@@ -14438,7 +14420,7 @@
         },
         {
           "id": "m_0BgaiU",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Torreense",
           "away": "Olympiacos",
           "status": "SCHEDULED",
@@ -14475,7 +14457,7 @@
         },
         {
           "id": "m_2z1fFw",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Union St.Gilloise",
           "away": "Celtic",
           "status": "SCHEDULED",
@@ -14512,7 +14494,7 @@
         },
         {
           "id": "m_10mmml",
-          "utcDate": "2027-01-28",
+          "utcDate": "2027-01-28T20:00:00Z",
           "home": "Viktoria Plzeň",
           "away": "Jagiellonia Białystok",
           "status": "SCHEDULED",
@@ -14593,7 +14575,7 @@
         },
         {
           "id": "m_0EuzDQ",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Borac Banja Luka",
           "away": "Atalanta",
           "status": "SCHEDULED",
@@ -14694,7 +14676,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -14754,7 +14736,7 @@
         },
         {
           "id": "m_2ATzNF",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Brann",
           "away": "AGF",
           "status": "SCHEDULED",
@@ -14866,7 +14848,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -14889,7 +14871,7 @@
         },
         {
           "id": "m_0pAhUR",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Brighton & Hove Albion",
           "away": "Universitatea Craiova",
           "status": "SCHEDULED",
@@ -14974,14 +14956,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_4C2D78",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "CSKA Sofia",
           "away": "Trabzonspor",
           "status": "SCHEDULED",
@@ -15093,7 +15075,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -15116,7 +15098,7 @@
         },
         {
           "id": "m_3i6HQW",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Egnatia",
           "away": "Lincoln Red Imps FC",
           "status": "SCHEDULED",
@@ -15222,14 +15204,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_2GuUDZ",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "FK Kauno Žalgiris",
           "away": "Riga FC",
           "status": "SCHEDULED",
@@ -15347,7 +15329,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -15370,7 +15352,7 @@
         },
         {
           "id": "m_1g88B9",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Freiburg",
           "away": "FC Twente",
           "status": "SCHEDULED",
@@ -15482,7 +15464,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -15579,7 +15561,7 @@
         },
         {
           "id": "m_1DAEy5",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Heart of Midlothian",
           "away": "Monaco",
           "status": "SCHEDULED",
@@ -15685,7 +15667,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -15708,7 +15690,7 @@
         },
         {
           "id": "m_1tPEGA",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Iberia 1999",
           "away": "Getafe",
           "status": "SCHEDULED",
@@ -15815,14 +15797,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_4FJQta",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Inter Club d'Escaldes",
           "away": "FC København",
           "status": "SCHEDULED",
@@ -15922,14 +15904,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_02PWjY",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Jablonec",
           "away": "Lugano",
           "status": "SCHEDULED",
@@ -16041,14 +16023,14 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [],
           "paperOnly": true
         },
         {
           "id": "m_0qaspn",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T15:30:00Z",
           "home": "Kairat Almaty",
           "away": "Mjällby",
           "status": "SCHEDULED",
@@ -16166,7 +16148,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -16189,7 +16171,7 @@
         },
         {
           "id": "m_2Tq6BD",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T20:00:00Z",
           "home": "Nordsjælland",
           "away": "Panathinaikos",
           "status": "SCHEDULED",
@@ -16307,7 +16289,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -16330,7 +16312,7 @@
         },
         {
           "id": "m_0k3kMh",
-          "utcDate": "2026-11-26",
+          "utcDate": "2026-11-26T17:45:00Z",
           "home": "Pafos FC",
           "away": "FC Midtjylland",
           "status": "SCHEDULED",
@@ -16442,7 +16424,7 @@
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 8083.554
+            "bookmakerUpdateAgeSeconds": 9923.824
           },
           "paperSignals": [
             {
@@ -16465,7 +16447,7 @@
         },
         {
           "id": "m_3CEUOB",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "AGF",
           "away": "FC Twente",
           "status": "SCHEDULED",
@@ -16539,7 +16521,7 @@
         },
         {
           "id": "m_2F3WYR",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Brighton & Hove Albion",
           "away": "Monaco",
           "status": "SCHEDULED",
@@ -16576,7 +16558,7 @@
         },
         {
           "id": "m_09j803",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Egnatia",
           "away": "FK Kauno Žalgiris",
           "status": "SCHEDULED",
@@ -16613,7 +16595,7 @@
         },
         {
           "id": "m_3fGAdG",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "FC København",
           "away": "Lugano",
           "status": "SCHEDULED",
@@ -16650,7 +16632,7 @@
         },
         {
           "id": "m_01vNC9",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Freiburg",
           "away": "Panathinaikos",
           "status": "SCHEDULED",
@@ -16687,7 +16669,7 @@
         },
         {
           "id": "m_2zKi63",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Getafe",
           "away": "Inter Club d'Escaldes",
           "status": "SCHEDULED",
@@ -16724,7 +16706,7 @@
         },
         {
           "id": "m_0O8fqh",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Hajduk Split",
           "away": "Nordsjælland",
           "status": "SCHEDULED",
@@ -16761,7 +16743,7 @@
         },
         {
           "id": "m_2jZvxc",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Heart of Midlothian",
           "away": "Borac Banja Luka",
           "status": "SCHEDULED",
@@ -16798,7 +16780,7 @@
         },
         {
           "id": "m_4D1ymK",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Iberia 1999",
           "away": "FK Crvena Zvezda",
           "status": "SCHEDULED",
@@ -16835,7 +16817,7 @@
         },
         {
           "id": "m_0xpfP6",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T15:30:00Z",
           "home": "Kairat Almaty",
           "away": "Universitatea Craiova",
           "status": "SCHEDULED",
@@ -16909,7 +16891,7 @@
         },
         {
           "id": "m_4aGf9S",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Lincoln Red Imps FC",
           "away": "FC Midtjylland",
           "status": "SCHEDULED",
@@ -16946,7 +16928,7 @@
         },
         {
           "id": "m_0F9aM7",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T20:00:00Z",
           "home": "Mjällby",
           "away": "Pafos FC",
           "status": "SCHEDULED",
@@ -16983,7 +16965,7 @@
         },
         {
           "id": "m_2shbYT",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Riga FC",
           "away": "Atalanta",
           "status": "SCHEDULED",
@@ -17094,7 +17076,7 @@
         },
         {
           "id": "m_4gZZdK",
-          "utcDate": "2026-12-10",
+          "utcDate": "2026-12-10T17:45:00Z",
           "home": "Trabzonspor",
           "away": "Jablonec",
           "status": "SCHEDULED",
@@ -17168,7 +17150,7 @@
         },
         {
           "id": "m_14JQmV",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Atalanta",
           "away": "Mjällby",
           "status": "SCHEDULED",
@@ -17205,7 +17187,7 @@
         },
         {
           "id": "m_3aEYe1",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Borac Banja Luka",
           "away": "Riga FC",
           "status": "SCHEDULED",
@@ -17279,7 +17261,7 @@
         },
         {
           "id": "m_0fyAsg",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "CSKA Sofia",
           "away": "Thun",
           "status": "SCHEDULED",
@@ -17316,7 +17298,7 @@
         },
         {
           "id": "m_26MJSg",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "FC Midtjylland",
           "away": "Hajduk Split",
           "status": "SCHEDULED",
@@ -17353,7 +17335,7 @@
         },
         {
           "id": "m_0gjxnR",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "FC Twente",
           "away": "Kairat Almaty",
           "status": "SCHEDULED",
@@ -17390,7 +17372,7 @@
         },
         {
           "id": "m_0Nbl98",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "FK Crvena Zvezda",
           "away": "Trabzonspor",
           "status": "SCHEDULED",
@@ -17427,7 +17409,7 @@
         },
         {
           "id": "m_3MGkEe",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "FK Kauno Žalgiris",
           "away": "Freiburg",
           "status": "SCHEDULED",
@@ -17501,7 +17483,7 @@
         },
         {
           "id": "m_0zRc66",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Inter Club d'Escaldes",
           "away": "AGF",
           "status": "SCHEDULED",
@@ -17538,7 +17520,7 @@
         },
         {
           "id": "m_4YbiYG",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Jablonec",
           "away": "Iberia 1999",
           "status": "SCHEDULED",
@@ -17612,7 +17594,7 @@
         },
         {
           "id": "m_3UxMvy",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Monaco",
           "away": "Lincoln Red Imps FC",
           "status": "SCHEDULED",
@@ -17686,7 +17668,7 @@
         },
         {
           "id": "m_1QDBFq",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Pafos FC",
           "away": "Heart of Midlothian",
           "status": "SCHEDULED",
@@ -17723,7 +17705,7 @@
         },
         {
           "id": "m_1w9WZH",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Panathinaikos",
           "away": "Brighton & Hove Albion",
           "status": "SCHEDULED",
@@ -17760,7 +17742,7 @@
         },
         {
           "id": "m_3m8EJu",
-          "utcDate": "2026-12-17",
+          "utcDate": "2026-12-17T20:00:00Z",
           "home": "Universitatea Craiova",
           "away": "FC København",
           "status": "SCHEDULED",
