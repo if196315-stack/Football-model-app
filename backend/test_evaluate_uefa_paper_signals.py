@@ -81,6 +81,16 @@ class UefaPaperSignalTests(unittest.TestCase):
         self.assertEqual(signal["edge_method"], "raw_implied_conservative_no_devig")
         self.assertAlmostEqual(signal["fair_probability"], 1 / 1.8, places=8)
 
+
+    def test_odds_below_minimum_is_rejected_even_when_other_model_gates_pass(self):
+        over = base_row(price=1.49, model_probability=0.90)
+        under = base_row(market="match_total_under_reference", side="under",
+                         candidate_market=False, reference_only=True,
+                         price=3.2, model_probability=0.10)
+        signal = evaluate_candidate(over, [over, under])
+        self.assertEqual(signal["decision"], "REJECT")
+        self.assertIn("price_below_minimum_odds", signal["reasons"])
+
     def test_stale_quote_is_wait_not_bet(self):
         over = base_row(bookmaker_update_age_seconds=420.0, freshness_status="stale")
         under = base_row(market="match_total_under_reference", side="under",
