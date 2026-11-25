@@ -1,6 +1,6 @@
 import unittest
 
-from settle_uefa_paper_bets import fixture_index_from_feed, settle_bet, settle_open_bets
+from settle_uefa_paper_bets import fixture_index_from_feed, settle_bet, settle_feed_paper_signals, settle_open_bets
 
 
 def bet(market, **overrides):
@@ -57,6 +57,22 @@ class UefaPaperSettlementTests(unittest.TestCase):
         settled = settle_open_bets(bets, fixtures, [], "2026-11-26T00:00:00Z")
         self.assertEqual([row["result"] for row in settled], ["WIN", "WIN"])
         self.assertEqual([row["profit_units"] for row in settled], [0.58, 0.55])
+
+    def test_updates_embedded_paper_signals_in_uefa_feed(self):
+        feed = {"competitions": [{"code": "UCL", "matches": [{
+            "id": "m_18IfVI", "status": "FINISHED", "homeScore": 1, "awayScore": 4,
+            "paperSignals": [
+                {"signal_id": "btts-yes", "market": "btts", "outcome": "yes", "price": 1.58},
+                {"signal_id": "home-over05", "market": "team_total_over", "team": "home", "point": 0.5, "price": 1.55},
+            ],
+        }]}]}
+        changed = settle_feed_paper_signals(feed, "2026-11-26T00:00:00Z")
+        rows = feed["competitions"][0]["matches"][0]["paperSignals"]
+        self.assertEqual(changed, 2)
+        self.assertEqual([row["result"] for row in rows], ["WIN", "WIN"])
+        self.assertEqual([row["profit_units"] for row in rows], [0.58, 0.55])
+        self.assertEqual([row["home_score"] for row in rows], [1, 1])
+        self.assertEqual([row["away_score"] for row in rows], [4, 4])
 
     def test_unfinished_and_duplicate_signals_are_not_settled(self):
         bets = [bet("match_total_over")]
