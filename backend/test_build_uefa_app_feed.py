@@ -129,6 +129,24 @@ class BuildUefaAppFeedTests(unittest.TestCase):
         ]
         self.assertEqual(all_signals, [])
 
+    def test_bodo_glimt_low_odds_signal_is_permanently_suppressed_even_when_settled(self):
+        cache = {"matches": {
+            "m_0yKeRt": {
+                "leagueCode": "UCL", "status": "finished",
+                "date": "2026-11-24T17:45:00Z", "home": "Bodø/Glimt", "away": "LASK",
+                "homeScore": 1, "awayScore": 0,
+            }
+        }}
+        bets = [{
+            "signal_id": "1764459527a687260408", "fixture_id": "m_0yKeRt",
+            "paper_only": True, "decision": "BET", "market": "team_total_over",
+            "point": 0.5, "team": "away", "price": 1.24,
+        }]
+        settlements = [{"signal_id": "1764459527a687260408", "result": "LOSS"}]
+        feed = build_feed(cache, {"matches": []}, [], bets, settlements, predictions={})
+        match = feed["competitions"][0]["matches"][0]
+        self.assertEqual(match["paperSignals"], [])
+
     def test_feed_contains_only_active_club_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
             "ucl-1": {"leagueCode": "UCL", "status": "finished", "date": "2026-11-01",
