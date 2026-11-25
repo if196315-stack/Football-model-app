@@ -4552,8 +4552,8 @@ class MainActivity : Activity() {
                 val cardStatus = m.optString("status").trim().uppercase(Locale.ROOT)
                 if (FeedMerger.isLiveStatus(cardStatus)) {
                     box.setPadding(dp(14), dp(13), dp(14), dp(13))
-                    box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                        intArrayOf(Color.rgb(25, 48, 69), Color.rgb(11, 25, 43))).apply {
+                    box.background = GradientDrawable().apply {
+                        setColor(Color.rgb(14, 24, 38))
                         cornerRadius = dp(21).toFloat()
                         setStroke(dp(1), Color.rgb(163, 111, 66))
                     }
@@ -4652,8 +4652,8 @@ class MainActivity : Activity() {
                 // Keep fixture cards on the same dark gradient and outlined surface
                 // used throughout IQ Match; gold is reserved for emphasis, not borders.
                 box.setPadding(dp(14), dp(13), dp(14), dp(13))
-                box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                    intArrayOf(Color.rgb(24, 47, 69), Color.rgb(10, 23, 40), Color.rgb(8, 19, 34))).apply {
+                box.background = GradientDrawable().apply {
+                    setColor(Color.rgb(14, 24, 38))
                     cornerRadius = dp(21).toFloat()
                     setStroke(dp(1), Color.rgb(47, 83, 111))
                 }
