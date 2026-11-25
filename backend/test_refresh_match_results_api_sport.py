@@ -101,6 +101,12 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertEqual(target["status"], "IN_PLAY")
         self.assertIs(target["scoreStatusFinal"], False)
 
+    def test_accepts_api_sport_live_phase_aliases(self):
+        for status in ("in play", "1st half", "2nd half", "break", "extra time", "penalty shootout"):
+            with self.subTest(status=status):
+                self.assertTrue(apply_provider_match({"status": "SCHEDULED"},
+                    source(status=status, final=None), "now"))
+
     def test_result_matching_accepts_sabah_fk_provider_short_name(self):
         target = {"utcDate": "2026-11-25", "home": "Sabah FK", "away": "Barcelona",
                   "status": "SCHEDULED"}
