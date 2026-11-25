@@ -16,6 +16,9 @@ def norm(v):
     s=" ".join(re.sub(r"[^a-z0-9]+"," ",s).split())
     aliases={
         "man city":"manchester city","man utd":"manchester united",
+        # API-Sport shortens the Azerbaijani club name to "Sabah".
+        "sabah fk":"sabah", "sabah":"sabah",
+        "fc barcelona":"barcelona",
         "man united":"manchester united","spurs":"tottenham hotspur",
         # PitchAPI uses short city/club labels; API-Sport commonly uses official names.
         "racing santander":"real racing club","real racing club":"real racing club",
