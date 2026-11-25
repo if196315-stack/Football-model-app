@@ -30,6 +30,7 @@ FINISHED = {
 LIVE = {
     "inprogress", "in progress", "in play", "live", "1h", "2h",
     "1st half", "2nd half", "first half", "second half",
+    "in play 1st half", "in play 2nd half",
     "halftime", "half time", "break", "paused",
     "extra time", "in extra time", "et", "penalties",
     "penalty shootout", "in penalty shootout",
@@ -37,7 +38,7 @@ LIVE = {
 
 
 def normalized_status(match: dict) -> str:
-    return str(match.get("status") or "").strip().casefold().replace("_", " ")
+    return str(match.get("status") or "").strip().casefold().replace("_", " ").replace("-", " ")
 
 
 def is_finished_status(status: str) -> bool:
