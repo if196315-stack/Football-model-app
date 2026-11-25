@@ -29,6 +29,21 @@ def base_row(**overrides):
 
 
 class UefaPaperSignalTests(unittest.TestCase):
+    def test_retired_signal_ids_are_not_rewritten_to_signal_or_bet_archives(self):
+        retired = [
+            {"signal_id": "c3b279f109074fcbbf0c", "decision": "BET",
+             "fixture_id": "m_1NQ9Kt", "market": "match_total_over", "point": 3.5},
+            {"signal_id": "28ecfccda8f24626566b", "decision": "BET",
+             "fixture_id": "m_1NQ9Kt", "market": "team_total_over", "point": 2.5},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            signal_path = Path(tmp) / "signals.jsonl"
+            bets_path = Path(tmp) / "bets.jsonl"
+            append_new_signals(retired, signal_path)
+            append_unique_paper_bets(retired, bets_path)
+            self.assertFalse(signal_path.exists())
+            self.assertFalse(bets_path.exists())
+
     def test_two_way_market_removes_overround_and_passes_all_thresholds(self):
         over = base_row()
         under = base_row(market="match_total_under_reference", side="under",
