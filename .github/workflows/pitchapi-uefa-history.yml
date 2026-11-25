@@ -7,6 +7,7 @@ on:
     paths:
       - "backend/refresh_pitchapi_uefa_fixtures.py"
       - "backend/build_market_roi.py"
+      - "backend/refresh_kickoff_times_api_sport.py"
       - ".github/workflows/pitchapi-uefa-history.yml"
   schedule:
     - cron: "*/5 * * * *"
@@ -43,6 +44,13 @@ jobs:
         run: python backend/refresh_pitchapi_uefa_fixtures.py --upcoming-only
       - name: Rebuild live UEFA app feed
         run: python backend/build_uefa_app_feed.py
+      # The PitchAPI UEFA fixture cache can contain calendar dates without a
+      # kickoff time. Enrich the newly rebuilt UEFA feed from the authoritative
+      # API-Sport fixtures calendar before committing it, just like domestic data.
+      - name: Enrich UEFA kickoff times
+        env:
+          API_SPORT_KEY: ${{ secrets.API_SPORT_KEY }}
+        run: python backend/refresh_kickoff_times_api_sport.py
       - name: Refresh ALL-market ROI from current domestic and UEFA results
         run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl
       - name: Commit refreshed UEFA live feed and ALL-market ROI
