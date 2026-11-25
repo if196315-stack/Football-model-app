@@ -2377,8 +2377,11 @@ class MainActivity : Activity() {
             val existing = bets.optJSONObject(i) ?: continue
             if (existing.optString("marketKey") == "COUPON") continue
             val match = findIndexedMatch(existing)
-            val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
-                ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
+            val matchStatus = match?.let {
+                FeedMerger.resolveStatus(
+                    it.optString("status"), it.optString("statusShort"), it.optString("statusLong")
+                )
+            }?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
             // A stale settled row must reopen from its own stored kickoff even if
             // a renamed/re-keyed fixture cannot be matched in the latest feed.
             val kickoffMillis = match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(existing)
@@ -2538,11 +2541,11 @@ class MainActivity : Activity() {
             } else {
                 allSettled = false
                 val normalizedStatus = matchStatus.trim().uppercase(Locale.ROOT)
-                if (normalizedStatus in setOf("IN_PLAY", "LIVE", "IN_PROGRESS", "INPROGRESS", "1H", "2H", "PAUSED")) {
+                if (FeedMerger.isLiveStatus(normalizedStatus)) {
                     val minute = liveElapsedMinute(match)
                     val extra = match.optInt("elapsedExtra", 0)
                     val clock = if (minute >= 0) " · ${minute}${if (extra > 0) "+$extra" else ""}′" else ""
-                    val phase = if (normalizedStatus == "PAUSED") " · ПЕРЕРЫВ" else " · LIVE"
+                    val phase = if (FeedMerger.isHalfTimeStatus(normalizedStatus)) " · ПЕРЕРЫВ" else " · LIVE"
                     scores.add(scoreLabel + phase + clock)
                 }
             }
@@ -4609,13 +4612,15 @@ class MainActivity : Activity() {
             for (j in 0 until matches.length()) {
                 val m = matches.getJSONObject(j)
                 // Preserve the original eligibility rule: only complete forecasts with a fresh MelBet prematch quote are shown.
-                val matchStatus = m.optString("status")
+                val matchStatus = FeedMerger.resolveStatus(
+                    m.optString("status"), m.optString("statusShort"), m.optString("statusLong")
+                )
                 val fixtureDate = m.optString("utcDate").take(10).ifBlank {
                     m.optString("dateEvent").take(10).ifBlank {
                         kickoffTimestamp(m)?.let { fixtureDayFormat.format(Date(it)) }.orEmpty()
                     }
                 }
-                val normalizedMatchStatus = matchStatus.trim().uppercase(Locale.ROOT)
+                val normalizedMatchStatus = FeedMerger.normalizeStatus(matchStatus)
                 val isLiveMatch = FeedMerger.isLiveStatus(normalizedMatchStatus)
                 val kickoffDayHasPassed = fixtureDate.isNotBlank() && fixtureDate < fixtureToday
                 // Use the same gate as league counters: every competition requires
