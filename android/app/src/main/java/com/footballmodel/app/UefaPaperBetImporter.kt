@@ -4,6 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import java.text.Normalizer
 
 /**
  * Bridges backend UEFA paperSignals into the app's persistent Bets history.
@@ -57,7 +58,7 @@ internal object UefaPaperBetImporter {
                     }
                     val desiredStatus = result ?: "PENDING"
                     val score = if (homeScore != null && awayScore != null) "$homeScore:$awayScore" else ""
-                    val existing = bySignalId[signalId] ?: findMatchingBet(bets, matchId, marketKey, odds)
+                    val existing = bySignalId[signalId] ?: findMatchingBet(bets, match, marketKey, odds)
 
                     if (existing != null) {
                         var rowChanged = false
@@ -85,8 +86,7 @@ internal object UefaPaperBetImporter {
                                 existing.put("source", "UEFA_PAPER")
                                 rowChanged = true
                             }
-                            if (desiredStatus != "PENDING" &&
-                                existing.optDouble("stake", Double.NaN) != SETTLED_PAPER_STAKE_RUB) {
+                            if (existing.optDouble("stake", Double.NaN) != SETTLED_PAPER_STAKE_RUB) {
                                 existing.put("stake", SETTLED_PAPER_STAKE_RUB)
                                 rowChanged = true
                             }
@@ -112,7 +112,7 @@ internal object UefaPaperBetImporter {
                         .put("market", side)
                         .put("marketKey", marketKey)
                         .put("odds", odds)
-                        .put("stake", if (desiredStatus == "PENDING") 1.0 else SETTLED_PAPER_STAKE_RUB)
+                        .put("stake", SETTLED_PAPER_STAKE_RUB)
                         .put("probability", signal.optDouble("model_probability", 0.0))
                         .put("matchStatus", matchStatus)
                         .put("score", score)
@@ -127,15 +127,18 @@ internal object UefaPaperBetImporter {
                 }
             }
         }
+        changed = deduplicateImportedRows(bets) || changed
+        changed = removeLegacyPaperSignalDuplicates(bets, feed) || changed
         return changed
     }
 
-    private fun findMatchingBet(bets: JSONArray, matchId: String, marketKey: String,
+    private fun findMatchingBet(bets: JSONArray, match: JSONObject, marketKey: String,
                                 odds: Double): JSONObject? {
+        val fixture = fixtureKey(match)
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (!isImportedPaperRow(bet) ||
-                bet.optString("matchId") != matchId ||
+                fixtureKey(bet) != fixture ||
                 bet.optString("marketKey") != marketKey) continue
             val existingOdds = bet.optDouble("odds", Double.NaN)
             if (existingOdds.isFinite() && abs(existingOdds - odds) < 0.005) return bet
@@ -145,7 +148,7 @@ internal object UefaPaperBetImporter {
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (isImportedPaperRow(bet) &&
-                bet.optString("matchId") == matchId &&
+                fixtureKey(bet) == fixture &&
                 bet.optString("marketKey") == marketKey) return bet
         }
         return null
@@ -153,19 +156,24 @@ internal object UefaPaperBetImporter {
 
     private fun isImportedPaperRow(bet: JSONObject): Boolean =
         bet.optString("source") == "UEFA_PAPER" ||
-            bet.optString("id").startsWith("UEFA_PAPER:")
+            bet.optString("id").startsWith("UEFA_PAPER:") ||
+            bet.optBoolean("paperOnly") ||
+            bet.optString("paperSignalId").isNotBlank()
 
     private fun deduplicateImportedRows(bets: JSONArray): Boolean {
         val keeperByKey = LinkedHashMap<String, JSONObject>()
         val removeIndices = ArrayList<Int>()
+        var changed = false
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (!isImportedPaperRow(bet)) continue
-            if (bet.optString("source") != "UEFA_PAPER") bet.put("source", "UEFA_PAPER")
-            val matchId = bet.optString("matchId")
-            val marketKey = bet.optString("marketKey")
-            if (matchId.isBlank() || marketKey.isBlank()) continue
-            val key = "$matchId|$marketKey"
+            if (bet.optString("source") != "UEFA_PAPER") {
+                bet.put("source", "UEFA_PAPER")
+                changed = true
+            }
+            val marketKey = bet.optString("marketKey").ifBlank { normalizeText(bet.optString("market")) }
+            if (marketKey.isBlank()) continue
+            val key = "${fixtureKey(bet)}|$marketKey"
             val keeper = keeperByKey[key]
             if (keeper == null) {
                 keeperByKey[key] = bet
@@ -184,8 +192,64 @@ internal object UefaPaperBetImporter {
             }
         }
         for (index in removeIndices.sortedDescending()) bets.remove(index)
-        return removeIndices.isNotEmpty()
+        for (index in removeIndices.sortedDescending()) bets.remove(index)
+        return changed || removeIndices.isNotEmpty()
     }
+
+    private fun removeLegacyPaperSignalDuplicates(bets: JSONArray, feed: JSONObject): Boolean {
+        val paperKeys = HashSet<String>()
+        val competitions = feed.optJSONArray("competitions") ?: return false
+        for (ci in 0 until competitions.length()) {
+            val competition = competitions.optJSONObject(ci) ?: continue
+            val matches = competition.optJSONArray("matches") ?: continue
+            for (mi in 0 until matches.length()) {
+                val match = matches.optJSONObject(mi) ?: continue
+                val matchKey = fixtureKey(match)
+                val signals = match.optJSONArray("paperSignals") ?: continue
+                for (si in 0 until signals.length()) {
+                    val signal = signals.optJSONObject(si) ?: continue
+                    val market = marketKey(signal) ?: continue
+                    paperKeys.add("$matchKey|$market")
+                }
+            }
+        }
+        if (paperKeys.isEmpty()) return false
+        val remove = ArrayList<Int>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (!bet.optString("source").equals("AI_MANUAL", true)) continue
+            val market = bet.optString("marketKey")
+            if (market.isBlank() || "${fixtureKey(bet)}|$market" !in paperKeys) continue
+            val matchId = bet.optString("matchId")
+            val legacyPaperId = matchId.isNotBlank() &&
+                bet.optString("id").startsWith("AI_MANUAL:$matchId:$market:")
+            val taggedPaper = bet.optBoolean("paperOnly") || bet.optString("paperSignalId").isNotBlank()
+            // Older builds recorded a paper-only recommendation as AI_MANUAL and omitted its marker.
+            if (taggedPaper || (legacyPaperId && bet.optDouble("stake", Double.NaN) <= 1.0001)) {
+                remove.add(i)
+            }
+        }
+        for (index in remove.sortedDescending()) bets.remove(index)
+        return remove.isNotEmpty()
+    }
+
+    private fun fixtureKey(row: JSONObject): String {
+        val home = normalizeText(row.optString("home"))
+        val away = normalizeText(row.optString("away"))
+        val date = row.optString("date").ifBlank {
+            row.optString("kickoff").ifBlank { row.optString("utcDate") }
+        }.take(10)
+        if (home.isNotBlank() && away.isNotBlank() && date.isNotBlank()) {
+            return "$home|$away|$date"
+        }
+        return row.optString("matchId").trim().ifBlank { row.optString("id").trim() }
+    }
+
+    private fun normalizeText(value: String): String = Normalizer.normalize(
+        value.trim().lowercase(java.util.Locale.ROOT), Normalizer.Form.NFD
+    ).replace(Regex("\\p{Mn}+"), "")
+        .replace(Regex("[^a-z0-9]+"), " ")
+        .trim()
 
     private fun marketKey(signal: JSONObject): String? {
         val point = signal.optDouble("point", Double.NaN)
