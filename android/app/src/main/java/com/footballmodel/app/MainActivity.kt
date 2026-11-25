@@ -61,7 +61,7 @@ class MainActivity : Activity() {
     private lateinit var headerAiRoiView: TextView
     private lateinit var leagueBar: LinearLayout
     private lateinit var leagueScroll: HorizontalScrollView
-    private lateinit var lineHeadingView: TextView
+    private lateinit var lineHeadingView: LinearLayout
     private lateinit var tabBar: LinearLayout
     private var currentTab = "matches"
     private val primaryTabs = listOf("matches", "desk", "history", "stats", "help")
@@ -366,9 +366,21 @@ class MainActivity : Activity() {
             setPadding(0, 0, 0, 0)
             addView(leagueBar)
         }
-        lineHeadingView = label("ЛИНИЯ", 25, true, Color.WHITE).apply {
-            setPadding(dp(2), dp(5), dp(2), dp(8))
+        // Match the shared terminal header used by the other refreshed sections.
+        lineHeadingView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             visibility = if (currentTab == "matches") View.VISIBLE else View.GONE
+            addView(label("IQ MATCH · MATCH INTELLIGENCE", 9, true, gold).apply {
+                typeface = Typeface.MONOSPACE
+                letterSpacing = 0.10f
+                setPadding(dp(2), dp(5), dp(2), dp(2))
+            }, LinearLayout.LayoutParams(-1, -2))
+            addView(label("Линия", 25, true, Color.WHITE).apply {
+                setPadding(dp(2), dp(1), dp(2), dp(3))
+            }, LinearLayout.LayoutParams(-1, -2))
+            addView(label("Предстоящие матчи и доступные рынки", 11, false, muted).apply {
+                setPadding(dp(2), 0, dp(2), dp(8))
+            }, LinearLayout.LayoutParams(-1, -2))
         }
         root.addView(lineHeadingView, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(4)
@@ -3793,11 +3805,10 @@ class MainActivity : Activity() {
             return
         }
         val matchId = match.optString("id").ifBlank { match.optString("utcDate") + match.optString("home") + match.optString("away") }
-        val id = "AI_MANUAL:$matchId:$marketKey"
-        if ((0 until bets.length()).any { bets.optJSONObject(it)?.optString("id") == id ||
-                (bets.optJSONObject(it)?.optString("matchId") == matchId &&
-                 bets.optJSONObject(it)?.optString("marketKey") == marketKey &&
-                 bets.optJSONObject(it)?.optString("source") in listOf("AI_AUTO", "AI_MANUAL")) }) {
+        val baseId = "AI_MANUAL:$matchId:$marketKey"
+        if ((0 until bets.length()).any { bets.optJSONObject(it)?.optString("matchId") == matchId &&
+                bets.optJSONObject(it)?.optString("marketKey") == marketKey &&
+                bets.optJSONObject(it)?.optString("source") in listOf("AI_AUTO", "AI_MANUAL") }) {
             Toast.makeText(this, "Ставка на этот рынок уже записана", Toast.LENGTH_SHORT).show()
             return
         }
@@ -3821,10 +3832,18 @@ class MainActivity : Activity() {
             // Close the confirmation immediately; disk persistence must not block the dialog animation.
             dialog.dismiss()
             val now = System.currentTimeMillis()
+            // A re-recorded bet gets a fresh identity. Deleted IDs are durable sync
+            // tombstones, so reusing the old ID would make cloud sync delete it again.
+            val id = "$baseId:$now"
+            val kickoff = match.optString("utcDate").ifBlank {
+                match.optString("dateEvent").ifBlank { match.optString("kickoff") }
+            }
             val bet = JSONObject()
                 .put("id", id).put("source", "AI_MANUAL").put("status", "PENDING")
                 .put("matchId", matchId).put("league", league)
-                .put("date", match.optString("utcDate"))
+                .put("date", kickoff)
+                .put("kickoff", kickoff)
+                .put("startTimestamp", match.optLong("startTimestamp", 0L))
                 .put("betDay", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now)))
                 .put("home", match.optString("home")).put("away", match.optString("away"))
                 .put("market", signal.optString("side")).put("marketKey", marketKey)
