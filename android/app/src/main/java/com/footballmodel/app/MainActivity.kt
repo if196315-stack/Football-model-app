@@ -2267,6 +2267,14 @@ class MainActivity : Activity() {
         }
         for (i in 0 until archive.length()) {
             val row = archive.optJSONObject(i) ?: continue
+            val price = row.optDouble("price", Double.NaN)
+            val probability = row.optDouble("modelProbability", Double.NaN)
+            val edgePp = row.optDouble("edgePp", Double.NaN)
+            val expectedValue = probability * price - 1.0
+            if (!price.isFinite() || price < 1.50 ||
+                !probability.isFinite() || probability < 0.60 ||
+                !edgePp.isFinite() || edgePp < 5.0 ||
+                !expectedValue.isFinite() || expectedValue < 0.05) continue
             val matchId = row.optString("matchId").trim()
             if (matchId.isBlank()) continue
             val marketKey = StatsPredictionScope.marketKey(
@@ -2305,7 +2313,7 @@ class MainActivity : Activity() {
             timeZone = java.util.TimeZone.getTimeZone("UTC")
         }.format(Date())
         return json.optString("updatedAt") + "|" + json.optString("uefaEvaluationUpdatedAt") + "|" +
-            (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + period + "|" + utcDay + "|" + scopeSignature
+            json.optString("oddsUpdatedAt") + "|" + (json.optJSONArray("evaluationMatches")?.length() ?: 0) + "|" + source + "|" + period + "|" + utcDay + "|" + scopeSignature
     }
 
 
