@@ -338,7 +338,7 @@ class MainActivity : Activity() {
         statusView.background = GradientDrawable().apply {
             setColor(Color.rgb(14, 31, 47))
             cornerRadius = dp(12).toFloat()
-            setStroke(dp(1), Color.rgb(53, 76, 98))
+            setStroke(dp(1), Color.rgb(35, 69, 84))
         }
         root.addView(statusView, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(12)
@@ -387,12 +387,8 @@ class MainActivity : Activity() {
             bottomMargin = dp(2)
         })
         val leagueScrollFrame = FrameLayout(this).apply {
-            setPadding(dp(9), dp(3), dp(9), dp(3))
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(Color.rgb(13, 29, 47), Color.rgb(9, 20, 35))).apply {
-                cornerRadius = dp(17).toFloat()
-                setStroke(dp(1), Color.rgb(53, 76, 98))
-            }
+            setPadding(0, 0, 0, 0)
+            background = null
         }
         leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
         root.addView(leagueScrollFrame, LinearLayout.LayoutParams(-1, -2).apply {
@@ -571,7 +567,7 @@ class MainActivity : Activity() {
             background = GradientDrawable().apply {
                 setColor(Color.rgb(14, 24, 38))
                 cornerRadius = dp(18).toFloat()
-                setStroke(dp(1), Color.rgb(53, 76, 98))
+                setStroke(dp(1), if (currentTab == "matches") Color.rgb(91, 78, 55) else Color.rgb(53, 76, 98))
             }
             elevation = 0f
         }
@@ -618,7 +614,7 @@ class MainActivity : Activity() {
             background = GradientDrawable().apply {
                 setColor(Color.rgb(43, 48, 58))
                 cornerRadius = dp(18).toFloat()
-                setStroke(dp(1), Color.rgb(53, 76, 98))
+                setStroke(dp(1), Color.rgb(114, 91, 54))
             }
         }
         row.addView(homeBlock, LinearLayout.LayoutParams(0, -2, 1f))
