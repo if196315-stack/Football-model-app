@@ -7190,7 +7190,7 @@
               "edge": 0.11322867,
               "expected_value": 0.06007022,
               "result": "LOSS",
-              "profit_units": -1.0,
+              "profit_units": -1,
               "home_score": 1,
               "away_score": 0
             }
@@ -7246,7 +7246,7 @@
               "edge": 0.06726808,
               "expected_value": 0.09955676,
               "result": "LOSS",
-              "profit_units": -1.0,
+              "profit_units": -1,
               "home_score": 1,
               "away_score": 0
             },
@@ -7261,7 +7261,7 @@
               "edge": 0.08318502,
               "expected_value": 0.07526238,
               "result": "LOSS",
-              "profit_units": -1.0,
+              "profit_units": -1,
               "home_score": 1,
               "away_score": 0
             }
@@ -7767,7 +7767,7 @@
               "edge": 0.21080134,
               "expected_value": 0.38193561,
               "result": "LOSS",
-              "profit_units": -1.0,
+              "profit_units": -1,
               "home_score": 2,
               "away_score": 0,
               "status": "SETTLED",
@@ -7784,7 +7784,7 @@
               "edge": 0.27762579,
               "expected_value": 0.50028247,
               "result": "LOSS",
-              "profit_units": -1.0,
+              "profit_units": -1,
               "home_score": 2,
               "away_score": 0,
               "status": "SETTLED",
@@ -10157,7 +10157,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 3.23
                 },
@@ -10180,17 +10180,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.06
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 9.32
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 3.7
                 }
               ]
@@ -10281,7 +10281,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.36
                 },
@@ -10299,7 +10299,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.97
                 },
@@ -10316,22 +10316,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.63
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.39
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.49
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.08
                 }
               ]
@@ -10406,7 +10406,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.12
                 },
@@ -10424,7 +10424,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.8
                 },
@@ -10441,22 +10441,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 3.62
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.8
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.29
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.04
                 }
               ]
@@ -10531,7 +10531,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 3.06
                 },
@@ -10549,7 +10549,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.09
                 },
@@ -10566,17 +10566,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.12
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 6.18
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 2.44
                 }
               ]
@@ -10651,7 +10651,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.48
                 },
@@ -10669,7 +10669,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.59
                 },
@@ -10686,22 +10686,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.02
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.24
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.79
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.17
                 }
               ]
@@ -10829,7 +10829,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 2.64
                 },
@@ -10847,7 +10847,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.06
                 },
@@ -10864,17 +10864,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.12
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 6.18
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 2.63
                 }
               ]
@@ -10902,21 +10902,6 @@
               "away_score": null
             },
             {
-              "signal_id": "c3b279f109074fcbbf0c",
-              "market": "match_total_over",
-              "point": 3.5,
-              "team": null,
-              "outcome": null,
-              "price": 2.11,
-              "model_probability": 0.69010591,
-              "edge": 0.25578956,
-              "expected_value": 0.45612347,
-              "result": null,
-              "profit_units": null,
-              "home_score": null,
-              "away_score": null
-            },
-            {
               "signal_id": "d6d6a3fb0afcea50c5d5",
               "market": "team_total_over",
               "point": 1.5,
@@ -10926,21 +10911,6 @@
               "model_probability": 0.88314679,
               "edge": 0.20143658,
               "expected_value": 0.1834167,
-              "result": null,
-              "profit_units": null,
-              "home_score": null,
-              "away_score": null
-            },
-            {
-              "signal_id": "28ecfccda8f24626566b",
-              "market": "team_total_over",
-              "point": 2.5,
-              "team": "home",
-              "outcome": null,
-              "price": 2.16,
-              "model_probability": 0.71336068,
-              "edge": 0.28630498,
-              "expected_value": 0.54085907,
               "result": null,
               "profit_units": null,
               "home_score": null,
@@ -11010,7 +10980,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.07
                 },
@@ -11028,7 +10998,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 2.09
                 },
@@ -11045,17 +11015,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 4.8
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 2.22
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.18
                 }
               ]
@@ -11130,7 +11100,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.53
                 },
@@ -11148,7 +11118,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.23
                 },
@@ -11165,22 +11135,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.55
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.12
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.45
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.41
                 }
               ]
@@ -11271,7 +11241,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 2.75
                 },
@@ -11289,7 +11259,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.08
                 },
@@ -11306,17 +11276,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.14
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 5.75
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 2.4
                 }
               ]
@@ -11391,7 +11361,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 2.36
                 },
@@ -11414,17 +11384,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.15
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 5.46
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 2.61
                 }
               ]
@@ -11499,7 +11469,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 4.51
                 },
@@ -11522,17 +11492,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.03
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 11.57
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 4.36
                 }
               ]
@@ -11607,7 +11577,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 4.05
                 },
@@ -11630,17 +11600,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.04
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 11.11
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 4.21
                 }
               ]
@@ -11731,7 +11701,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.22
                 },
@@ -11749,7 +11719,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.47
                 },
@@ -11766,22 +11736,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.39
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.4
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.58
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.14
                 }
               ]
@@ -11856,7 +11826,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.21
                 },
@@ -11874,7 +11844,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.98
                 },
@@ -11891,22 +11861,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 3.26
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.61
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.34
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.05
                 }
               ]
@@ -12014,11 +11984,11 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 2.0
+                  "price": 2
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 4.81
                 },
@@ -12036,7 +12006,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.05
                 },
@@ -12053,17 +12023,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.06
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 9.23
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 3.33
                 }
               ]
@@ -12154,7 +12124,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.14
                 },
@@ -12172,7 +12142,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.96
                 },
@@ -12189,22 +12159,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 3.78
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.79
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.27
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.03
                 }
               ]
@@ -14300,7 +14270,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.81
                 },
@@ -14318,7 +14288,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.42
                 },
@@ -14335,22 +14305,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.58
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.12
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.3
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.33
                 }
               ]
@@ -14478,7 +14448,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.44
                 },
@@ -14490,7 +14460,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.23
                 },
@@ -14507,22 +14477,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.6
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.16
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.24
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.37
                 }
               ]
@@ -14613,7 +14583,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 6.2
                 },
@@ -14630,7 +14600,7 @@
               "spreads": [
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 5.45
                 }
               ]
@@ -14705,7 +14675,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 2.14
                 },
@@ -14717,7 +14687,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.15
                 },
@@ -14734,22 +14704,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.24
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.02
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 3.7
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.79
                 }
               ]
@@ -14824,7 +14794,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.39
                 },
@@ -14842,7 +14812,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.88
                 },
@@ -14859,22 +14829,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.42
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.32
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.52
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.08
                 }
               ]
@@ -14959,7 +14929,7 @@
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.13
                 },
@@ -14977,7 +14947,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 2.02
                 },
@@ -14994,22 +14964,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 3.7
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.8
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.25
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.02
                 }
               ]
@@ -15094,7 +15064,7 @@
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.21
                 },
@@ -15112,7 +15082,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 4.25
                 },
@@ -15129,17 +15099,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 5.1
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.98
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.14
                 }
               ]
@@ -15208,7 +15178,7 @@
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.32
                 },
@@ -15226,7 +15196,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.68
                 },
@@ -15243,22 +15213,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.37
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.37
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.54
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.12
                 }
               ]
@@ -15327,7 +15297,7 @@
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.28
                 },
@@ -15345,7 +15315,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.47
                 },
@@ -15362,22 +15332,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.16
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.33
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.65
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.17
                 }
               ]
@@ -15474,7 +15444,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 2.32
                 },
@@ -15491,17 +15461,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 4.7
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 2.14
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.17
                 }
               ]
@@ -15623,7 +15593,7 @@
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.18
                 },
@@ -15641,7 +15611,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.8
                 },
@@ -15658,22 +15628,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 3.05
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.59
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.35
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.07
                 }
               ]
@@ -15764,7 +15734,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.55
                 },
@@ -15776,7 +15746,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.24
                 },
@@ -15793,22 +15763,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.54
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.14
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 2.37
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.41
                 }
               ]
@@ -15978,7 +15948,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 4.5
                 },
@@ -15995,17 +15965,17 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 8.6
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 3.4
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.05
                 }
               ]
@@ -16080,7 +16050,7 @@
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.46
                 },
@@ -16098,7 +16068,7 @@
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "side": "over",
                   "price": 1.39
                 },
@@ -16115,22 +16085,22 @@
               "spreads": [
                 {
                   "team": "home",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.79
                 },
                 {
                   "team": "home",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.18
                 },
                 {
                   "team": "away",
-                  "point": 0.0,
+                  "point": 0,
                   "price": 1.96
                 },
                 {
                   "team": "away",
-                  "point": 1.0,
+                  "point": 1,
                   "price": 1.23
                 }
               ]
