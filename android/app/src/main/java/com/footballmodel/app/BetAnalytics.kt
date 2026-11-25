@@ -102,8 +102,10 @@ internal object BetAnalyticsCalculator {
             it.stake.isFinite() && it.stake > 0.0 &&
             it.odds.isFinite() && it.odds > 1.0 }
         val invalid = scoped.size - valid.size
-        // The report covers only the eight currently active working markets.
-        val singlesRecords = valid.filter { isWorkingMarket(it.marketKey) }
+        // TOP is the complete TOP archive, including older/retired signal markets.
+        // ALL keeps the current eight-market working set.
+        val singlesRecords = if (source.equals("TOP", true)) valid
+            else valid.filter { isWorkingMarket(it.marketKey) }
         val manualRecords = singlesRecords.filter { !it.source.equals("AI_MANUAL", true) }
         val aiRecords = singlesRecords.filter { it.source.equals("AI_MANUAL", true) }
         val overall = summarize(singlesRecords)
