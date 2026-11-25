@@ -87,6 +87,8 @@ class MainActivity : Activity() {
     private data class BetMarket(val key: String, val label: String)
     private var selectedLeague = "ALL"
     private var selectedHistoryTab = "ОЖИДАЮТ"
+    // Avoid inflating hundreds of historical bet cards in one UI frame.
+    private var historyVisibleLimit = 30
     private var selectedTopTab = "ОЖИДАЮТ"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
     // Keep first-screen view creation bounded on slower Android devices.
@@ -2771,7 +2773,7 @@ class MainActivity : Activity() {
                 addText(emptySection, emptyText, 11, false, muted)
                 return
             }
-            items.forEach { bet ->
+            items.take(historyVisibleLimit).forEach { bet ->
                 val box = card()
                 val state = bet.optString("status")
                 val status = when (state) {
@@ -2903,6 +2905,28 @@ class MainActivity : Activity() {
                     }
                     box.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
                 }
+            }
+            if (items.size > historyVisibleLimit) {
+                val remaining = items.size - historyVisibleLimit
+                val more = label("Показать ещё ${minOf(30, remaining)} · осталось ${remaining}", 11, true, cyan).apply {
+                    gravity = Gravity.CENTER
+                    setPadding(dp(12), dp(13), dp(12), dp(13))
+                    background = rounded(Color.rgb(18, 43, 61), 12)
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        val previousScroll = mainScrollView.scrollY
+                        historyVisibleLimit += 30
+                        tabViewCache.remove("history|" + selectedHistoryTab)
+                        renderedKey = null
+                        render()
+                        mainScrollView.post { mainScrollView.scrollTo(0, previousScroll) }
+                    }
+                }
+                matchesContainer.addView(more, LinearLayout.LayoutParams(-1, -2).apply {
+                    topMargin = dp(8)
+                    bottomMargin = dp(8)
+                })
             }
         }
 
