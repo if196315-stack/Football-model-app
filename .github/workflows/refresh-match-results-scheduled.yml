@@ -1,14 +1,7 @@
-name: Refresh API-Sport match results (scheduled)
+name: Refresh API-Sport match results (manual fallback)
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/refresh-match-results-scheduled.yml"
 
 concurrency:
   group: football-feed-write
