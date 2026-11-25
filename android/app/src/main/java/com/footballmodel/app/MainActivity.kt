@@ -2725,7 +2725,15 @@ class MainActivity : Activity() {
                         gravity = Gravity.CENTER_VERTICAL
                     }
                     compactHistoryButton(actions, "Удалить", destructive = true) {
-                        val id = bet.optString("id")
+                        val id = bet.optString("id").ifBlank {
+                            listOf(bet.optString("matchId"), bet.optString("marketKey"),
+                                bet.optString("date"), bet.optString("createdAt")).joinToString("|")
+                        }
+                        val deletedIds = betPrefs.getStringSet("deleted_bet_ids", emptySet()).orEmpty().toMutableSet()
+                        deletedIds.add(id)
+                        // Persist the deletion marker before writing the reduced bet list.
+                        // Cloud sync uses this marker to prevent a deleted remote copy from returning.
+                        betPrefs.edit().putStringSet("deleted_bet_ids", deletedIds).commit()
                         val next = JSONArray()
                         for (k in 0 until bets.length()) {
                             val item = bets.optJSONObject(k) ?: continue
