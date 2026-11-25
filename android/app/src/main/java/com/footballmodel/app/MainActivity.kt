@@ -2660,7 +2660,15 @@ class MainActivity : Activity() {
     private fun renderBetHistory(j: JSONObject) {
         screenHeader("BET TRACKER", "Ставки", "Открытые и завершённые бумажные ставки.")
 
-        val findIndexedMatch = buildMatchLookup(j)
+        val rawMatchLookup = buildMatchLookup(j)
+        // Cache fixture resolution by JSONObject identity for this render. A bet is
+        // consulted during settlement, sorting, and card rendering; resolving it
+        // repeatedly used to redo normalization/date matching on every pass.
+        val matchLookupCache = java.util.IdentityHashMap<JSONObject, JSONObject?>()
+        val findIndexedMatch: (JSONObject) -> JSONObject? = { bet ->
+            if (matchLookupCache.containsKey(bet)) matchLookupCache[bet]
+            else rawMatchLookup(bet).also { matchLookupCache[bet] = it }
+        }
         // Bet records may contain only a calendar date; use the current fixture
         // as the source of truth for both ordering and the displayed kickoff.
         fun betKickoffTimestamp(bet: JSONObject): Long? {
@@ -2946,10 +2954,16 @@ class MainActivity : Activity() {
             matchesContainer.addView(sortRow)
             val byCreated = compareByDescending<JSONObject> { it.optLong("createdAt", 0L) }
                 .thenByDescending { it.optString("id") }
-            val byKickoff = compareBy<JSONObject> { betKickoffTimestamp(it) ?: Long.MAX_VALUE }
-                .thenBy { it.optLong("createdAt", Long.MAX_VALUE) }
-            val sortedOpenBets = if (selectedSort == "created") openBets.sortedWith(byCreated)
-                else openBets.sortedWith(byKickoff)
+            // Resolve and parse each kickoff once instead of doing match lookup
+            // from inside the O(n log n) sort comparator.
+            val sortedOpenBets = if (selectedSort == "created") {
+                openBets.sortedWith(byCreated)
+            } else {
+                openBets.map { it to betKickoffTimestamp(it) }
+                    .sortedWith(compareBy<Pair<JSONObject, Long?>> { it.second ?: Long.MAX_VALUE }
+                        .thenBy { it.first.optLong("createdAt", Long.MAX_VALUE) })
+                    .map { it.first }
+            }
             renderBetSection("ОТКРЫТЫЕ СТАВКИ", sortedOpenBets,
                 "Ставок, ожидающих расчёта, пока нет.")
         } else {
