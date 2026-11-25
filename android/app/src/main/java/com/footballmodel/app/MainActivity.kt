@@ -2300,16 +2300,38 @@ class MainActivity : Activity() {
         }
 
         val persistedBets = try { JSONArray(betPrefs.getString("bets", bets.toString())) } catch (_: Exception) { bets }
-        var changed = false
+        val deletedBetIds = betPrefs.getStringSet("deleted_bet_ids", emptySet()).orEmpty()
+        val mergedSnapshot = LinkedHashMap<String, JSONObject>()
+        fun betIdentity(bet: JSONObject, index: Int): String = bet.optString("id").ifBlank {
+            "local:${bet.optString("matchId")}:${bet.optString("marketKey")}:${bet.optString("date")}:${bet.optString("createdAt")}:$index"
+        }
+        // Merge persisted background changes with the current in-memory list instead
+        // of blindly replacing it. A blind reload could resurrect a just-deleted row
+        // or discard a newly recorded manual bet before its async save reaches disk.
         for (i in 0 until persistedBets.length()) {
             val bet = persistedBets.optJSONObject(i) ?: continue
-            val key = bet.optString("id").ifBlank {
-                "local:${bet.optString("matchId")}:${bet.optString("marketKey")}:${bet.optString("date")}:$i"
-            }
+            val key = betIdentity(bet, i)
+            if (key !in deletedBetIds) mergedSnapshot[key] = bet
+        }
+        for (i in 0 until bets.length()) {
+            val local = bets.optJSONObject(i) ?: continue
+            val key = betIdentity(local, i)
+            if (key in deletedBetIds) continue
+            val persisted = mergedSnapshot[key]
+            // Never let an unsaved PENDING copy roll back a terminal persisted result.
+            if (persisted != null && local.optString("status") == "PENDING" &&
+                persisted.optString("status") in listOf("WON", "LOST", "PUSH")) continue
+            mergedSnapshot[key] = local
+        }
+        val mergedBets = JSONArray(mergedSnapshot.values.toList())
+        var changed = false
+        for (i in 0 until mergedBets.length()) {
+            val bet = mergedBets.optJSONObject(i) ?: continue
+            val key = betIdentity(bet, i)
             val previousStatus = previousStatuses[key]
             if (previousStatus != null && previousStatus != bet.optString("status")) changed = true
         }
-        bets = persistedBets
+        bets = mergedBets
         invalidateStatsBetCache()
 
         val findIndexedMatch = buildMatchLookup(json)
