@@ -219,6 +219,18 @@ class BetAnalyticsCalculatorTest {
         assertEquals(0, top.byMarket.first { it.label == "X2" }.count)
     }
  
+    @Test fun topStatsIncludeAllFourteenSettledTopMatchesAcrossMarkets() {
+        val rows = (1..10).map { bet("top-active-$it", source = "UEFA_PAPER", marketKey = "awayOver05") } +
+            (1..4).map { bet("top-legacy-market-$it", source = "UEFA_PAPER", marketKey = "over15") }
+        val top = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "TOP")
+        val all = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "ALL")
+        assertEquals(14, top.overall.settled)
+        assertEquals(14, top.overall.count)
+        assertEquals(140.0, top.overall.turnover, 0.0001)
+        // ALL intentionally retains the current eight-market working filter.
+        assertEquals(10, all.overall.settled)
+    }
+
     @Test fun reportsExcludeRetiredMarketsFromOverallWorkingMarketStatistics() {
         val rows = listOf(
             bet("active-market", source = "MANUAL", status = "WON", marketKey = "over25"),
