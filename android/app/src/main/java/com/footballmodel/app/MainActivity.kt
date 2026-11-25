@@ -1025,7 +1025,17 @@ class MainActivity : Activity() {
         }
         val millis = kickoffTimestamp(match) ?: return "Дата и время начала не указаны"
         // Keep the displayed precision consistent with the timestamp used for sorting.
-        val hasTime = raw.contains("T") || match.optLong("startTimestamp", 0L) > 0L
+        val dateTimeFields = listOf(
+            match.optString("utcDate"),
+            match.optString("dateEvent"),
+            match.optString("kickoff"),
+            match.optString("date")
+        )
+        val hasExactDateTime = dateTimeFields.any { it.contains(Regex("T\\d{2}:\\d{2}")) }
+        val hasTimedEpoch = millis > 0L && Math.floorMod(millis, 86_400_000L) != 0L
+        // Date-only epochs often represent midnight placeholders, not kickoff.
+        // Do not render those as a fabricated 05:00 Yekaterinburg start.
+        val hasTime = hasExactDateTime || hasTimedEpoch
         val formatted = SimpleDateFormat(if (hasTime) "EEE, dd MMM · HH:mm" else "EEE, dd MMM", Locale.getDefault())
             .apply { timeZone = matchTimeZone() }.format(Date(millis))
         return if (hasTime) "$formatted · Екатеринбург (UTC+5)" else "$formatted · время начала не указано"
@@ -2710,7 +2720,10 @@ class MainActivity : Activity() {
                     bet.put("kickoff", fixtureKickoff)
                     changed = true
                 }
-                val fixtureTimestamp = match.optLong("startTimestamp", 0L)
+                // Store the normalized instant (milliseconds), not a provider's
+                // seconds/midnight placeholder. The display formatter converts this
+                // UTC instant to Asia/Yekaterinburg (UTC+5).
+                val fixtureTimestamp = kickoffTimestamp(match) ?: 0L
                 if (fixtureTimestamp > 0L && bet.optLong("startTimestamp", 0L) != fixtureTimestamp) {
                     bet.put("startTimestamp", fixtureTimestamp)
                     changed = true
@@ -2784,7 +2797,12 @@ class MainActivity : Activity() {
                 // Resolve the timestamp from the live fixture (or coupon legs) first,
                 // then format that exact instant instead of falling back to a date-only label.
                 val kickoffForDisplay = betKickoffTimestamp(bet)?.let { timestamp ->
-                    kickoffLabel(JSONObject().put("startTimestamp", timestamp))
+                    // Pass an explicit UTC ISO datetime so this exact instant is
+                    // always formatted as a kickoff time, including 00:00 UTC.
+                    val utcKickoff = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                        .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                        .format(Date(timestamp))
+                    kickoffLabel(JSONObject().put("utcDate", utcKickoff))
                 } ?: (fixtureForDisplay ?: couponKickoff ?: bet).let { kickoffLabel(it) }
                     .takeUnless { it == "Дата и время начала не указаны" }
                     ?: date(bet.optString("kickoff").ifBlank { bet.optString("date") })
