@@ -102,6 +102,10 @@ class MainActivity : Activity() {
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
     private var renderedKey: String? = null
+    // Header totals are stable between bet/settings changes; avoid recalculating ROI on every tab render.
+    private var headerFinancialsDirty = true
+    private var cachedHeaderBankroll = 0.0
+    private var cachedHeaderAiRoi: Pair<Double?, Int> = null to 0
     // Keep the user's vertical position independently for each tab/filter screen.
     private val tabScrollPositions = mutableMapOf<String, Int>()
     private val liveRefreshHandler = Handler(Looper.getMainLooper())
@@ -1581,6 +1585,7 @@ class MainActivity : Activity() {
     }
 
     private fun invalidateStatsBetCache() {
+        headerFinancialsDirty = true
         statsBetCacheGeneration.incrementAndGet()
         statsBetViewCache = null
         statsBetCalculationError = null
@@ -3811,6 +3816,7 @@ class MainActivity : Activity() {
                 // Обновляем все закешированные экраны, зависящие от банка или правила ставки.
                 if (key == "initial_bankroll" || key == "minimum_stake" || key == "fixed_stake") {
                     tabViewCache.clear()
+                    if (key == "initial_bankroll") headerFinancialsDirty = true
                 }
                 dialog.dismiss()
                 animateContentRefresh { render() }
@@ -3860,9 +3866,14 @@ class MainActivity : Activity() {
 
     private fun refreshHeaderFinancials() {
         if (!::headerBalanceView.isInitialized || !::headerAiRoiView.isInitialized) return
+        if (headerFinancialsDirty) {
+            cachedHeaderBankroll = currentBankroll()
+            cachedHeaderAiRoi = aiPaperRoiPercent()
+            headerFinancialsDirty = false
+        }
         UiMotion.animateTextChange(headerBalanceView,
-            if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", currentBankroll()) else "Баланс —")
-        val (roi, count) = aiPaperRoiPercent()
+            if (hasInitialBankroll()) String.format(Locale.US, "%.0f ₽", cachedHeaderBankroll) else "Баланс —")
+        val (roi, count) = cachedHeaderAiRoi
         UiMotion.animateTextChange(headerAiRoiView,
             if (roi == null) "ТОП ROI —" else String.format(Locale.US, "ТОП ROI %+.1f%% · %d", roi, count))
         UiMotion.animateTextColor(headerAiRoiView, if (roi == null) muted else if (roi >= 0.0) accent else gold)
