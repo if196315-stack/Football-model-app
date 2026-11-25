@@ -4039,6 +4039,13 @@ class MainActivity : Activity() {
         val edge = if (signal.optBoolean("paperOnly")) signal.optDouble("edgePp", 0.0)
             else (probability - 1.0 / odds) * 100.0 + signal.optDouble("formAdjustmentPp", 0.0)
         val ev = probability * odds - 1.0
+        if (!odds.isFinite() || odds < 1.50 ||
+            !probability.isFinite() || probability < 0.60 ||
+            !edge.isFinite() || edge < 5.0 ||
+            !ev.isFinite() || ev < 0.05) {
+            Toast.makeText(this, "Сигнал больше не проходит фильтр ТОП (кэф ≥ 1,50, вероятность, edge и EV)", Toast.LENGTH_LONG).show()
+            return
+        }
         if (!hasInitialBankroll()) {
             Toast.makeText(this, "Сначала задай стартовый банк в профиле", Toast.LENGTH_LONG).show()
             return
