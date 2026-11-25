@@ -871,12 +871,13 @@ class MainActivity : Activity() {
                 val w = width.toFloat()
                 val h = height.toFloat()
                 val path = android.graphics.Path().apply {
-                    moveTo(w * 0.57f, h * 0.08f)
-                    lineTo(w * 0.28f, h * 0.53f)
-                    lineTo(w * 0.48f, h * 0.53f)
-                    lineTo(w * 0.40f, h * 0.92f)
-                    lineTo(w * 0.73f, h * 0.42f)
-                    lineTo(w * 0.53f, h * 0.42f)
+                    // Match the chart icon's visible footprint (not just its 26dp view box).
+                    moveTo(w * 0.60f, h * 0.20f)
+                    lineTo(w * 0.32f, h * 0.52f)
+                    lineTo(w * 0.49f, h * 0.52f)
+                    lineTo(w * 0.42f, h * 0.80f)
+                    lineTo(w * 0.72f, h * 0.43f)
+                    lineTo(w * 0.55f, h * 0.43f)
                     close()
                 }
                 canvas.drawPath(path, boltPaint)
