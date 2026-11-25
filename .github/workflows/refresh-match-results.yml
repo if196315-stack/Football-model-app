@@ -43,6 +43,7 @@ jobs:
       # Use the durable frozen-quote archive only; do not collect or invent new odds here.
       - name: Rebuild settled ALL-market ROI
         run: python backend/build_market_roi.py --snapshots /tmp/no-new-snapshots.jsonl --quotes artifacts/market-roi-quotes.jsonl
+      # Also writes each settled paperSignals result into docs/uefa-data.json for Android.
       - name: Settle UEFA paper bets from published final scores
         run: python backend/settle_uefa_paper_bets.py
       - name: Commit only changed result fields and ROI
