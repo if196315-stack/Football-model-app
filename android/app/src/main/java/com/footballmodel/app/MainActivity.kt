@@ -449,11 +449,13 @@ class MainActivity : Activity() {
         addText(loadingCard, "●  MATCH CENTER", 10, true, cyan)
         addText(loadingCard, "Интерфейс готов. Получаю матчи и прогнозы…", 13, false, muted)
         CrashDiagnostics.showPendingReport(this)
+        // Feed loading must not wait for the optional GitHub history round-trip.
+        // Start both operations independently so slow cloud sync cannot hold back
+        // match data or the first render of Bets / Statistics.
         if (PrivateHistorySync.hasToken(this)) {
-            syncPrivateHistory(showResult = false) { loadData() }
-        } else {
-            loadData()
+            syncPrivateHistory(showResult = false)
         }
+        loadData()
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
@@ -3097,11 +3099,16 @@ class MainActivity : Activity() {
         }
         PrivateHistorySync.syncAsync(this) { success, message ->
             if (success) {
-                bets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
-                invalidateStatsBetCache()
-                tabViewCache.clear()
-                renderedKey = null
-                if (data != null) render()
+                val syncedBets = try { JSONArray(betPrefs.getString("bets", "[]")) } catch (_: Exception) { JSONArray() }
+                // A successful no-op cloud sync is common. Do not tear down and
+                // rebuild the active screen unless the actual bet rows changed.
+                if (syncedBets.toString() != bets.toString()) {
+                    bets = syncedBets
+                    invalidateStatsBetCache()
+                    tabViewCache.clear()
+                    renderedKey = null
+                    if (data != null) render()
+                }
             }
             afterSync?.invoke()
             if (showResult) Toast.makeText(this, message, Toast.LENGTH_LONG).show()
