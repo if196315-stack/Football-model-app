@@ -73,6 +73,7 @@ class MainActivity : Activity() {
     private val leagueCountLock = Any()
     @Volatile private var aiCandidatesCacheKey: String? = null
     @Volatile private var aiCandidatesCache: List<Triple<JSONObject, String, JSONObject>> = emptyList()
+    private val aiCandidateRefreshInProgress = AtomicBoolean(false)
     private var bets = JSONArray()
     private val betPrefs by lazy { getSharedPreferences("bet_history", MODE_PRIVATE) }
     private val aiSignalPrefs by lazy { getSharedPreferences("ai_signal_history", MODE_PRIVATE) }
@@ -4207,13 +4208,56 @@ class MainActivity : Activity() {
         if (archive.length() == 0) addText(summary, "История начнёт накапливаться после появления первых сигналов с котировкой MelBet.", 10, false, muted)
     }
 
+    private fun requestAiCandidatesForRender(json: JSONObject) {
+        if (!aiCandidateRefreshInProgress.compareAndSet(false, true)) return
+        val expectedKey = statsCacheKey(json)
+        thread(name = "iq-match-top-candidates") {
+            val candidates = try {
+                collectAiCandidates(json)
+            } catch (error: Throwable) {
+                android.util.Log.e("IQMatchTOP", "Unable to prepare TOP candidates", error)
+                emptyList()
+            }
+            runOnUiThread {
+                aiCandidateRefreshInProgress.set(false)
+                if (data !== json) return@runOnUiThread
+                aiCandidatesCache = candidates
+                aiCandidatesCacheKey = expectedKey
+                tabViewCache.remove("desk|ОЖИДАЮТ")
+                tabViewCache.remove("desk|OPEN")
+                tabViewCache.remove("desk|PENDING")
+                if (currentTab == "desk") {
+                    renderedKey = null
+                    render()
+                }
+            }
+        }
+    }
+
+    private fun recordedAiMarketKeys(): Set<String> {
+        val recorded = HashSet<String>()
+        for (index in 0 until bets.length()) {
+            val bet = bets.optJSONObject(index) ?: continue
+            if (bet.optString("source") !in listOf("AI_AUTO", "AI_MANUAL")) continue
+            val matchId = bet.optString("matchId")
+            val marketKey = bet.optString("marketKey")
+            if (matchId.isNotBlank() && marketKey.isNotBlank()) recorded.add("$matchId::$marketKey")
+        }
+        return recorded
+    }
+
     private fun renderBettingDesk(json: JSONObject) {
         screenHeader("ТОП · MATCH INTELLIGENCE", "ТОП", "Новые сильные сигналы отдельно от уже зафиксированных ставок ТОП.")
-        val sorted = if (aiCandidatesCacheKey == statsCacheKey(json)) {
-            aiCandidatesCache
-        } else {
-            collectAiCandidates(json)
+        val candidateKey = statsCacheKey(json)
+        if (aiCandidatesCacheKey != candidateKey) {
+            requestAiCandidatesForRender(json)
+            val loading = card()
+            addText(loading, "Подготавливаю список сильных сигналов…", 13, true, Color.WHITE)
+            addText(loading, "Расчёт выполняется в фоне, интерфейс остаётся доступным.", 11, false, muted)
+            return
         }
+        val sorted = aiCandidatesCache
+        val recordedKeys = recordedAiMarketKeys()
         // Render one independent card for each eligible market. Keep the match
         // chronology from collectAiCandidates; within the same kickoff, Kelly order
         // from eligibleTopSignals puts the strongest market first; cards remain chronological.
@@ -4223,7 +4267,13 @@ class MainActivity : Activity() {
             bundle.optJSONObject("primary")?.let { signals.add(it) }
             val alternatives = bundle.optJSONArray("alternatives") ?: JSONArray()
             for (i in 0 until alternatives.length()) alternatives.optJSONObject(i)?.let { signals.add(it) }
-            signals.filterNot { isAiBetRecorded(match, it) }.map { signal ->
+            val matchId = match.optString("id").ifBlank {
+                match.optString("utcDate") + match.optString("home") + match.optString("away")
+            }
+            signals.filterNot { signal ->
+                val marketKey = marketKeyForAutoSignal(signal, match) ?: return@filterNot false
+                "$matchId::$marketKey" in recordedKeys
+            }.map { signal ->
                 Triple(item, signal, signals.indexOf(signal) == 0)
             }
         }
