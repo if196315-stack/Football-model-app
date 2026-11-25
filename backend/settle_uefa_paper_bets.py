@@ -137,6 +137,28 @@ def settle_open_bets(bets: list[dict], fixtures: dict, existing: list[dict],
     return settled
 
 
+def settle_feed_paper_signals(payload: dict, settled_at: str | None = None) -> int:
+    """Write final outcomes back into each match paperSignals array for Android."""
+    changed = 0
+    for competition in payload.get("competitions") or []:
+        for fixture in competition.get("matches") or []:
+            for row in fixture.get("paperSignals") or []:
+                if row.get("result") in ("WIN", "LOSS", "PUSH") and row.get("profit_units") is not None:
+                    continue
+                settlement = settle_bet(row, fixture, settled_at)
+                if settlement is None:
+                    continue
+                row.update({
+                    "status": "SETTLED",
+                    "result": settlement["result"],
+                    "profit_units": settlement["profit_units"],
+                    "home_score": settlement["home_score"],
+                    "away_score": settlement["away_score"],
+                    "settled_at": settlement["settled_at"],
+                })
+                changed += 1
+    return changed
+
 def append_settlements(rows: list[dict], output_path: str | Path = SETTLEMENTS) -> dict:
     output = Path(output_path)
     if rows:
@@ -171,6 +193,12 @@ def main() -> int:
         raise RuntimeError(f"UEFA app feed is missing: {feed_path}")
     feed = json.loads(feed_path.read_text(encoding="utf-8"))
     fixtures = fixture_index_from_feed(feed)
+    feed_settled = settle_feed_paper_signals(feed)
+    if feed_settled:
+        tmp = feed_path.with_suffix(feed_path.suffix + ".tmp")
+        tmp.write_text(json.dumps(feed, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(feed_path)
+        print(json.dumps({"feed_paper_signals_settled": feed_settled}, ensure_ascii=False))
     existing = read_jsonl(args.output)
     settled = settle_open_bets(bets, fixtures, existing)
     append_settlements(settled, args.output)
