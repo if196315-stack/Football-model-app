@@ -872,12 +872,13 @@ class MainActivity : Activity() {
                 val h = height.toFloat()
                 val path = android.graphics.Path().apply {
                     // Match the chart icon's visible footprint (not just its 26dp view box).
-                    moveTo(w * 0.60f, h * 0.20f)
-                    lineTo(w * 0.32f, h * 0.52f)
-                    lineTo(w * 0.49f, h * 0.52f)
-                    lineTo(w * 0.42f, h * 0.80f)
-                    lineTo(w * 0.72f, h * 0.43f)
-                    lineTo(w * 0.55f, h * 0.43f)
+                    // Expand the bolt's visible footprint to match the chart icon.
+                    moveTo(w * 0.66f, h * 0.15f)
+                    lineTo(w * 0.22f, h * 0.54f)
+                    lineTo(w * 0.46f, h * 0.54f)
+                    lineTo(w * 0.36f, h * 0.85f)
+                    lineTo(w * 0.80f, h * 0.40f)
+                    lineTo(w * 0.55f, h * 0.40f)
                     close()
                 }
                 canvas.drawPath(path, boltPaint)
@@ -2776,7 +2777,12 @@ class MainActivity : Activity() {
                         findIndexedMatch(leg)?.let { it to (kickoffTimestamp(it) ?: Long.MAX_VALUE) }
                     }.minByOrNull { it.second }?.first
                 } else null
-                val kickoffForDisplay = (fixtureForDisplay ?: couponKickoff ?: bet).let { kickoffLabel(it) }
+                // Use the same kickoff formatter and timezone as the Line cards.
+                // Resolve the timestamp from the live fixture (or coupon legs) first,
+                // then format that exact instant instead of falling back to a date-only label.
+                val kickoffForDisplay = betKickoffTimestamp(bet)?.let { timestamp ->
+                    kickoffLabel(JSONObject().put("startTimestamp", timestamp))
+                } ?: (fixtureForDisplay ?: couponKickoff ?: bet).let { kickoffLabel(it) }
                     .takeUnless { it == "Дата и время начала не указаны" }
                     ?: date(bet.optString("kickoff").ifBlank { bet.optString("date") })
                 addText(box, displayLeagueName(bet.optString("league")) + " · " + kickoffForDisplay, 10, false, muted)
