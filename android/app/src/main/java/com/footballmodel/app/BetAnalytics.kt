@@ -165,10 +165,11 @@ internal object BetAnalyticsCalculator {
     }
 
     private fun sourceMatches(bet: AnalyticsBet, source: String): Boolean = when (source) {
-        // TOP contains only bets explicitly confirmed from the TOP signals section.
-        // ALL contains every real saved market bet; AI_AUTO paper observations are
-        // excluded before this filter is applied.
-        "TOP" -> bet.source.equals("AI_MANUAL", true)
+        // TOP includes confirmed TOP singles and settled UEFA paper bets imported
+        // from the same model feed. Ordinary manually entered bets remain excluded.
+        // AI_AUTO observations are excluded before this filter is applied.
+        "TOP" -> bet.source.equals("AI_MANUAL", true) ||
+            bet.source.equals("UEFA_PAPER", true) || bet.isTopSignal
         else -> true
     }
 

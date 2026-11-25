@@ -30,16 +30,17 @@ class BetAnalyticsCalculatorTest {
     }
 
 
-    @Test fun allSourceIncludesImportedUefaPaperWhileTopRemainsTopOnly() {
+    @Test fun topSourceIncludesAiManualAndImportedUefaPaperButNotOrdinaryManualBets() {
         val rows = listOf(
             bet("top-one", source = "AI_MANUAL", marketKey = "1x"),
             bet("paper-one", source = "UEFA_PAPER", marketKey = "1x"),
-            bet("paper-two", source = "UEFA_PAPER", marketKey = "x2")
+            bet("paper-two", source = "UEFA_PAPER", marketKey = "x2"),
+            bet("ordinary-manual", source = "MANUAL", marketKey = "1x")
         )
         val all = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "ALL")
         val top = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "TOP")
-        assertEquals(3, all.overall.settled)
-        assertEquals(1, top.overall.settled)
+        assertEquals(4, all.overall.settled)
+        assertEquals(3, top.overall.settled)
     }
 
     @Test fun activeMarketRulesMatchTheEightMarketsShownInTheApp() {
