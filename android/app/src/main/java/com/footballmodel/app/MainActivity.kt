@@ -1474,7 +1474,8 @@ class MainActivity : Activity() {
     @Volatile private var statsMetricsError: String? = null
     private val statsCalculationInProgress = AtomicBoolean(false)
     private var selectedStatsPeriod = "ALL"
-    private var selectedStatsSource = "TOP"
+    // Include all saved single bets by default, including imported UEFA paper rows.
+    private var selectedStatsSource = "ALL"
     private data class StatsBetInput(
         val id: String, val betDay: String, val date: String, val createdAt: Long,
         val source: String, val status: String, val stake: Double, val odds: Double,

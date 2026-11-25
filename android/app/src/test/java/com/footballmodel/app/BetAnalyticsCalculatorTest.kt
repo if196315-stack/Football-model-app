@@ -29,6 +29,19 @@ class BetAnalyticsCalculatorTest {
         assertEquals(10.0, report.overall.profit, 0.0001)
     }
 
+
+    @Test fun allSourceIncludesImportedUefaPaperWhileTopRemainsTopOnly() {
+        val rows = listOf(
+            bet("top-one", source = "AI_MANUAL", marketKey = "1x"),
+            bet("paper-one", source = "UEFA_PAPER", marketKey = "1x"),
+            bet("paper-two", source = "UEFA_PAPER", marketKey = "x2")
+        )
+        val all = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "ALL")
+        val top = BetAnalyticsCalculator.calculate(rows, 0L, 10_000L, source = "TOP")
+        assertEquals(3, all.overall.settled)
+        assertEquals(1, top.overall.settled)
+    }
+
     @Test fun activeMarketRulesMatchTheEightMarketsShownInTheApp() {
         listOf("1x", "x2", "bttsYes", "over25", "homeOver05", "homeOver15", "awayOver05", "awayOver15")
             .forEach { assertEquals(true, ActiveMarketRules.contains(it)) }

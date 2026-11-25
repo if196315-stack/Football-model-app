@@ -70,13 +70,15 @@ class UefaPaperBetImporterTest {
                 .put("stake", 7.0)
         )
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
-        assertEquals(1, bets.length())
-        val bet = bets.getJSONObject(0)
-        assertEquals(7.0, bet.getDouble("stake"), 0.0001)
-        assertEquals("local-bet", bet.getString("id"))
-        assertEquals("WON", bet.getString("status"))
-        assertEquals("890b9b6096346575331f", bet.getString("paperSignalId"))
-        assertEquals("1:4", bet.getString("score"))
+        assertEquals(2, bets.length())
+        val manual = bets.getJSONObject(0)
+        assertEquals(7.0, manual.getDouble("stake"), 0.0001)
+        assertEquals("local-bet", manual.getString("id"))
+        assertEquals("PENDING", manual.getString("status"))
+        val imported = bets.getJSONObject(1)
+        assertEquals("UEFA_PAPER", imported.getString("source"))
+        assertEquals(25.0, imported.getDouble("stake"), 0.0001)
+        assertEquals("WON", imported.getString("status"))
     }
 
     @Test fun migratesPreviouslyImportedSettledPaperRowsToTwentyFiveRubles() {
@@ -125,6 +127,21 @@ class UefaPaperBetImporterTest {
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
         assertEquals(1, bets.length())
         assertEquals(1.56, bets.getJSONObject(0).getDouble("odds"), 0.0001)
+    }
+
+
+    @Test fun migratesAndDeduplicatesLegacyRowsIdentifiedByUefaPaperId() {
+        val bets = JSONArray()
+            .put(JSONObject().put("id", "UEFA_PAPER:old-a").put("status", "PENDING")
+                .put("matchId", "m_18IfVI").put("marketKey", "bttsYes").put("odds", 1.56).put("stake", 1.0))
+            .put(JSONObject().put("id", "UEFA_PAPER:old-b").put("status", "WON")
+                .put("matchId", "m_18IfVI").put("marketKey", "bttsYes").put("odds", 1.58).put("stake", 1.0))
+        assertTrue(UefaPaperBetImporter.sync(bets, feed()))
+        assertEquals(1, bets.length())
+        val kept = bets.getJSONObject(0)
+        assertEquals("UEFA_PAPER", kept.getString("source"))
+        assertEquals("WON", kept.getString("status"))
+        assertEquals(25.0, kept.getDouble("stake"), 0.0001)
     }
 
     @Test fun unfinishedSignalsRemainPending() {

@@ -34,6 +34,7 @@ def norm(v):
         "olympique marseille":"olympique marseille",
         "auxerre":"aj auxerre","aj auxerre":"aj auxerre",
         "levante":"levante ud","levante ud":"levante ud",
+        "viking fk":"viking","viking":"viking",
     }
     return aliases.get(s,s)
 

@@ -204,7 +204,7 @@ def result_fixture(target: dict, candidates: list[dict]) -> dict | None:
         away = team_similarity(target.get("away"), candidate.get("awayTeam"))
         # Require strong agreement for each side independently; a high score
         # on one club must not compensate for a different opponent.
-        if home >= 0.82 and away >= 0.82:
+        if home >= 0.68 and away >= 0.68 and home + away >= 1.48:
             accepted.append(candidate)
     # Even two near-identical provider fixtures are ambiguous: do not settle either.
     return accepted[0] if len(accepted) == 1 else None

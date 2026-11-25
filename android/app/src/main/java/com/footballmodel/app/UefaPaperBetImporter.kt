@@ -21,7 +21,7 @@ internal object UefaPaperBetImporter {
                 bet.optString("id").removePrefix("UEFA_PAPER:")
                     .takeIf { bet.optString("id").startsWith("UEFA_PAPER:") }.orEmpty()
             }
-            if (signalId.isNotBlank()) bySignalId[signalId] = bet
+            if (signalId.isNotBlank() && isImportedPaperRow(bet)) bySignalId[signalId] = bet
         }
 
         val competitions = feed.optJSONArray("competitions") ?: return false
@@ -80,11 +80,16 @@ internal object UefaPaperBetImporter {
                         }
                         // Migrate settled imported UEFA paper rows to 25 RUB.
                         // Do not overwrite a user's own/manual stake.
-                        if (existing.optString("source") == "UEFA_PAPER" &&
-                            desiredStatus != "PENDING" &&
-                            existing.optDouble("stake", Double.NaN) != SETTLED_PAPER_STAKE_RUB) {
-                            existing.put("stake", SETTLED_PAPER_STAKE_RUB)
-                            rowChanged = true
+                        if (isImportedPaperRow(existing)) {
+                            if (existing.optString("source") != "UEFA_PAPER") {
+                                existing.put("source", "UEFA_PAPER")
+                                rowChanged = true
+                            }
+                            if (desiredStatus != "PENDING" &&
+                                existing.optDouble("stake", Double.NaN) != SETTLED_PAPER_STAKE_RUB) {
+                                existing.put("stake", SETTLED_PAPER_STAKE_RUB)
+                                rowChanged = true
+                            }
                         }
                         if (rowChanged) changed = true
                         bySignalId[signalId] = existing
@@ -129,7 +134,8 @@ internal object UefaPaperBetImporter {
                                 odds: Double): JSONObject? {
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("matchId") != matchId ||
+            if (!isImportedPaperRow(bet) ||
+                bet.optString("matchId") != matchId ||
                 bet.optString("marketKey") != marketKey) continue
             val existingOdds = bet.optDouble("odds", Double.NaN)
             if (existingOdds.isFinite() && abs(existingOdds - odds) < 0.005) return bet
@@ -138,19 +144,24 @@ internal object UefaPaperBetImporter {
         // row for the same fixture + market rather than creating a duplicate.
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("source") == "UEFA_PAPER" &&
+            if (isImportedPaperRow(bet) &&
                 bet.optString("matchId") == matchId &&
                 bet.optString("marketKey") == marketKey) return bet
         }
         return null
     }
 
+    private fun isImportedPaperRow(bet: JSONObject): Boolean =
+        bet.optString("source") == "UEFA_PAPER" ||
+            bet.optString("id").startsWith("UEFA_PAPER:")
+
     private fun deduplicateImportedRows(bets: JSONArray): Boolean {
         val keeperByKey = LinkedHashMap<String, JSONObject>()
         val removeIndices = ArrayList<Int>()
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
-            if (bet.optString("source") != "UEFA_PAPER") continue
+            if (!isImportedPaperRow(bet)) continue
+            if (bet.optString("source") != "UEFA_PAPER") bet.put("source", "UEFA_PAPER")
             val matchId = bet.optString("matchId")
             val marketKey = bet.optString("marketKey")
             if (matchId.isBlank() || marketKey.isBlank()) continue

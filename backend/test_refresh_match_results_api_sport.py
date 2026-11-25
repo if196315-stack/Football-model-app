@@ -122,6 +122,23 @@ class FastResultSyncTests(unittest.TestCase):
         self.assertEqual(target["status"], "IN_PLAY")
         self.assertEqual((target["homeScore"], target["awayScore"]), (1, 4))
 
+
+    def test_result_matching_accepts_viking_fk_name_variant(self):
+        target = {"utcDate": "2026-11-25T20:00:00Z",
+                  "home": "Atlético Madrid", "away": "Viking",
+                  "status": "SCHEDULED"}
+        live = source(status="2nd half", final=None, home=1, away=0)
+        live["startTimestamp"] = int(datetime(2026, 11, 25, 20, 0, tzinfo=timezone.utc).timestamp() * 1000)
+        live["homeTeam"] = {"name": "Atletico Madrid"}
+        live["awayTeam"] = {"name": "Viking FK"}
+        matched = result_fixture(target, [live])
+        self.assertIs(matched, live)
+        result = sync_feed({"competitions": [{"code": "UCL", "matches": [target]}]},
+                           [live], "2026-11-25T20:45:00+00:00")
+        self.assertEqual(result["matched"], 1)
+        self.assertEqual(target["status"], "IN_PLAY")
+        self.assertEqual((target["homeScore"], target["awayScore"]), (1, 0))
+
     def test_result_matching_rejects_wrong_opponent_even_when_home_team_matches(self):
         target = {"utcDate": "2026-11-24T20:00:00Z",
                   "home": "Real Madrid", "away": "PSV Eindhoven"}
