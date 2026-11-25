@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
 internal object UefaPaperBetImporter {
     private const val SETTLED_PAPER_STAKE_RUB = 25.0
     fun sync(bets: JSONArray, feed: JSONObject): Boolean {
-        var changed = false
+        var changed = deduplicateImportedRows(bets)
         val bySignalId = HashMap<String, JSONObject>()
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
@@ -134,7 +134,46 @@ internal object UefaPaperBetImporter {
             val existingOdds = bet.optDouble("odds", Double.NaN)
             if (existingOdds.isFinite() && abs(existingOdds - odds) < 0.005) return bet
         }
+        // Re-issued paper signals may carry refreshed odds. Reuse the imported
+        // row for the same fixture + market rather than creating a duplicate.
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("source") == "UEFA_PAPER" &&
+                bet.optString("matchId") == matchId &&
+                bet.optString("marketKey") == marketKey) return bet
+        }
         return null
+    }
+
+    private fun deduplicateImportedRows(bets: JSONArray): Boolean {
+        val keeperByKey = LinkedHashMap<String, JSONObject>()
+        val removeIndices = ArrayList<Int>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            if (bet.optString("source") != "UEFA_PAPER") continue
+            val matchId = bet.optString("matchId")
+            val marketKey = bet.optString("marketKey")
+            if (matchId.isBlank() || marketKey.isBlank()) continue
+            val key = "$matchId|$marketKey"
+            val keeper = keeperByKey[key]
+            if (keeper == null) {
+                keeperByKey[key] = bet
+                continue
+            }
+            val currentSettled = BetSettlement.isSettledStatus(bet.optString("status"))
+            val keeperSettled = BetSettlement.isSettledStatus(keeper.optString("status"))
+            if (currentSettled && !keeperSettled) {
+                val keeperIndex = (0 until bets.length()).firstOrNull {
+                    bets.optJSONObject(it) === keeper
+                }
+                if (keeperIndex != null) removeIndices.add(keeperIndex)
+                keeperByKey[key] = bet
+            } else {
+                removeIndices.add(i)
+            }
+        }
+        for (index in removeIndices.sortedDescending()) bets.remove(index)
+        return removeIndices.isNotEmpty()
     }
 
     private fun marketKey(signal: JSONObject): String? {

@@ -102,6 +102,31 @@ class UefaPaperBetImporterTest {
         assertEquals("WON", bets.getJSONObject(0).getString("status"))
     }
 
+
+    @Test fun collapsesDuplicateImportedRowsWhenOddsHaveChanged() {
+        val bets = JSONArray()
+            .put(JSONObject().put("id", "UEFA_PAPER:old-pending").put("source", "UEFA_PAPER")
+                .put("status", "PENDING").put("matchId", "m_18IfVI").put("marketKey", "bttsYes")
+                .put("odds", 1.56).put("stake", 1.0))
+            .put(JSONObject().put("id", "UEFA_PAPER:old-settled").put("source", "UEFA_PAPER")
+                .put("status", "WON").put("matchId", "m_18IfVI").put("marketKey", "bttsYes")
+                .put("odds", 1.63).put("stake", 25.0))
+        assertTrue(UefaPaperBetImporter.sync(bets, feed()))
+        assertEquals(1, bets.length())
+        assertEquals("WON", bets.getJSONObject(0).getString("status"))
+        assertEquals(25.0, bets.getJSONObject(0).getDouble("stake"), 0.0001)
+    }
+
+    @Test fun refreshedOddsReuseExistingImportedRowInsteadOfAddingAnother() {
+        val existing = JSONObject().put("id", "UEFA_PAPER:old-signal").put("source", "UEFA_PAPER")
+            .put("status", "PENDING").put("matchId", "m_18IfVI").put("marketKey", "bttsYes")
+            .put("odds", 1.56).put("stake", 1.0)
+        val bets = JSONArray().put(existing)
+        assertTrue(UefaPaperBetImporter.sync(bets, feed()))
+        assertEquals(1, bets.length())
+        assertEquals(1.58, bets.getJSONObject(0).getDouble("odds"), 0.0001)
+    }
+
     @Test fun unfinishedSignalsRemainPending() {
         val bets = JSONArray()
         assertTrue(UefaPaperBetImporter.sync(bets, feed(status = "IN_PLAY", result = "")))
