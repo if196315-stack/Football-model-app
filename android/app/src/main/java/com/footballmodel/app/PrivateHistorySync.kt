@@ -135,8 +135,25 @@ object PrivateHistorySync {
             }
         }
 
-        val bets = mergeRows(remotePayload?.optJSONArray("bets") ?: JSONArray(), localBets, "id",
+        val mergedBets = mergeRows(remotePayload?.optJSONArray("bets") ?: JSONArray(), localBets, "id",
             listOf("matchId", "marketKey", "createdAt"))
+        val deletedBetIds = LinkedHashSet<String>()
+        context.getSharedPreferences("bet_history", Context.MODE_PRIVATE)
+            .getStringSet("deleted_bet_ids", emptySet()).orEmpty().forEach { deletedBetIds.add(it) }
+        val remoteDeleted = remotePayload?.optJSONArray("deletedBetIds") ?: JSONArray()
+        for (i in 0 until remoteDeleted.length()) {
+            remoteDeleted.optString(i).takeIf { it.isNotBlank() }?.let { deletedBetIds.add(it) }
+        }
+        val bets = JSONArray().apply {
+            for (i in 0 until mergedBets.length()) {
+                val row = mergedBets.optJSONObject(i) ?: continue
+                val identity = row.optString("id").ifBlank {
+                    listOf(row.optString("matchId"), row.optString("marketKey"),
+                        row.optString("date"), row.optString("createdAt")).joinToString("|")
+                }
+                if (identity !in deletedBetIds) put(row)
+            }
+        }
         val signals = mergeRows(remotePayload?.optJSONArray("signals") ?: JSONArray(), localSignals, "signalKey",
             listOf("matchId", "side", "capturedAt"))
         val settings = JSONObject().apply {
@@ -159,8 +176,10 @@ object PrivateHistorySync {
         }
         check(settingsEdit.commit()) { "Не удалось восстановить настройки." }
 
-        val payload = JSONObject().put("schemaVersion", 1).put("updatedAt", System.currentTimeMillis())
-            .put("bets", bets).put("signals", signals).put("settings", settings)
+        val deletedArray = JSONArray().apply { deletedBetIds.sorted().forEach { put(it) } }
+        val payload = JSONObject().put("schemaVersion", 2).put("updatedAt", System.currentTimeMillis())
+            .put("bets", bets).put("deletedBetIds", deletedArray)
+            .put("signals", signals).put("settings", settings)
         val content = Base64.encodeToString(payload.toString().toByteArray(StandardCharsets.UTF_8), Base64.NO_WRAP)
         val body = JSONObject().put("message", "Sync IQ Match personal history").put("content", content)
         remoteFile?.optString("sha")?.takeIf { it.isNotBlank() }?.let { body.put("sha", it) }
