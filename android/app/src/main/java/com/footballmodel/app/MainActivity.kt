@@ -2737,7 +2737,11 @@ class MainActivity : Activity() {
                         val next = JSONArray()
                         for (k in 0 until bets.length()) {
                             val item = bets.optJSONObject(k) ?: continue
-                            if (item.optString("id") != id) next.put(item)
+                            val itemIdentity = item.optString("id").ifBlank {
+                                listOf(item.optString("matchId"), item.optString("marketKey"),
+                                    item.optString("date"), item.optString("createdAt")).joinToString("|")
+                            }
+                            if (itemIdentity != id) next.put(item)
                         }
                         // Keep the visible position stable when a bet is removed.
                         val previousScrollY = mainScrollView.scrollY
