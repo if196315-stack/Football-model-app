@@ -144,6 +144,36 @@ class UefaPaperBetImporterTest {
         assertEquals(25.0, kept.getDouble("stake"), 0.0001)
     }
 
+    @Test fun removesLegacyOneRubTopCardWhenSamePaperSignalIsImported() {
+        val bets = JSONArray()
+            .put(JSONObject().put("id", "AI_MANUAL:m_18IfVI:awayOver05:1700000000000")
+                .put("source", "AI_MANUAL").put("status", "PENDING")
+                .put("matchId", "m_18IfVI").put("marketKey", "awayOver05")
+                .put("home", "Sabah FK").put("away", "Barcelona")
+                .put("date", "2026-11-25T17:45:00Z").put("stake", 1.0).put("odds", 1.56))
+            .put(JSONObject().put("id", "UEFA_PAPER:old-paper").put("source", "UEFA_PAPER")
+                .put("status", "PENDING").put("matchId", "old-feed-id").put("marketKey", "awayOver05")
+                .put("home", "Sabah FK").put("away", "Barcelona")
+                .put("date", "2026-11-25T17:45:00Z").put("stake", 25.0).put("odds", 1.58))
+        assertTrue(UefaPaperBetImporter.sync(bets, feedWithAwayTeamTotal()))
+        assertEquals(1, bets.length())
+        assertEquals("UEFA_PAPER", bets.getJSONObject(0).getString("source"))
+        assertEquals("awayOver05", bets.getJSONObject(0).getString("marketKey"))
+        assertEquals(25.0, bets.getJSONObject(0).getDouble("stake"), 0.0001)
+    }
+
+    private fun feedWithAwayTeamTotal(): JSONObject = JSONObject(
+        """
+        {"competitions":[{"code":"UCL","name":"ЛЧ","matches":[{
+          "id":"m_18IfVI","utcDate":"2026-11-25T17:45:00Z","home":"Sabah FK","away":"Barcelona",
+          "status":"IN_PLAY","homeScore":0,"awayScore":1,"paperSignals":[{
+            "signal_id":"away-05","market":"team_total_over","team":"away","point":0.5,
+            "price":1.58,"model_probability":0.72,"result":"","status":"PENDING"
+          }]
+        }]}]}
+        """.trimIndent()
+    )
+
     @Test fun unfinishedSignalsRemainPending() {
         val bets = JSONArray()
         assertTrue(UefaPaperBetImporter.sync(bets, feed(status = "IN_PLAY", result = "")))
