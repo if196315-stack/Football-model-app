@@ -544,15 +544,20 @@ class MainActivity : Activity() {
     private fun rounded(color: Int, radius: Int): GradientDrawable =
         GradientDrawable().apply { setColor(color); cornerRadius = dp(radius).toFloat() }
 
+    // Shared panel treatment based on the Statistics terminal section.
     private fun card(parent: LinearLayout = matchesContainer): LinearLayout {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(17), dp(17), dp(17), dp(17))
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply { cornerRadius = dp(23).toFloat(); setStroke(dp(1), Color.rgb(43, 68, 91)) }
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(14, 24, 38))
+                cornerRadius = dp(18).toFloat()
+                setStroke(dp(1), Color.rgb(91, 78, 55))
+            }
             elevation = 0f
         }
         val lp = LinearLayout.LayoutParams(-1, -2)
-        lp.setMargins(0, 7, 0, 9)
+        lp.setMargins(0, dp(7), 0, dp(9))
         return box.also { parent.addView(it, lp) }
     }
 
@@ -608,15 +613,28 @@ class MainActivity : Activity() {
         })
     }
 
-    // Compact section heading: no oversized description banner.
+    // Unified section heading: shared eyebrow, title and supporting text.
     private fun screenHeader(eyebrow: String, title: String, description: String) {
-        val heading = label(title, 25, true, Color.WHITE).apply {
-            setPadding(dp(2), dp(5), dp(2), dp(8))
+        val meta = label(eyebrow.uppercase(Locale.ROOT), 9, true, gold).apply {
+            typeface = Typeface.MONOSPACE
+            letterSpacing = 0.10f
+            setPadding(dp(2), dp(5), dp(2), dp(2))
         }
-        matchesContainer.addView(heading, LinearLayout.LayoutParams(-1, -2).apply {
+        matchesContainer.addView(meta, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(4)
-            bottomMargin = dp(2)
         })
+        val heading = label(title, 25, true, Color.WHITE).apply {
+            setPadding(dp(2), dp(1), dp(2), dp(3))
+        }
+        matchesContainer.addView(heading, LinearLayout.LayoutParams(-1, -2))
+        if (description.isNotBlank()) {
+            val subtitle = label(description, 11, false, muted).apply {
+                setPadding(dp(2), 0, dp(2), dp(8))
+            }
+            matchesContainer.addView(subtitle, LinearLayout.LayoutParams(-1, -2).apply {
+                bottomMargin = dp(2)
+            })
+        }
     }
 
     private fun renderOdds(parent: LinearLayout, odds: JSONObject?) {
@@ -1610,13 +1628,9 @@ class MainActivity : Activity() {
 
     private fun terminalSection(parent: LinearLayout, title: String, subtitle: String = ""): LinearLayout {
         val box = card(parent)
-        box.setPadding(dp(14), dp(13), dp(14), dp(13))
-        box.background = GradientDrawable().apply {
-            setColor(Color.rgb(14, 24, 38)); cornerRadius = dp(18).toFloat()
-            setStroke(dp(1), Color.rgb(91, 78, 55))
-        }
         box.addView(label(title.uppercase(Locale.ROOT), 10, true, gold).apply {
-            typeface = Typeface.MONOSPACE; letterSpacing = 0.10f
+            typeface = Typeface.MONOSPACE
+            letterSpacing = 0.10f
         })
         if (subtitle.isNotBlank()) box.addView(label(subtitle, 9, false, muted).apply {
             typeface = Typeface.MONOSPACE
@@ -2362,12 +2376,24 @@ class MainActivity : Activity() {
     }
     private fun actionButton(parent: LinearLayout, title: String, action: () -> Unit): Button {
         val b = Button(this).apply {
-            text = title; textSize = 12f; isAllCaps = false; typeface = Typeface.DEFAULT_BOLD; minHeight = dp(48)
-            setPadding(dp(16), dp(8), dp(16), dp(8)); setTextColor(Color.rgb(28, 22, 13))
-            background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply { cornerRadius = dp(16).toFloat() }
-            elevation = dp(2).toFloat(); setOnClickListener { action() }
+            text = title
+            textSize = 12f
+            isAllCaps = false
+            typeface = Typeface.DEFAULT_BOLD
+            minHeight = dp(44)
+            setPadding(dp(14), dp(7), dp(14), dp(7))
+            setTextColor(Color.rgb(28, 22, 13))
+            background = GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))
+            ).apply {
+                cornerRadius = dp(12).toFloat()
+                setStroke(dp(1), Color.rgb(224, 188, 120))
+            }
+            elevation = 0f
+            setOnClickListener { action() }
         }
-        parent.addView(b, LinearLayout.LayoutParams(-1,-2).apply { topMargin = 8 })
+        parent.addView(b, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         return b
     }
 
@@ -2383,7 +2409,7 @@ class MainActivity : Activity() {
             setPadding(dp(12), 0, dp(12), 0)
             setTextColor(if (destructive) Color.rgb(86, 37, 34) else Color.rgb(35, 27, 16))
             background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(Color.rgb(244, 211, 145), Color.rgb(196, 151, 76))).apply {
-                cornerRadius = dp(10).toFloat()
+                cornerRadius = dp(12).toFloat()
                 setStroke(dp(1), if (destructive) Color.rgb(132, 74, 54) else Color.rgb(224, 188, 120))
             }
             elevation = 0f
