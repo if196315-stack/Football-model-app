@@ -386,11 +386,18 @@ class MainActivity : Activity() {
             topMargin = dp(4)
             bottomMargin = dp(2)
         })
-        val leagueScrollFrame = FrameLayout(this)
+        val leagueScrollFrame = FrameLayout(this).apply {
+            setPadding(dp(9), dp(3), dp(9), dp(3))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(13, 29, 47), Color.rgb(9, 20, 35))).apply {
+                cornerRadius = dp(17).toFloat()
+                setStroke(dp(1), Color.rgb(37, 61, 84))
+            }
+        }
         leagueScrollFrame.addView(leagueScroll, FrameLayout.LayoutParams(-1, -2))
         root.addView(leagueScrollFrame, LinearLayout.LayoutParams(-1, -2).apply {
-            topMargin = dp(2)
-            bottomMargin = dp(2)
+            topMargin = dp(4)
+            bottomMargin = dp(8)
         })
         matchesContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(matchesContainer)
@@ -1303,6 +1310,11 @@ class MainActivity : Activity() {
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
         val names = listOf("Все", "АПЛ", "Ла Лига", "Серия А", "Бундеслига", "Лига 1", "ЛЧ", "ЛЕ", "ЛК")
         leagueBar.removeAllViews()
+        leagueBar.addView(label("ЛИГИ", 8, true, gold).apply {
+            typeface = Typeface.MONOSPACE
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(2), 0, dp(8), 0)
+        }, LinearLayout.LayoutParams(-2, -1))
         codes.forEachIndexed { index, code ->
             val active = selectedLeague == code
             val chip = TextView(this).apply {
@@ -4454,21 +4466,38 @@ class MainActivity : Activity() {
             val heading = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(15, 15, 15, 15)
-                background = rounded(surface, 16)
-                background = (background as GradientDrawable).apply { setStroke(1, Color.rgb(38, 58, 83)) }
+                setPadding(dp(13), dp(12), dp(13), dp(12))
+                background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                    intArrayOf(Color.rgb(20, 42, 64), Color.rgb(11, 25, 43))).apply {
+                    cornerRadius = dp(17).toFloat()
+                    setStroke(dp(1), if (expanded) Color.rgb(66, 104, 129) else Color.rgb(38, 62, 86))
+                }
+                elevation = dp(1).toFloat()
                 isClickable = true
                 isFocusable = true
             }
+            heading.addView(View(this).apply {
+                background = rounded(if (expanded) cyan else Color.rgb(73, 101, 124), 3)
+            }, LinearLayout.LayoutParams(dp(3), dp(30)).apply { rightMargin = dp(10) })
             if (leagueCode == "PL") {
                 heading.addView(englandFlagView())
             } else {
                 val flag = when (leagueCode) { "PD" -> "🇪🇸"; "SA" -> "🇮🇹"; "BL1" -> "🇩🇪"; "FL1" -> "🇫🇷"; else -> "⚽" }
                 heading.addView(countryFlagView(flag))
             }
-            heading.addView(label(league.optString("name"), 14, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
-            heading.addView(label("${upcoming.size} матчей", 10, false, muted))
-            val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, accent)
+            heading.addView(label(league.optString("name"), 13, true, Color.WHITE), LinearLayout.LayoutParams(0, -2, 1f))
+            val countBadge = label("${upcoming.size} МАТЧЕЙ", 8, true, if (expanded) cyan else muted).apply {
+                typeface = Typeface.MONOSPACE
+                gravity = Gravity.CENTER
+                setPadding(dp(8), dp(6), dp(8), dp(6))
+                background = GradientDrawable().apply {
+                    setColor(Color.rgb(10, 25, 41))
+                    cornerRadius = dp(9).toFloat()
+                    setStroke(dp(1), Color.rgb(44, 73, 98))
+                }
+            }
+            heading.addView(countBadge)
+            val expandIcon = label(if (expanded) "  ▾" else "  ▸", 18, true, if (expanded) gold else muted)
             heading.addView(expandIcon)
             heading.setOnClickListener {
                 val nextExpanded = !(expandedLeagues[leagueCode] ?: true)
@@ -4494,12 +4523,13 @@ class MainActivity : Activity() {
                 val box = card(content)
                 val cardStatus = m.optString("status").trim().uppercase(Locale.ROOT)
                 if (FeedMerger.isLiveStatus(cardStatus)) {
-                    box.setPadding(dp(13), dp(12), dp(13), dp(12))
+                    box.setPadding(dp(14), dp(13), dp(14), dp(13))
                     box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                        intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply {
-                        cornerRadius = dp(23).toFloat()
-                        setStroke(dp(1), Color.rgb(91, 78, 55))
+                        intArrayOf(Color.rgb(25, 48, 69), Color.rgb(11, 25, 43))).apply {
+                        cornerRadius = dp(21).toFloat()
+                        setStroke(dp(1), Color.rgb(163, 111, 66))
                     }
+                    box.elevation = dp(2).toFloat()
                     val providerMinute = liveElapsedMinute(m)
                     val addedMinute = m.optInt("elapsedExtra", m.optInt("extra", -1))
                     val hasExactKickoff = listOf("utcDate", "dateEvent", "kickoff", "date")
@@ -4593,12 +4623,13 @@ class MainActivity : Activity() {
                 }
                 // Keep fixture cards on the same dark gradient and outlined surface
                 // used throughout IQ Match; gold is reserved for emphasis, not borders.
-                box.setPadding(dp(13), dp(12), dp(13), dp(12))
+                box.setPadding(dp(14), dp(13), dp(14), dp(13))
                 box.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                    intArrayOf(Color.rgb(18, 34, 53), Color.rgb(9, 21, 36))).apply {
-                    cornerRadius = dp(23).toFloat()
-                    setStroke(dp(1), Color.rgb(43, 68, 91))
+                    intArrayOf(Color.rgb(24, 47, 69), Color.rgb(10, 23, 40), Color.rgb(8, 19, 34))).apply {
+                    cornerRadius = dp(21).toFloat()
+                    setStroke(dp(1), Color.rgb(47, 83, 111))
                 }
+                box.elevation = dp(2).toFloat()
                 (box.layoutParams as? LinearLayout.LayoutParams)?.apply {
                     topMargin = dp(5)
                     bottomMargin = dp(6)
@@ -4627,10 +4658,10 @@ class MainActivity : Activity() {
                     val signal = strongestDisplaySignal(pred, m)
                     val signalBox = card(box)
                     signalBox.setPadding(dp(9), dp(9), dp(9), dp(9))
-                    signalBox.background = GradientDrawable().apply {
-                        setColor(Color.rgb(13, 29, 46))
-                        cornerRadius = dp(12).toFloat()
-                        setStroke(dp(1), Color.rgb(35, 55, 76))
+                    signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(Color.rgb(15, 36, 54), Color.rgb(10, 25, 42))).apply {
+                        cornerRadius = dp(15).toFloat()
+                        setStroke(dp(1), Color.rgb(53, 91, 111))
                     }
                     addStrongestSignalTitle(signalBox)
                     if (signal == null) {
@@ -4650,7 +4681,11 @@ class MainActivity : Activity() {
                                 val cell = LinearLayout(this).apply {
                                     orientation = LinearLayout.VERTICAL
                                     setPadding(dp(9), dp(7), dp(9), dp(7))
-                                    background = rounded(Color.rgb(13, 29, 46), 12)
+                                    background = GradientDrawable().apply {
+                                        setColor(Color.rgb(8, 23, 39))
+                                        cornerRadius = dp(11).toFloat()
+                                        setStroke(dp(1), Color.rgb(35, 65, 87))
+                                    }
                                 }
                                 addText(cell, title, 9, true, muted)
                                 addText(cell, value, 12, true, valueColor)
@@ -4700,11 +4735,11 @@ class MainActivity : Activity() {
                     }
 
                     val mainMarkets = card(box)
-                    mainMarkets.setPadding(dp(9), dp(9), dp(9), dp(9))
-                    mainMarkets.background = GradientDrawable().apply {
-                        setColor(Color.rgb(13, 29, 46))
-                        cornerRadius = dp(12).toFloat()
-                        setStroke(dp(1), Color.rgb(35, 55, 76))
+                    mainMarkets.setPadding(dp(11), dp(11), dp(11), dp(11))
+                    mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(Color.rgb(11, 27, 44), Color.rgb(8, 20, 35))).apply {
+                        cornerRadius = dp(15).toFloat()
+                        setStroke(dp(1), Color.rgb(43, 72, 94))
                     }
                     addMarketChartTitle(mainMarkets, "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
@@ -4728,11 +4763,23 @@ class MainActivity : Activity() {
                     fun marketGroup(title: String, rows: List<String>): LinearLayout {
                         val group = LinearLayout(this).apply {
                             orientation = LinearLayout.VERTICAL
-                            setPadding(dp(9), dp(8), dp(9), dp(8))
-                            background = rounded(Color.rgb(13, 29, 46), 12)
+                            setPadding(dp(9), dp(9), dp(9), dp(9))
+                            background = GradientDrawable().apply {
+                                setColor(Color.rgb(14, 33, 51))
+                                cornerRadius = dp(12).toFloat()
+                                setStroke(dp(1), Color.rgb(37, 67, 89))
+                            }
                         }
-                        addText(group, title, 9, true, muted)
-                        rows.forEach { addText(group, it, 10, true, Color.WHITE) }
+                        addText(group, title.uppercase(Locale.ROOT), 8, true, cyan)
+                        rows.forEach { market ->
+                            val marketRow = label(market, 10, true, Color.WHITE).apply {
+                                setPadding(dp(7), dp(7), dp(7), dp(7))
+                                background = rounded(Color.rgb(8, 22, 37), 8)
+                            }
+                            group.addView(marketRow, LinearLayout.LayoutParams(-1, -2).apply {
+                                topMargin = dp(5)
+                            })
+                        }
                         return group
                     }
                     fun addMarketPair(left: LinearLayout, right: LinearLayout) {
@@ -4785,7 +4832,71 @@ class MainActivity : Activity() {
             }
         }
 
+        val overview = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(15), dp(16), dp(14))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(13, 54, 75), Color.rgb(12, 34, 57), Color.rgb(10, 25, 43))).apply {
+                cornerRadius = dp(22).toFloat()
+                setStroke(dp(1), Color.rgb(45, 116, 137))
+            }
+            elevation = dp(3).toFloat()
+        }
+        val overviewTop = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        overviewTop.addView(label("MATCH INTELLIGENCE  /  PRE-MATCH", 8, true, cyan).apply {
+            typeface = Typeface.MONOSPACE
+            letterSpacing = 0.09f
+        }, LinearLayout.LayoutParams(0, -2, 1f))
+        overviewTop.addView(label("● LIVE FEED", 8, true, accent).apply {
+            typeface = Typeface.MONOSPACE
+            setPadding(dp(8), dp(5), dp(8), dp(5))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(47, 39, 27))
+                cornerRadius = dp(8).toFloat()
+                setStroke(dp(1), Color.rgb(128, 97, 55))
+            }
+        })
+        overview.addView(overviewTop)
+        overview.addView(label("Центр футбольной линии", 19, true, Color.WHITE).apply {
+            setPadding(0, dp(7), 0, dp(2))
+        })
+        overview.addView(label("Матчи, модельные вероятности и актуальные котировки в одном экране.", 10, false, Color.rgb(181, 199, 211)))
+        val overviewMetrics = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        fun overviewMetric(title: String, value: String, tint: Int) {
+            val metric = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(9), dp(8), dp(9), dp(8))
+                background = GradientDrawable().apply {
+                    setColor(Color.argb(72, 3, 17, 31))
+                    cornerRadius = dp(11).toFloat()
+                    setStroke(dp(1), Color.rgb(43, 83, 105))
+                }
+            }
+            metric.addView(label(title, 7, true, Color.rgb(162, 184, 198)).apply { typeface = Typeface.MONOSPACE })
+            metric.addView(label(value, 16, true, tint).apply { typeface = Typeface.create("monospace", Typeface.BOLD) })
+            overviewMetrics.addView(metric, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                if (overviewMetrics.childCount > 0) leftMargin = dp(7)
+            })
+        }
+        overviewMetric("МАТЧЕЙ В ЛИНИИ", totalUpcoming.toString(), Color.WHITE)
+        overviewMetric("С ПРОГНОЗОМ", totalPredicted.toString(), cyan)
+        overview.addView(overviewMetrics, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
+        matchesContainer.addView(overview, 0, LinearLayout.LayoutParams(-1, -2).apply {
+            bottomMargin = dp(7)
+        })
+
         val footer = card()
+        footer.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+            intArrayOf(Color.rgb(13, 38, 55), Color.rgb(10, 25, 42))).apply {
+            cornerRadius = dp(18).toFloat()
+            setStroke(dp(1), Color.rgb(42, 88, 108))
+        }
         addText(footer, "ПОКРЫТИЕ", 10, true, accent)
         addText(footer, "Матчей в линии: $totalUpcoming  ·  с полным прогнозом: $totalPredicted", 13, true)
         addText(footer, "Пуассоновская модель. Исследовательские вероятности, не гарантия результата и не рекомендация для ставок.", 11, false, muted)
