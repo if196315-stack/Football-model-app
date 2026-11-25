@@ -13,8 +13,12 @@ import java.text.Normalizer
  */
 internal object UefaPaperBetImporter {
     private const val SETTLED_PAPER_STAKE_RUB = 25.0
+    private val excludedPaperSignalIds = setOf("a479aac3d5a7864b151b")
+    private val excludedLegacyBetIds = setOf("AI_MANUAL:m_1WLVGt:bttsYes:1795608397977")
+
     fun sync(bets: JSONArray, feed: JSONObject): Boolean {
-        var changed = deduplicateImportedRows(bets)
+        var changed = removeExcludedPaperRows(bets)
+        changed = deduplicateImportedRows(bets) || changed
         val bySignalId = HashMap<String, JSONObject>()
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
@@ -37,7 +41,7 @@ internal object UefaPaperBetImporter {
                 for (signalIndex in 0 until signals.length()) {
                     val signal = signals.optJSONObject(signalIndex) ?: continue
                     val signalId = signal.optString("signal_id").trim()
-                    if (signalId.isBlank()) continue
+                    if (signalId.isBlank() || signalId in excludedPaperSignalIds) continue
                     val marketKey = marketKey(signal) ?: continue
                     val odds = signal.optDouble("price", Double.NaN)
                     if (!odds.isFinite() || odds <= 1.0) continue
@@ -141,6 +145,24 @@ internal object UefaPaperBetImporter {
         changed = deduplicateImportedRows(bets) || changed
         changed = removeLegacyPaperSignalDuplicates(bets, feed) || changed
         return changed
+    }
+
+    private fun removeExcludedPaperRows(bets: JSONArray): Boolean {
+        val removeIndices = ArrayList<Int>()
+        for (i in 0 until bets.length()) {
+            val bet = bets.optJSONObject(i) ?: continue
+            val signalId = bet.optString("paperSignalId")
+            val id = bet.optString("id")
+            val excluded = id in excludedLegacyBetIds ||
+                signalId in excludedPaperSignalIds ||
+                id in excludedPaperSignalIds.map { "UEFA_PAPER:$it" } ||
+                (bet.optString("matchId") == "m_1WLVGt" &&
+                    bet.optString("marketKey") == "bttsYes" &&
+                    (bet.optString("source") == "UEFA_PAPER" || bet.optBoolean("paperOnly")))
+            if (excluded) removeIndices.add(i)
+        }
+        for (index in removeIndices.sortedDescending()) bets.remove(index)
+        return removeIndices.isNotEmpty()
     }
 
     private fun findMatchingBet(bets: JSONArray, match: JSONObject, marketKey: String,
