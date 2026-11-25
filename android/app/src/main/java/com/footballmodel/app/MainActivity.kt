@@ -4667,7 +4667,7 @@ class MainActivity : Activity() {
                     signalBox.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
                         intArrayOf(Color.rgb(15, 36, 54), Color.rgb(10, 25, 42))).apply {
                         cornerRadius = dp(15).toFloat()
-                        setStroke(dp(1), Color.rgb(53, 91, 111))
+                        // No inner outline: the match card itself carries the only frame.
                     }
                     addStrongestSignalTitle(signalBox)
                     if (signal == null) {
@@ -4690,7 +4690,7 @@ class MainActivity : Activity() {
                                     background = GradientDrawable().apply {
                                         setColor(Color.rgb(8, 23, 39))
                                         cornerRadius = dp(11).toFloat()
-                                        setStroke(dp(1), Color.rgb(35, 65, 87))
+                                        // Keep the metric tile clean; outer match card provides framing.
                                     }
                                 }
                                 addText(cell, title, 9, true, muted)
@@ -4745,7 +4745,7 @@ class MainActivity : Activity() {
                     mainMarkets.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
                         intArrayOf(Color.rgb(11, 27, 44), Color.rgb(8, 20, 35))).apply {
                         cornerRadius = dp(15).toFloat()
-                        setStroke(dp(1), Color.rgb(43, 72, 94))
+                        // No nested outline inside the match card.
                     }
                     addMarketChartTitle(mainMarkets, "РЫНКИ И КОТИРОВКИ")
                     val bestOdds = m.optJSONObject("odds")?.optJSONObject("best")
@@ -4773,7 +4773,7 @@ class MainActivity : Activity() {
                             background = GradientDrawable().apply {
                                 setColor(Color.rgb(14, 33, 51))
                                 cornerRadius = dp(12).toFloat()
-                                setStroke(dp(1), Color.rgb(37, 67, 89))
+                                // Market groups remain visually grouped by spacing and fill, not borders.
                             }
                         }
                         addText(group, title.uppercase(Locale.ROOT), 8, true, cyan)
