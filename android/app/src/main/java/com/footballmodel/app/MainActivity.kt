@@ -88,6 +88,9 @@ class MainActivity : Activity() {
     private var selectedHistoryTab = "ОЖИДАЮТ"
     private var selectedTopTab = "ОЖИДАЮТ"
     private val expandedLeagues = mutableMapOf<String, Boolean>()
+    // Keep first-screen view creation bounded on slower Android devices.
+    private val lineVisibleMatchesByLeague = mutableMapOf<String, Int>()
+    private var topVisibleSignalLimit = 8
     // Сохраняем уже построенные экраны: повторное переключение вкладок не пересоздаёт сотни View.
     private val tabViewCache = mutableMapOf<String, Pair<List<View>, List<View>>>()
     private var renderedKey: String? = null
@@ -4218,7 +4221,7 @@ class MainActivity : Activity() {
             addText(this, "Когда появятся матчи, прошедшие фильтры TOP, каждый сигнал будет показан отдельной карточкой.", 11, false, muted)
             if (openSignals.isNotEmpty()) visibility = View.GONE
         }
-        openSignals.forEachIndexed { index, entry ->
+        openSignals.take(topVisibleSignalLimit).forEachIndexed { index, entry ->
             val (item, signal, isBestForMatch) = entry
             val (match, league, _) = item
             val box = card()
@@ -4258,6 +4261,24 @@ class MainActivity : Activity() {
                 }
             }
             if (odds == null) recordButton.isEnabled = false
+        }
+        if (openSignals.size > topVisibleSignalLimit) {
+            val more = label("Показать ещё ${minOf(8, openSignals.size - topVisibleSignalLimit)} из ${openSignals.size - topVisibleSignalLimit} сигналов", 12, true, cyan).apply {
+                gravity = Gravity.CENTER
+                setPadding(dp(12), dp(14), dp(12), dp(14))
+                background = rounded(Color.rgb(18, 43, 61), 12)
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    topVisibleSignalLimit += 8
+                    renderedKey = null
+                    render()
+                }
+            }
+            matchesContainer.addView(more, LinearLayout.LayoutParams(-1, -2).apply {
+                topMargin = dp(8)
+                bottomMargin = dp(8)
+            })
         }
         val footer = card()
         addText(footer, "ПРАВИЛА ТОП", 10, true, accent)
@@ -4565,10 +4586,12 @@ class MainActivity : Activity() {
                 val empty = card(content)
                 addText(empty, "Нет предстоящих матчей в этом чемпионате на текущий момент.", 12, false, muted)
             }
-            upcoming.sortedWith(
+            val orderedUpcoming = upcoming.sortedWith(
                 compareBy<JSONObject> { if (FeedMerger.isLiveStatus(it.optString("status"))) 0 else 1 }
                     .then(MatchKickoffOrdering.comparator())
-            ).forEach { m ->
+            )
+            val visibleLimit = lineVisibleMatchesByLeague[leagueCode] ?: 3
+            orderedUpcoming.take(visibleLimit).forEach { m ->
                 val box = card(content)
                 val cardStatus = m.optString("status").trim().uppercase(Locale.ROOT)
                 if (FeedMerger.isLiveStatus(cardStatus)) {
@@ -4878,6 +4901,25 @@ class MainActivity : Activity() {
                     addText(mainMarkets, "Котировка MelBet обновлена: $quoteTime", 10, false, muted)
 
                 }
+            }
+        }
+            if (orderedUpcoming.size > visibleLimit) {
+                val more = label("Показать ещё ${minOf(3, orderedUpcoming.size - visibleLimit)} матча", 11, true, cyan).apply {
+                    gravity = Gravity.CENTER
+                    setPadding(dp(10), dp(12), dp(10), dp(12))
+                    background = rounded(Color.rgb(17, 39, 56), 11)
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        lineVisibleMatchesByLeague[leagueCode] = visibleLimit + 3
+                        renderedKey = null
+                        render()
+                    }
+                }
+                content.addView(more, LinearLayout.LayoutParams(-1, -2).apply {
+                    topMargin = dp(5)
+                    bottomMargin = dp(9)
+                })
             }
         }
 
