@@ -182,7 +182,7 @@ class UefaPaperBetImporterTest {
     }
 
     @Test fun permanentlyExcludedDuplicatePaperSignalsAreRemoved() {
-        val ids = listOf("a4492587108500498f80", "865839eb433e43cd854d", "f1fba97b5a003a622528", "d23779ab177afc4ee37f", "16998bfe36cf27b25488", "6e819e3d7241a187e90b", "49b06e91a7cdf8f8d5f7", "cccf6eeab148e7fa93c1", "cc5974e18a0d3dac1d31")
+        val ids = listOf("a4492587108500498f80", "865839eb433e43cd854d", "f1fba97b5a003a622528", "d23779ab177afc4ee37f", "16998bfe36cf27b25488", "6e819e3d7241a187e90b", "49b06e91a7cdf8f8d5f7", "cccf6eeab148e7fa93c1", "cc5974e18a0d3dac1d31", "287e91d9779c510cd458", "d6d6a3fb0afcea50c5d5", "c21445264fae412d3fe4", "5de14027cb524ab68011")
         val bets = JSONArray()
         ids.forEach { signalId ->
             bets.put(JSONObject().put("id", "UEFA_PAPER:$signalId")
@@ -192,6 +192,20 @@ class UefaPaperBetImporterTest {
         }
         val emptyFeed = JSONObject().put("competitions", JSONArray())
         assertTrue(UefaPaperBetImporter.sync(bets, emptyFeed))
+        assertEquals(0, bets.length())
+    }
+
+
+    @Test fun doesNotImportPaperSignalsBelowMinimumOdds() {
+        val bets = JSONArray()
+        val feed = JSONObject(
+            """{"competitions":[{"code":"UCL","name":"ЛЧ","matches":[{
+              "id":"low-odds-fixture","home":"Home","away":"Away","status":"SCHEDULED",
+              "paperSignals":[{"signal_id":"low-odds-signal","market":"double_chance",
+                "outcome":"1x","price":1.49,"model_probability":0.80,"result":""}]
+            }]}]}"""
+        )
+        assertFalse(UefaPaperBetImporter.sync(bets, feed))
         assertEquals(0, bets.length())
     }
 
