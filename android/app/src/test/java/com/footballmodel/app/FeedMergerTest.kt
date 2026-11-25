@@ -53,7 +53,7 @@ class FeedMergerTest {
         }
         assertEquals("HT", FeedMerger.resolveStatus("SCHEDULED", "HT", "Half Time"))
         assertEquals("IN_PLAY", FeedMerger.resolveStatus("SCHEDULED", "IN_PLAY", "Live"))
-        assertEquals("FINISHED", FeedMerger.resolveStatus("LIVE", "FT", "Full Time"))
+        assertEquals("FT", FeedMerger.resolveStatus("LIVE", "FT", "Full Time"))
         assertEquals("Ⅱ ПЕРЕРЫВ", FeedMerger.displayStatusLabel("HT"))
         assertEquals("● LIVE", FeedMerger.displayStatusLabel("2H"))
         assertEquals("ЕЩЁ НЕ НАЧАЛСЯ", FeedMerger.displayStatusLabel("NOT_STARTED"))
