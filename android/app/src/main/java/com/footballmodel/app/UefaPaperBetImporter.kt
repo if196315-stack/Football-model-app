@@ -70,6 +70,17 @@ internal object UefaPaperBetImporter {
                             existing.put("matchId", matchId)
                             rowChanged = true
                         }
+                        for ((field, value) in listOf(
+                            "home" to match.optString("home"),
+                            "away" to match.optString("away"),
+                            "date" to match.optString("utcDate"),
+                            "kickoff" to match.optString("utcDate")
+                        )) {
+                            if (existing.optString(field).isBlank() && value.isNotBlank()) {
+                                existing.put(field, value)
+                                rowChanged = true
+                            }
+                        }
                         if (existing.optString("status") == "PENDING" &&
                             desiredStatus != "PENDING") {
                             existing.put("status", desiredStatus)
@@ -135,10 +146,14 @@ internal object UefaPaperBetImporter {
     private fun findMatchingBet(bets: JSONArray, match: JSONObject, marketKey: String,
                                 odds: Double): JSONObject? {
         val fixture = fixtureKey(match)
+        val matchId = match.optString("id").trim()
+        fun sameFixture(bet: JSONObject): Boolean =
+            (matchId.isNotBlank() && bet.optString("matchId") == matchId) ||
+                fixtureKey(bet) == fixture
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (!isImportedPaperRow(bet) ||
-                fixtureKey(bet) != fixture ||
+                !sameFixture(bet) ||
                 bet.optString("marketKey") != marketKey) continue
             val existingOdds = bet.optDouble("odds", Double.NaN)
             if (existingOdds.isFinite() && abs(existingOdds - odds) < 0.005) return bet
@@ -148,7 +163,7 @@ internal object UefaPaperBetImporter {
         for (i in 0 until bets.length()) {
             val bet = bets.optJSONObject(i) ?: continue
             if (isImportedPaperRow(bet) &&
-                fixtureKey(bet) == fixture &&
+                sameFixture(bet) &&
                 bet.optString("marketKey") == marketKey) return bet
         }
         return null
