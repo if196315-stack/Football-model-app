@@ -1,6 +1,6 @@
 import unittest
 
-from settle_uefa_paper_bets import settle_bet, settle_open_bets
+from settle_uefa_paper_bets import fixture_index_from_feed, settle_bet, settle_open_bets
 
 
 def bet(market, **overrides):
@@ -44,6 +44,19 @@ class UefaPaperSettlementTests(unittest.TestCase):
         result = settle_bet(bet("handicap", team="home", point=0.0), fixture)
         self.assertEqual(result["result"], "PUSH")
         self.assertEqual(result["profit_units"], 0.0)
+
+    def test_settles_bets_from_published_uefa_feed(self):
+        feed = {"competitions": [{"code": "UCL", "matches": [{
+            "id": "m_18IfVI", "status": "FINISHED", "homeScore": 1, "awayScore": 4,
+        }]}]}
+        fixtures = fixture_index_from_feed(feed)
+        bets = [
+            bet("btts", fixture_id="m_18IfVI", signal_id="btts-yes", outcome="yes", price=1.58),
+            bet("team_total_over", fixture_id="m_18IfVI", signal_id="home-over05", team="home", point=0.5, price=1.55),
+        ]
+        settled = settle_open_bets(bets, fixtures, [], "2026-11-26T00:00:00Z")
+        self.assertEqual([row["result"] for row in settled], ["WIN", "WIN"])
+        self.assertEqual([row["profit_units"] for row in settled], [0.58, 0.55])
 
     def test_unfinished_and_duplicate_signals_are_not_settled(self):
         bets = [bet("match_total_over")]
