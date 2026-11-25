@@ -7898,21 +7898,6 @@
               "profit_units": 0.58,
               "home_score": 1,
               "away_score": 4
-            },
-            {
-              "signal_id": "96fdf99e060263db4b46",
-              "market": "team_total_over",
-              "point": 0.5,
-              "team": "home",
-              "outcome": null,
-              "price": 1.55,
-              "model_probability": 0.76606812,
-              "edge": 0.16762252,
-              "expected_value": 0.18740559,
-              "result": "WIN",
-              "profit_units": 0.55,
-              "home_score": 1,
-              "away_score": 4
             }
           ],
           "paperOnly": true,
