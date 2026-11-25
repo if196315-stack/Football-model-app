@@ -76,6 +76,29 @@ class BuildUefaAppFeedTests(unittest.TestCase):
                               previous_feed=first)
         self.assertIsNone(disabled["competitions"][2]["matches"][0]["odds"])
 
+    def test_upcoming_top_excludes_unsupported_pending_market_lines(self):
+        cache = {"matches": {
+            "top-market-filter": {
+                "leagueCode": "UCL", "status": "scheduled",
+                "date": "2026-12-20T18:00:00Z", "home": "Alpha", "away": "Beta"
+            }
+        }}
+        bets = [
+            {"signal_id": "team-25", "fixture_id": "top-market-filter",
+             "paper_only": True, "decision": "BET", "market": "team_total_over",
+             "point": 2.5, "team": "home"},
+            {"signal_id": "match-35", "fixture_id": "top-market-filter",
+             "paper_only": True, "decision": "BET", "market": "match_total_over",
+             "point": 3.5},
+            {"signal_id": "btts-yes", "fixture_id": "top-market-filter",
+             "paper_only": True, "decision": "BET", "market": "btts",
+             "outcome": "yes"},
+        ]
+        feed = build_feed(cache, {"matches": []}, [], bets, [], predictions={})
+        match = feed["competitions"][0]["matches"][0]
+        self.assertEqual([signal["signal_id"] for signal in match["paperSignals"]],
+                         ["btts-yes"])
+
     def test_feed_contains_only_active_club_competitions_and_settled_paper_signal(self):
         cache = {"matches": {
             "ucl-1": {"leagueCode": "UCL", "status": "finished", "date": "2026-11-01",
