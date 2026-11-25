@@ -155,6 +155,20 @@ class UefaPaperBetImporterTest {
         assertFalse(UefaPaperBetImporter.sync(bets, feed()))
     }
 
+    @Test fun permanentlyExcludedDuplicatePaperSignalsAreRemoved() {
+        val ids = listOf("a4492587108500498f80", "865839eb433e43cd854d", "f1fba97b5a003a622528", "d23779ab177afc4ee37f", "16998bfe36cf27b25488", "6e819e3d7241a187e90b", "49b06e91a7cdf8f8d5f7", "cccf6eeab148e7fa93c1", "cc5974e18a0d3dac1d31")
+        val bets = JSONArray()
+        ids.forEach { signalId ->
+            bets.put(JSONObject().put("id", "UEFA_PAPER:$signalId")
+                .put("paperSignalId", signalId).put("source", "UEFA_PAPER")
+                .put("status", "PENDING").put("matchId", "duplicate-fixture")
+                .put("marketKey", "x2").put("odds", 1.56))
+        }
+        val emptyFeed = JSONObject().put("competitions", JSONArray())
+        assertTrue(UefaPaperBetImporter.sync(bets, emptyFeed))
+        assertEquals(0, bets.length())
+    }
+
     @Test fun importIsIdempotentAndDoesNotReopenSettledRows() {
         val bets = JSONArray()
         assertTrue(UefaPaperBetImporter.sync(bets, feed()))
