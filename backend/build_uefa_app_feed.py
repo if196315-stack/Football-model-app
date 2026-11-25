@@ -198,6 +198,19 @@ def _reuse_previous_fresh_odds(previous_match: dict | None, now: datetime) -> di
     return {**odds, "bookmakerUpdateAgeSeconds": round(age, 3)}
 
 
+def _is_active_top_paper_market(bet: dict) -> bool:
+    market = bet.get("market")
+    if market == "double_chance":
+        return bet.get("outcome") in ("1x", "x2")
+    if market == "match_total_over":
+        return bet.get("point") == 2.5
+    if market == "team_total_over":
+        return bet.get("point") in (0.5, 1.5)
+    if market == "btts":
+        return bet.get("outcome") == "yes"
+    return False
+
+
 def build_feed(
     fixture_cache: dict,
     xg_history: dict,
@@ -258,6 +271,11 @@ def build_feed(
             continue
         signal_id = str(bet.get("signal_id") or "")
         settled = settlement_by_signal.get(signal_id)
+        # Only publish active supported markets to upcoming TOP. Keep already
+        # settled legacy records in the historical feed, but never surface
+        # unsupported pending lines such as team over 2.5 or match over 3.5.
+        if settled is None and not _is_active_top_paper_market(bet):
+            continue
         item = {
             "signal_id": signal_id,
             "market": bet.get("market"),
