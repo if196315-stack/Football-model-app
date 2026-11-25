@@ -639,6 +639,14 @@ class MainActivity : Activity() {
 
     // Unified section heading: shared eyebrow, title and supporting text.
     private fun screenHeader(eyebrow: String, title: String, description: String) {
+        matchesContainer.addView(View(this).apply {
+            background = GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                intArrayOf(Color.TRANSPARENT, gold, cyan, Color.TRANSPARENT)
+            )
+        }, LinearLayout.LayoutParams(-1, dp(2)).apply {
+            bottomMargin = dp(7)
+        })
         val meta = label(eyebrow.uppercase(Locale.ROOT), 9, true, gold).apply {
             typeface = Typeface.MONOSPACE
             letterSpacing = 0.10f
@@ -1315,11 +1323,6 @@ class MainActivity : Activity() {
         val codes = listOf("ALL", "PL", "PD", "SA", "BL1", "FL1", "UCL", "UEL", "UECL")
         val names = listOf("Все", "АПЛ", "Ла Лига", "Серия А", "Бундеслига", "Лига 1", "ЛЧ", "ЛЕ", "ЛК")
         leagueBar.removeAllViews()
-        leagueBar.addView(label("ЛИГИ", 8, true, gold).apply {
-            typeface = Typeface.MONOSPACE
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(2), 0, dp(8), 0)
-        }, LinearLayout.LayoutParams(-2, -1))
         codes.forEachIndexed { index, code ->
             val active = selectedLeague == code
             val chip = TextView(this).apply {
@@ -2574,16 +2577,21 @@ class MainActivity : Activity() {
         return { bet ->
             val targetId = bet.optString("matchId").trim()
             val exact = if (targetId.isNotBlank()) MatchIdentity.uniqueMatch(byId[targetId]) else null
-            // IDs are hints, not proof: verify home/away and kickoff date before using a fixture.
-            if (exact != null && MatchIdentity.sameFixture(bet, exact)) exact else {
-                val home = MatchIdentity.normalizedTeam(bet.optString("home"))
-                val away = MatchIdentity.normalizedTeam(bet.optString("away"))
-                if (home.isBlank() || away.isBlank()) null else {
-                    val teamsKey = "$home|$away"
-                    val targetDate = MatchIdentity.betDate(bet)
-                    if (targetDate.isNotBlank()) MatchIdentity.uniqueMatch(byTeamsAndDate["$teamsKey|$targetDate"])
-                    else MatchIdentity.uniqueMatch(byTeams[teamsKey])
-                }
+            val home = MatchIdentity.normalizedTeam(bet.optString("home"))
+            val away = MatchIdentity.normalizedTeam(bet.optString("away"))
+            // A stable fixture ID plus matching teams is authoritative even when an
+            // older bet stored a date-only/local-date value that no longer matches.
+            if (exact != null && home.isNotBlank() && away.isNotBlank() &&
+                home == MatchIdentity.normalizedTeam(exact.optString("home")) &&
+                away == MatchIdentity.normalizedTeam(exact.optString("away"))) exact
+            else if (home.isBlank() || away.isBlank()) null else {
+                val teamsKey = "$home|$away"
+                val targetDate = MatchIdentity.betDate(bet)
+                val dated = if (targetDate.isNotBlank())
+                    MatchIdentity.uniqueMatch(byTeamsAndDate["$teamsKey|$targetDate"]) else null
+                // If the date is absent or stale, use a teams-only match only when
+                // the feed contains exactly one fixture for that ordered pair.
+                dated ?: MatchIdentity.uniqueMatch(byTeams[teamsKey])
             }
         }
     }
@@ -2681,6 +2689,20 @@ class MainActivity : Activity() {
                 continue
             }
             val match = findIndexedMatch(bet)
+            if (match != null) {
+                val fixtureKickoff = match.optString("utcDate").ifBlank {
+                    match.optString("dateEvent").ifBlank { match.optString("kickoff") }
+                }
+                if (fixtureKickoff.isNotBlank() && bet.optString("kickoff") != fixtureKickoff) {
+                    bet.put("kickoff", fixtureKickoff)
+                    changed = true
+                }
+                val fixtureTimestamp = match.optLong("startTimestamp", 0L)
+                if (fixtureTimestamp > 0L && bet.optLong("startTimestamp", 0L) != fixtureTimestamp) {
+                    bet.put("startTimestamp", fixtureTimestamp)
+                    changed = true
+                }
+            }
             val matchStatus = match?.optString("status")?.trim()?.uppercase(Locale.ROOT)
                 ?.ifBlank { "SCHEDULED" } ?: "SCHEDULED"
             val kickoffMillis = match?.let { kickoffTimestamp(it) } ?: kickoffTimestamp(bet)
