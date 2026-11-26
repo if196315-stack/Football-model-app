@@ -7404,7 +7404,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7430,7 +7430,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_4SYMzr",
@@ -7440,7 +7443,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7497,7 +7500,10 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_2cwDyu",
@@ -7507,7 +7513,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7564,7 +7570,10 @@
               "away_score": 1
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_3llrZc",
@@ -7574,7 +7583,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7600,7 +7609,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_4J6bPl",
@@ -7610,7 +7622,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7636,7 +7648,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_0c78zD",
@@ -7646,7 +7661,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7703,7 +7718,10 @@
               "away_score": 2
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_13c8QW",
@@ -7713,7 +7731,7 @@
           "status": "FINISHED",
           "homeScore": 3,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7739,7 +7757,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_3H4WRT",
@@ -7749,7 +7770,7 @@
           "status": "FINISHED",
           "homeScore": 5,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7775,7 +7796,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_38M4aC",
@@ -7785,7 +7809,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7811,7 +7835,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_18IfVI",
@@ -7821,7 +7848,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 4,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7863,7 +7890,10 @@
               "away_score": 4
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_0n69Si",
@@ -7909,7 +7939,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7966,7 +7996,10 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_2bTWR8",
@@ -7976,7 +8009,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 3,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8002,7 +8035,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_29gc42",
@@ -8012,7 +8048,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8038,7 +8074,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_0nnJoD",
@@ -8048,7 +8087,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8074,7 +8113,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_36394c",
@@ -8084,7 +8126,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8110,7 +8152,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_3FjwuH",
@@ -8120,7 +8165,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8146,7 +8191,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_0vHscK",
@@ -8156,7 +8204,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8182,7 +8230,10 @@
             "historyMaxDate": "2026-11-04"
           },
           "paperSignals": [],
-          "paperOnly": true
+          "paperOnly": true,
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T07:58:46.372392+00:00"
         },
         {
           "id": "m_4D9brA",
