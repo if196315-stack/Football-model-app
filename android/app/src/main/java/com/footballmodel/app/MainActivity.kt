@@ -3130,7 +3130,7 @@ class MainActivity : Activity() {
                 "Создай fine-grained personal access token для if196315-stack/Football-model-app. " +
                     "Repository permissions → Contents: Read and write. " +
                     "История ставок, сигналы и настройки будут храниться в открытом JSON-файле репозитория. " +
-                    "Токен останется только в памяти приложения на телефоне; после переустановки его нужно ввести повторно."
+                    "Токен хранится в зашифрованном виде в защищённом хранилище Android на этом телефоне; после переустановки его нужно ввести повторно."
             )
             .setView(tokenInput)
             .setNegativeButton("Отмена", null)
