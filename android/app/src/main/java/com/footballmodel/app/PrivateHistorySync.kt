@@ -51,9 +51,8 @@ object PrivateHistorySync {
         val legacy = preferences.getString(TOKEN_KEY, null)?.takeIf { it.isNotBlank() } ?: return null
         return try {
             val migrated = GitHubTokenVault.encrypt(legacy)
-            if (preferences.edit().putString(TOKEN_KEY_ENCRYPTED, migrated).remove(TOKEN_KEY).commit()) migrated.let {
-                GitHubTokenVault.decrypt(it)
-            } else legacy
+            if (preferences.edit().putString(TOKEN_KEY_ENCRYPTED, migrated).remove(TOKEN_KEY).commit()) legacy
+            else legacy
         } catch (error: Exception) {
             android.util.Log.w("IQMatchHistorySync", "Could not migrate legacy GitHub token to Android Keystore yet.", error)
             legacy
