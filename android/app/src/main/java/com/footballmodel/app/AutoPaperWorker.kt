@@ -352,7 +352,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     continue
                 }
                 val result = leg.optString("status")
-                scores.add(scoreLabel + " · ФИНАЛ")
+                scores.add(scoreLabel + if (result == "VOID") " · ОТМЕНЁН" else " · ФИНАЛ")
                 if (result == "LOST") lost = true
                 if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
             } else {
