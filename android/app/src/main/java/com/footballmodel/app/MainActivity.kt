@@ -1179,23 +1179,31 @@ class MainActivity : Activity() {
                         /* Keep the last valid market ROI cache if present. */
                     }
                 }
-                // Prepare expensive navigation summaries and TOP candidates off the main thread.
-                // Build the shared fixture index off the main thread for fast history rendering.
-                matchLookupFor(json)
-                prepareAvailableMatchCounts(json)
-                val aiMatchCandidates = collectAiCandidates(json)
-                aiCandidatesCache = aiMatchCandidates
-                aiCandidatesCacheKey = statsCacheKey(json)
-                updateAiSignalArchive(json, aiMatchCandidates)
+                // Serialize once to detect unchanged polls before rebuilding expensive indexes,
+                // candidate lists and signal archives. The 60-second refresh still processes
+                // settlements below, but does not repeat feed-derived work when data is identical.
                 val payload = json.toString()
+                val changed = payload != lastPayload
+                val aiMatchCandidates = if (changed) {
+                    // Prepare navigation summaries and TOP candidates off the main thread.
+                    matchLookupFor(json)
+                    prepareAvailableMatchCounts(json)
+                    collectAiCandidates(json).also { candidates ->
+                        aiCandidatesCache = candidates
+                        aiCandidatesCacheKey = statsCacheKey(json)
+                        updateAiSignalArchive(json, candidates)
+                    }
+                } else {
+                    aiCandidatesCache
+                }
                 // Avoid rewriting a multi-megabyte feed on every unchanged 60-second poll.
-                if (payload != lastPayload) FeedCacheStore.write(filesDir, "merged_json", payload)
+                if (changed) FeedCacheStore.write(filesDir, "merged_json", payload)
                 feedCache.edit()
                     .remove("merged_json")
                     .putLong("last_successful_check_ms", System.currentTimeMillis())
                     .apply()
                 runOnUiThread {
-                    val openTopNotificationCandidates = aiMatchCandidates.filterNot { item ->
+                    val openTopNotificationCandidates = if (!changed) emptyList() else aiMatchCandidates.filterNot { item ->
                         val signal = item.third.optJSONObject("primary") ?: return@filterNot false
                         isAiBetRecorded(item.first, signal)
                     }.mapNotNull { item ->
@@ -1207,8 +1215,7 @@ class MainActivity : Activity() {
                         val marketKey = marketKeyForAutoSignal(signal, match) ?: return@mapNotNull null
                         "${matchId}::${marketKey}" to "${match.optString("home")} — ${match.optString("away")} · ${signal.optString("side")}"
                     }
-                    AiMatchNotifications.observe(this, openTopNotificationCandidates)
-                    val changed = payload != lastPayload
+                    if (changed) AiMatchNotifications.observe(this, openTopNotificationCandidates)
                     if (changed) {
                         val hadPreviousData = data != null
                         data = json
