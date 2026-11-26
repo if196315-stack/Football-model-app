@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-26T03:42:29.025639+00:00",
+  "updatedAt": "2026-11-26T04:36:45.573233+00:00",
   "source": "PitchAPI fixtures/xG + API-Sport fixtures/MelBet",
   "paperOnly": true,
   "predictionArchive": {
@@ -39,7 +39,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_0yKeRt": {
         "id": "m_0yKeRt",
@@ -74,7 +74,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_0c78zD": {
         "id": "m_0c78zD",
@@ -109,7 +109,7 @@
         },
         "homeScore": 2,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_2cwDyu": {
         "id": "m_2cwDyu",
@@ -144,7 +144,7 @@
         },
         "homeScore": 1,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_38M4aC": {
         "id": "m_38M4aC",
@@ -179,7 +179,7 @@
         },
         "homeScore": 0,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_13c8QW": {
         "id": "m_13c8QW",
@@ -214,7 +214,7 @@
         },
         "homeScore": 3,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_3H4WRT": {
         "id": "m_3H4WRT",
@@ -249,7 +249,7 @@
         },
         "homeScore": 5,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_3llrZc": {
         "id": "m_3llrZc",
@@ -284,7 +284,7 @@
         },
         "homeScore": 1,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_4J6bPl": {
         "id": "m_4J6bPl",
@@ -319,7 +319,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_0n69Si": {
         "id": "m_0n69Si",
@@ -354,7 +354,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_18IfVI": {
         "id": "m_18IfVI",
@@ -389,7 +389,7 @@
         },
         "homeScore": 1,
         "awayScore": 4,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_36394c": {
         "id": "m_36394c",
@@ -424,7 +424,7 @@
         },
         "homeScore": 2,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_0vHscK": {
         "id": "m_0vHscK",
@@ -459,7 +459,7 @@
         },
         "homeScore": 2,
         "awayScore": 2,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_0nnJoD": {
         "id": "m_0nnJoD",
@@ -494,7 +494,7 @@
         },
         "homeScore": 2,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_29gc42": {
         "id": "m_29gc42",
@@ -529,7 +529,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_3FjwuH": {
         "id": "m_3FjwuH",
@@ -564,7 +564,7 @@
         },
         "homeScore": 0,
         "awayScore": 1,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_1WLVGt": {
         "id": "m_1WLVGt",
@@ -599,7 +599,7 @@
         },
         "homeScore": 2,
         "awayScore": 0,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_2bTWR8": {
         "id": "m_2bTWR8",
@@ -634,7 +634,7 @@
         },
         "homeScore": 0,
         "awayScore": 3,
-        "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+        "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
       },
       "UCL:m_4D9brA": {
         "id": "m_4D9brA",
@@ -6792,7 +6792,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_0yKeRt",
@@ -6827,7 +6827,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_0c78zD",
@@ -6862,7 +6862,7 @@
       },
       "homeScore": 2,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_2cwDyu",
@@ -6897,7 +6897,7 @@
       },
       "homeScore": 1,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_38M4aC",
@@ -6932,7 +6932,7 @@
       },
       "homeScore": 0,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_13c8QW",
@@ -6967,7 +6967,7 @@
       },
       "homeScore": 3,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_3H4WRT",
@@ -7002,7 +7002,7 @@
       },
       "homeScore": 5,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_3llrZc",
@@ -7037,7 +7037,7 @@
       },
       "homeScore": 1,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_4J6bPl",
@@ -7072,7 +7072,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_0n69Si",
@@ -7107,7 +7107,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_18IfVI",
@@ -7142,7 +7142,7 @@
       },
       "homeScore": 1,
       "awayScore": 4,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_36394c",
@@ -7177,7 +7177,7 @@
       },
       "homeScore": 2,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_0vHscK",
@@ -7212,7 +7212,7 @@
       },
       "homeScore": 2,
       "awayScore": 2,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_0nnJoD",
@@ -7247,7 +7247,7 @@
       },
       "homeScore": 2,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_29gc42",
@@ -7282,7 +7282,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_3FjwuH",
@@ -7317,7 +7317,7 @@
       },
       "homeScore": 0,
       "awayScore": 1,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_1WLVGt",
@@ -7352,7 +7352,7 @@
       },
       "homeScore": 2,
       "awayScore": 0,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     },
     {
       "id": "m_2bTWR8",
@@ -7387,7 +7387,7 @@
       },
       "homeScore": 0,
       "awayScore": 3,
-      "resultUpdatedAt": "2026-11-26T03:42:29.017670+00:00"
+      "resultUpdatedAt": "2026-11-26T04:36:45.558534+00:00"
     }
   ],
   "competitions": [
@@ -7404,7 +7404,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7429,12 +7429,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_4SYMzr",
@@ -7444,7 +7440,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7469,7 +7465,6 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [
             {
               "signal_id": "d21d289d6c3d245968d2",
@@ -7502,10 +7497,7 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_2cwDyu",
@@ -7515,7 +7507,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7540,7 +7532,6 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [
             {
               "signal_id": "c7251ce6b56f1beff176",
@@ -7573,10 +7564,7 @@
               "away_score": 1
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_3llrZc",
@@ -7586,7 +7574,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7611,12 +7599,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_4J6bPl",
@@ -7626,7 +7610,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7651,12 +7635,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_0c78zD",
@@ -7666,7 +7646,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 2,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7691,7 +7671,6 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [
             {
               "signal_id": "82d403c067c709b14d56",
@@ -7724,10 +7703,7 @@
               "away_score": 2
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_13c8QW",
@@ -7737,7 +7713,7 @@
           "status": "FINISHED",
           "homeScore": 3,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7762,12 +7738,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_3H4WRT",
@@ -7777,7 +7749,7 @@
           "status": "FINISHED",
           "homeScore": 5,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7802,12 +7774,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_38M4aC",
@@ -7817,7 +7785,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 2,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7842,12 +7810,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_18IfVI",
@@ -7857,7 +7821,7 @@
           "status": "FINISHED",
           "homeScore": 1,
           "awayScore": 4,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7882,7 +7846,6 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [
             {
               "signal_id": "890b9b6096346575331f",
@@ -7900,10 +7863,7 @@
               "away_score": 4
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_0n69Si",
@@ -7938,7 +7898,6 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -7950,7 +7909,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -7975,7 +7934,6 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [
             {
               "signal_id": "a479aac3d5a7864b151b",
@@ -8008,10 +7966,7 @@
               "away_score": 0
             }
           ],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_2bTWR8",
@@ -8021,7 +7976,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 3,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8046,12 +8001,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_29gc42",
@@ -8061,7 +8012,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 0,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8086,12 +8037,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_0nnJoD",
@@ -8101,7 +8048,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8126,12 +8073,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_36394c",
@@ -8141,7 +8084,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 2,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8166,12 +8109,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_3FjwuH",
@@ -8181,7 +8120,7 @@
           "status": "FINISHED",
           "homeScore": 0,
           "awayScore": 1,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8206,12 +8145,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_0vHscK",
@@ -8221,7 +8156,7 @@
           "status": "FINISHED",
           "homeScore": 2,
           "awayScore": 2,
-          "elapsed": 90,
+          "elapsed": null,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -8246,12 +8181,8 @@
             "modelVersion": "uefa-xg-poisson-v1",
             "historyMaxDate": "2026-11-04"
           },
-          "odds": null,
           "paperSignals": [],
-          "paperOnly": true,
-          "scoreStatusFinal": true,
-          "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-26T04:08:26.844529+00:00"
+          "paperOnly": true
         },
         {
           "id": "m_4D9brA",
@@ -8291,18 +8222,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.57,
-                "x2": 1.47
+                "x2": 1.48
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.11
+                  "price": 1.08
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.37
+                  "price": 1.35
                 }
               ],
               "teamTotals": [
@@ -8310,29 +8241,41 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.13
+                  "price": 1.12
+                },
+                {
+                  "team": "away",
+                  "point": 1.0,
+                  "side": "over",
+                  "price": 1.2
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.69
+                  "price": 1.68
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.16
+                  "price": 1.14
+                },
+                {
+                  "team": "home",
+                  "point": 1.0,
+                  "side": "over",
+                  "price": 1.24
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.78
+                  "price": 1.77
                 }
               ],
               "btts": {
-                "yes": 1.35
+                "yes": 1.33
               },
               "spreads": [
                 {
@@ -8343,25 +8286,25 @@
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.32
+                  "price": 1.3
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.82
+                  "price": 1.81
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.26
+                  "price": 1.23
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8403,18 +8346,14 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "x2": 4.54
+                "1x": 1.03,
+                "x2": 4.6
               },
               "totals": [
                 {
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 1.08
-                },
-                {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.26
+                  "price": 1.24
                 }
               ],
               "teamTotals": [
@@ -8422,49 +8361,47 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.6
+                  "price": 1.56
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.46
+                  "price": 2.53
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.68
-                },
-                {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.03
-                },
-                {
-                  "team": "home",
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 1.18
+                  "price": 3.99
                 }
               ],
               "btts": {
-                "yes": 1.66
+                "yes": 1.62
               },
               "spreads": [
                 {
+                  "team": "home",
+                  "point": 0.0,
+                  "price": 1.08
+                },
+                {
+                  "team": "away",
+                  "point": 0.0,
+                  "price": 7.81
+                },
+                {
                   "team": "away",
                   "point": 1.0,
-                  "price": 3.97
+                  "price": 3.81
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8506,19 +8443,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.5,
-                "x2": 1.51
+                "1x": 1.53,
+                "x2": 1.52
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.16
+                  "price": 1.13
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.52
+                  "price": 1.5
                 }
               ],
               "teamTotals": [
@@ -8526,25 +8463,25 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.2
+                  "price": 1.17
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.33
+                  "price": 1.32
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.9
+                  "price": 1.92
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.2
+                  "price": 1.18
                 },
                 {
                   "team": "home",
@@ -8556,40 +8493,40 @@
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.91
+                  "price": 1.94
                 }
               ],
               "btts": {
-                "yes": 1.45
+                "yes": 1.44
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.89
+                  "price": 1.92
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.26
+                  "price": 1.25
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.91
+                  "price": 1.88
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.27
+                  "price": 1.24
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:01.653000+00:00",
+            "updatedAt": "2026-11-26T04:33:41.511000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14967.365
+            "bookmakerUpdateAgeSeconds": 184.456
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8631,8 +8568,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.98,
-                "x2": 1.24
+                "1x": 1.96,
+                "x2": 1.23
               },
               "totals": [
                 {
@@ -8675,7 +8612,7 @@
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.32
+                  "price": 2.36
                 }
               ],
               "btts": {
@@ -8704,11 +8641,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8751,18 +8688,13 @@
             "best": {
               "doubleChance": {
                 "1x": 1.29,
-                "x2": 1.97
+                "x2": 1.99
               },
               "totals": [
                 {
-                  "point": 1.5,
-                  "side": "over",
-                  "price": 1.09
-                },
-                {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.25
+                  "price": 1.22
                 }
               ],
               "teamTotals": [
@@ -8770,13 +8702,13 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.17
+                  "price": 1.15
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.29
+                  "price": 1.28
                 },
                 {
                   "team": "away",
@@ -8786,35 +8718,29 @@
                 },
                 {
                   "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.07
-                },
-                {
-                  "team": "home",
                   "point": 1.5,
                   "side": "over",
                   "price": 1.38
                 }
               ],
               "btts": {
-                "yes": 1.33
+                "yes": 1.26
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.44
+                  "price": 1.46
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.14
+                  "price": 1.12
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 2.79
+                  "price": 2.73
                 },
                 {
                   "team": "away",
@@ -8823,11 +8749,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -8865,7 +8791,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -8906,19 +8831,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.24,
-                "x2": 2.07
+                "1x": 1.23,
+                "x2": 2.15
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.11
+                  "price": 1.06
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.32
+                  "price": 1.3
                 }
               ],
               "teamTotals": [
@@ -8926,7 +8851,7 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.24
+                  "price": 1.22
                 },
                 {
                   "team": "away",
@@ -8938,52 +8863,46 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.11
-                },
-                {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.08
+                  "price": 2.15
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.43
+                  "price": 1.41
                 }
               ],
               "btts": {
-                "yes": 1.39
+                "yes": 1.35
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.36
+                  "price": 1.37
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.11
+                  "price": 1.08
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 3.17
+                  "price": 3.1
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.71
+                  "price": 1.72
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9026,18 +8945,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.24,
-                "x2": 1.99
+                "x2": 2.06
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.1
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.46
+                  "price": 1.4
                 }
               ],
               "teamTotals": [
@@ -9045,64 +8964,58 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.3
+                  "price": 1.26
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.56
+                  "price": 1.55
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.31
-                },
-                {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.1
+                  "price": 2.36
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.54
+                  "price": 1.52
                 }
               ],
               "btts": {
-                "yes": 1.47
+                "yes": 1.43
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.39
+                  "price": 1.4
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.11
+                  "price": 1.08
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 2.99
+                  "price": 2.96
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.6
+                  "price": 1.64
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.909000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.058
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9145,18 +9058,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.16,
-                "x2": 2.41
+                "x2": 2.39
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.12
+                  "price": 1.11
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.46
+                  "price": 1.45
                 }
               ],
               "teamTotals": [
@@ -9164,19 +9077,19 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.38
+                  "price": 1.37
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.87
+                  "price": 1.84
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.93
+                  "price": 2.89
                 },
                 {
                   "team": "home",
@@ -9186,7 +9099,7 @@
                 }
               ],
               "btts": {
-                "yes": 1.54
+                "yes": 1.52
               },
               "spreads": [
                 {
@@ -9202,20 +9115,20 @@
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 3.77
+                  "price": 3.73
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.89
+                  "price": 1.87
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.909000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.058
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9257,19 +9170,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.54,
+                "1x": 1.56,
                 "x2": 1.47
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.17
+                  "price": 1.14
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.54
+                  "price": 1.53
                 }
               ],
               "teamTotals": [
@@ -9277,13 +9190,13 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.2
+                  "price": 1.17
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.33
+                  "price": 1.31
                 },
                 {
                   "team": "away",
@@ -9295,7 +9208,7 @@
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.21
+                  "price": 1.19
                 },
                 {
                   "team": "home",
@@ -9307,40 +9220,40 @@
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.0
+                  "price": 2.02
                 }
               ],
               "btts": {
-                "yes": 1.48
+                "yes": 1.46
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.97
+                  "price": 1.99
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.28
+                  "price": 1.27
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.83
+                  "price": 1.82
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.23
+                  "price": 1.21
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9382,33 +9295,27 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 2.01,
+                "1x": 2.03,
                 "x2": 1.23
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.18
+                  "price": 1.16
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.57
+                  "price": 1.58
                 }
               ],
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.13
-                },
-                {
-                  "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.18
+                  "price": 1.19
                 },
                 {
                   "team": "away",
@@ -9420,52 +9327,52 @@
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.37
+                  "price": 1.35
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.75
+                  "price": 1.79
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.71
+                  "price": 2.79
                 }
               ],
               "btts": {
-                "yes": 1.58
+                "yes": 1.57
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 3.09
+                  "price": 3.03
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.6
+                  "price": 1.58
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.37
+                  "price": 1.38
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.1
+                  "price": 1.06
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9508,18 +9415,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.29,
-                "x2": 1.86
+                "x2": 1.88
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.17
+                  "price": 1.13
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.55
+                  "price": 1.51
                 }
               ],
               "teamTotals": [
@@ -9527,64 +9434,64 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.3
+                  "price": 1.27
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.58
+                  "price": 1.56
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.36
+                  "price": 2.4
                 },
                 {
                   "team": "home",
-                  "point": 0.5,
+                  "point": 1.0,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.2
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.7
+                  "price": 1.67
                 }
               ],
               "btts": {
-                "yes": 1.52
+                "yes": 1.48
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.47
+                  "price": 1.49
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.13
+                  "price": 1.1
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 2.67
+                  "price": 2.63
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.48
+                  "price": 1.49
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.909000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.058
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9626,19 +9533,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.5,
-                "x2": 1.49
+                "1x": 1.52,
+                "x2": 1.53
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.16
+                  "price": 1.1
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.51
+                  "price": 1.41
                 }
               ],
               "teamTotals": [
@@ -9646,57 +9553,57 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.18
+                  "price": 1.15
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.3
+                  "price": 1.27
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.88
+                  "price": 1.82
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.18
+                  "price": 1.15
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.3
+                  "price": 1.27
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.88
+                  "price": 1.82
                 }
               ],
               "btts": {
-                "yes": 1.45
+                "yes": 1.38
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.91
+                  "price": 1.89
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.26
+                  "price": 1.25
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.89
+                  "price": 1.91
                 },
                 {
                   "team": "away",
@@ -9705,11 +9612,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9752,18 +9659,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.63,
-                "x2": 1.39
+                "x2": 1.41
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.15
+                  "price": 1.12
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.51
+                  "price": 1.48
                 }
               ],
               "teamTotals": [
@@ -9771,25 +9678,31 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.16
+                  "price": 1.14
+                },
+                {
+                  "team": "away",
+                  "point": 1.0,
+                  "side": "over",
+                  "price": 1.25
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.78
+                  "price": 1.79
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.23
+                  "price": 1.2
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.4
+                  "price": 1.38
                 },
                 {
                   "team": "home",
@@ -9799,36 +9712,36 @@
                 }
               ],
               "btts": {
-                "yes": 1.45
+                "yes": 1.43
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.18
+                  "price": 2.14
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.35
+                  "price": 1.32
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.68
+                  "price": 1.71
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.2
+                  "price": 1.18
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.909000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.058
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9870,19 +9783,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.44,
-                "x2": 1.61
+                "1x": 1.43,
+                "x2": 1.62
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.13
+                  "price": 1.09
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.42
+                  "price": 1.39
                 }
               ],
               "teamTotals": [
@@ -9890,7 +9803,7 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.18
+                  "price": 1.16
                 },
                 {
                   "team": "away",
@@ -9902,13 +9815,19 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.87
+                  "price": 1.89
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.12
+                },
+                {
+                  "team": "home",
+                  "point": 1.0,
+                  "side": "over",
+                  "price": 1.21
                 },
                 {
                   "team": "home",
@@ -9918,36 +9837,36 @@
                 }
               ],
               "btts": {
-                "yes": 1.38
+                "yes": 1.37
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.75
+                  "price": 1.74
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.23
+                  "price": 1.2
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 2.09
+                  "price": 2.1
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.35
+                  "price": 1.32
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -9989,19 +9908,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.13,
-                "x2": 2.6
+                "1x": 1.12,
+                "x2": 2.66
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.15
+                  "price": 1.13
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.5
+                  "price": 1.49
                 }
               ],
               "teamTotals": [
@@ -10015,19 +9934,13 @@
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.02
+                  "price": 2.15
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.07
-                },
-                {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.08
+                  "price": 3.39
                 },
                 {
                   "team": "home",
@@ -10037,7 +9950,7 @@
                 }
               ],
               "btts": {
-                "yes": 1.61
+                "yes": 1.62
               },
               "spreads": [
                 {
@@ -10048,25 +9961,25 @@
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.05
+                  "price": 1.01
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 4.41
+                  "price": 4.36
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 2.09
+                  "price": 2.07
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -10108,27 +10021,27 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.86,
-                "x2": 1.31
+                "1x": 1.85,
+                "x2": 1.33
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.13
+                  "price": 1.08
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.41
+                  "price": 1.35
                 }
               ],
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 0.5,
+                  "point": 1.0,
                   "side": "over",
-                  "price": 1.1
+                  "price": 1.14
                 },
                 {
                   "team": "away",
@@ -10140,52 +10053,52 @@
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.23
+                  "price": 1.19
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.4
+                  "price": 1.38
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.05
+                  "price": 2.03
                 }
               ],
               "btts": {
-                "yes": 1.41
+                "yes": 1.36
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.6
+                  "price": 2.51
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.52
+                  "price": 1.49
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.5
+                  "price": 1.53
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.15
+                  "price": 1.13
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.338000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.629
           },
           "paperSignals": [],
           "paperOnly": true
@@ -10228,18 +10141,18 @@
             "best": {
               "doubleChance": {
                 "1x": 1.21,
-                "x2": 2.12
+                "x2": 2.13
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.11
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.46
+                  "price": 1.45
                 }
               ],
               "teamTotals": [
@@ -10247,64 +10160,58 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.33
+                  "price": 1.31
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.63
+                  "price": 1.67
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.52
-                },
-                {
-                  "team": "home",
-                  "point": 0.5,
-                  "side": "over",
-                  "price": 1.1
+                  "price": 2.59
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.52
+                  "price": 1.53
                 }
               ],
               "btts": {
-                "yes": 1.49
+                "yes": 1.48
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.33
+                  "price": 1.35
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.1
+                  "price": 1.06
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 3.29
+                  "price": 3.21
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.71
+                  "price": 1.68
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:33:03.160000+00:00",
+            "updatedAt": "2026-11-26T04:33:43.909000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14965.858
+            "bookmakerUpdateAgeSeconds": 182.058
           },
           "paperSignals": [],
           "paperOnly": true
@@ -10342,7 +10249,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10379,7 +10285,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10416,7 +10321,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10453,7 +10357,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10490,7 +10393,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10527,7 +10429,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10564,7 +10465,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10601,7 +10501,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10638,7 +10537,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10675,7 +10573,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10712,7 +10609,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10749,7 +10645,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10786,7 +10681,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10823,7 +10717,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10860,7 +10753,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10897,7 +10789,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10934,7 +10825,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -10971,7 +10861,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11008,7 +10897,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11045,7 +10933,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11082,7 +10969,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11119,7 +11005,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11156,7 +11041,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11193,7 +11077,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11230,7 +11113,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11267,7 +11149,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11304,7 +11185,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11341,7 +11221,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11378,7 +11257,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11415,7 +11293,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11452,7 +11329,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11489,7 +11365,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11526,7 +11401,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11563,7 +11437,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11600,7 +11473,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -11637,7 +11509,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-25"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         }
@@ -11753,11 +11624,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -11799,19 +11670,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.79,
-                "x2": 1.27
+                "1x": 1.85,
+                "x2": 1.25
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.28
+                  "price": 1.26
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.9
+                  "price": 1.86
                 }
               ],
               "teamTotals": [
@@ -11819,70 +11690,70 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.19
+                  "price": 1.17
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.36
+                  "price": 1.33
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 2.01
+                  "price": 1.93
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.4
+                  "price": 1.41
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.97
+                  "price": 1.99
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.13
+                  "price": 3.16
                 }
               ],
               "btts": {
-                "yes": 1.74
+                "yes": 1.73
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 2.63
+                  "price": 2.78
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.39
+                  "price": 1.45
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.49
+                  "price": 1.44
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.08
+                  "price": 1.07
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12003,11 +11874,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12123,11 +11994,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12248,11 +12119,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [
             {
@@ -12306,7 +12177,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -12347,8 +12217,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 1.07,
-                "x2": 3.25
+                "1x": 1.08,
+                "x2": 3.16
               },
               "totals": [
                 {
@@ -12359,7 +12229,7 @@
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.45
+                  "price": 1.47
                 }
               ],
               "teamTotals": [
@@ -12367,65 +12237,65 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.58
+                  "price": 1.54
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.64
+                  "price": 2.47
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 4.12
+                  "price": 3.89
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.03
+                  "price": 1.04
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.06
+                  "price": 1.07
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.34
+                  "price": 1.37
                 }
               ],
               "btts": {
-                "yes": 1.72
+                "yes": 1.68
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 1.12
+                  "price": 1.13
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 6.18
+                  "price": 5.96
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 2.63
+                  "price": 2.48
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12546,11 +12416,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12671,11 +12541,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12791,11 +12661,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -12899,11 +12769,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -13007,11 +12877,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -13121,11 +12991,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -13246,11 +13116,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -13371,11 +13241,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -13413,7 +13283,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13528,11 +13397,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -13574,19 +13443,19 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 2.29,
-                "x2": 1.16
+                "1x": 2.28,
+                "x2": 1.17
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.16
+                  "price": 1.13
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.55
+                  "price": 1.47
                 }
               ],
               "teamTotals": [
@@ -13594,70 +13463,70 @@
                   "team": "away",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.08
+                  "price": 1.07
                 },
                 {
                   "team": "away",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.12
                 },
                 {
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.53
+                  "price": 1.49
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.4
+                  "price": 1.35
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 1.96
+                  "price": 1.79
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.08
+                  "price": 2.81
                 }
               ],
               "btts": {
-                "yes": 1.59
+                "yes": 1.51
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 3.78
+                  "price": 3.68
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.79
+                  "price": 1.8
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.27
+                  "price": 1.28
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.03
+                  "price": 1.04
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -13695,7 +13564,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13732,7 +13600,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13769,7 +13636,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13806,7 +13672,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13843,7 +13708,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13880,7 +13744,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13917,7 +13780,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13954,7 +13816,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -13991,7 +13852,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14028,7 +13888,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14065,7 +13924,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14102,7 +13960,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14139,7 +13996,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14176,7 +14032,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14213,7 +14068,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14250,7 +14104,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14287,7 +14140,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14324,7 +14176,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14361,7 +14212,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14398,7 +14248,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14435,7 +14284,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14472,7 +14320,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14509,7 +14356,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14546,7 +14392,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14583,7 +14428,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14620,7 +14464,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14657,7 +14500,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14694,7 +14536,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14731,7 +14572,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14768,7 +14608,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14805,7 +14644,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14842,7 +14680,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14879,7 +14716,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14916,7 +14752,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14953,7 +14788,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -14990,7 +14824,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15027,7 +14860,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15064,7 +14896,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15101,7 +14932,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15138,7 +14968,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15175,7 +15004,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15212,7 +15040,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15249,7 +15076,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15286,7 +15112,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15323,7 +15148,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15360,7 +15184,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15397,7 +15220,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15434,7 +15256,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15471,7 +15292,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15508,7 +15328,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15545,7 +15364,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15582,7 +15400,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15619,7 +15436,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15656,7 +15472,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         }
@@ -15783,11 +15598,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -15825,7 +15640,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -15939,11 +15753,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16031,11 +15845,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16150,11 +15964,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16275,11 +16089,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16321,84 +16135,78 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 2.34,
-                "x2": 1.15
+                "1x": 2.56,
+                "x2": 1.11
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.14
+                  "price": 1.13
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.53
+                  "price": 1.5
                 }
               ],
               "teamTotals": [
                 {
                   "team": "away",
-                  "point": 1.0,
-                  "side": "over",
-                  "price": 1.13
-                },
-                {
-                  "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.53
+                  "price": 1.47
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.41
+                  "price": 1.45
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.02
+                  "price": 2.16
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.2
+                  "price": 3.45
                 }
               ],
               "btts": {
-                "yes": 1.6
+                "yes": 1.62
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 3.7
+                  "price": 4.2
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 1.8
+                  "price": 1.98
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.25
+                  "price": 1.21
                 },
                 {
                   "team": "away",
                   "point": 1.0,
-                  "price": 1.02
+                  "price": 1.01
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [
             {
@@ -16524,11 +16332,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16643,11 +16451,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16762,11 +16570,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -16808,8 +16616,8 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 2.68,
-                "x2": 1.08
+                "1x": 2.77,
+                "x2": 1.07
               },
               "totals": [
                 {
@@ -16828,53 +16636,53 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.41
+                  "price": 1.39
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.5
+                  "price": 1.52
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 2.32
+                  "price": 2.43
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 3.7
+                  "price": 3.85
                 }
               ],
               "btts": {
-                "yes": 1.65
+                "yes": 1.68
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 4.7
+                  "price": 4.95
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 2.14
+                  "price": 2.21
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.17
+                  "price": 1.15
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [
             {
@@ -16928,7 +16736,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17042,11 +16849,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [
             {
@@ -17177,11 +16984,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -17219,7 +17026,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17256,7 +17062,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17297,18 +17102,18 @@
             "bookmaker": "MELBET",
             "best": {
               "doubleChance": {
-                "1x": 4.25
+                "1x": 4.4
               },
               "totals": [
                 {
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.13
+                  "price": 1.16
                 },
                 {
                   "point": 2.5,
                   "side": "over",
-                  "price": 1.5
+                  "price": 1.59
                 }
               ],
               "teamTotals": [
@@ -17316,53 +17121,53 @@
                   "team": "away",
                   "point": 1.5,
                   "side": "over",
-                  "price": 1.31
+                  "price": 1.33
                 },
                 {
                   "team": "home",
                   "point": 0.5,
                   "side": "over",
-                  "price": 1.94
+                  "price": 2.13
                 },
                 {
                   "team": "home",
                   "point": 1.0,
                   "side": "over",
-                  "price": 4.5
+                  "price": 5.65
                 },
                 {
                   "team": "home",
                   "point": 1.5,
                   "side": "over",
-                  "price": 6.9
+                  "price": 8.4
                 }
               ],
               "btts": {
-                "yes": 2.1
+                "yes": 2.32
               },
               "spreads": [
                 {
                   "team": "home",
                   "point": 0.0,
-                  "price": 8.6
+                  "price": 9.3
                 },
                 {
                   "team": "home",
                   "point": 1.0,
-                  "price": 3.4
+                  "price": 3.45
                 },
                 {
                   "team": "away",
                   "point": 0.0,
-                  "price": 1.05
+                  "price": 1.04
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -17483,11 +17288,11 @@
                 }
               ]
             },
-            "updatedAt": "2026-11-25T23:34:46.476000+00:00",
+            "updatedAt": "2026-11-26T04:33:30.894000+00:00",
             "source": "API-Sport / MelBet",
             "freshnessStatus": "fresh",
             "prematchActive": true,
-            "bookmakerUpdateAgeSeconds": 14862.542
+            "bookmakerUpdateAgeSeconds": 195.073
           },
           "paperSignals": [],
           "paperOnly": true
@@ -17525,7 +17330,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17562,7 +17366,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17599,7 +17402,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17636,7 +17438,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17673,7 +17474,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17710,7 +17510,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17747,7 +17546,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17784,7 +17582,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17821,7 +17618,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17858,7 +17654,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17895,7 +17690,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17932,7 +17726,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -17969,7 +17762,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18006,7 +17798,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18043,7 +17834,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18080,7 +17870,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18117,7 +17906,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18154,7 +17942,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18191,7 +17978,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18228,7 +18014,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18265,7 +18050,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18302,7 +18086,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18339,7 +18122,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18376,7 +18158,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18413,7 +18194,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18450,7 +18230,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18487,7 +18266,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18524,7 +18302,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18561,7 +18338,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18598,7 +18374,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18635,7 +18410,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18672,7 +18446,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18709,7 +18482,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18746,7 +18518,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18783,7 +18554,6 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         },
@@ -18820,11 +18590,43 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-05"
           },
-          "odds": null,
           "paperSignals": [],
           "paperOnly": true
         }
       ]
     }
-  ]
+  ],
+  "oddsProvider": "API-Sport / MelBet unified snapshots",
+  "oddsBookmaker": "melbet",
+  "oddsUpdatedAt": "2026-11-26T04:36:45.966739+00:00",
+  "oddsCoverage": {
+    "eligible": 180,
+    "visible": 47,
+    "excluded": 133,
+    "byLeague": {
+      "UCL": {
+        "eligible": 54,
+        "visible": 17,
+        "noCompletePrediction": 0,
+        "noFreshActiveMelBet": 37,
+        "noMatchingStrategyLine": 0
+      },
+      "UEL": {
+        "eligible": 72,
+        "visible": 16,
+        "noCompletePrediction": 0,
+        "noFreshActiveMelBet": 56,
+        "noMatchingStrategyLine": 0
+      },
+      "UECL": {
+        "eligible": 54,
+        "visible": 14,
+        "noCompletePrediction": 0,
+        "noFreshActiveMelBet": 40,
+        "noMatchingStrategyLine": 0
+      }
+    }
+  },
+  "oddsStatus": "ready",
+  "oddsNotice": "В UEFA feed 47 матчей с прогнозом и свежей активной линией MelBet."
 }
