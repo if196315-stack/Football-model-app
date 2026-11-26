@@ -147,6 +147,8 @@ object PrivateHistorySync {
         }
         // Explicitly restored historical rows override stale local/cloud tombstones.
         deletedBetIds.removeAll(restoredBetIds)
+        // The Sabah–Barcelona history contains a known duplicate ITB 0.5 row on some devices.
+        removeDuplicateSabahHomeOver05(mergedBets, deletedBetIds)
         check(betsPrefs.edit().putStringSet("deleted_bet_ids", deletedBetIds.toSet()).commit()) {
             "Не удалось снять метку удаления восстановленной ставки."
         }
@@ -190,6 +192,26 @@ object PrivateHistorySync {
         val body = JSONObject().put("message", "Sync IQ Match personal history").put("content", content)
         remoteFile?.optString("sha")?.takeIf { it.isNotBlank() }?.let { body.put("sha", it) }
         request(accessToken, "PUT", body) ?: throw IllegalStateException("GitHub не подтвердил запись архива.")
+    }
+
+    /** Keeps the canonical Sabah–Barcelona ITB 0.5 record and tombstones device-side duplicates. */
+    internal fun removeDuplicateSabahHomeOver05(bets: JSONArray, deletedBetIds: MutableSet<String>): Boolean {
+        val candidates = (0 until bets.length()).mapNotNull { index ->
+            val row = bets.optJSONObject(index) ?: return@mapNotNull null
+            if (row.optString("matchId") != "m_18IfVI" ||
+                row.optString("marketKey") != "homeOver05") return@mapNotNull null
+            index to row
+        }
+        if (candidates.size <= 1) return false
+        val canonicalId = "AI_MANUAL:m_18IfVI:homeOver05:1795604905046"
+        val keeper = candidates.firstOrNull { it.second.optString("id") == canonicalId } ?: candidates.first()
+        val removeIndices = candidates.filter { it.first != keeper.first }.map { it.first }
+        for (index in removeIndices.sortedDescending()) {
+            val row = bets.optJSONObject(index) ?: continue
+            row.optString("id").takeIf { it.isNotBlank() }?.let { deletedBetIds.add(it) }
+            bets.remove(index)
+        }
+        return removeIndices.isNotEmpty()
     }
 
     private fun parseArray(value: String?): JSONArray =
