@@ -153,17 +153,29 @@ jobs:
           TAG="v$VERSION_NAME"
           APK="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$APK"
+          VERSION_CODE="$(awk '$1 == "versionCode" { gsub(/[^0-9]/, "", $2); print $2; exit }' android/app/build.gradle)"
+          test -n "$VERSION_CODE"
           NOTES="IQ Match $VERSION_NAME
+
+          Version-Code: $VERSION_CODE
 
           Подписанная Android-версия приложения.
           Установка: скачайте app-release.apk и откройте файл на Android.
           Если Android запросит разрешение на установку приложений из этого источника, разрешите его и повторите установку."
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" --clobber
+            EXISTING_TARGET="$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha)"
+            if [ "$EXISTING_TARGET" != "$GITHUB_SHA" ]; then
+              echo "Refusing to replace APK: release tag $TAG points to $EXISTING_TARGET, current build is $GITHUB_SHA."
+              exit 1
+            fi
+            if gh release view "$TAG" --json assets --jq '.assets[]? | select(.name == "app-release.apk") | .name' | grep -q "^app-release.apk$"; then
+              echo "Release $TAG already has an APK for this exact commit; leaving the published asset unchanged."
+            else
+              gh release upload "$TAG" "$APK"
+            fi
           else
             gh release create "$TAG" "$APK" --title "IQ Match $VERSION_NAME" --notes "$NOTES" --target "$GITHUB_SHA" --latest
           fi
-
       - name: Upload unsigned PR candidate
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4

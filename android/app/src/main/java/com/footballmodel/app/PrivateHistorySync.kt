@@ -17,23 +17,47 @@ object PrivateHistorySync {
     private const val MARKET_BACKUP_PATH = "private-data/all-market-history-v1.json"
     private const val PREFS = "private_history_auth"
     private const val TOKEN_KEY = "github_token"
+    private const val TOKEN_KEY_ENCRYPTED = "github_token_encrypted_v1"
     private val syncLock = Any()
     private val restoredBetIds = setOf("AI_MANUAL:m_1WLVGt:bttsYes:1795608397977")
 
-    fun hasToken(context: Context): Boolean =
-        !context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(TOKEN_KEY, null).isNullOrBlank()
+    fun hasToken(context: Context): Boolean = !token(context).isNullOrBlank()
 
     fun saveToken(context: Context, token: String) {
         val value = token.trim()
         require(value.startsWith("github_pat_") || value.startsWith("ghp_")) {
             "Введи GitHub personal access token (github_pat_… или ghp_…)."
         }
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit().putString(TOKEN_KEY, value).apply()
+        val encrypted = GitHubTokenVault.encrypt(value)
+        check(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString(TOKEN_KEY_ENCRYPTED, encrypted)
+            .remove(TOKEN_KEY)
+            .commit()) { "Не удалось безопасно сохранить GitHub token." }
     }
 
-    private fun token(context: Context): String? =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(TOKEN_KEY, null)
+    private fun token(context: Context): String? {
+        val preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val encrypted = preferences.getString(TOKEN_KEY_ENCRYPTED, null)
+        if (!encrypted.isNullOrBlank()) return try {
+            GitHubTokenVault.decrypt(encrypted)
+        } catch (error: Exception) {
+            android.util.Log.e("IQMatchHistorySync", "Stored GitHub token could not be decrypted; reconnect it in settings.", error)
+            null
+        }
+
+        // One-time migration from the previous plaintext preference. Keep the old
+        // value unless encryption and durable persistence both succeed, so a
+        // transient keystore failure cannot lock the user out of history sync.
+        val legacy = preferences.getString(TOKEN_KEY, null)?.takeIf { it.isNotBlank() } ?: return null
+        return try {
+            val migrated = GitHubTokenVault.encrypt(legacy)
+            if (preferences.edit().putString(TOKEN_KEY_ENCRYPTED, migrated).remove(TOKEN_KEY).commit()) legacy
+            else legacy
+        } catch (error: Exception) {
+            android.util.Log.w("IQMatchHistorySync", "Could not migrate legacy GitHub token to Android Keystore yet.", error)
+            legacy
+        }
+    }
 
     fun syncAsync(context: Context, callback: ((Boolean, String) -> Unit)? = null) {
         val appContext = context.applicationContext

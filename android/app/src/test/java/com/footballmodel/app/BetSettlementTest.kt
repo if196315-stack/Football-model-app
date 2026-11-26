@@ -78,6 +78,7 @@ class BetSettlementTest {
         assertEquals(true, BetSettlement.isSettledStatus("PUSH"))
         assertEquals(false, BetSettlement.isSettledStatus("PENDING"))
         assertEquals(false, BetSettlement.isSettledStatus("UNKNOWN"))
+        assertEquals(true, BetSettlement.isSettledStatus("VOID"))
     }
     @Test fun scheduledFixtureReopensSettlementDuringKickoffGraceWindow() {
         val now = 1_795_550_000_000L
@@ -92,6 +93,23 @@ class BetSettlementTest {
         assertEquals(false, BetSettlement.isKickoffWithinReopenWindow(null, now))
         assertEquals(false, BetSettlement.shouldReopenSettledBet(
             "WON", "SCHEDULED", false, false
+        ))
+    }
+
+    @Test fun cancelledFixturesRefundPendingBetsWithoutRequiringScores() {
+        assertEquals(true, BetSettlement.isCancelledMatchStatus("CANCELLED"))
+        assertEquals(true, BetSettlement.isCancelledMatchStatus("canceled"))
+        assertEquals(true, BetSettlement.isCancelledMatchStatus("CANC"))
+        assertEquals(false, BetSettlement.isCancelledMatchStatus("POSTPONED"))
+        assertEquals(false, BetSettlement.isCancelledMatchStatus("ABANDONED"))
+        assertEquals("VOID", BetSettlement.settledResult(
+            "PENDING", "CANCELLED", false, null, null, null, "1x"
+        ))
+        assertNull(BetSettlement.settledResult(
+            "PENDING", "POSTPONED", false, null, null, null, "1x"
+        ))
+        assertNull(BetSettlement.settledResult(
+            "PENDING", "ABANDONED", false, null, null, null, "1x"
         ))
     }
 

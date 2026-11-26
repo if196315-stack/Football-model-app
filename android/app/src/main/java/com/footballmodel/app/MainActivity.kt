@@ -1126,8 +1126,16 @@ class MainActivity : Activity() {
             val body = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             val bodyCached = FeedCacheStore.write(filesDir, cacheKey, body)
             val editor = feedCache.edit()
-            if (bodyCached) editor.remove(cacheKey)
-            conn.getHeaderField("ETag")?.let { editor.putString("${cacheKey}_etag", it) }
+            if (bodyCached) {
+                editor.remove(cacheKey)
+                conn.getHeaderField("ETag")?.takeIf { it.isNotBlank() }?.let {
+                    editor.putString("${cacheKey}_etag", it)
+                } ?: editor.remove("${cacheKey}_etag")
+            } else {
+                // A validator without its matching body can make a later 304 unusable
+                // or keep an older cache entry indefinitely.
+                editor.remove("${cacheKey}_etag")
+            }
             editor.apply()
             return body
         } catch (e: Exception) {
@@ -2397,7 +2405,7 @@ class MainActivity : Activity() {
             val persisted = mergedSnapshot[key]
             // Never let an unsaved PENDING copy roll back a terminal persisted result.
             if (persisted != null && local.optString("status") == "PENDING" &&
-                persisted.optString("status") in listOf("WON", "LOST", "PUSH")) continue
+                persisted.optString("status") in listOf("WON", "LOST", "PUSH", "VOID")) continue
             mergedSnapshot[key] = local
         }
         val mergedBets = JSONArray(mergedSnapshot.values.toList())
@@ -2471,7 +2479,7 @@ class MainActivity : Activity() {
                 if (local == null && preserveBackgroundAuto && item.optString("source") == "AI_AUTO") {
                     merged[key] = item
                 } else if (local != null && local.optString("status") == "PENDING" &&
-                    item.optString("status") in listOf("WON", "LOST", "PUSH")) {
+                    item.optString("status") in listOf("WON", "LOST", "PUSH", "VOID")) {
                     merged[key] = item
                 }
             }
@@ -2560,21 +2568,30 @@ class MainActivity : Activity() {
         for (i in 0 until selections.length()) {
             val pick = selections.optJSONObject(i) ?: continue
             val match = findIndexedMatch(pick)
-            if (match == null || match.isNull("homeScore") || match.isNull("awayScore")) {
+            if (match == null) {
                 allSettled = false
                 continue
             }
             val matchStatus = match.optString("status")
-            val scoreLabel = pick.optString("home") + " " + match.optInt("homeScore") + ":" + match.optInt("awayScore") + " " + pick.optString("away")
-            if (isFinishedMatch(match)) {
+            val cancelled = BetSettlement.isCancelledMatchStatus(
+                matchStatus, match.optString("statusShort"), match.optString("statusLong")
+            )
+            if (!cancelled && (match.isNull("homeScore") || match.isNull("awayScore"))) {
+                allSettled = false
+                continue
+            }
+            val scoreLabel = pick.optString("home") + " " +
+                (if (cancelled) "" else match.optInt("homeScore").toString() + ":" + match.optInt("awayScore")) +
+                " " + pick.optString("away")
+            if (cancelled || isFinishedMatch(match)) {
                 val leg = JSONObject().put("status", "PENDING").put("marketKey", pick.optString("marketKey"))
                 settleBet(leg, match)
                 val result = leg.optString("status")
-                if (result !in listOf("WON", "LOST", "PUSH")) {
+                if (result !in listOf("WON", "LOST", "PUSH", "VOID")) {
                     allSettled = false
                     continue
                 }
-                scores.add(scoreLabel + " · ФИНАЛ")
+                scores.add(scoreLabel + if (result == "VOID") " · ОТМЕНЁН" else " · ФИНАЛ")
                 if (result == "LOST") lost = true
                 if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
             } else {
@@ -2672,13 +2689,18 @@ class MainActivity : Activity() {
             m.optBoolean("scoreStatusFinal") else null
         val homeScore = if (m.isNull("homeScore")) null else m.optInt("homeScore")
         val awayScore = if (m.isNull("awayScore")) null else m.optInt("awayScore")
+        val fixtureStatus = if (BetSettlement.isCancelledMatchStatus(
+                m.optString("status"), m.optString("statusShort"), m.optString("statusLong")
+            )) "CANCELLED" else m.optString("status")
         val result = BetSettlement.settledResult(
-            b.optString("status"), m.optString("status"),
+            b.optString("status"), fixtureStatus,
             hasFinalFlag, finalFlag, homeScore, awayScore, b.optString("marketKey")
         ) ?: return false
         b.put("status", result)
-            .put("score", "$homeScore:$awayScore")
-            .put("matchStatus", "FINISHED")
+            .put("matchStatus", if (result == "VOID") fixtureStatus.uppercase(Locale.ROOT) else "FINISHED")
+            .put("settledAt", System.currentTimeMillis())
+        if (result == "VOID") b.remove("score")
+        else b.put("score", "$homeScore:$awayScore")
         return true
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
@@ -2862,6 +2884,7 @@ class MainActivity : Activity() {
                     "WON" -> "ВЫИГРЫШ"
                     "LOST" -> "ПРОИГРЫШ"
                     "PUSH" -> "ВОЗВРАТ"
+                    "VOID" -> "ВОЗВРАТ · МАТЧ ОТМЕНЁН"
                     else -> "ОЖИДАЕТ РАСЧЁТА"
                 }
                 val color = when (state) {
@@ -3122,7 +3145,7 @@ class MainActivity : Activity() {
                 "Создай fine-grained personal access token для if196315-stack/Football-model-app. " +
                     "Repository permissions → Contents: Read and write. " +
                     "История ставок, сигналы и настройки будут храниться в открытом JSON-файле репозитория. " +
-                    "Токен останется только в памяти приложения на телефоне; после переустановки его нужно ввести повторно."
+                    "Токен хранится в зашифрованном виде в защищённом хранилище Android на этом телефоне; после переустановки его нужно ввести повторно."
             )
             .setView(tokenInput)
             .setNegativeButton("Отмена", null)
@@ -3182,18 +3205,11 @@ class MainActivity : Activity() {
                     throw IllegalStateException("Не удалось получить информацию о релизах")
                 }
                 val releases = JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
-                val currentVersion = (packageManager.getPackageInfo(packageName, 0).versionName ?: "")
-                fun versionParts(value: String) = value.removePrefix("v").split(".", "-", "+").map { it.toIntOrNull() ?: 0 }
-                fun compareVersions(left: String, right: String): Int {
-                    val a = versionParts(left)
-                    val b = versionParts(right)
-                    for (i in 0 until maxOf(a.size, b.size)) {
-                        val av = a.getOrElse(i) { 0 }
-                        val bv = b.getOrElse(i) { 0 }
-                        if (av != bv) return av.compareTo(bv)
-                    }
-                    return 0
-                }
+                @Suppress("DEPRECATION")
+                val installedPackage = packageManager.getPackageInfo(packageName, 0)
+                val currentVersion = installedPackage.versionName ?: ""
+                @Suppress("DEPRECATION")
+                val currentVersionCode = installedPackage.versionCode.toLong()
                 // GitHub's /releases/latest can point to an older semantic version
                 // when releases were created or republished out of version order.
                 val releaseCandidates = (0 until releases.length()).mapNotNull { releases.optJSONObject(it) }
@@ -3205,16 +3221,18 @@ class MainActivity : Activity() {
                                 .firstOrNull { it.optString("name") == "app-release.apk" }
                                 ?.optString("browser_download_url")
                         }.orEmpty()
-                        if (tag.isBlank() || apk.isBlank()) null else tag to apk
+                        if (tag.isBlank() || apk.isBlank()) null
+                        else AppReleaseVersion.fromRelease(tag, release.optString("body")) to apk
                     }
-                val latestRelease = releaseCandidates.maxWithOrNull { a, b -> compareVersions(a.first, b.first) }
-                val latestTag = latestRelease?.first.orEmpty()
+                val latestRelease = releaseCandidates.maxWithOrNull { a, b -> a.first.compareTo(b.first) }
+                val latestVersion = latestRelease?.first
+                val latestTag = latestVersion?.versionName.orEmpty()
                 val apkUrl = latestRelease?.second.orEmpty()
-                fun isNewer(latest: String, current: String) = compareVersions(latest, current) > 0
+                val updateAvailable = latestVersion?.isNewerThan(currentVersion, currentVersionCode) == true
                 runOnUiThread {
                     if (latestTag.isBlank() || apkUrl.isBlank()) {
                         Toast.makeText(this, "Не удалось найти APK в последнем релизе.", Toast.LENGTH_LONG).show()
-                    } else if (isNewer(latestTag, currentVersion)) {
+                    } else if (updateAvailable) {
                         AlertDialog.Builder(this)
                             .setTitle("Доступно обновление IQ Match")
                             .setMessage("Установлена версия $currentVersion. Доступна версия $latestTag. Скачать обновление?")

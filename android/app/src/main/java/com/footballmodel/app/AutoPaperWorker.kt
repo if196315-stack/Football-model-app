@@ -32,20 +32,15 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         val startedAt = System.currentTimeMillis()
         Log.i(TAG, "Auto-paper worker started; attempt=$runAttemptCount")
         return try {
-            val domesticText = download("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json")
+            val domesticText = download("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/data.json", "domestic_json")
             val domestic = JSONObject(domesticText)
             // Keep the previous UEFA snapshot if its independent endpoint is temporarily unavailable.
             // Otherwise a successful domestic refresh could overwrite the merged cache without UCL/UEL/UECL.
             val cachedMerged = FeedCacheStore.read(applicationContext.filesDir, "merged_json")
             val cachedUefa = FeedCacheStore.read(applicationContext.filesDir, "uefa_json")
-            val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json")
+            val uefaText = downloadOrNull("https://raw.githubusercontent.com/if196315-stack/Football-model-app/main/docs/uefa-data.json", "uefa_json")
             val uefa = FeedMerger.resolveUefaFeed(uefaText, cachedUefa, cachedMerged)
             if (uefa != null) {
-                if (FeedMerger.parseUefaFeed(uefaText) != null && !uefaText.isNullOrBlank()) {
-                    if (!FeedCacheStore.write(applicationContext.filesDir, "uefa_json", uefaText)) {
-                        Log.w(TAG, "Unable to persist UEFA feed cache; using downloaded payload for this run")
-                    }
-                }
                 mergeUefa(domestic, uefa)
             }
             // Notify only for newly qualified TOP matches that are not already recorded by the user.
@@ -84,11 +79,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                         val key = settled.optString("id").ifBlank { settled.optString("matchId") }
                         val oldStatus = previousStatuses[key]
                         val newStatus = settled.optString("status")
-                        if (oldStatus == "PENDING" && newStatus in listOf("WON", "LOST", "PUSH")) {
+                        if (oldStatus == "PENDING" && newStatus in listOf("WON", "LOST", "PUSH", "VOID")) {
                             val matchName = settled.optString("matchName").ifBlank {
                                 settled.optString("home") + " — " + settled.optString("away")
                             }.trim(' ', '—')
-                            val outcome = when (newStatus) { "WON" -> "WIN"; "LOST" -> "LOSS"; else -> "ВОЗВРАТ" }
+                            val outcome = when (newStatus) { "WON" -> "WIN"; "LOST" -> "LOSS"; "VOID" -> "ВОЗВРАТ · ОТМЕНА"; else -> "ВОЗВРАТ" }
                             val stake = settled.optDouble("stake", 0.0)
                             val amount = when (newStatus) {
                                 "WON" -> stake * (settled.optDouble("odds", 0.0) - 1.0)
@@ -133,23 +128,48 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         }
     }
 
-    private fun download(url: String): String = downloadOrNull(url) ?: error(lastDownloadFailure ?: "Feed unavailable")
+    private fun download(url: String, cacheKey: String): String =
+        downloadOrNull(url, cacheKey) ?: error(lastDownloadFailure ?: "Feed unavailable")
 
-    private fun downloadOrNull(url: String): String? {
+    private fun downloadOrNull(url: String, cacheKey: String): String? {
         var connection: HttpURLConnection? = null
+        val cached = FeedCacheStore.read(applicationContext.filesDir, cacheKey)
+        val etagKey = "${cacheKey}_etag"
+        val etag = feedCache.getString(etagKey, null)
         return try {
             connection = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 12000
                 readTimeout = 18000
                 requestMethod = "GET"
+                setRequestProperty("Cache-Control", "no-cache")
+                if (!cached.isNullOrBlank() && !etag.isNullOrBlank()) {
+                    setRequestProperty("If-None-Match", etag)
+                }
             }
             val code = connection.responseCode
+            if (code == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                return cached ?: throw IllegalStateException("HTTP 304 without cached $cacheKey feed")
+            }
             if (code !in 200..299) throw IllegalStateException("HTTP $code from ${URL(url).host}")
-            connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val body = connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            // Validate before replacing the last-known-good cache snapshot.
+            JSONObject(body)
+            val bodyCached = FeedCacheStore.write(applicationContext.filesDir, cacheKey, body)
+            val editor = feedCache.edit()
+            if (bodyCached) {
+                connection.getHeaderField("ETag")?.takeIf { it.isNotBlank() }?.let { editor.putString(etagKey, it) }
+                    ?: editor.remove(etagKey)
+            } else {
+                // Never keep a validator for a body that was not persisted. The next
+                // request must be unconditional instead of accepting an unusable 304.
+                editor.remove(etagKey)
+            }
+            editor.commit()
+            body
         } catch (error: Exception) {
             lastDownloadFailure = "${error.javaClass.simpleName}: ${error.message ?: "network or feed error"}"
             Log.w(TAG, "Feed request failed: $url", error)
-            null
+            cached ?: null
         } finally { connection?.disconnect() }
     }
 
@@ -309,14 +329,22 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         for (i in 0 until selections.length()) {
             val pick = selections.optJSONObject(i) ?: continue
             val match = findMatch(feed, pick)
-            if (match == null || match.isNull("homeScore") || match.isNull("awayScore")) {
+            if (match == null) {
                 allSettled = false
                 continue
             }
             val matchStatus = match.optString("status")
-            val scoreLabel = pick.optString("home") + " " + match.optInt("homeScore") +
-                ":" + match.optInt("awayScore") + " " + pick.optString("away")
-            if (isFinishedMatch(match)) {
+            val cancelled = BetSettlement.isCancelledMatchStatus(
+                matchStatus, match.optString("statusShort"), match.optString("statusLong")
+            )
+            if (!cancelled && (match.isNull("homeScore") || match.isNull("awayScore"))) {
+                allSettled = false
+                continue
+            }
+            val scoreLabel = pick.optString("home") + " " +
+                (if (cancelled) "" else match.optInt("homeScore").toString() + ":" + match.optInt("awayScore")) +
+                " " + pick.optString("away")
+            if (cancelled || isFinishedMatch(match)) {
                 val leg = JSONObject().put("status", "PENDING")
                     .put("marketKey", pick.optString("marketKey"))
                 if (!settle(leg, match)) {
@@ -324,7 +352,7 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                     continue
                 }
                 val result = leg.optString("status")
-                scores.add(scoreLabel + " · ФИНАЛ")
+                scores.add(scoreLabel + if (result == "VOID") " · ОТМЕНЁН" else " · ФИНАЛ")
                 if (result == "LOST") lost = true
                 if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
             } else {
@@ -405,13 +433,18 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             match.optBoolean("scoreStatusFinal") else null
         val homeScore = if (match.isNull("homeScore")) null else match.optInt("homeScore")
         val awayScore = if (match.isNull("awayScore")) null else match.optInt("awayScore")
+        val fixtureStatus = if (BetSettlement.isCancelledMatchStatus(
+                match.optString("status"), match.optString("statusShort"), match.optString("statusLong")
+            )) "CANCELLED" else match.optString("status")
         val result = BetSettlement.settledResult(
-            bet.optString("status"), match.optString("status"),
+            bet.optString("status"), fixtureStatus,
             hasFinalFlag, finalFlag, homeScore, awayScore, bet.optString("marketKey")
         ) ?: return false
         bet.put("status", result)
-            .put("score", "$homeScore:$awayScore")
-            .put("matchStatus", "FINISHED")
+            .put("matchStatus", if (result == "VOID") fixtureStatus.uppercase(Locale.ROOT) else "FINISHED")
+            .put("settledAt", System.currentTimeMillis())
+        if (result == "VOID") bet.remove("score")
+        else bet.put("score", "$homeScore:$awayScore")
         return true
     }
 
