@@ -2573,7 +2573,9 @@ class MainActivity : Activity() {
                 continue
             }
             val matchStatus = match.optString("status")
-            val cancelled = BetSettlement.isCancelledMatchStatus(matchStatus)
+            val cancelled = BetSettlement.isCancelledMatchStatus(
+                matchStatus, match.optString("statusShort"), match.optString("statusLong")
+            )
             if (!cancelled && (match.isNull("homeScore") || match.isNull("awayScore"))) {
                 allSettled = false
                 continue
@@ -2687,12 +2689,15 @@ class MainActivity : Activity() {
             m.optBoolean("scoreStatusFinal") else null
         val homeScore = if (m.isNull("homeScore")) null else m.optInt("homeScore")
         val awayScore = if (m.isNull("awayScore")) null else m.optInt("awayScore")
+        val fixtureStatus = if (BetSettlement.isCancelledMatchStatus(
+                m.optString("status"), m.optString("statusShort"), m.optString("statusLong")
+            )) "CANCELLED" else m.optString("status")
         val result = BetSettlement.settledResult(
-            b.optString("status"), m.optString("status"),
+            b.optString("status"), fixtureStatus,
             hasFinalFlag, finalFlag, homeScore, awayScore, b.optString("marketKey")
         ) ?: return false
         b.put("status", result)
-            .put("matchStatus", if (result == "VOID") m.optString("status").uppercase(Locale.ROOT) else "FINISHED")
+            .put("matchStatus", if (result == "VOID") fixtureStatus.uppercase(Locale.ROOT) else "FINISHED")
             .put("settledAt", System.currentTimeMillis())
         if (result == "VOID") b.remove("score")
         else b.put("score", "$homeScore:$awayScore")

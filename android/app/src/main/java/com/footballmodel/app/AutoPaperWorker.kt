@@ -334,7 +334,9 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                 continue
             }
             val matchStatus = match.optString("status")
-            val cancelled = BetSettlement.isCancelledMatchStatus(matchStatus)
+            val cancelled = BetSettlement.isCancelledMatchStatus(
+                matchStatus, match.optString("statusShort"), match.optString("statusLong")
+            )
             if (!cancelled && (match.isNull("homeScore") || match.isNull("awayScore"))) {
                 allSettled = false
                 continue
@@ -431,12 +433,15 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             match.optBoolean("scoreStatusFinal") else null
         val homeScore = if (match.isNull("homeScore")) null else match.optInt("homeScore")
         val awayScore = if (match.isNull("awayScore")) null else match.optInt("awayScore")
+        val fixtureStatus = if (BetSettlement.isCancelledMatchStatus(
+                match.optString("status"), match.optString("statusShort"), match.optString("statusLong")
+            )) "CANCELLED" else match.optString("status")
         val result = BetSettlement.settledResult(
-            bet.optString("status"), match.optString("status"),
+            bet.optString("status"), fixtureStatus,
             hasFinalFlag, finalFlag, homeScore, awayScore, bet.optString("marketKey")
         ) ?: return false
         bet.put("status", result)
-            .put("matchStatus", if (result == "VOID") match.optString("status").uppercase(Locale.ROOT) else "FINISHED")
+            .put("matchStatus", if (result == "VOID") fixtureStatus.uppercase(Locale.ROOT) else "FINISHED")
             .put("settledAt", System.currentTimeMillis())
         if (result == "VOID") bet.remove("score")
         else bet.put("score", "$homeScore:$awayScore")

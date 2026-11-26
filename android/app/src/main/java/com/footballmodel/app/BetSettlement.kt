@@ -20,8 +20,8 @@ internal object BetSettlement {
         return if (scoreStatusFinalPresent) scoreStatusFinal == true else true
     }
 
-    fun isCancelledMatchStatus(status: String): Boolean =
-        status.trim().uppercase() in setOf("CANCELLED", "CANCELED", "CANC")
+    fun isCancelledMatchStatus(vararg statuses: String): Boolean =
+        statuses.any { it.trim().uppercase() in setOf("CANCELLED", "CANCELED", "CANC") }
 
     fun isSettledStatus(status: String): Boolean = status in setOf("WON", "LOST", "PUSH", "VOID")
 
