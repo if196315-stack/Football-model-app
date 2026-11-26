@@ -17,8 +17,8 @@ android {
         applicationId 'com.footballmodel.app'
         minSdk 23
         targetSdk 35
-        versionCode 83
-        versionName '3.15'
+        versionCode 84
+        versionName '3.16'
     }
 
     signingConfigs {
