@@ -1126,8 +1126,16 @@ class MainActivity : Activity() {
             val body = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             val bodyCached = FeedCacheStore.write(filesDir, cacheKey, body)
             val editor = feedCache.edit()
-            if (bodyCached) editor.remove(cacheKey)
-            conn.getHeaderField("ETag")?.let { editor.putString("${cacheKey}_etag", it) }
+            if (bodyCached) {
+                editor.remove(cacheKey)
+                conn.getHeaderField("ETag")?.takeIf { it.isNotBlank() }?.let {
+                    editor.putString("${cacheKey}_etag", it)
+                } ?: editor.remove("${cacheKey}_etag")
+            } else {
+                // A validator without its matching body can make a later 304 unusable
+                // or keep an older cache entry indefinitely.
+                editor.remove("${cacheKey}_etag")
+            }
             editor.apply()
             return body
         } catch (e: Exception) {
