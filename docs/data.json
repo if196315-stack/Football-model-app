@@ -28144,11 +28144,14 @@
           "away": "Brighton & Hove Albion",
           "homeScore": 2,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_4Pdd0e",
@@ -28158,11 +28161,14 @@
           "away": "Manchester United",
           "homeScore": 4,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_2FVfvL",
@@ -28172,11 +28178,14 @@
           "away": "Everton",
           "homeScore": 4,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_3xkED2",
@@ -73035,11 +73044,14 @@
           "away": "Villarreal",
           "homeScore": 3,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_2WvtVu",
@@ -73049,11 +73061,14 @@
           "away": "Real Sociedad",
           "homeScore": 3,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_25yFU8",
@@ -73063,11 +73078,14 @@
           "away": "Málaga",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_3ZF56r",
@@ -73077,11 +73095,14 @@
           "away": "Atlético Madrid",
           "homeScore": 0,
           "awayScore": 3,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_3jVoFq",
@@ -73091,11 +73112,14 @@
           "away": "Elche",
           "homeScore": 1,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_3N7OsF",
@@ -116625,11 +116649,14 @@
           "away": "Venezia",
           "homeScore": 4,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_4TXXCg",
@@ -116639,11 +116666,14 @@
           "away": "Genoa",
           "homeScore": 0,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_1PKq2V",
@@ -116653,11 +116683,14 @@
           "away": "Udinese",
           "homeScore": 1,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_40elPe",
@@ -116667,11 +116700,14 @@
           "away": "Frosinone",
           "homeScore": 5,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_0ZgZVI",
@@ -116681,11 +116717,14 @@
           "away": "Inter",
           "homeScore": 4,
           "awayScore": 4,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_08lkfg",
@@ -116695,11 +116734,14 @@
           "away": "Fiorentina",
           "homeScore": 3,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_398Ugm",
@@ -155129,11 +155171,14 @@
           "away": "Mainz 05",
           "homeScore": 3,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_1FnTzR",
@@ -155143,11 +155188,14 @@
           "away": "Hamburger SV",
           "homeScore": 4,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_0toF5d",
@@ -193514,11 +193562,14 @@
           "away": "Angers",
           "homeScore": 4,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_1AvzJo",
@@ -193528,11 +193579,14 @@
           "away": "Rennes",
           "homeScore": 1,
           "awayScore": 1,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_3pvUaB",
@@ -193542,11 +193596,14 @@
           "away": "Le Mans",
           "homeScore": 2,
           "awayScore": 3,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-26T02:11:12.390222+00:00"
         },
         {
           "id": "m_1oxRzF",
