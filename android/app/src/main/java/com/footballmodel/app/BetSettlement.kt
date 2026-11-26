@@ -20,7 +20,10 @@ internal object BetSettlement {
         return if (scoreStatusFinalPresent) scoreStatusFinal == true else true
     }
 
-    fun isSettledStatus(status: String): Boolean = status in setOf("WON", "LOST", "PUSH")
+    fun isCancelledMatchStatus(status: String): Boolean =
+        status.trim().uppercase() in setOf("CANCELLED", "CANCELED", "CANC")
+
+    fun isSettledStatus(status: String): Boolean = status in setOf("WON", "LOST", "PUSH", "VOID")
 
     /**
      * A previously settled local record is stale if its exact fixture is explicitly
@@ -55,7 +58,12 @@ internal object BetSettlement {
         awayGoals: Int?,
         marketKey: String
     ): String? {
-        if (currentStatus != "PENDING" || homeGoals == null || awayGoals == null ||
+        if (currentStatus != "PENDING") return null
+        // A confirmed cancellation refunds the stake and does not require a score.
+        // Postponed, suspended and abandoned fixtures are deliberately not treated
+        // as void until the provider marks the fixture explicitly cancelled.
+        if (isCancelledMatchStatus(matchStatus)) return "VOID"
+        if (homeGoals == null || awayGoals == null ||
             !isConfirmedFinal(matchStatus, scoreStatusFinalPresent, scoreStatusFinal)) return null
         return result(marketKey, homeGoals, awayGoals)
     }

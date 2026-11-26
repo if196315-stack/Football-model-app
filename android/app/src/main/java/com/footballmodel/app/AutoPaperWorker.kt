@@ -79,11 +79,11 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
                         val key = settled.optString("id").ifBlank { settled.optString("matchId") }
                         val oldStatus = previousStatuses[key]
                         val newStatus = settled.optString("status")
-                        if (oldStatus == "PENDING" && newStatus in listOf("WON", "LOST", "PUSH")) {
+                        if (oldStatus == "PENDING" && newStatus in listOf("WON", "LOST", "PUSH", "VOID")) {
                             val matchName = settled.optString("matchName").ifBlank {
                                 settled.optString("home") + " — " + settled.optString("away")
                             }.trim(' ', '—')
-                            val outcome = when (newStatus) { "WON" -> "WIN"; "LOST" -> "LOSS"; else -> "ВОЗВРАТ" }
+                            val outcome = when (newStatus) { "WON" -> "WIN"; "LOST" -> "LOSS"; "VOID" -> "ВОЗВРАТ · ОТМЕНА"; else -> "ВОЗВРАТ" }
                             val stake = settled.optDouble("stake", 0.0)
                             val amount = when (newStatus) {
                                 "WON" -> stake * (settled.optDouble("odds", 0.0) - 1.0)
@@ -329,14 +329,20 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
         for (i in 0 until selections.length()) {
             val pick = selections.optJSONObject(i) ?: continue
             val match = findMatch(feed, pick)
-            if (match == null || match.isNull("homeScore") || match.isNull("awayScore")) {
+            if (match == null) {
                 allSettled = false
                 continue
             }
             val matchStatus = match.optString("status")
-            val scoreLabel = pick.optString("home") + " " + match.optInt("homeScore") +
-                ":" + match.optInt("awayScore") + " " + pick.optString("away")
-            if (isFinishedMatch(match)) {
+            val cancelled = BetSettlement.isCancelledMatchStatus(matchStatus)
+            if (!cancelled && (match.isNull("homeScore") || match.isNull("awayScore"))) {
+                allSettled = false
+                continue
+            }
+            val scoreLabel = pick.optString("home") + " " +
+                (if (cancelled) "" else match.optInt("homeScore").toString() + ":" + match.optInt("awayScore")) +
+                " " + pick.optString("away")
+            if (cancelled || isFinishedMatch(match)) {
                 val leg = JSONObject().put("status", "PENDING")
                     .put("marketKey", pick.optString("marketKey"))
                 if (!settle(leg, match)) {
@@ -430,8 +436,10 @@ class AutoPaperWorker(context: Context, params: WorkerParameters) : Worker(conte
             hasFinalFlag, finalFlag, homeScore, awayScore, bet.optString("marketKey")
         ) ?: return false
         bet.put("status", result)
-            .put("score", "$homeScore:$awayScore")
-            .put("matchStatus", "FINISHED")
+            .put("matchStatus", if (result == "VOID") match.optString("status").uppercase(Locale.ROOT) else "FINISHED")
+            .put("settledAt", System.currentTimeMillis())
+        if (result == "VOID") bet.remove("score")
+        else bet.put("score", "$homeScore:$awayScore")
         return true
     }
 

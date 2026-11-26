@@ -2405,7 +2405,7 @@ class MainActivity : Activity() {
             val persisted = mergedSnapshot[key]
             // Never let an unsaved PENDING copy roll back a terminal persisted result.
             if (persisted != null && local.optString("status") == "PENDING" &&
-                persisted.optString("status") in listOf("WON", "LOST", "PUSH")) continue
+                persisted.optString("status") in listOf("WON", "LOST", "PUSH", "VOID")) continue
             mergedSnapshot[key] = local
         }
         val mergedBets = JSONArray(mergedSnapshot.values.toList())
@@ -2479,7 +2479,7 @@ class MainActivity : Activity() {
                 if (local == null && preserveBackgroundAuto && item.optString("source") == "AI_AUTO") {
                     merged[key] = item
                 } else if (local != null && local.optString("status") == "PENDING" &&
-                    item.optString("status") in listOf("WON", "LOST", "PUSH")) {
+                    item.optString("status") in listOf("WON", "LOST", "PUSH", "VOID")) {
                     merged[key] = item
                 }
             }
@@ -2568,21 +2568,28 @@ class MainActivity : Activity() {
         for (i in 0 until selections.length()) {
             val pick = selections.optJSONObject(i) ?: continue
             val match = findIndexedMatch(pick)
-            if (match == null || match.isNull("homeScore") || match.isNull("awayScore")) {
+            if (match == null) {
                 allSettled = false
                 continue
             }
             val matchStatus = match.optString("status")
-            val scoreLabel = pick.optString("home") + " " + match.optInt("homeScore") + ":" + match.optInt("awayScore") + " " + pick.optString("away")
-            if (isFinishedMatch(match)) {
+            val cancelled = BetSettlement.isCancelledMatchStatus(matchStatus)
+            if (!cancelled && (match.isNull("homeScore") || match.isNull("awayScore"))) {
+                allSettled = false
+                continue
+            }
+            val scoreLabel = pick.optString("home") + " " +
+                (if (cancelled) "" else match.optInt("homeScore").toString() + ":" + match.optInt("awayScore")) +
+                " " + pick.optString("away")
+            if (cancelled || isFinishedMatch(match)) {
                 val leg = JSONObject().put("status", "PENDING").put("marketKey", pick.optString("marketKey"))
                 settleBet(leg, match)
                 val result = leg.optString("status")
-                if (result !in listOf("WON", "LOST", "PUSH")) {
+                if (result !in listOf("WON", "LOST", "PUSH", "VOID")) {
                     allSettled = false
                     continue
                 }
-                scores.add(scoreLabel + " · ФИНАЛ")
+                scores.add(scoreLabel + if (result == "VOID") " · ОТМЕНЁН" else " · ФИНАЛ")
                 if (result == "LOST") lost = true
                 if (result == "WON") effectiveOdds *= pick.optDouble("odds", 1.0)
             } else {
@@ -2685,8 +2692,10 @@ class MainActivity : Activity() {
             hasFinalFlag, finalFlag, homeScore, awayScore, b.optString("marketKey")
         ) ?: return false
         b.put("status", result)
-            .put("score", "$homeScore:$awayScore")
-            .put("matchStatus", "FINISHED")
+            .put("matchStatus", if (result == "VOID") m.optString("status").uppercase(Locale.ROOT) else "FINISHED")
+            .put("settledAt", System.currentTimeMillis())
+        if (result == "VOID") b.remove("score")
+        else b.put("score", "$homeScore:$awayScore")
         return true
     }
     private fun fmt(v: Double)=String.format(Locale.getDefault(),"%.2f",v)
@@ -2870,6 +2879,7 @@ class MainActivity : Activity() {
                     "WON" -> "ВЫИГРЫШ"
                     "LOST" -> "ПРОИГРЫШ"
                     "PUSH" -> "ВОЗВРАТ"
+                    "VOID" -> "ВОЗВРАТ · МАТЧ ОТМЕНЁН"
                     else -> "ОЖИДАЕТ РАСЧЁТА"
                 }
                 val color = when (state) {
