@@ -28187,9 +28187,9 @@
           "status": "IN_PLAY",
           "home": "Nottingham Forest",
           "away": "Chelsea",
-          "homeScore": 1,
-          "awayScore": 0,
-          "elapsed": 28,
+          "homeScore": 2,
+          "awayScore": 1,
+          "elapsed": 71,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -28577,7 +28577,7 @@
           },
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-27T20:28:47.187654+00:00"
+          "resultUpdatedAt": "2026-11-27T21:30:36.447024+00:00"
         },
         {
           "id": "m_35NS0w",
@@ -73112,9 +73112,9 @@
           "status": "IN_PLAY",
           "home": "Levante",
           "away": "Racing Santander",
-          "homeScore": 0,
-          "awayScore": 0,
-          "elapsed": 26,
+          "homeScore": 1,
+          "awayScore": 1,
+          "elapsed": 71,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -73502,7 +73502,7 @@
           },
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-27T20:28:47.187654+00:00"
+          "resultUpdatedAt": "2026-11-27T21:30:36.447024+00:00"
         },
         {
           "id": "m_08z59s",
@@ -116724,7 +116724,7 @@
           "away": "Bologna",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": 42,
+          "elapsed": 85,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -116752,7 +116752,7 @@
           "predictionWarning": null,
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-27T20:28:47.187654+00:00"
+          "resultUpdatedAt": "2026-11-27T21:30:36.447024+00:00"
         },
         {
           "id": "m_1Kxps6",
@@ -154787,12 +154787,12 @@
         {
           "id": "m_0toF5d",
           "utcDate": "2026-11-27T19:30:00Z",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Werder Bremen",
           "away": "Borussia Mönchengladbach",
-          "homeScore": 1,
-          "awayScore": 1,
-          "elapsed": 45,
+          "homeScore": 3,
+          "awayScore": 3,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -154818,9 +154818,9 @@
             "historyMaxDate": "2026-11-22"
           },
           "predictionWarning": null,
-          "scoreStatusFinal": false,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-27T20:28:47.187654+00:00"
+          "resultUpdatedAt": "2026-11-27T21:30:36.447024+00:00"
         },
         {
           "id": "m_3VtobK",
@@ -192811,7 +192811,7 @@
           "away": "Paris FC",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": 43,
+          "elapsed": 87,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -192839,7 +192839,7 @@
           "predictionWarning": null,
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-27T20:28:47.187654+00:00"
+          "resultUpdatedAt": "2026-11-27T21:30:36.447024+00:00"
         },
         {
           "id": "m_2KbgcS",
