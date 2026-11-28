@@ -28198,12 +28198,12 @@
         {
           "id": "m_35NS0w",
           "utcDate": "2026-11-28T15:00:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Leeds United",
           "away": "Coventry City",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 27,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -28588,17 +28588,20 @@
                 "yes": "MELBET"
               }
             }
-          }
+          },
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_4AXxqK",
           "utcDate": "2026-11-28T15:00:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Manchester United",
           "away": "Brentford",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 1,
+          "elapsed": 27,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -28983,7 +28986,10 @@
                 "yes": "MELBET"
               }
             }
-          }
+          },
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_2a6aiA",
@@ -72739,12 +72745,12 @@
         {
           "id": "m_08z59s",
           "utcDate": "2026-11-28T13:00:00Z",
-          "status": "IN_PLAY",
+          "status": "FINISHED",
           "home": "Real Betis",
           "away": "Rayo Vallecano",
           "homeScore": 0,
-          "awayScore": 0,
-          "elapsed": 70,
+          "awayScore": 1,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -72770,19 +72776,19 @@
             "historyMaxDate": "2026-11-22"
           },
           "predictionWarning": null,
-          "scoreStatusFinal": false,
+          "scoreStatusFinal": true,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_29RFV7",
           "utcDate": "2026-11-28T15:15:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Málaga",
           "away": "Athletic Club",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 11,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -72807,7 +72813,10 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-22"
           },
-          "predictionWarning": null
+          "predictionWarning": null,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_0Ug8cm",
@@ -115633,9 +115642,9 @@
           "status": "IN_PLAY",
           "home": "Frosinone",
           "away": "Parma",
-          "homeScore": 0,
+          "homeScore": 2,
           "awayScore": 0,
-          "elapsed": 31,
+          "elapsed": 68,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -116023,7 +116032,7 @@
           },
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_1LXkdY",
@@ -153684,8 +153693,8 @@
           "home": "Mainz 05",
           "away": "Union Berlin",
           "homeScore": 0,
-          "awayScore": 0,
-          "elapsed": 3,
+          "awayScore": 1,
+          "elapsed": 45,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -154050,7 +154059,7 @@
           },
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_17iYnz",
@@ -154058,9 +154067,9 @@
           "status": "IN_PLAY",
           "home": "Paderborn",
           "away": "Schalke 04",
-          "homeScore": 0,
+          "homeScore": 3,
           "awayScore": 0,
-          "elapsed": 3,
+          "elapsed": 45,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -154448,7 +154457,7 @@
           },
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_2u1O22",
@@ -154456,9 +154465,9 @@
           "status": "IN_PLAY",
           "home": "1. FC Köln",
           "away": "Elversberg",
-          "homeScore": 0,
+          "homeScore": 3,
           "awayScore": 0,
-          "elapsed": 3,
+          "elapsed": 45,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -154846,7 +154855,7 @@
           },
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_3Hzh67",
@@ -154856,7 +154865,7 @@
           "away": "Bayern München",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": 3,
+          "elapsed": 45,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -155221,7 +155230,7 @@
           },
           "scoreStatusFinal": false,
           "resultProvider": "API-Sport",
-          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
+          "resultUpdatedAt": "2026-11-28T15:27:34.224816+00:00"
         },
         {
           "id": "m_3PhJyQ",
