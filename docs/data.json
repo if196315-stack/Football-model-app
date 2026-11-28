@@ -28186,11 +28186,14 @@
           "away": "Chelsea",
           "homeScore": 3,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_35NS0w",
@@ -72724,21 +72727,24 @@
           "away": "Racing Santander",
           "homeScore": 1,
           "awayScore": 3,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_08z59s",
           "utcDate": "2026-11-28T13:00:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Real Betis",
           "away": "Rayo Vallecano",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 70,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -72763,7 +72769,10 @@
             "modelVersion": "xg-poisson-v2-x2-calibrated",
             "historyMaxDate": "2026-11-22"
           },
-          "predictionWarning": null
+          "predictionWarning": null,
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_29RFV7",
@@ -115609,21 +115618,24 @@
           "away": "Bologna",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_1Kxps6",
           "utcDate": "2026-11-28T14:00:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Frosinone",
           "away": "Parma",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 31,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -116008,7 +116020,10 @@
                 "yes": "MELBET"
               }
             }
-          }
+          },
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_1LXkdY",
@@ -153653,21 +153668,24 @@
           "away": "Borussia Mönchengladbach",
           "homeScore": 3,
           "awayScore": 3,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_3VtobK",
           "utcDate": "2026-11-28T14:30:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Mainz 05",
           "away": "Union Berlin",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 3,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -154029,17 +154047,20 @@
                 "yes": "MELBET"
               }
             }
-          }
+          },
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_17iYnz",
           "utcDate": "2026-11-28T14:30:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Paderborn",
           "away": "Schalke 04",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 3,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -154424,17 +154445,20 @@
                 "yes": "MELBET"
               }
             }
-          }
+          },
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_2u1O22",
           "utcDate": "2026-11-28T14:30:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "1. FC Köln",
           "away": "Elversberg",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 3,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -154819,17 +154843,20 @@
                 "yes": "MELBET"
               }
             }
-          }
+          },
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_3Hzh67",
           "utcDate": "2026-11-28T14:30:00Z",
-          "status": "SCHEDULED",
+          "status": "IN_PLAY",
           "home": "Hamburger SV",
           "away": "Bayern München",
-          "homeScore": null,
-          "awayScore": null,
-          "elapsed": null,
+          "homeScore": 0,
+          "awayScore": 0,
+          "elapsed": 3,
           "elapsedExtra": null,
           "period": null,
           "prediction": {
@@ -155191,7 +155218,10 @@
                 "yes": "MELBET"
               }
             }
-          }
+          },
+          "scoreStatusFinal": false,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_3PhJyQ",
@@ -191675,11 +191705,14 @@
           "away": "Paris FC",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T14:34:03.361221+00:00"
         },
         {
           "id": "m_2KbgcS",
