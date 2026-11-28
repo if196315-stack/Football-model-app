@@ -28186,11 +28186,14 @@
           "away": "Chelsea",
           "homeScore": 3,
           "awayScore": 2,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T10:47:16.939428+00:00"
         },
         {
           "id": "m_35NS0w",
@@ -58927,11 +58930,14 @@
           "away": "Racing Santander",
           "homeScore": 1,
           "awayScore": 3,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T10:47:16.939428+00:00"
         },
         {
           "id": "m_08z59s",
@@ -89454,11 +89460,14 @@
           "away": "Bologna",
           "homeScore": 0,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T10:47:16.939428+00:00"
         },
         {
           "id": "m_1Kxps6",
@@ -114383,11 +114392,14 @@
           "away": "Borussia Mönchengladbach",
           "homeScore": 3,
           "awayScore": 3,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T10:47:16.939428+00:00"
         },
         {
           "id": "m_3VtobK",
@@ -141292,11 +141304,14 @@
           "away": "Paris FC",
           "homeScore": 1,
           "awayScore": 0,
-          "elapsed": null,
+          "elapsed": 90,
           "elapsedExtra": null,
           "period": null,
           "prediction": null,
-          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG"
+          "predictionWarning": "Недостаточно предматчевой парной истории shot-level xG",
+          "scoreStatusFinal": true,
+          "resultProvider": "API-Sport",
+          "resultUpdatedAt": "2026-11-28T10:47:16.939428+00:00"
         },
         {
           "id": "m_2KbgcS",
